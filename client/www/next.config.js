@@ -193,9 +193,18 @@ async function fetchFonts() {
   );
 }
 
+// Both build-time fetches contact third-party hosts, so they are opt-in.
+// Without FETCH_BERKELEY_MONO_FONTS=true the CSS falls back to the system
+// monospace stack. Without FETCH_GITHUB_STAR_COUNT=true the star count uses
+// the client-side fallback in lib/starCountContext.tsx.
 module.exports = async () => {
-  await fetchFonts();
-  const starCount = await fetchStarCount();
+  if (process.env.FETCH_BERKELEY_MONO_FONTS === 'true') {
+    await fetchFonts();
+  }
+  const starCount =
+    process.env.FETCH_GITHUB_STAR_COUNT === 'true'
+      ? await fetchStarCount()
+      : null;
   if (starCount) {
     nextConfig.env = {
       ...nextConfig.env,

@@ -1,5 +1,5 @@
 import { ImageResponse } from '@vercel/og';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 const SIZE = { width: 1200, height: 630 };
@@ -8,24 +8,39 @@ function readFont(filename: string): Buffer {
   return readFileSync(join(process.cwd(), 'public', 'fonts', filename));
 }
 
+// Berkeley Mono is only present when next.config.js fetched it
+// (FETCH_BERKELEY_MONO_FONTS=true). Without it, OG images use Switzer.
+function readOptionalFont(filename: string): Buffer | null {
+  const filePath = join(process.cwd(), 'public', 'fonts', filename);
+  return existsSync(filePath) ? readFileSync(filePath) : null;
+}
+
 export async function loadFonts() {
-  const berkRegular = readFont('BerkeleyMono-Regular.ttf');
-  const berkBold = readFont('BerkeleyMono-Bold.ttf');
+  const berkRegular = readOptionalFont('BerkeleyMono-Regular.ttf');
+  const berkBold = readOptionalFont('BerkeleyMono-Bold.ttf');
   const swRegular = readFont('Switzer-Regular.woff');
   const swSemibold = readFont('Switzer-Semibold.woff');
   return [
-    {
-      name: 'Berkeley Mono',
-      data: berkRegular,
-      style: 'normal' as const,
-      weight: 500 as const,
-    },
-    {
-      name: 'Berkeley Mono',
-      data: berkBold,
-      style: 'normal' as const,
-      weight: 700 as const,
-    },
+    ...(berkRegular
+      ? [
+          {
+            name: 'Berkeley Mono',
+            data: berkRegular,
+            style: 'normal' as const,
+            weight: 500 as const,
+          },
+        ]
+      : []),
+    ...(berkBold
+      ? [
+          {
+            name: 'Berkeley Mono',
+            data: berkBold,
+            style: 'normal' as const,
+            weight: 700 as const,
+          },
+        ]
+      : []),
     {
       name: 'Switzer',
       data: swRegular,
