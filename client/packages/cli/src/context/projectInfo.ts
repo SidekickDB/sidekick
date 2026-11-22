@@ -27,7 +27,7 @@ const execAsync = promisify(exec);
 export const PACKAGE_ALIAS_AND_FULL_NAMES = {
   react: '@instantdb/react',
   'react-native': '@instantdb/react-native',
-  core: '@instantdb/core',
+  core: '@sidekickdb/core',
   admin: '@instantdb/admin',
   solid: '@instantdb/solidjs',
   svelte: '@instantdb/svelte',
@@ -61,7 +61,7 @@ const getProjectInfo = (
       return {
         pkgDir: projectDir.dir,
         projectType: projectDir.type,
-        instantModuleName: '@instantdb/core',
+        instantModuleName: '@sidekickdb/core',
       };
     }
 
@@ -125,7 +125,7 @@ const getProjectInfo = (
                 label: '@instantdb/react-native',
                 value: '@instantdb/react-native',
               },
-              { label: '@instantdb/core', value: '@instantdb/core' },
+              { label: '@sidekickdb/core', value: '@sidekickdb/core' },
               { label: '@instantdb/admin', value: '@instantdb/admin' },
               { label: '@instantdb/solidjs', value: '@instantdb/solidjs' },
               { label: '@instantdb/svelte', value: '@instantdb/svelte' },
@@ -200,7 +200,7 @@ function getInstantModuleName(pkgJson: PackageJson) {
   const instantModuleName = [
     '@instantdb/react',
     '@instantdb/react-native',
-    '@instantdb/core',
+    '@sidekickdb/core',
     '@instantdb/admin',
     '@instantdb/solidjs',
     '@instantdb/svelte',

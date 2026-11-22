@@ -30,7 +30,7 @@ import {
   type InstantRouteHandlerPayloadByType,
   type InstantRouteHandlerType,
   type InstantRouteHandlerBody,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { exchangeCodeForToken, exchangeRefreshToken } from './serverOAuth.ts';
 import { clerkDomainFromPublishableKey } from './clerk.ts';
 import {

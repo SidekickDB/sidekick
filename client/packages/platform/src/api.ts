@@ -13,7 +13,7 @@ import {
   i,
   InstantDBInferredType,
   DataAttrDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { Webhooks, type WithAuth } from '@instantdb/webhooks';
 import { BackupsManager } from './backups.ts';
 import version from './version.ts';

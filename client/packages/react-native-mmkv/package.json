@@ -39,6 +39,6 @@
     "react-native-mmkv": ">=1.15"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*"
+    "@sidekickdb/core": "workspace:*"
   }
 }

@@ -23,7 +23,7 @@ import {
   RoomsOf,
   InstantError,
   IInstantDatabase,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { ref, shallowRef, computed, watch, toValue } from 'vue';
 import type { Ref, ShallowRef, ComputedRef, MaybeRefOrGetter } from 'vue';

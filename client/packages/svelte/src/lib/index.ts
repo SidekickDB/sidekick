@@ -92,7 +92,7 @@ import {
   type InstantRouteHandlerBody,
   type StoreInterfaceStoreName,
   type Logger,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { InstantSvelteDatabase } from './InstantSvelteDatabase.svelte.js';
 import { init } from './InstantSvelteDatabase.svelte.js';

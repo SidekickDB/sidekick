@@ -56,7 +56,7 @@ export const relationshipConstraintsInverse: Record<string, RelationshipKinds> =
   );
 // COPIED FROM www/lib/types!!!!!!!!!!! LOOK OUT
 
-import { InstantIssue } from '@instantdb/core';
+import { InstantIssue } from '@sidekickdb/core';
 
 export type InstantApp = {
   id: string;

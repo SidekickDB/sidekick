@@ -2,7 +2,7 @@ import {
   InstantConfig,
   InstantSchemaDef,
   InstantUnknownSchema,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import version from '../version.ts';
 
@@ -16,7 +16,7 @@ export {
 export { InstantNextDatabase } from './InstantNextDatabase.tsx';
 export { InstantSuspenseProvider } from './InstantSuspenseProvider.tsx';
 
-export { createInstantRouteHandler } from '@instantdb/core';
+export { createInstantRouteHandler } from '@sidekickdb/core';
 
 /**
  *

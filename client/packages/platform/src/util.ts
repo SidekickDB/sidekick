@@ -8,7 +8,7 @@ import {
   InstantSchemaDef,
   LinksDef,
   RoomsDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 export function sortedEntries<T>(o: Record<string, T>): [string, T][] {
   return Object.entries(o).sort(([a], [b]) => a.localeCompare(b));

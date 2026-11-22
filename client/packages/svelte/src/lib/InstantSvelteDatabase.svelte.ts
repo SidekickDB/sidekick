@@ -25,7 +25,7 @@ import {
   RoomsOf,
   InstantError,
   IInstantDatabase,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { InstantSvelteRoom, rooms } from './InstantSvelteRoom.svelte.js';
 import version from './version.js';

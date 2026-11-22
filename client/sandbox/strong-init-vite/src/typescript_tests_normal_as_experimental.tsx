@@ -3,7 +3,7 @@ import {
   init as core_init,
   init_experimental as _a,
   BackwardsCompatibleSchema,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { init as react_init, init_experimental as _b } from '@instantdb/react';
 import {
   init as react_native_init,

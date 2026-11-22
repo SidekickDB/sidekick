@@ -30,7 +30,7 @@ export function generatePermsTypescriptFile(
 
   return `// Docs: https://www.instantdb.com/docs/permissions
 
-import type { InstantRules } from "${instantModuleName ?? '@instantdb/core'}";
+import type { InstantRules } from "${instantModuleName ?? '@sidekickdb/core'}";
 
 const rules = ${rulesTxt} satisfies InstantRules;
 

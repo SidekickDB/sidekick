@@ -1,5 +1,5 @@
 import { id, init as initAdmin, lookup, tx } from '@instantdb/admin';
-import { init as initCore, InstantUnknownSchema } from '@instantdb/core';
+import { init as initCore, InstantUnknownSchema } from '@sidekickdb/core';
 import Json from '@uiw/react-json-view';
 import { darkTheme } from '@uiw/react-json-view/dark';
 import { lightTheme } from '@uiw/react-json-view/light';
@@ -1373,7 +1373,7 @@ import {
   InstaQLResponse,
   TransactionChunk,
   TxChunk,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import schema, { type AppSchema } from './instant.schema';
 
 type InstantTx = TxChunk<AppSchema>;

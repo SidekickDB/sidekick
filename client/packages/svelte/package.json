@@ -41,8 +41,8 @@
     "svelte": "^5.0.0"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/version": "workspace:*"
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/version": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",

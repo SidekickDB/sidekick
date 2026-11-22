@@ -11,7 +11,7 @@
     "@clerk/nextjs": "^5.3.7",
     "@instantdb/admin": "workspace:*",
     "@instantdb/components": "workspace:*",
-    "@instantdb/core": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
     "@instantdb/platform": "workspace:*",
     "@instantdb/react": "workspace:*",
     "@instantdb/resumable-stream": "workspace:*",

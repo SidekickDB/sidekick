@@ -3,7 +3,7 @@
   "private": true,
   "dependencies": {
     "@instantdb/admin": "workspace:*",
-    "@instantdb/core": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
     "instant-cli": "workspace:*"
   },
   "devDependencies": {

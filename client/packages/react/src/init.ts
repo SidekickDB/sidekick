@@ -2,7 +2,7 @@ import type {
   InstantConfig,
   InstantSchemaDef,
   InstantUnknownSchema,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import InstantReactWebDatabase from './InstantReactWebDatabase.ts';
 import version from './version.ts';

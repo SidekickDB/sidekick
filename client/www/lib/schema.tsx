@@ -1,5 +1,5 @@
 import { DBAttr, SchemaAttr, SchemaNamespace } from '@/lib/types';
-import { InstantDBAttr } from '@instantdb/core';
+import { InstantDBAttr } from '@sidekickdb/core';
 import { InstantAPIPlatformSchema } from '@instantdb/platform';
 
 // We show most attrs in the explorer except for some system attrs

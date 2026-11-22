@@ -67,8 +67,8 @@
   "dependencies": {
     "@babel/parser": "^8.0.0-beta.0",
     "@babel/types": "^8.0.0-beta.0",
-    "@instantdb/core": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "@instantdb/webhooks": "workspace:*"
   }
 }

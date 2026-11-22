@@ -92,7 +92,7 @@ import {
   type InstantRouteHandlerBody,
   type StoreInterfaceStoreName,
   type Logger,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { InstantSolidDatabase } from './InstantSolidDatabase.js';
 import { init } from './InstantSolidDatabase.js';

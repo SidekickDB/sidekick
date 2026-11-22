@@ -640,7 +640,7 @@ export default Chat`;
 const schemaCode = `// Declarative data model
 // ----------------------------------
 
-import { i } from "@instantdb/core"
+import { i } from "@sidekickdb/core"
 
 const schema = i.schema({
   entities: {

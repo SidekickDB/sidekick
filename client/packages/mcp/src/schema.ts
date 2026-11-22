@@ -1,7 +1,7 @@
 // Helper function to convert Zod schema definition for modifying InstantDB
 // schema to a format the InstantDB platform can use
 
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 type AttributeConfig = {
   type: 'string' | 'number' | 'boolean' | 'date' | 'json';

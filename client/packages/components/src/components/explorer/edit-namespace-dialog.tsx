@@ -1,5 +1,5 @@
 import React from 'react';
-import { id } from '@instantdb/core';
+import { id } from '@sidekickdb/core';
 import { InstantReactWebDatabase } from '@instantdb/react';
 import {
   useEffect,

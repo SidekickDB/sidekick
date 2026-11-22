@@ -92,7 +92,7 @@ import {
   type InstantRouteHandlerBody,
   type StoreInterfaceStoreName,
   type Logger,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { InstantVueDatabase, init } from './InstantVueDatabase.js';
 import { InstantVueRoom } from './InstantVueRoom.js';

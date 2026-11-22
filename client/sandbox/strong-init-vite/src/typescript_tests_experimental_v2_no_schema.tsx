@@ -5,7 +5,7 @@ import {
   InstaQLEntity,
   InstaQLResult,
   InstantUnknownSchema,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { init as react_init } from '@instantdb/react';
 import { init as react_native_init } from '@instantdb/react-native';
 import { init as admin_init } from '@instantdb/admin';

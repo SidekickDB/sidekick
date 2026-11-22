@@ -59,8 +59,8 @@
     "vitest": "^0.21.0"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "@instantdb/webhooks": "workspace:*",
     "cookie": "^1.1.1",
     "@instantdb/eventsource": "4.1.0-2",

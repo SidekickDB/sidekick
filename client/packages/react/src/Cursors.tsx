@@ -6,7 +6,7 @@ import {
   type CSSProperties,
 } from 'react';
 import { type InstantReactRoom } from '@instantdb/react-common';
-import type { RoomSchemaShape } from '@instantdb/core';
+import type { RoomSchemaShape } from '@sidekickdb/core';
 
 export function Cursors<
   RoomSchema extends RoomSchemaShape,

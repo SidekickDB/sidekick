@@ -1,5 +1,5 @@
 import { expect, test as test } from 'vitest';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import {
   convertTxSteps,
   diffSchemas,

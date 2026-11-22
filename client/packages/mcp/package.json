@@ -45,9 +45,9 @@
   "dependencies": {
     "@honeycombio/opentelemetry-node": "^0.7.2",
     "@instantdb/admin": "workspace:*",
-    "@instantdb/core": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
     "@instantdb/platform": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.17.2",
     "@opentelemetry/api": "^1.9.0",
     "cookie-parser": "^1.4.7",

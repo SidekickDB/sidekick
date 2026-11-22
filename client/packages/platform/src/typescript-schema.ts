@@ -14,7 +14,7 @@ import type {
 } from '@babel/types';
 
 import { GenericSchemaDef } from './util.ts';
-import { AttrsDefs, DataAttrDef, i } from '@instantdb/core';
+import { AttrsDefs, DataAttrDef, i } from '@sidekickdb/core';
 
 type JsonValue =
   | string

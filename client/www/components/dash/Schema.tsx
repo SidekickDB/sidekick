@@ -20,7 +20,7 @@ import { addInstantLibs } from '@/lib/monaco';
 import { useDarkMode } from './DarkModeToggle';
 
 type Pkg =
-  | '@instantdb/core'
+  | '@sidekickdb/core'
   | '@instantdb/react'
   | '@instantdb/react-native'
   | '@instantdb/admin';
@@ -35,11 +35,11 @@ function attrsToTsFile(attrs: Record<string, DBAttr>, pkg: Pkg) {
 
 export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
   const [pkg, setPkg] = useState<
-    | '@instantdb/core'
+    | '@sidekickdb/core'
     | '@instantdb/admin'
     | '@instantdb/react'
     | '@instantdb/react-native'
-  >('@instantdb/core');
+  >('@sidekickdb/core');
 
   const onMount = (_editor: any, monaco: Monaco) => {
     addInstantLibs(monaco);
@@ -88,7 +88,7 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
             <Select
               value={pkg}
               options={[
-                { label: '@instantdb/core', value: '@instantdb/core' },
+                { label: '@sidekickdb/core', value: '@sidekickdb/core' },
                 { label: '@instantdb/react', value: '@instantdb/react' },
                 {
                   label: '@instantdb/react-native',

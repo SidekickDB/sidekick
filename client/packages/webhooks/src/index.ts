@@ -5,7 +5,7 @@ import {
   InstantUnknownSchema,
   ResolveAttrs,
   version as coreVersion,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 type Config<Schema extends InstantSchemaDef<any, any, any>> = {
   appId?: string | null | undefined;

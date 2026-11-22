@@ -29,7 +29,7 @@
     "@heroicons/react": "^2.1.5",
     "@instantdb/admin": "workspace:*",
     "@instantdb/components": "workspace:*",
-    "@instantdb/core": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
     "@instantdb/platform": "workspace:*",
     "@instantdb/react": "workspace:*",
     "@marcbachmann/cel-js": "^7.6.0",

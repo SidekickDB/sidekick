@@ -8,7 +8,7 @@ import {
   InstaQLLifecycleState,
   InstantSchemaDef,
   ValidQuery,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { useCallback, useRef, useSyncExternalStore } from 'react';
 
 const defaultState = {

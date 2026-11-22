@@ -4,7 +4,7 @@ import useLocalStorage from '@/lib/hooks/useLocalStorage';
 import { useState } from 'react';
 import config from '@/lib/config';
 import { jsonFetch } from '@/lib/fetch';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 async function jsonFetchCatchingErr(
   input: RequestInfo,

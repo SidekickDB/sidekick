@@ -1,4 +1,4 @@
-import type { RoomHandle } from '@instantdb/core';
+import type { RoomHandle } from '@sidekickdb/core';
 import { i, InstantReactAbstractDatabase } from '@instantdb/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import EphemeralAppPage from '../../components/EphemeralAppPage';

@@ -39,6 +39,6 @@
     "expo-sqlite": ">=15.0.2"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*"
+    "@sidekickdb/core": "workspace:*"
   }
 }

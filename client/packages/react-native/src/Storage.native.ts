@@ -1,4 +1,4 @@
-import { StoreInterface, StoreInterfaceStoreName } from '@instantdb/core';
+import { StoreInterface, StoreInterfaceStoreName } from '@sidekickdb/core';
 
 const version = 5;
 

@@ -1,4 +1,4 @@
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { test, expect } from 'vitest';
 import { generateSchemaTypescriptFile } from '../../src/schema';
 import { schemaTypescriptFileToInstantSchema } from '../../src/typescript-schema';
@@ -8,12 +8,12 @@ test('roundtrips schema', () => {
   const originalCode = generateSchemaTypescriptFile(
     schema,
     schema,
-    '@instantdb/core',
+    '@sidekickdb/core',
   );
   const extractedSchema = schemaTypescriptFileToInstantSchema(originalCode);
   expect(extractedSchema).toEqual(schema);
-  expect(generateSchemaTypescriptFile(null, schema, '@instantdb/core')).toEqual(
-    generateSchemaTypescriptFile(null, extractedSchema, '@instantdb/core'),
+  expect(generateSchemaTypescriptFile(null, schema, '@sidekickdb/core')).toEqual(
+    generateSchemaTypescriptFile(null, extractedSchema, '@sidekickdb/core'),
   );
 });
 
@@ -23,16 +23,16 @@ function format(code: string): string {
 
 test('roundtrips schema with prettier-ed code', () => {
   const originalCode = format(
-    generateSchemaTypescriptFile(schema, schema, '@instantdb/core'),
+    generateSchemaTypescriptFile(schema, schema, '@sidekickdb/core'),
   );
 
   const extractedSchema = schemaTypescriptFileToInstantSchema(originalCode);
   expect(extractedSchema).toEqual(schema);
   expect(
-    format(generateSchemaTypescriptFile(null, schema, '@instantdb/core')),
+    format(generateSchemaTypescriptFile(null, schema, '@sidekickdb/core')),
   ).toEqual(
     format(
-      generateSchemaTypescriptFile(null, extractedSchema, '@instantdb/core'),
+      generateSchemaTypescriptFile(null, extractedSchema, '@sidekickdb/core'),
     ),
   );
 });

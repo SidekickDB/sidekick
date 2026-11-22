@@ -1,4 +1,4 @@
-import { User } from '@instantdb/core';
+import { User } from '@sidekickdb/core';
 import { cookies } from 'next/headers.js';
 
 /**

@@ -4,7 +4,7 @@ import {
   type RoomSchemaShape,
   InstantCoreDatabase,
   InstantSchemaDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { shallowRef, watchEffect, toValue } from 'vue';
 import type { Ref, ShallowRef, MaybeRefOrGetter, ComputedRef } from 'vue';

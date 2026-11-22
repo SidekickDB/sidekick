@@ -14,7 +14,7 @@
     "@instantdb/react": "workspace:*",
     "@instantdb/react-native": "workspace:*",
     "@instantdb/admin": "workspace:*",
-    "@instantdb/core": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
     "instant-cli": "workspace:*"
   },
   "devDependencies": {

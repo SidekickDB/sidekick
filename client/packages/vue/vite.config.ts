@@ -28,7 +28,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['vue', '@instantdb/core', '@instantdb/version'],
+      external: ['vue', '@sidekickdb/core', '@sidekickdb/version'],
       output: {
         entryFileNames: '[name].js',
         chunkFileNames: 'chunks/[name]-[hash].js',

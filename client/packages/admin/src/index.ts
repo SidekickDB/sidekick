@@ -85,7 +85,7 @@ import {
   InstantWritableStream,
   InstantReadableStream,
   type Logger,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import version from './version.ts';
 

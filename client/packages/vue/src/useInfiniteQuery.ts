@@ -1,4 +1,4 @@
-import { weakHash, getInfiniteQueryInitialSnapshot } from '@instantdb/core';
+import { weakHash, getInfiniteQueryInitialSnapshot } from '@sidekickdb/core';
 import type {
   InstaQLResponse,
   ValidQuery,
@@ -6,7 +6,7 @@ import type {
   InstantCoreDatabase,
   InstantSchemaDef,
   InstaQLOptions,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { shallowRef, ref, watch, toValue } from 'vue';
 import type { ShallowRef, Ref, MaybeRefOrGetter } from 'vue';
 

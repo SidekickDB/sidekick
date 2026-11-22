@@ -10,7 +10,7 @@ import {
   RuleParams,
   User,
   ValidQuery,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import InstantReactWebDatabase from '../InstantReactWebDatabase.ts';
 import {
   createHydrationStreamProvider,

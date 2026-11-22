@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { InstantSchemaDef } from '@instantdb/core';
+import type { InstantSchemaDef } from '@sidekickdb/core';
 import type { InstantVueDatabase } from '../InstantVueDatabase.js';
 
 const props = defineProps<{

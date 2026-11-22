@@ -1,4 +1,4 @@
-import { StoreInterface, StoreInterfaceStoreName } from '@instantdb/core';
+import { StoreInterface, StoreInterfaceStoreName } from '@sidekickdb/core';
 import { SQLiteStorage } from 'expo-sqlite/kv-store';
 
 export default class Store extends StoreInterface {

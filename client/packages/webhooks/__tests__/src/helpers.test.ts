@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { Webhooks, type WebhookHandlers } from '../../src/index';
 
 const schema = i.schema({

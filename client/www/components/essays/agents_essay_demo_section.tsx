@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import * as ephemeral from '@/lib/ephemeral';
 import { useEffect, useState } from 'react';
 import { PlatformApi } from '@instantdb/platform';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import useLocalStorage from '@/lib/hooks/useLocalStorage';
 import differenceInDays from 'date-fns/differenceInDays';
 

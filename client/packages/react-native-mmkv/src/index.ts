@@ -1,4 +1,4 @@
-import { StoreInterface, StoreInterfaceStoreName } from '@instantdb/core';
+import { StoreInterface, StoreInterfaceStoreName } from '@sidekickdb/core';
 import { createMMKV, MMKV } from 'react-native-mmkv';
 
 export default class Store extends StoreInterface {

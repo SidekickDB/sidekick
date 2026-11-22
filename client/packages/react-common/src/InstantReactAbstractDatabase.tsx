@@ -23,7 +23,7 @@ import {
   InstantError,
   ValidQuery,
   Streams,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import {
   ReactNode,
   useCallback,

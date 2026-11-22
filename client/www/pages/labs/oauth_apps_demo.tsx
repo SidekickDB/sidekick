@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from 'react';
 import config from '@/lib/config';
 import { jsonFetch } from '@/lib/fetch';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { asClientOnlyPage, useReadyRouter } from '@/components/clientOnlyPage';
 import { useAuthToken, useTokenFetch } from '@/lib/auth';
 import Auth from '@/components/dash/Auth';

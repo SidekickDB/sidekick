@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { InstantReactWebDatabase } from '@instantdb/react';
 import { useEffect, useState } from 'react';
 import { ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
-import { InstantAPIError } from '@instantdb/core';
+import { InstantAPIError } from '@sidekickdb/core';
 import { ExpandableDeletedAttr } from './expandable-deleted-attr';
 import { useAttrNotes } from '@lib/hooks/useAttrNotes';
 import { useMemo } from 'react';

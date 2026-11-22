@@ -9,7 +9,7 @@ import {
   InstantSchemaDef,
   LinkAttrDef,
   RoomsDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import {
   indentLines,
@@ -385,7 +385,7 @@ export function generateSchemaTypescriptFile(
 
   const code = `// Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "${instantModuleName ?? '@instantdb/core'}";
+import { i } from "${instantModuleName ?? '@sidekickdb/core'}";
 
 const _schema = i.schema({
 ${kv('entities', entitiesObjCode)},

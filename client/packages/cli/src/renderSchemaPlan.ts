@@ -7,7 +7,7 @@ import type {
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
 
-// Hack to prevent using @instantdb/core as a dependency for cli
+// Hack to prevent using @sidekickdb/core as a dependency for cli
 type InstantDBAttr = Parameters<typeof convertTxSteps>[1][0];
 
 const renderLinkUpdate = (

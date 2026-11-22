@@ -67,7 +67,7 @@
     "react": ">=16"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/version": "workspace:*"
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/version": "workspace:*"
   }
 }

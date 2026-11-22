@@ -1,5 +1,5 @@
 import { schemaTypescriptFileToInstantSchema } from '@instantdb/platform';
-import { version } from '@instantdb/version';
+import { version } from '@sidekickdb/version';
 
 const dev = Boolean(process.env.INSTANT_CLI_DEV);
 

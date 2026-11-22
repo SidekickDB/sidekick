@@ -1,7 +1,7 @@
 import { Command, Option } from 'commander';
 import * as p from '@clack/prompts';
 import { findClaudePath } from './claude.js';
-import { version } from '@instantdb/version';
+import { version } from '@sidekickdb/version';
 import { coerceAppName, validateAppName } from './utils/validateAppName.js';
 import { renderUnwrap, UI } from 'instant-cli/ui';
 import { projectBases, type ProjectBase } from './projectBase.js';

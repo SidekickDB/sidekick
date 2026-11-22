@@ -1,4 +1,4 @@
-import { version as coreVersion } from '@instantdb/core';
+import { version as coreVersion } from '@sidekickdb/core';
 import { pkceVerifier, pkceCodeChallengeOfVerifier } from './crypto.ts';
 import { InstantOAuthError, OAuthScope } from './oauthCommon.ts';
 import version from './version.ts';

@@ -11,7 +11,7 @@ import {
 } from './helpers.ts';
 
 const SCHEMA_FILE = `
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 
 const _schema = i.schema({
   entities: {
@@ -211,7 +211,7 @@ describe.concurrent('CLI e2e', { timeout: 30_000 }, () => {
       const { appId, adminToken } = await createTempApp();
 
       const initialSchema = `
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 const _schema = i.schema({
   entities: {
     posts: i.entity({
@@ -224,7 +224,7 @@ export default _schema;
 `;
 
       const renamedSchema = `
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 const _schema = i.schema({
   entities: {
     posts: i.entity({
@@ -917,7 +917,7 @@ export default _schema;
       const { appId, adminToken } = await createTempApp();
 
       const schemaWithCreator = `
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 const _schema = i.schema({
   entities: {
     posts: i.entity({
@@ -1038,7 +1038,7 @@ export default _schema;
       const { appId, adminToken } = await createTempApp();
 
       const schemaWithCreator = `
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 const _schema = i.schema({
   entities: {
     posts: i.entity({
@@ -1122,7 +1122,7 @@ export default _schema;
 
       // Guests can only see posts marked as public
       const schemaWithVisibility = `
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 const _schema = i.schema({
   entities: {
     posts: i.entity({

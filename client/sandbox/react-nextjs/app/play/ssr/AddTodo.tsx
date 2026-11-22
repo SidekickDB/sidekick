@@ -1,6 +1,6 @@
 'use client';
 
-import { id } from '@instantdb/core';
+import { id } from '@sidekickdb/core';
 import { db } from './db';
 import { useState } from 'react';
 

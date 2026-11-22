@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/version",
+  "name": "@sidekickdb/version",
   "version": "0.0.0",
   "description": "Instant's shared version package",
   "license": "Apache-2.0",

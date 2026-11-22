@@ -17,11 +17,11 @@ test('generates perms file', () => {
           bind: ['isOwner', "data.path.startsWith(auth.id + '/')"],
         },
       },
-      '@instantdb/core',
+      '@sidekickdb/core',
     ),
   ).toEqual(`// Docs: https://www.instantdb.com/docs/permissions
 
-import type { InstantRules } from "@instantdb/core";
+import type { InstantRules } from "@sidekickdb/core";
 
 const rules = {
   "$files": {
@@ -41,10 +41,10 @@ export default rules;
 });
 
 test('generates empty perms file', () => {
-  expect(generatePermsTypescriptFile(null, '@instantdb/core'))
+  expect(generatePermsTypescriptFile(null, '@sidekickdb/core'))
     .toEqual(`// Docs: https://www.instantdb.com/docs/permissions
 
-import type { InstantRules } from "@instantdb/core";
+import type { InstantRules } from "@sidekickdb/core";
 
 const rules = {
   /**
@@ -72,7 +72,7 @@ export default rules;
 test('readsPermsFromFile', () => {
   const content = `// Docs: https://www.instantdb.com/docs/permissions
 
-import type { InstantRules } from "@instantdb/core";
+import type { InstantRules } from "@sidekickdb/core";
 
 const rules = {
   "$files": {

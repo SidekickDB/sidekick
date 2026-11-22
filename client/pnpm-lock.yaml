@@ -29,18 +29,18 @@ importers:
 
   packages/admin:
     dependencies:
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
       '@instantdb/eventsource':
         specifier: 4.1.0-2
         version: 4.1.0-2
-      '@instantdb/version':
-        specifier: workspace:*
-        version: link:../version
       '@instantdb/webhooks':
         specifier: workspace:*
         version: link:../webhooks
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
+        specifier: workspace:*
+        version: link:../version
       cookie:
         specifier: ^1.1.1
         version: 1.1.1
@@ -84,13 +84,13 @@ importers:
       '@effect/platform-node':
         specifier: ^0.104.0
         version: 0.104.0(@effect/cluster@0.56.1(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)(ioredis@5.6.1))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)(ioredis@5.6.1))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(effect@3.19.14))(@effect/platform@0.94.1(effect@3.19.14))(@effect/rpc@0.73.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14)(ioredis@5.6.1))(@effect/platform@0.94.1(effect@3.19.14))(effect@3.19.14))(effect@3.19.14)
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
       '@instantdb/platform':
         specifier: workspace:*
         version: link:../platform
-      '@instantdb/version':
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
       '@zip.js/zip.js':
@@ -235,18 +235,12 @@ importers:
       '@instantdb/admin':
         specifier: workspace:*
         version: link:../admin
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
       '@instantdb/platform':
         specifier: workspace:*
         version: link:../platform
       '@instantdb/react':
         specifier: workspace:*
         version: link:../react
-      '@instantdb/version':
-        specifier: workspace:*
-        version: link:../version
       '@monaco-editor/react':
         specifier: ^4.6.0
         version: 4.6.0(monaco-editor@0.52.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -274,6 +268,12 @@ importers:
       '@radix-ui/react-visually-hidden':
         specifier: ^1.2.4
         version: 1.2.4(@types/react-dom@18.3.1)(@types/react@18.3.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
+        specifier: workspace:*
+        version: link:../version
       '@tanstack/react-table':
         specifier: ^8.21.3
         version: 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -404,7 +404,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@instantdb/version':
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
       mutative:
@@ -474,7 +474,7 @@ importers:
       '@instantdb/platform':
         specifier: workspace:*
         version: link:../platform
-      '@instantdb/version':
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
       chalk:
@@ -541,7 +541,7 @@ importers:
 
   packages/expo-sqlite:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -575,21 +575,21 @@ importers:
       '@instantdb/admin':
         specifier: workspace:*
         version: link:../admin
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
       '@instantdb/platform':
         specifier: workspace:*
         version: link:../platform
-      '@instantdb/version':
-        specifier: workspace:*
-        version: link:../version
       '@modelcontextprotocol/sdk':
         specifier: ^1.17.2
         version: 1.17.2
       '@opentelemetry/api':
         specifier: ^1.9.0
         version: 1.9.0
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
+        specifier: workspace:*
+        version: link:../version
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -645,15 +645,15 @@ importers:
       '@babel/types':
         specifier: ^8.0.0-beta.0
         version: 8.0.0-beta.0
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
-      '@instantdb/version':
-        specifier: workspace:*
-        version: link:../version
       '@instantdb/webhooks':
         specifier: workspace:*
         version: link:../webhooks
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
+        specifier: workspace:*
+        version: link:../version
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.5
@@ -694,13 +694,13 @@ importers:
 
   packages/react:
     dependencies:
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
       '@instantdb/react-common':
         specifier: workspace:*
         version: link:../react-common
-      '@instantdb/version':
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
       eventsource:
@@ -749,10 +749,10 @@ importers:
 
   packages/react-common:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
-      '@instantdb/version':
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
       react:
@@ -795,21 +795,21 @@ importers:
 
   packages/react-native:
     dependencies:
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../core
       '@instantdb/react-common':
         specifier: workspace:*
         version: link:../react-common
-      '@instantdb/version':
-        specifier: workspace:*
-        version: link:../version
       '@react-native-async-storage/async-storage':
         specifier: '>=1.15'
         version: 1.23.1(react-native@0.76.1(@babel/core@7.26.7)(@babel/preset-env@7.26.7(@babel/core@7.26.7))(@react-native-community/cli-server-api@15.1.3)(@types/react@18.3.1)(react@18.3.1))
       '@react-native-community/netinfo':
         specifier: '>=7.1'
         version: 11.4.1(react-native@0.76.1(@babel/core@7.26.7)(@babel/preset-env@7.26.7(@babel/core@7.26.7))(@react-native-community/cli-server-api@15.1.3)(@types/react@18.3.1)(react@18.3.1))
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sidekickdb/version':
+        specifier: workspace:*
+        version: link:../version
       react:
         specifier: '>=16'
         version: 18.3.1
@@ -847,7 +847,7 @@ importers:
 
   packages/react-native-mmkv:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -915,10 +915,10 @@ importers:
 
   packages/solidjs:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
-      '@instantdb/version':
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
       solid-js:
@@ -943,10 +943,10 @@ importers:
 
   packages/svelte:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
-      '@instantdb/version':
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
     devDependencies:
@@ -1001,10 +1001,10 @@ importers:
 
   packages/vue:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
-      '@instantdb/version':
+      '@sidekickdb/version':
         specifier: workspace:*
         version: link:../version
     devDependencies:
@@ -1035,7 +1035,7 @@ importers:
 
   packages/webhooks:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -1097,7 +1097,7 @@ importers:
       '@instantdb/admin':
         specifier: workspace:*
         version: link:../../packages/admin
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../../packages/core
       instant-cli:
@@ -1216,9 +1216,6 @@ importers:
       '@instantdb/components':
         specifier: workspace:*
         version: link:../../packages/components
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@instantdb/platform':
         specifier: workspace:*
         version: link:../../packages/platform
@@ -1231,6 +1228,9 @@ importers:
       '@react-oauth/google':
         specifier: ^0.12.1
         version: 0.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       ai:
         specifier: ^6.0.57
         version: 6.0.57(zod@3.25.76)
@@ -1323,15 +1323,15 @@ importers:
       '@instantdb/admin':
         specifier: workspace:*
         version: link:../../packages/admin
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@instantdb/react':
         specifier: workspace:*
         version: link:../../packages/react
       '@instantdb/react-native':
         specifier: workspace:*
         version: link:../../packages/react-native
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       instant-cli:
         specifier: workspace:*
         version: link:../../packages/cli
@@ -1446,7 +1446,7 @@ importers:
 
   sandbox/vanilla-js-nuxt:
     dependencies:
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../../packages/core
       nuxt:
@@ -1464,7 +1464,7 @@ importers:
       '@instantdb/admin':
         specifier: workspace:*
         version: link:../../packages/admin
-      '@instantdb/core':
+      '@sidekickdb/core':
         specifier: workspace:*
         version: link:../../packages/core
     devDependencies:
@@ -1562,9 +1562,6 @@ importers:
       '@instantdb/components':
         specifier: workspace:*
         version: link:../packages/components
-      '@instantdb/core':
-        specifier: workspace:*
-        version: link:../packages/core
       '@instantdb/platform':
         specifier: workspace:*
         version: link:../packages/platform
@@ -1634,6 +1631,9 @@ importers:
       '@radix-ui/react-use-controllable-state':
         specifier: ^1.2.2
         version: 1.2.2(@types/react@18.3.1)(react@18.3.1)
+      '@sidekickdb/core':
+        specifier: workspace:*
+        version: link:../packages/core
       '@sindresorhus/slugify':
         specifier: ^2.1.0
         version: 2.2.1

@@ -7,7 +7,7 @@ import {
   InstantAPIPlatformSchema,
 } from '../../src/schema';
 import { apiSchemaToInstantSchemaDef } from '../../src/api';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 test('generates schema', () => {
   expect(
@@ -428,11 +428,11 @@ test('generates schema', () => {
           },
         },
       }),
-      '@instantdb/core',
+      '@sidekickdb/core',
     ),
   ).toEqual(`// Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "@instantdb/core";
+import { i } from "@sidekickdb/core";
 
 const _schema = i.schema({
   entities: {

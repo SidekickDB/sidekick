@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/core",
+  "name": "@sidekickdb/core",
   "version": "0.0.0",
   "description": "Instant's core local abstraction",
   "license": "Apache-2.0",
@@ -74,7 +74,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "mutative": "^1.0.10",
     "uuid": "^11.1.0"
   },

@@ -41,7 +41,7 @@ import { addProvider, deleteClient } from './auth/shared';
 import { TokenContext } from '@/lib/contexts';
 import { errorToast } from '@/lib/toast';
 import { messageFromInstantError } from '@/lib/errors';
-import { InstantIssue } from '@instantdb/core';
+import { InstantIssue } from '@sidekickdb/core';
 import { useReadyRouter } from '../clientOnlyPage';
 
 import Image from 'next/image';

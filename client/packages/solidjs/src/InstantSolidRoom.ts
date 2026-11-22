@@ -4,7 +4,7 @@ import {
   type RoomSchemaShape,
   InstantCoreDatabase,
   InstantSchemaDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { createSignal, createEffect, onCleanup, createMemo } from 'solid-js';
 import type { Accessor } from 'solid-js';

@@ -100,7 +100,7 @@ import {
   InstantWritableStream,
   InstantReadableStream,
   type Logger,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { InstantReactAbstractDatabase } from '@instantdb/react-common';
 import InstantReactWebDatabase from './InstantReactWebDatabase.ts';

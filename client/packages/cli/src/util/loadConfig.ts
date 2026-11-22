@@ -21,10 +21,10 @@ const toArray = <T>(value: Arrayable<T>): T[] =>
 function getInstantAliases(): Record<string, string> | null {
   try {
     const require = createRequire(import.meta.url);
-    const corePackageJson = require.resolve('@instantdb/core/package.json');
+    const corePackageJson = require.resolve('@sidekickdb/core/package.json');
     const coreDir = path.dirname(corePackageJson);
     return {
-      '@instantdb/core': coreDir,
+      '@sidekickdb/core': coreDir,
       '@instantdb/react': coreDir,
       '@instantdb/react-native': coreDir,
       '@instantdb/svelte': coreDir,
