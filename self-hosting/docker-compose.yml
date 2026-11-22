@@ -65,6 +65,9 @@ services:
   createbuckets:
     # Creates the buckets with the RustFS client `rc`. Any image with `sh` and `rc`
     # works here; another client needs a different entrypoint.
+    # RustFS sends no CORS headers unless a bucket has CORS rules (MinIO allowed
+    # every origin by default), so GET/HEAD from any origin is allowed on both
+    # buckets. Access still needs a presigned URL.
     image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
       ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
@@ -80,6 +83,9 @@ services:
       rc alias set local http://storage:9000 $$ACCESS_KEY $$SECRET_KEY;
       rc bucket create --ignore-existing local/$$S3_BUCKET;
       rc bucket create --ignore-existing local/$$S3_APP_BACKUPS_BUCKET;
+      printf '%s' '<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><ExposeHeader>Content-Length</ExposeHeader><ExposeHeader>Content-Type</ExposeHeader><ExposeHeader>Content-Disposition</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>' > /tmp/cors.xml;
+      rc bucket cors set local/$$S3_BUCKET /tmp/cors.xml;
+      rc bucket cors set local/$$S3_APP_BACKUPS_BUCKET /tmp/cors.xml;
       exit"
 
   server:
@@ -124,6 +130,10 @@ services:
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
+      # RustFS 1.0.6 rejects uploads that carry Content-Encoding twice ("duplicate
+      # header: content-encoding"). Backups set Content-Encoding: zstd, and the AWS
+      # SDK's default checksum mode adds aws-chunked. when_required avoids that.
+      AWS_REQUEST_CHECKSUM_CALCULATION: ${AWS_REQUEST_CHECKSUM_CALCULATION:-when_required}
     volumes:
       - server_config:/app/resources/config
 
