@@ -2,7 +2,7 @@
 
 @theme {
   --default-mono-font-family:
-    'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
   --font-mono: var(--default-mono-font-family);
 }
@@ -35,7 +35,7 @@
   html {
     --default-font-family: 'Switzer', 'IBM Plex Sans', sans-serif;
     --default-mono-font-family:
-      'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
       'Liberation Mono', 'Courier New', monospace;
   }
   ::cue {
@@ -106,42 +106,6 @@
 
 @layer base {
   @font-face {
-    font-family: 'Berkeley Mono';
-    font-weight: normal;
-    font-style: normal;
-    font-stretch: normal;
-    src: url('/fonts/BerkeleyMono-Regular.woff2') format('woff2');
-    font-display: block;
-  }
-
-  @font-face {
-    font-family: 'Berkeley Mono';
-    font-weight: normal;
-    font-style: italic;
-    font-stretch: normal;
-    src: url('/fonts/BerkeleyMono-Italic.woff2') format('woff2');
-    font-display: block;
-  }
-
-  @font-face {
-    font-family: 'Berkeley Mono';
-    font-weight: bold;
-    font-style: normal;
-    font-stretch: normal;
-    src: url('/fonts/BerkeleyMono-Bold.woff2') format('woff2');
-    font-display: block;
-  }
-
-  @font-face {
-    font-family: 'Berkeley Mono';
-    font-weight: bold;
-    font-style: italic;
-    font-stretch: normal;
-    src: url('/fonts/BerkeleyMono-BoldItalic.woff2') format('woff2');
-    font-display: block;
-  }
-
-  @font-face {
     font-family: 'Switzer';
     font-weight: 400;
     font-style: normal;
@@ -186,7 +150,7 @@ html {
   height: 100%;
   background-color: #fbf9f6;
   --default-mono-font-family:
-    'Berkeley Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
 }
 

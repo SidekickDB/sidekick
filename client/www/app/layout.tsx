@@ -95,13 +95,6 @@ export default async function RootLayout({
           type="font/woff"
           crossOrigin="anonymous"
         />
-        <link
-          rel="preload"
-          href="/fonts/BerkeleyMono-Regular.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
       </head>
       <body>
         {isSelfHosted && (
