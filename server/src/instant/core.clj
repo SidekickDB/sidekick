@@ -423,6 +423,8 @@
       (log/info "Initializing...")
       (let [{:keys [aead-keyset]} (config/init)]
         (crypt-util/init aead-keyset))
+      (doseq [warning (config/startup-warnings)]
+        (log/warn warning))
 
       (tracer/init)
 
@@ -515,7 +517,8 @@
         (with-log-init :welcome-email
           (welcome-email/start)))
       (when (and (= (config/get-env) :prod)
-                 (config/aws-env?))
+                 (config/aws-env?)
+                 (config/app-backups-enabled?))
         (with-log-init :backup
           (backup/start)))
 
@@ -526,7 +529,8 @@
       (with-log-init :web-server
         (start))
       (try
-        (when @config/instance-id
+        (when (and @config/instance-id
+                   (config/loadbalancer-listener-configured?))
           (with-log-init :loadbalancer-listener
             (loadbalancer-listener/start)))
         (catch Throwable t

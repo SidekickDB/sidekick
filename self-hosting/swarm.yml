@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-go/master/schema/compose-spec.json
 services:
   postgres:
-    image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+    # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
+    image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
     ports:
       - "8890:5432"
     environment:
@@ -32,7 +33,13 @@ services:
       - "-c"
       - "random_page_cost=1.1"
   www:
-    image: "ghcr.io/instantdb/dashboard:latest"
+    image: "${DASHBOARD_IMAGE:-ghcr.io/instantdb/dashboard:latest}"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/dash').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     environment:
       INSTANT_BACKEND_URL: ${SERVER_URL:? example http://server.localhost}
     networks:
@@ -42,22 +49,24 @@ services:
       labels:
         caddy: ${DASHBOARD_URL:? example http://dash.localhost}
         caddy.reverse_proxy: "{{upstreams 3000}}"
-  minio:
-    image: minio/minio:latest
+  storage:
+    # S3-compatible object storage. Defaults to RustFS; STORAGE_IMAGE can point at
+    # another S3-compatible server (adjust environment and healthcheck to match).
+    image: ${STORAGE_IMAGE:-rustfs/rustfs:1.0.6}
     restart: always
     networks:
       - caddy
       - default
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      MINIO_BROWSER: "on"
-      MINIO_SKIP_CLIENT_CERT_VALIDATION: "on"
-    command: server /data --console-address ":9001" --address ":9000"
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
     volumes:
-      - minio_data:/data
+      - storage_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:9000/health/ready"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -70,15 +79,26 @@ services:
           - node.labels.storage==true
 
   createbuckets:
-    image: minio/mc
+    # Creates the buckets with the RustFS client `rc`. Any image with `sh` and `rc`
+    # works here; another client needs a different entrypoint.
+    # RustFS sends no CORS headers unless a bucket has CORS rules (MinIO allowed
+    # every origin by default), so GET/HEAD from any origin is allowed on both
+    # buckets. Access still needs a presigned URL.
+    image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      ACCESS_KEY: ${STORAGE_ACCESS_KEY:-rustfsadmin}
+      SECRET_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
+      S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     entrypoint: >
       /bin/sh -c "
-      until /usr/bin/mc alias set local http://minio:9000 $$$$MINIO_ROOT_USER $$$$MINIO_ROOT_PASSWORD; do sleep 2; done;
-      /usr/bin/mc mb --ignore-existing local/$$$$S3_BUCKET;
+      set -e;
+      until rc alias set local http://storage:9000 $$$$ACCESS_KEY $$$$SECRET_KEY; do sleep 2; done;
+      rc bucket create --ignore-existing local/$$$$S3_BUCKET;
+      rc bucket create --ignore-existing local/$$$$S3_APP_BACKUPS_BUCKET;
+      printf '%s' '<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><ExposeHeader>Content-Length</ExposeHeader><ExposeHeader>Content-Type</ExposeHeader><ExposeHeader>Content-Disposition</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>' > /tmp/cors.xml;
+      rc bucket cors set local/$$$$S3_BUCKET /tmp/cors.xml;
+      rc bucket cors set local/$$$$S3_APP_BACKUPS_BUCKET /tmp/cors.xml;
       exit"
     deploy:
       restart_policy:
@@ -86,10 +106,20 @@ services:
         max_attempts: 20
 
   server:
-    image: "ghcr.io/instantdb/server:latest"
+    image: "${SERVER_IMAGE:-ghcr.io/instantdb/server:latest}"
     networks:
       - caddy
       - default
+    healthcheck:
+      # Liveness only: the web server starts last during boot. Not /health/system,
+      # which reports a shared wal-errors row that a crashed process can leave
+      # behind, keeping every later process unhealthy. Use /health/system for
+      # monitoring WAL health.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8888/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
     environment:
       SWARM_SERVICE_NAME: server
       WAL_HISTORY_STORAGE: pg
@@ -113,12 +143,17 @@ services:
       INSTANT_APP_EMAIL_SENDER_EMAIL: ${INSTANT_APP_EMAIL_SENDER_EMAIL:-}
       INSTANT_TEAM_EMAIL_SENDER_NAME: ${INSTANT_TEAM_EMAIL_SENDER_NAME:-}
       INSTANT_TEAM_EMAIL_SENDER_EMAIL: ${INSTANT_TEAM_EMAIL_SENDER_EMAIL:-}
-      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-rustfsadmin}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://storage:9000}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:? example http://storage.localhost}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
+      S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
+      # RustFS 1.0.6 rejects uploads that carry Content-Encoding twice ("duplicate
+      # header: content-encoding"). Backups set Content-Encoding: zstd, and the AWS
+      # SDK's default checksum mode adds aws-chunked. when_required avoids that.
+      AWS_REQUEST_CHECKSUM_CALCULATION: ${AWS_REQUEST_CHECKSUM_CALCULATION:-when_required}
     secrets:
       - source: server_config
         target: /app/resources/config/override.edn
@@ -148,7 +183,7 @@ services:
 
 volumes:
   backend-db:
-  minio_data:
+  storage_data:
   caddy_data:
 
 secrets:
