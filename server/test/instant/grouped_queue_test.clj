@@ -194,6 +194,9 @@
   ;; The group must still be live: a fresh put after the failure is processed.
   (grouped-queue/put! q {:group "a" :id ::after})
   (wait-for-queue-to-drain q 5000)
+  ;; num-items reaches 0 before the last pass decrements num-workers in its
+  ;; finally, so wait for the worker to finish before asserting on it.
+  (wait-for #(= 0 (AtomicInteger/.get (:num-workers q))) 5000 1)
   (is (some #(= ::after (:id %)) @output)
       "an item put after the failure must still be processed")
   (is (= n (count (filter #(number? (:id %)) @output)))
@@ -253,6 +256,44 @@
       (doseq [id (range n)]
         (grouped-queue/put! q {:group "a" :id id}))
       (assert-group-still-drains q output n)
+      (is (< 2 (AtomicInteger/.get calls)) "the failing execute must have been reached")
+      (finally
+        (grouped-queue/stop q {:timeout-ms 1000})))))
+
+(deftest scheduled-resubmit-error-does-not-orphan-group
+  ;; A throttled pass hands the chain to the scheduler, whose task resubmits
+  ;; it to the worker executor after the delay. That resubmission runs outside
+  ;; process's try, and an error there is swallowed by the ScheduledFuture.
+  (let [n         100
+        output    (atom [])
+        calls     (AtomicInteger. 0)
+        throttled (atom false)
+        delegate  (Executors/newSingleThreadExecutor)
+        ;; The first execute is put!'s, which starts the chain. The first pass
+        ;; returns a throttle, so the second execute is the scheduler's
+        ;; resubmission. Fail that one.
+        executor  (proxy [java.util.concurrent.AbstractExecutorService] []
+                    (execute [task]
+                      (if (= 2 (AtomicInteger/.incrementAndGet calls))
+                        (throw (OutOfMemoryError. "simulated: scheduled execute"))
+                        (.execute delegate task)))
+                    (shutdown [] (.shutdown delegate))
+                    (shutdownNow [] (.shutdownNow delegate))
+                    (isShutdown [] (.isShutdown delegate))
+                    (isTerminated [] (.isTerminated delegate))
+                    (awaitTermination [t u] (.awaitTermination delegate t u)))
+        q (grouped-queue/start
+           {:group-key-fn (fn [_ item] (:group item))
+            :process-fn   (fn [_ _group item]
+                            (swap! output conj item)
+                            (when (compare-and-set! throttled false true)
+                              (grouped-queue/return-throttle 10)))
+            :get-executor (fn [] executor)})]
+    (try
+      (doseq [id (range n)]
+        (grouped-queue/put! q {:group "a" :id id}))
+      (assert-group-still-drains q output n)
+      (is @throttled "the first pass must have been throttled")
       (is (< 2 (AtomicInteger/.get calls)) "the failing execute must have been reached")
       (finally
         (grouped-queue/stop q {:timeout-ms 1000})))))

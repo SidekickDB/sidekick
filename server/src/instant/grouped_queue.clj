@@ -18,15 +18,27 @@
         (error-fn ctx e)
         (throw e)))))
 
+(declare record-error recover-chain)
+
 (defn- schedule [{:keys [scheduled-thread-pool-executor error-fn ctx] :as q}
                  ^Long delay-ms
-                 ^Runnable task]
+                 ^Runnable task
+                 group
+                 key]
   (try
     (ScheduledThreadPoolExecutor/.schedule
      scheduled-thread-pool-executor
      (reify Runnable
        (run [_]
-         (execute q task)))
+         ;; This runs on the scheduler thread, outside process's try. If the
+         ;; resubmission throws, the ScheduledFuture swallows it and nothing
+         ;; restarts the chain, so recover it here the same way process does.
+         ;; recover-chain handles its own failures, so it can't recurse.
+         (try
+           (execute q task)
+           (catch Throwable t
+             (record-error t "grouped-queue/scheduled-execute-error")
+             (recover-chain task q group key)))))
      delay-ms
      TimeUnit/MILLISECONDS)
     (catch Exception e
@@ -130,7 +142,7 @@
                                  (record-error t "grouped-queue/process-error")))]
           (AtomicInteger/.addAndGet num-items (- (::combined item 1)))
           (if-let [throttle-ms (throttle-key process-result)]
-            (schedule q throttle-ms process-task)
+            (schedule q throttle-ms process-task group key)
             (if (some? (Queue/.peek group))
               (execute q process-task)
               (clean-or-reschedule process-task q group key))))
