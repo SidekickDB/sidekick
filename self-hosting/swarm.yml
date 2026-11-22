@@ -59,7 +59,7 @@ services:
       - default
     environment:
       RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-rustfsadmin}
-      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-rustfsadmin}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
       RUSTFS_ADDRESS: ":9000"
       RUSTFS_CONSOLE_ADDRESS: ":9001"
       RUSTFS_CONSOLE_ENABLE: "true"
@@ -87,7 +87,7 @@ services:
     image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
       ACCESS_KEY: ${STORAGE_ACCESS_KEY:-rustfsadmin}
-      SECRET_KEY: ${STORAGE_SECRET_KEY:-rustfsadmin}
+      SECRET_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     entrypoint: >
@@ -111,7 +111,11 @@ services:
       - caddy
       - default
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8888/health/system"]
+      # Liveness only: the web server starts last during boot. Not /health/system,
+      # which reports a shared wal-errors row that a crashed process can leave
+      # behind, keeping every later process unhealthy. Use /health/system for
+      # monitoring WAL health.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8888/"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -140,7 +144,7 @@ services:
       INSTANT_TEAM_EMAIL_SENDER_NAME: ${INSTANT_TEAM_EMAIL_SENDER_NAME:-}
       INSTANT_TEAM_EMAIL_SENDER_EMAIL: ${INSTANT_TEAM_EMAIL_SENDER_EMAIL:-}
       AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-rustfsadmin}
-      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:-rustfsadmin}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       S3_ENDPOINT: ${S3_ENDPOINT:-http://storage:9000}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:? example http://storage.localhost}

@@ -96,7 +96,11 @@ services:
         condition: service_completed_successfully
     image: "${SERVER_IMAGE:-ghcr.io/instantdb/server:latest}"
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8888/health/system"]
+      # Liveness only: the web server starts last during boot. Not /health/system,
+      # which reports a shared wal-errors row that a crashed process can leave
+      # behind, keeping every later process unhealthy. Use /health/system for
+      # monitoring WAL health.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8888/"]
       interval: 10s
       timeout: 5s
       retries: 5

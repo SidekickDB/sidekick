@@ -29,3 +29,6 @@ empty `storage_data` volume, so existing files are not carried over. Copy the
 buckets to the new store with an S3 client before switching, and change
 `S3_ENDPOINT` in `.env` from `http://minio:9000` to `http://storage:9000`.
 The upstream `minio/minio` and `minio/mc` images are no longer on Docker Hub.
+`swarm.yml` cannot fall back to the old names, so it requires
+`STORAGE_SECRET_KEY` (formerly `MINIO_ROOT_PASSWORD`) and refuses to deploy
+without it; set `STORAGE_ACCESS_KEY` too if you had set `MINIO_ROOT_USER`.
