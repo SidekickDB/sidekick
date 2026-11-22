@@ -43,7 +43,8 @@ services:
         caddy: ${DASHBOARD_URL:? example http://dash.localhost}
         caddy.reverse_proxy: "{{upstreams 3000}}"
   minio:
-    image: minio/minio:latest
+    # Any MinIO server image that provides `sh` and `mc` works here.
+    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
     restart: always
     networks:
       - caddy
@@ -57,7 +58,8 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      # `mc ready` instead of curl: not every MinIO image ships curl.
+      test: ["CMD-SHELL", "MC_CONFIG_DIR=/tmp/.mc MC_HOST_self=http://localhost:9000 mc ready self"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -70,15 +72,18 @@ services:
           - node.labels.storage==true
 
   createbuckets:
-    image: minio/mc
+    # Any image that provides `sh` and the MinIO client `mc` works here.
+    image: ${MINIO_CLIENT_IMAGE:-cgr.dev/chainguard/minio:latest}
     environment:
+      MC_CONFIG_DIR: /tmp/.mc
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
     entrypoint: >
       /bin/sh -c "
-      until /usr/bin/mc alias set local http://minio:9000 $$$$MINIO_ROOT_USER $$$$MINIO_ROOT_PASSWORD; do sleep 2; done;
-      /usr/bin/mc mb --ignore-existing local/$$$$S3_BUCKET;
+      set -e;
+      until mc alias set local http://minio:9000 $$$$MINIO_ROOT_USER $$$$MINIO_ROOT_PASSWORD; do sleep 2; done;
+      mc mb --ignore-existing local/$$$$S3_BUCKET;
       exit"
     deploy:
       restart_policy:
