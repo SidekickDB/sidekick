@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/admin-sdk-express</h1>
 </p>
 
-This is sandbox app to play with [@instantdb/admin](../../packages/admin/).
+This is sandbox app to play with [@sidekickdb/admin](../../packages/admin/).
 
 # Development
 

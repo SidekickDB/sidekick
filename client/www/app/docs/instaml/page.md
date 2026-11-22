@@ -12,7 +12,7 @@ Instant uses a **Firebase-inspired** interface for mutations. We call our mutati
 We use the `create` action to create entities:
 
 ```typescript
-import { init, id } from '@instantdb/react';
+import { init, id } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
@@ -312,7 +312,7 @@ myCustomUpdate('todos', { dueDate: Date.now() });
 You can use the `UpdateParams` utility to make sure arguments follow the schema:
 
 ```typescript
-import { UpdateParams } from '@instantdb/react';
+import { UpdateParams } from '@sidekickdb/react';
 import { AppSchema } from '../instant.schema.ts';
 
 type EntityTypes = keyof AppSchema['entities'];
@@ -328,7 +328,7 @@ function myCustomUpdate<EType extends EntityTypes>(
 And the `LinkParams` utility can do the same for links:
 
 ```typescript
-import { LinkParams } from '@instantdb/react';
+import { LinkParams } from '@sidekickdb/react';
 import { AppSchema } from '../instant.schema.ts';
 
 type EntityTypes = keyof AppSchema['entities'];

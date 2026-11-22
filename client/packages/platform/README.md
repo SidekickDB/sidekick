@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/platform</h1>
+  <h1 align="center">@sidekickdb/platform</h1>
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@ First you'll need to create a page that you can redirect to complete the OAuth f
 
 ```tsx
 // oauth/instant/redirect.tsx
-import { OAuthHandler } from '@instantdb/platform';
+import { OAuthHandler } from '@sidekickdb/platform';
 import { useEffect } from 'react';
 
 const oauthHandler = new OAuthHandler({
@@ -62,7 +62,7 @@ On the page where you want the user to connect:
 
 ```tsx
 // ConnectPage.tsx
-import { OAuthHandler } from '@instantdb/platform';
+import { OAuthHandler } from '@sidekickdb/platform';
 
 // Available scopes are: apps-read, apps-write,
 //                       data-read, data-write,
@@ -103,7 +103,7 @@ Once you have your token, you can perform actions on the user's behalf with the 
 Setup:
 
 ```js
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 
 const api = new PlatformApi({ auth: { token: 'OAUTH_ACCESS_TOKEN' } });
 ```
@@ -144,10 +144,14 @@ const { schema } = await api.getSchema(YOUR_APP_ID);
 The Platform SDK includes a helper for generating the `instant.schema.ts` file from the schema returned by the API.
 
 ```ts
-import { generateSchemaTypescriptFile } from '@instantdb/platform';
+import { generateSchemaTypescriptFile } from '@sidekickdb/platform';
 
 // Generate the instant.schema.ts file with:
-const schemaTs = generateSchemaTypescriptFile(null, schema, '@instantdb/react');
+const schemaTs = generateSchemaTypescriptFile(
+  null,
+  schema,
+  '@sidekickdb/react',
+);
 ```
 
 ### getPerms
@@ -163,10 +167,10 @@ const { perms } = await api.getPerms(YOUR_APP_ID);
 The Platform SDK includes a helper for generating the `instant.perms.ts` file from the perms returned by the API.
 
 ```ts
-import { generatePermsTypescriptFile } from '@instantdb/platform';
+import { generatePermsTypescriptFile } from '@sidekickdb/platform';
 
 // Generate the instant.schema.ts file with:
-const permsTs = generatePermsTypescriptFile(perms, '@instantdb/react');
+const permsTs = generatePermsTypescriptFile(perms, '@sidekickdb/react');
 ```
 
 ### createApp
@@ -184,7 +188,7 @@ const { app } = await api.createApp({ title: 'Great new app' });
 Create an app with permissions:
 
 ```ts
-import type { InstantRules } from '@instantdb/platform';
+import type { InstantRules } from '@sidekickdb/platform';
 
 const perms: InstantRules = {
   $default: {
@@ -212,7 +216,7 @@ const { app } = await api.createApp({
 Create an app with a schema:
 
 ```ts
-import { i } from '@instantdb/platform';
+import { i } from '@sidekickdb/platform';
 
 const schema = i.schema({
   entities: {
@@ -256,7 +260,7 @@ Requires the `apps-write` scope.
 Update the permissions for an app by its id. This will completely replace the current set of permissions.
 
 ```ts
-import type { InstantRules } from '@instantdb/platform';
+import type { InstantRules } from '@sidekickdb/platform';
 
 const perms: InstantRules = {
   $default: {
@@ -287,7 +291,7 @@ Requires the `apps-read` or `apps-write` scope.
 Performs a dry-run of `schemaPush`, returning the steps that would be taken.
 
 ```ts
-import { i } from '@instantdb/platform';
+import { i } from '@sidekickdb/platform';
 
 const schema = i.schema({
   entities: {
@@ -330,7 +334,7 @@ Some schema updates, like adding an index to an attribute with existing data, ki
 You can subscribe to progress updates to display feedback to the user.
 
 ```ts
-import { i } from '@instantdb/platform';
+import { i } from '@sidekickdb/platform';
 
 const schema = i.schema({
   entities: {
@@ -409,13 +413,13 @@ The platform package includes helpers for generating the `instant.schema.ts` and
 import {
   generateSchemaTypescriptFile,
   generatePermsTypescriptFile,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 
 console.log(
-  generateSchemaTypescriptFile(null, shemaFromApi, '@instantdb/core'),
+  generateSchemaTypescriptFile(null, shemaFromApi, '@sidekickdb/core'),
 );
 
-console.log(generatePermsTypescriptFile(permsFromApi, '@instantdb/core'));
+console.log(generatePermsTypescriptFile(permsFromApi, '@sidekickdb/core'));
 ```
 
 Use `schemaTypescriptFileToInstantSchema` to recover an `InstantSchemaDef` from the typescript file:
@@ -425,7 +429,7 @@ import {
   i,
   generateSchemaTypescriptFile,
   schemaTypescriptFileToInstantSchema,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 
 // Example schema
 const schema = i.schema({
@@ -437,14 +441,14 @@ const schema = i.schema({
 });
 
 // Example of the typescript file that was generated for a schema
-const code = generateTypescriptFile(null, schema, '@instantdb/core');
+const code = generateTypescriptFile(null, schema, '@sidekickdb/core');
 
 const recoveredSchema = schemaTypescriptFileToInstantSchema(code);
 
 schema == recoveredSchema;
 ```
 
-This is useful when parsing a schema that the user manually edited or pulled with `npx instant-cli pull`.
+This is useful when parsing a schema that the user manually edited or pulled with `npx sidekick-cli pull`.
 
 # Questions?
 

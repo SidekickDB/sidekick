@@ -26,7 +26,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx sidekick-cli@latest auth client add \
   --type firebase --name firebase --project-id <project-id>
 ```
 
@@ -45,7 +45,7 @@ Here is a full example:
 ```tsx
 'use client';
 
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,

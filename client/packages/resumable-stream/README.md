@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/resumable-stream</h1>
+  <h1 align="center">@sidekickdb/resumable-stream</h1>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@ You can provide your `appId` and `adminToken` as arguments to `createResumableSt
 ### Idempotent API
 
 ```typescript
-import { createResumableStreamContext } from '@instantdb/resumable-stream';
+import { createResumableStreamContext } from '@sidekickdb/resumable-stream';
 import { after } from 'next/server';
 
 const streamContext = createResumableStreamContext({
@@ -64,7 +64,7 @@ export async function GET(
 ### Usage with explicit resumption
 
 ```typescript
-import { createResumableStreamContext } from '@instantdb/resumable-stream';
+import { createResumableStreamContext } from '@sidekickdb/resumable-stream';
 import { after } from 'next/server';
 
 const streamContext = createResumableStreamContext({

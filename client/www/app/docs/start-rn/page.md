@@ -15,7 +15,7 @@ npx create-expo-app instant-rn-demo
 cd instant-rn-demo
 
 # Install instant
-npm i @instantdb/react-native
+npm i @sidekickdb/react-native
 
 # Install peer dependencies
 npm i @react-native-async-storage/async-storage @react-native-community/netinfo react-native-get-random-values
@@ -24,7 +24,7 @@ npm i @react-native-async-storage/async-storage @react-native-community/netinfo 
 Now open up `app/(tabs)/index.tsx` in your favorite editor and replace the entirety of the file with the following code.
 
 ```tsx {% showCopy=true %}
-import { init, i, InstaQLEntity } from '@instantdb/react-native';
+import { init, i, InstaQLEntity } from '@sidekickdb/react-native';
 import { View, Text, Button, StyleSheet } from 'react-native';
 
 // Instant app
@@ -141,7 +141,7 @@ By default, Instant uses [AsyncStorage](https://react-native-async-storage.githu
 ### Install the MMKV package
 
 ```shell {% showCopy=true %}
-npm i @instantdb/react-native-mmkv
+npm i @sidekickdb/react-native-mmkv
 
 # Install MMKV peer dependencies
 npx expo install react-native-mmkv react-native-nitro-modules
@@ -155,11 +155,11 @@ npx expo prebuild
 
 ### Configure Instant to use MMKV
 
-Import `Store` from `@instantdb/react-native-mmkv` and pass it to `init`:
+Import `Store` from `@sidekickdb/react-native-mmkv` and pass it to `init`:
 
 ```tsx {% showCopy=true %}
-import { init } from '@instantdb/react-native';
-import Store from '@instantdb/react-native-mmkv';
+import { init } from '@sidekickdb/react-native';
+import Store from '@sidekickdb/react-native-mmkv';
 
 const db = init({
   appId: APP_ID,
@@ -184,7 +184,7 @@ If your app already uses [expo-sqlite](https://docs.expo.dev/versions/latest/sdk
 ### Install the expo-sqlite package
 
 ```shell {% showCopy=true %}
-npm i @instantdb/expo-sqlite
+npm i @sidekickdb/expo-sqlite
 
 # Install the expo-sqlite peer dependency
 npx expo install expo-sqlite
@@ -198,11 +198,11 @@ npx expo prebuild
 
 ### Configure Instant to use expo-sqlite
 
-Import `Store` from `@instantdb/expo-sqlite` and pass it to `init`:
+Import `Store` from `@sidekickdb/expo-sqlite` and pass it to `init`:
 
 ```tsx {% showCopy=true %}
-import { init } from '@instantdb/react-native';
-import Store from '@instantdb/expo-sqlite';
+import { init } from '@sidekickdb/react-native';
+import Store from '@sidekickdb/expo-sqlite';
 
 const db = init({
   appId: APP_ID,
@@ -222,13 +222,13 @@ When you use a custom store, `@react-native-async-storage/async-storage` becomes
 
 ## Implementing your own store
 
-You can also implement your own local cache interface by extending `StoreInterface` from `@instantdb/react-native`. Here's an example in-memory store implementation:
+You can also implement your own local cache interface by extending `StoreInterface` from `@sidekickdb/react-native`. Here's an example in-memory store implementation:
 
 ```tsx {% showCopy=true %}
 import {
   StoreInterface,
   StoreInterfaceStoreName,
-} from '@instantdb/react-native';
+} from '@sidekickdb/react-native';
 
 class InMemoryStore extends StoreInterface {
   _map: Map<string, any>;
@@ -261,7 +261,7 @@ class InMemoryStore extends StoreInterface {
 Then pass your custom store class to `init`:
 
 ```tsx {% showCopy=true %}
-import { init } from '@instantdb/react-native';
+import { init } from '@sidekickdb/react-native';
 
 const db = init({
   appId: APP_ID,

@@ -26,28 +26,28 @@ The client directory is a pnpm monorepo managed with Turbo. It contains the Inst
 
 ### Core
 
-- **`core/`** (`@instantdb/core`) - Core abstraction powering all client libraries. Contains the query engine (`instaql.ts`), schema handling (`schema.ts`), connection management (`Connection.ts`), transactions, auth, and storage APIs.
-- **`version/`** (`@instantdb/version`) - Shared version constant used by all packages.
+- **`core/`** (`@sidekickdb/core`) - Core abstraction powering all client libraries. Contains the query engine (`instaql.ts`), schema handling (`schema.ts`), connection management (`Connection.ts`), transactions, auth, and storage APIs.
+- **`version/`** (`@sidekickdb/version`) - Shared version constant used by all packages.
 
 ### Framework SDKs
 
-- **`react/`** (`@instantdb/react`) - React hooks and components. Includes Next.js SSR support via `/next-ssr` export (`HydrationStreamProvider`, `InstantNextDatabase`, `InstantSuspenseProvider`).
-- **`react-common/`** (`@instantdb/react-common`) - Shared hooks/logic between React and React Native.
-- **`react-native/`** (`@instantdb/react-native`) - React Native client with AsyncStorage and NetInfo integration.
-- **`react-native-mmkv/`** (`@instantdb/react-native-mmkv`) - MMKV storage adapter for React Native.
-- **`expo-sqlite/`** (`@instantdb/expo-sqlite`) - expo-sqlite storage adapter for React Native.
-- **`solidjs/`** (`@instantdb/solidjs`) - SolidJS client library.
-- **`svelte/`** (`@instantdb/svelte`) - Svelte client library.
+- **`react/`** (`@sidekickdb/react`) - React hooks and components. Includes Next.js SSR support via `/next-ssr` export (`HydrationStreamProvider`, `InstantNextDatabase`, `InstantSuspenseProvider`).
+- **`react-common/`** (`@sidekickdb/react-common`) - Shared hooks/logic between React and React Native.
+- **`react-native/`** (`@sidekickdb/react-native`) - React Native client with AsyncStorage and NetInfo integration.
+- **`react-native-mmkv/`** (`@sidekickdb/react-native-mmkv`) - MMKV storage adapter for React Native.
+- **`expo-sqlite/`** (`@sidekickdb/expo-sqlite`) - expo-sqlite storage adapter for React Native.
+- **`solidjs/`** (`@sidekickdb/solidjs`) - SolidJS client library.
+- **`svelte/`** (`@sidekickdb/svelte`) - Svelte client library.
 
 ### Tools and Utilities
 
-- **`admin/`** (`@instantdb/admin`) - Server-side admin SDK for backend access to Instant.
-- **`platform/`** (`@instantdb/platform`) - Platform package for managing apps, schemas, permissions, and migrations. Used by CLI and internal tools.
-- **`cli/`** (`instant-cli`) - Command-line tool for project init, schema management, and config.
-- **`create-instant-app/`** (`create-instant-app`) - Scaffolding tool for new Instant projects.
-- **`components/`** (`@instantdb/components`) - Reusable UI components including the database Explorer (Monaco Editor, dnd-kit, Radix UI).
-- **`mcp/`** (`@instantdb/mcp`) - MCP server enabling AI assistants to manage Instant apps.
-- **`resumable-stream/`** (`@instantdb/resumable-stream`) - Drop-in replacement for Vercel's resumable-stream for Next.js streaming.
+- **`admin/`** (`@sidekickdb/admin`) - Server-side admin SDK for backend access to Instant.
+- **`platform/`** (`@sidekickdb/platform`) - Platform package for managing apps, schemas, permissions, and migrations. Used by CLI and internal tools.
+- **`cli/`** (`sidekick-cli`) - Command-line tool for project init, schema management, and config.
+- **`create-instant-app/`** (`create-sidekick-app`) - Scaffolding tool for new Instant projects.
+- **`components/`** (`@sidekickdb/components`) - Reusable UI components including the database Explorer (Monaco Editor, dnd-kit, Radix UI).
+- **`mcp/`** (`@sidekickdb/mcp`) - MCP server enabling AI assistants to manage Instant apps.
+- **`resumable-stream/`** (`@sidekickdb/resumable-stream`) - Drop-in replacement for Vercel's resumable-stream for Next.js streaming.
 
 ## Web Application (`/www/`)
 
@@ -101,11 +101,11 @@ Next.js 15+ app serving instantdb.com (dashboard, docs, marketing).
 
 Development sandboxes for testing local changes to client libraries:
 
-- **`react-nextjs/`** - Next.js app testing `@instantdb/react`
-- **`vanilla-js-vite/`** - Vanilla JS testing `@instantdb/core`
-- **`react-native-expo/`** - Expo app testing `@instantdb/react-native`
-- **`admin-sdk-express/`** - Express app testing `@instantdb/admin`
-- **`cli-nodejs/`** - Node.js testing `instant-cli`
+- **`react-nextjs/`** - Next.js app testing `@sidekickdb/react`
+- **`vanilla-js-vite/`** - Vanilla JS testing `@sidekickdb/core`
+- **`react-native-expo/`** - Expo app testing `@sidekickdb/react-native`
+- **`admin-sdk-express/`** - Express app testing `@sidekickdb/admin`
+- **`cli-nodejs/`** - Node.js testing `sidekick-cli`
 - **`strong-init-vite/`** - Vite app testing typed initialization
 - **`vanilla-js-nuxt/`** - Nuxt 3 integration
 - **`task-tracker/`** - Full-featured example app

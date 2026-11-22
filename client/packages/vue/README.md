@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/vue</h1>
+  <h1 align="center">@sidekickdb/vue</h1>
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@ Welcome to [Instant's](http://instantdb.com) Vue SDK.
 <!-- * Works offline -->
 
 <script setup>
-import { init, id } from '@instantdb/vue';
+import { init, id } from '@sidekickdb/vue';
 
 const db = init({
   appId: import.meta.env.VITE_INSTANT_APP_ID,

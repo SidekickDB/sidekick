@@ -97,7 +97,7 @@ First, define the link in your schema:
 
 ```ts {% showCopy=true %}
 // instant.schema.ts
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {
@@ -167,7 +167,7 @@ In serverless environments, the process might be shut down before the stream has
 ```javascript {% showCopy=true %}
 // Next.js API Route example
 import { after } from 'next/server';
-import { init, id } from '@instantdb/admin';
+import { init, id } from '@sidekickdb/admin';
 
 const db = init({
   appId: process.env.INSTANT_APP_ID,
@@ -188,7 +188,7 @@ export async function POST(req) {
 
 ### resumable-stream
 
-[`@instantdb/resumable-stream`](https://www.npmjs.com/package/@instantdb/resumable-stream) is a drop-in replacement for Vercel's `resumable-stream` library that supports resuming ongoing streams after page reloads. It requires no Redis instance, and your streams never expire.
+[`@sidekickdb/resumable-stream`](https://www.npmjs.com/package/@sidekickdb/resumable-stream) is a drop-in replacement for Vercel's `resumable-stream` library that supports resuming ongoing streams after page reloads. It requires no Redis instance, and your streams never expire.
 
 #### Client-side: Enable stream resumption
 
@@ -199,7 +199,7 @@ Use the `resume` option in the `useChat` hook to enable stream resumption. When 
 
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 
 export function Chat({
   chatData,
@@ -238,8 +238,8 @@ import { openai } from '@ai-sdk/openai';
 import { readChat, saveChat } from '@util/chat-store';
 import { convertToModelMessages, streamText, type UIMessage } from 'ai';
 import { after } from 'next/server';
-import { createResumableStreamContext } from '@instantdb/resumable-stream';
-import { id as generateId } from '@instantdb/admin';
+import { createResumableStreamContext } from '@sidekickdb/resumable-stream';
+import { id as generateId } from '@sidekickdb/admin';
 
 export async function POST(req: Request) {
   const {
@@ -295,7 +295,7 @@ export async function POST(req: Request) {
 import { readChat } from '@util/chat-store';
 import { UI_MESSAGE_STREAM_HEADERS } from 'ai';
 import { after } from 'next/server';
-import { createResumableStreamContext } from '@instantdb/resumable-stream';
+import { createResumableStreamContext } from '@sidekickdb/resumable-stream';
 
 export async function GET(
   _: Request,
@@ -333,7 +333,7 @@ By implementing a custom `DefaultChatTransport`, the Vercel AI SDK will automati
 import { useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage, type UIMessageChunk } from 'ai';
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 import { db } from '@/lib/db';
 
 class InstantChatTransport extends DefaultChatTransport<UIMessage> {
@@ -381,10 +381,10 @@ function Chat() {
 
 Below is a full example that includes storing chat data in Instant and uses Instant auth for authorization.
 
-If you want to jump into building an app, `create-instant-app` has a working template that uses this pattern:
+If you want to jump into building an app, `create-sidekick-app` has a working template that uses this pattern:
 
 ```sh {% showCopy=true %}
-npx create-instant-app@latest --base ai-chat
+npx create-sidekick-app@latest --base ai-chat
 ```
 
 ### Setup
@@ -393,7 +393,7 @@ We'll start with a simple schema for our chats:
 
 ```ts {% showCopy=true %}
 // src/instant.schema.ts
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {
@@ -432,7 +432,7 @@ And we'll set permissions so that the user can read their own chats. We'll handl
 
 ```ts {% showCopy=true %}
 // src/instant.perms.ts
-import type { InstantRules } from '@instantdb/react';
+import type { InstantRules } from '@sidekickdb/react';
 
 const rules = {
   $default: {
@@ -472,7 +472,7 @@ We'll set up auth syncing so that the backend that talks to the LLM can authenti
 
 ```typescript {% showCopy=true %}
 // src/lib/db.ts
-import { init } from '@instantdb/react/nextjs';
+import { init } from '@sidekickdb/react/nextjs';
 import schema from '@/instant.schema';
 
 export const db = init({
@@ -484,7 +484,7 @@ export const db = init({
 
 ```typescript {% showCopy=true %}
 // src/app/api/instant/route.ts
-import { createInstantRouteHandler } from '@instantdb/react/nextjs';
+import { createInstantRouteHandler } from '@sidekickdb/react/nextjs';
 
 export const { POST } = createInstantRouteHandler({
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
@@ -493,7 +493,7 @@ export const { POST } = createInstantRouteHandler({
 
 ```ts {% showCopy=true %}
 // src/lib/adminDb.ts
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import schema from '@/instant.schema';
 
 export const db = init({
@@ -514,7 +514,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage, type UIMessageChunk } from 'ai';
 import { db } from '@/lib/db';
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 
 class InstantChatTransport extends DefaultChatTransport<UIMessage> {
   async reconnectToStream(
@@ -645,7 +645,7 @@ The POST handler saves the user message and pipes the AI completion to an Instan
 import { openai } from '@ai-sdk/openai';
 import { convertToModelMessages, streamText, type UIMessage } from 'ai';
 import { after, NextResponse } from 'next/server';
-import { id as generateId } from '@instantdb/admin';
+import { id as generateId } from '@sidekickdb/admin';
 import { db } from '@/lib/adminDb';
 
 async function saveChat({

@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/svelte</h1>
+  <h1 align="center">@sidekickdb/svelte</h1>
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@ Welcome to [Instant's](http://instantdb.com) Svelte SDK.
 <!-- * Works offline -->
 
 <script lang="ts">
-  import { init, id } from '@instantdb/svelte';
+  import { init, id } from '@sidekickdb/svelte';
 
   const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
 

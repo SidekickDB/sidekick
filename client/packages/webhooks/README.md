@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/webhooks</h1>
+  <h1 align="center">@sidekickdb/webhooks</h1>
 </p>
 
 <p align="center">
@@ -28,14 +28,14 @@ This package gives you the building blocks for working with Instant webhooks: ve
 
 The `Webhooks` class is re-exported from a few places. Use whichever fits your setup:
 
-- **From `@instantdb/admin`** — most apps. `db.webhooks` is wired up for you. An admin token is only required if you also want to manage webhooks (`db.webhooks.manager.*`); the receiving side (`processRequest` / `validate`) works without one.
-- **From `@instantdb/platform`** — building on top of Instant on behalf of other users. `api.webhooks(appId)` returns a `Webhooks` instance, and the platform SDK transparently refreshes the OAuth token for manager calls. Auth is only required if you'll use `manager.*`.
-- **Standalone from `@instantdb/webhooks`** — useful if you don't want to pull in the rest of the admin SDK. Again, no admin token is needed unless you'll call `manager.*`.
+- **From `@sidekickdb/admin`** — most apps. `db.webhooks` is wired up for you. An admin token is only required if you also want to manage webhooks (`db.webhooks.manager.*`); the receiving side (`processRequest` / `validate`) works without one.
+- **From `@sidekickdb/platform`** — building on top of Instant on behalf of other users. `api.webhooks(appId)` returns a `Webhooks` instance, and the platform SDK transparently refreshes the OAuth token for manager calls. Auth is only required if you'll use `manager.*`.
+- **Standalone from `@sidekickdb/webhooks`** — useful if you don't want to pull in the rest of the admin SDK. Again, no admin token is needed unless you'll call `manager.*`.
 
 ## From the admin SDK
 
 ```ts
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import schema from './instant.schema';
 
 // adminToken is optional if you're only using the SDK for the receiving side
@@ -54,7 +54,7 @@ await db.webhooks.processRequest(handlers, req);
 ## From the platform SDK
 
 ```ts
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import schema from './instant.schema';
 
 // Auth is optional if you're only using PlatformApi for the receiving side of
@@ -71,7 +71,7 @@ await webhooks.processRequest(handlers, req);
 ## Standalone
 
 ```ts
-import { Webhooks } from '@instantdb/webhooks';
+import { Webhooks } from '@sidekickdb/webhooks';
 import schema from './instant.schema';
 
 // For receiving only (validate / processRequest / processPayload), the
@@ -113,7 +113,7 @@ Pass it a Web [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Reque
 
 ```ts
 // app/api/instant-webhook/route.ts
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import schema from '@/instant.schema';
 
 const db = init({

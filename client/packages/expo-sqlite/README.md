@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/expo-sqlite</h1>
+  <h1 align="center">@sidekickdb/expo-sqlite</h1>
 </p>
 
 <p align="center">
@@ -34,7 +34,7 @@ cd instant-rn-demo
 ### Install instant
 
 ```shell
-npm i @instantdb/react-native @instantdb/expo-sqlite
+npm i @sidekickdb/react-native @sidekickdb/expo-sqlite
 ```
 
 ### Install peer dependencies
@@ -43,7 +43,7 @@ npm i @instantdb/react-native @instantdb/expo-sqlite
 npx expo install expo-sqlite @react-native-community/netinfo react-native-get-random-values @react-native-async-storage/async-storage
 ```
 
-### Import Storage from @instantdb/expo-sqlite
+### Import Storage from @sidekickdb/expo-sqlite
 
 ```javascript
 // ༼ つ ◕_◕ ༽つ Real-time Chat
@@ -52,8 +52,8 @@ npx expo install expo-sqlite @react-native-community/netinfo react-native-get-ra
 // * Multiplayer
 // * Works offline
 
-import { init, id } from '@instantdb/react-native';
-import SQLiteStore from '@instantdb/expo-sqlite';
+import { init, id } from '@sidekickdb/react-native';
+import SQLiteStore from '@sidekickdb/expo-sqlite';
 
 const db = init({
   appId: process.env.EXPO_PUBLIC_INSTANT_APP_ID,

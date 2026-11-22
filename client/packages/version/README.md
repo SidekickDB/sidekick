@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/version</h1>
+  <h1 align="center">@sidekickdb/version</h1>
 </p>
 
 <p align="center">

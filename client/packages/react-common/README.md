@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/react-common</h1>
+  <h1 align="center">@sidekickdb/react-common</h1>
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@ Welcome to [Instant's](http://instantdb.com) React common components for React a
 // * Multiplayer
 // * Works offline
 
-import { init, id } from '@instantdb/react';
+import { init, id } from '@sidekickdb/react';
 
 const db = init({
   appId: process.env.NEXT_PUBLIC_APP_ID,

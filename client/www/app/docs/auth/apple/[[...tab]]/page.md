@@ -102,7 +102,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx sidekick-cli@latest auth client add \
   --type apple --name apple \
   --services-id <services-id> \
   --team-id <team-id> --key-id <key-id> \
@@ -131,7 +131,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx sidekick-cli@latest auth client add \
   --type apple --name apple --services-id <services-id>
 ```
 
@@ -160,7 +160,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth origin add --type website --url myapp.com
+npx sidekick-cli@latest auth origin add --type website --url myapp.com
 ```
 
 {% /terminal-path %}
@@ -280,7 +280,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth origin add --type custom-scheme --scheme exp://
+npx sidekick-cli@latest auth origin add --type custom-scheme --scheme exp://
 ```
 
 {% /terminal-path %}
@@ -336,7 +336,7 @@ Full example:
 ```jsx {% showCopy=true %}
 import React, { useState } from 'react';
 import { Button, View, Text, StyleSheet } from 'react-native';
-import { init, tx } from '@instantdb/react-native';
+import { init, tx } from '@sidekickdb/react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
 const APP_ID = '__APP_ID__';

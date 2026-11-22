@@ -83,7 +83,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx sidekick-cli@latest auth client add \
   --type linkedin --name linkedin-web \
   --client-id <id> --client-secret <secret>
 ```
@@ -109,7 +109,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth origin add --type website --url <your-domain>
+npx sidekick-cli@latest auth origin add --type website --url <your-domain>
 ```
 
 {% /terminal-path %}
@@ -132,7 +132,7 @@ Create an authorization URL via `db.auth.createAuthorizationURL` and then use th
 'use client';
 
 import React, { useState } from 'react';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
@@ -224,8 +224,8 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth origin add --type custom-scheme --scheme exp://
-npx instant-cli@latest auth origin add --type custom-scheme --scheme mycoolredirect://
+npx sidekick-cli@latest auth origin add --type custom-scheme --scheme exp://
+npx sidekick-cli@latest auth origin add --type custom-scheme --scheme mycoolredirect://
 ```
 
 {% /terminal-path %}
@@ -238,7 +238,7 @@ And from here you're ready to add a login button to your Expo app! Here's a full
 
 ```jsx {% showCopy=true %}
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { init } from '@instantdb/react-native';
+import { init } from '@sidekickdb/react-native';
 import {
   makeRedirectUri,
   useAuthRequest,

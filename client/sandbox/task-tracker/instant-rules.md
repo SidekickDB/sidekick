@@ -6,7 +6,7 @@ Instant is the Modern Firebase. With Instant you can easily build realtime and c
 
 Instant offers client side javascript packages for vanilla JS, react, and react native. Instant also offers a javascript admin SDK that can be used on the backend.
 
-If you want to use Instant with react you should only use `@instantdb/react`. For react-native you should only use `@instantdb/react-native`. For scripts or server environments you should only use the admin SDK `@instantdb/admin`. For other client-side frameworks or vanilla js you should only use `@instantdb/core`
+If you want to use Instant with react you should only use `@sidekickdb/react`. For react-native you should only use `@sidekickdb/react-native`. For scripts or server environments you should only use the admin SDK `@sidekickdb/admin`. For other client-side frameworks or vanilla js you should only use `@sidekickdb/core`
 
 CRITICAL: To use the admin SDK you MUST get an admin token for the app. You can get the admin token with the MCP tool via `create-app`. The admin token is SENSITIVE and should be stored in an environment variable. Do not hardcode it in your script.
 
@@ -63,7 +63,7 @@ Logic is split across three files:
 
 ```typescript
 /* FILE: lib/db.ts */
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import schema from '../instant.schema';
 
 const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID!;
@@ -72,7 +72,7 @@ const db = init({ appId: APP_ID, schema });
 export default db;
 
 /* FILE: instant.schema.ts */
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {
@@ -133,7 +133,7 @@ export default schema;
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { id, lookup, InstaQLEntity } from '@instantdb/react';
+import { id, lookup, InstaQLEntity } from '@sidekickdb/react';
 
 import db from '../lib/db';
 import schema from '../instant.schema';

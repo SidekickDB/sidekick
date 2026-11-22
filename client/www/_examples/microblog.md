@@ -18,13 +18,13 @@ pnpm i
 If you haven't already, be sure to log into the Instant CLI
 
 ```bash
-pnpx instant-cli login
+pnpx sidekick-cli login
 ```
 
 Now let's initialize a new app with the Instant CLI.
 
 ```bash
-pnpx instant-cli init
+pnpx sidekick-cli init
 ```
 
 We've provided a schema in `instant.schema.ts` that you can push to your app.
@@ -33,7 +33,7 @@ answered 'no' to the prompt during init, or if you're unsure whether you pushed
 the schema, you can push it now.
 
 ```bash
-pnpx instant-cli push
+pnpx sidekick-cli push
 ```
 
 Run the seed script to populate the database with some initial data:
@@ -309,7 +309,7 @@ scripts by connecting to the database using the Admin SDK.
 <file label="src/lib/adminDb.ts"></file>
 
 ```tsx
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import schema from '@/instant.schema';
 import dotenv from 'dotenv';
 dotenv.config();

@@ -19,7 +19,7 @@ We’ll build a micro-blog to illustrate; we'll have authors, posts, comments, a
 With Instant you can define your schema and your permissions in code. If you haven't already, use the [CLI](/docs/cli) to generate an `instant.schema.ts` and an `instant.perms.ts` file:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest init
+npx sidekick-cli@latest init
 ```
 
 The CLI will guide you through picking an Instant app and generate these files for you.
@@ -33,7 +33,7 @@ Open `instant.schema.ts`, and paste the following:
 ```typescript {% showCopy=true %}
 // instant.schema.ts
 
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {
@@ -375,7 +375,7 @@ postAuthor: {
 Now that you have your schema, you can use the CLI to `push` it to your app:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest push schema
+npx sidekick-cli@latest push schema
 ```
 
 The CLI will look at your app in production, show you the new columns you'd create, and run the changes for you!
@@ -384,7 +384,7 @@ The CLI will look at your app in production, show you the new columns you'd crea
 
 ```
 Checking for an Instant SDK...
-Found [32m@instantdb/react[39m in your package.json.
+Found [32m@sidekickdb/react[39m in your package.json.
 Found [32mNEXT_PUBLIC_INSTANT_APP_ID[39m: *****
 Planning schema...
 The following changes will be applied to your production schema:
@@ -417,7 +417,7 @@ The following changes will be applied to your production schema:
 You can also use your schema inside `init`:
 
 ```typescript
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 import schema from '../instant.schema.ts';
 
@@ -459,7 +459,7 @@ To prevent changes to your schema on the fly, simply add these permissions to yo
 
 ```typescript
 // instant.perms.ts
-import type { InstantRules } from '@instantdb/react';
+import type { InstantRules } from '@sidekickdb/react';
 
 const rules = {
   attrs: {
@@ -475,14 +475,14 @@ export default rules;
 Once you push these permissions to production:
 
 ```bash
-npx instant-cli@latest push perms
+npx sidekick-cli@latest push perms
 ```
 
 {% ansi %}
 
 ```
 Checking for an Instant SDK...
-Found [32m@instantdb/react[39m in your package.json.
+Found [32m@sidekickdb/react[39m in your package.json.
 Found [32mNEXT_PUBLIC_INSTANT_APP_ID[39m: *****
 Planning perms...
 The following changes will be applied to your perms:

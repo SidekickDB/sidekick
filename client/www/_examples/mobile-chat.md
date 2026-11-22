@@ -18,13 +18,13 @@ npm install
 If you haven't already, be sure to log into the Instant CLI
 
 ```bash
-npx instant-cli login
+npx sidekick-cli login
 ```
 
 Now let's initialize a new app with the Instant CLI.
 
 ```bash
-npx instant-cli init
+npx sidekick-cli init
 ```
 
 We've provided a schema in `instant.schema.ts` that you can push to your app.
@@ -33,7 +33,7 @@ answered 'no' to the prompt during init, or if you're unsure whether you pushed
 the schema, you can push it now.
 
 ```bash
-npx instant-cli push
+npx sidekick-cli push
 ```
 
 Finally, run the development server:

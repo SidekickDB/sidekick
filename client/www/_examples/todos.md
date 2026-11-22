@@ -19,13 +19,13 @@ pnpm i
 If you haven't already, be sure to log into the Instant CLI
 
 ```bash
-pnpx instant-cli login
+pnpx sidekick-cli login
 ```
 
 Now let's initialize a new app with the Instant CLI.
 
 ```bash
-pnpx instant-cli init
+pnpx sidekick-cli init
 ```
 
 We've provided a schema in `instant.schema.ts` that you can push to your app.
@@ -34,7 +34,7 @@ answered 'no' to the prompt during init, or if you're unsure whether you pushed
 the schema, you can push it now.
 
 ```bash
-pnpx instant-cli push
+pnpx sidekick-cli push
 ```
 
 Finally, run the development server:
@@ -101,13 +101,13 @@ our [modeling data docs](/docs/modeling-data).
 ## Initializing the database
 
 With our schema defined, we integrate it into our app with `init` from
-`@instantdb/react`. We create a `lib/db.ts` file to initialize our connection to
+`@sidekickdb/react`. We create a `lib/db.ts` file to initialize our connection to
 the database and export it for use throughout our app.
 
 <file label="src/lib/db.ts"></file>
 
 ```tsx
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import schema from '../instant.schema';
 
 export const db = init({

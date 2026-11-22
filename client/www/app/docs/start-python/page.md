@@ -22,7 +22,7 @@ Python 3.10+ is required.
 To scaffold a new project:
 
 ```shell {% showCopy=true %}
-npx create-instant-app --python my-app
+npx create-sidekick-app --python my-app
 cd my-app
 uv sync
 ```
@@ -95,7 +95,7 @@ so you can manage your app from your Python project. Push changes with
 the Instant CLI as you would normally:
 
 ```shell {% showCopy=true %}
-npx instant-cli push
+npx sidekick-cli push
 ```
 
 ## FastAPI with Pydantic

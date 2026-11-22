@@ -22,11 +22,11 @@ scripts/export.sh --email 'your-email-address' --app-id 5d9c6277-e6ac-42d6-8e51-
 First update locally to test changes
 
 ```
-INSTANT_CLI_DEV=1 pnpx instant-cli@latest push --app 5d9c6277-e6ac-42d6-8e51-2354b4870c05
+INSTANT_CLI_DEV=1 pnpx sidekick-cli@latest push --app 5d9c6277-e6ac-42d6-8e51-2354b4870c05
 ```
 
 Once everything looks good you can push to prod
 
 ```
-pnpx instant-cli@latest push --app 5d9c6277-e6ac-42d6-8e51-2354b4870c05
+pnpx sidekick-cli@latest push --app 5d9c6277-e6ac-42d6-8e51-2354b4870c05
 ```

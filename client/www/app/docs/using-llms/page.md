@@ -26,7 +26,7 @@ If you'd prefer to manually install the rules instead, see the section below.
 ## Instant Rules
 
 We've created a set of rules to help LLMs understand how Instant works. If you
-start a new project with `create-instant-app` you'll get these rules
+start a new project with `create-sidekick-app` you'll get these rules
 automatically. If you have an existing project you can add the rules manually.
 
 [Save these rules](/llm-rules/AGENTS.md) at the root of your project as:
@@ -48,7 +48,7 @@ If you want though you can get all our docs at once in markdown format via
 
 ## Instant MCP Server
 
-We built [`@instantdb/mcp`](https://github.com/instantdb/instant/tree/main/client/packages/mcp) to enable creating, managing, and updating your Instant apps.
+We built [`@sidekickdb/mcp`](https://github.com/instantdb/instant/tree/main/client/packages/mcp) to enable creating, managing, and updating your Instant apps.
 Combine the MCP with our rules file to build full-stack apps directly in your editor.
 
 The easiest way to get started is to use our hosted remote MCP server. Use the
@@ -206,7 +206,7 @@ https://mcp.instantdb.com/sse
 
 ## Local MCP server
 
-We recommend using our hosted MCP server, but we also support running [`@instantdb/mcp`](https://github.com/instantdb/instant/tree/main/client/packages/mcp) locally
+We recommend using our hosted MCP server, but we also support running [`@sidekickdb/mcp`](https://github.com/instantdb/instant/tree/main/client/packages/mcp) locally
 via `stdio`. This will avoid OAuth but requires you to manage your personal
 access token.
 
@@ -230,7 +230,7 @@ the following configuration to your MCP settings:
   "mcpServers": {
     "instant": {
       "command": "npx",
-      "args": ["-y", "@instantdb/mcp", "--token", "<token>"]
+      "args": ["-y", "@sidekickdb/mcp", "--token", "<token>"]
     }
   }
 }
@@ -243,7 +243,7 @@ the following configuration to your MCP settings:
   "mcpServers": {
     "instant": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "@instantdb/mcp", "--token", "<token>"]
+      "args": ["/c", "npx", "-y", "@sidekickdb/mcp", "--token", "<token>"]
     }
   }
 }
@@ -256,7 +256,7 @@ the following configuration to your MCP settings:
   "mcpServers": {
     "instant": {
       "command": "wsl",
-      "args": ["npx", "-y", "@instantdb/mcp", "--token", "<token>"]
+      "args": ["npx", "-y", "@sidekickdb/mcp", "--token", "<token>"]
     }
   }
 }
@@ -275,7 +275,7 @@ Open your Zed settings and add the following:
     "instant": {
       "command": {
         "path": "npx",
-        "args": ["-y", "@instantdb/mcp", "--token", "<token>"],
+        "args": ["-y", "@sidekickdb/mcp", "--token", "<token>"],
         "env": {}
       },
       "settings": {}
@@ -300,7 +300,7 @@ steps:
   "mcpServers": {
     "instant": {
       "command": "npx",
-      "args": ["-y", "@instantdb/mcp", "--token", "<token>"]
+      "args": ["-y", "@sidekickdb/mcp", "--token", "<token>"]
     }
   }
 }
