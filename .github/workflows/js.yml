@@ -150,6 +150,10 @@ jobs:
         run: pnpm run build-packages
 
       - name: Run tests
+        # SidekickDB: disabled. Several suites (core/mcp/cli e2e, resumable-stream)
+        # create ephemeral apps on and connect to upstream's production
+        # api.instantdb.com. Re-enable once tests target a SidekickDB-owned backend.
+        if: false
         working-directory: client
         run: pnpm run test
 
