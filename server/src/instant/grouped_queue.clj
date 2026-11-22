@@ -18,21 +18,43 @@
         (error-fn ctx e)
         (throw e)))))
 
+(declare record-error recover-chain)
+
 (defn- schedule [{:keys [scheduled-thread-pool-executor error-fn ctx] :as q}
                  ^Long delay-ms
-                 ^Runnable task]
+                 ^Runnable task
+                 group
+                 key]
   (try
     (ScheduledThreadPoolExecutor/.schedule
      scheduled-thread-pool-executor
      (reify Runnable
        (run [_]
-         (execute q task)))
+         ;; This runs on the scheduler thread, outside process's try. If the
+         ;; resubmission throws, the ScheduledFuture swallows it and nothing
+         ;; restarts the chain, so recover it here the same way process does.
+         ;; recover-chain handles its own failures, so it can't recurse.
+         (try
+           (execute q task)
+           (catch Throwable t
+             (record-error t "grouped-queue/scheduled-execute-error")
+             (recover-chain task q group key)))))
      delay-ms
      TimeUnit/MILLISECONDS)
     (catch Exception e
       (if error-fn
         (error-fn ctx e)
         (throw e)))))
+
+(defn- record-error
+  "Records t, but can never itself throw. Recovery code calls this first, so if
+   recording could fail -- under memory pressure it allocates, and before the
+   tracer is initialised it throws -- the failure would skip the recovery it was
+   meant to log, and orphan the group anyway."
+  [t span-name]
+  (try
+    (tracer/record-exception-span! t {:name span-name})
+    (catch Throwable _ nil)))
 
 (defn- poll
   "Gets 0..∞ items from group, fetching as many combinable items as possible in a row.
@@ -43,7 +65,14 @@
       (nil? item1) nil
       :let [item2 (Queue/.peek group)]
       (nil? item2) item1
-      :let [item12 (combine-fn ctx item1 item2)]
+      ;; combine-fn runs outside process-fn's try. If it throws, treat the
+      ;; pair as not combinable: return item1 on its own and leave item2
+      ;; queued. Letting it escape would kill the pass and orphan the group.
+      :let [item12 (try
+                     (combine-fn ctx item1 item2)
+                     (catch Throwable t
+                       (record-error t "grouped-queue/combine-error")
+                       nil))]
       (nil? item12) item1
       :else (do
               (Queue/.remove group) ;; remove item2
@@ -63,6 +92,25 @@
                             (Map/.remove groups key))))
     (execute q process-task)))
 
+(defn- recover-chain
+  "A pass died before it could reschedule. Try once more to keep the chain
+   going. If that fails as well, unregister the group so that the next put!
+   starts a fresh chain. That drops the group's backlog, which is better than
+   the alternative: a group that stays registered with nothing draining it,
+   so that put! appends to it for the life of the process."
+  [process-task {:keys [groups num-items] :as q} group key]
+  (try
+    (clean-or-reschedule process-task q group key)
+    (catch Throwable t
+      (record-error t "grouped-queue/orphaned-group-dropped")
+      (locking q
+        (Map/.remove groups key group))
+      (let [dropped (loop [n 0]
+                      (if-some [item (Queue/.poll group)]
+                        (recur (+ n (::combined item 1)))
+                        n))]
+        (AtomicInteger/.addAndGet num-items (- dropped))))))
+
 (def throttle-key ::throttle-ms)
 
 (defn return-throttle [^long throttle-ms]
@@ -80,20 +128,30 @@
    key
    group]
   (AtomicInteger/.incrementAndGet num-workers)
-  (when @processing?
-    (if-some [item (poll ctx group combine-fn)]
-      (let [process-result (try
-                             (process-fn ctx key item)
-                             (catch Throwable t
-                               (tracer/record-exception-span! t {:name "grouped-queue/process-error"})))]
-        (AtomicInteger/.addAndGet num-items (- (::combined item 1)))
-        (if-let [throttle-ms (throttle-key process-result)]
-          (schedule q throttle-ms process-task)
-          (if (some? (Queue/.peek group))
-            (execute q process-task)
-            (clean-or-reschedule process-task q group key))))
-      (clean-or-reschedule process-task q group key)))
-  (AtomicInteger/.decrementAndGet num-workers))
+  ;; Each pass must end by rescheduling the chain or unregistering the group.
+  ;; put! only starts a chain for a group it has not seen, so a pass that dies
+  ;; in between orphans the group for good. Throwable rather than Exception:
+  ;; the realistic failure is OutOfMemoryError, which escapes the pooled
+  ;; worker without taking the JVM down.
+  (try
+    (when @processing?
+      (if-some [item (poll ctx group combine-fn)]
+        (let [process-result (try
+                               (process-fn ctx key item)
+                               (catch Throwable t
+                                 (record-error t "grouped-queue/process-error")))]
+          (AtomicInteger/.addAndGet num-items (- (::combined item 1)))
+          (if-let [throttle-ms (throttle-key process-result)]
+            (schedule q throttle-ms process-task group key)
+            (if (some? (Queue/.peek group))
+              (execute q process-task)
+              (clean-or-reschedule process-task q group key))))
+        (clean-or-reschedule process-task q group key)))
+    (catch Throwable t
+      (record-error t "grouped-queue/process-chain-error")
+      (recover-chain process-task q group key))
+    (finally
+      (AtomicInteger/.decrementAndGet num-workers))))
 
 (defn put!
   "Schedule item for execution on q"
