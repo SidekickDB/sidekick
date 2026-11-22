@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-go/master/schema/compose-spec.json
 services:
   postgres:
-    image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+    # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
+    image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
     ports:
       - "8890:5432"
     environment:
@@ -32,7 +33,7 @@ services:
       - "-c"
       - "random_page_cost=1.1"
   www:
-    image: "ghcr.io/instantdb/dashboard:latest"
+    image: "${DASHBOARD_IMAGE:-ghcr.io/instantdb/dashboard:latest}"
     environment:
       INSTANT_BACKEND_URL: ${SERVER_URL:? example http://server.localhost}
     networks:
@@ -93,7 +94,7 @@ services:
         max_attempts: 20
 
   server:
-    image: "ghcr.io/instantdb/server:latest"
+    image: "${SERVER_IMAGE:-ghcr.io/instantdb/server:latest}"
     networks:
       - caddy
       - default

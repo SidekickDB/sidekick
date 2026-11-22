@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+    # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
+    image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
     ports:
       - "8890:5432"
     environment:
@@ -30,7 +31,8 @@ services:
   www:
     depends_on:
       - server
-    image: "ghcr.io/instantdb/dashboard:latest"
+    # Local build tag. Kept off ghcr.io/instantdb so it never shadows upstream images.
+    image: "${DASHBOARD_IMAGE:-sidekickdb-dashboard:local}"
     build:
       context: ../client
       dockerfile: Dockerfile.www
@@ -88,7 +90,8 @@ services:
         condition: service_healthy
       createbuckets:
         condition: service_completed_successfully
-    image: "ghcr.io/instantdb/server:latest"
+    # Local build tag. Kept off ghcr.io/instantdb so it never shadows upstream images.
+    image: "${SERVER_IMAGE:-sidekickdb-server:local}"
     build:
       context: ../server
       dockerfile: Dockerfile.self-hosted

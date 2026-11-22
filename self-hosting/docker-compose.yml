@@ -1,6 +1,7 @@
 services:
   postgres:
-    image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+    # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
+    image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
     ports:
       - "8890:5432"
     environment:
@@ -30,7 +31,7 @@ services:
   www:
     depends_on:
       - server
-    image: "ghcr.io/instantdb/dashboard:latest"
+    image: "${DASHBOARD_IMAGE:-ghcr.io/instantdb/dashboard:latest}"
     environment:
       # Where the backend url will be available externally
       - INSTANT_BACKEND_URL=${INSTANT_BACKEND_URL:-http://localhost:8888}
@@ -80,7 +81,7 @@ services:
         condition: service_healthy
       createbuckets:
         condition: service_completed_successfully
-    image: "ghcr.io/instantdb/server:latest"
+    image: "${SERVER_IMAGE:-ghcr.io/instantdb/server:latest}"
     environment:
       WAL_HISTORY_STORAGE: pg
       DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:-pass}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
