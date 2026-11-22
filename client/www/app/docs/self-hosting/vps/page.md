@@ -5,9 +5,9 @@ nextjs:
     description: 'Run Instant on a VPS.'
 ---
 
-You can run the Instant backend, dashboard, PostgreSQL, MinIO, and Caddy on a
-single VPS. A server with 2 vCPUs and 4 GB of RAM is enough to get started and
-usually costs around $30 per month.
+You can run the Instant backend, dashboard, PostgreSQL, RustFS (S3-compatible
+object storage), and Caddy on a single VPS. A server with 2 vCPUs and 4 GB of
+RAM is enough to get started and usually costs around $30 per month.
 
 Already have a VPS and domain? Continue with the server's SSH address and the
 hostnames you want to use.
@@ -38,7 +38,7 @@ files.myinstant.com
 Point each hostname to the server.
 
 Allow inbound HTTP, HTTPS, and administrator access to the server. PostgreSQL
-and MinIO only need to be reachable by the other containers on the host.
+and RustFS only need to be reachable by the other containers on the host.
 
 ## Install Docker
 
@@ -94,12 +94,12 @@ The `_DOMAIN` variables are only used by Caddy. You can ignore them if you use a
 different reverse proxy.
 
 `S3_PUBLIC_ENDPOINT` must be an origin without a path, such as
-`https://files.myinstant.com`. MinIO cannot serve its S3 API from a path such as
+`https://files.myinstant.com`. The S3 API cannot be served from a path such as
 `/storage`.
 
-Review the rest of `.env` and replace the default PostgreSQL and MinIO
-credentials. The MinIO bucket is private and Instant serves files with signed
-URLs.
+Review the rest of `.env` and replace the default PostgreSQL and RustFS
+credentials (`STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY`). The storage bucket
+is private and Instant serves files with signed URLs.
 
 ## Start Instant
 

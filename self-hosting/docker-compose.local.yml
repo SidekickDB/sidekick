@@ -49,46 +49,46 @@ services:
       # Where the backend url will be available externally
       - INSTANT_BACKEND_URL=${INSTANT_BACKEND_URL:-http://localhost:8888}
 
-  minio:
-    # Any MinIO server image that provides `sh` and `mc` works here.
-    image: ${MINIO_IMAGE:-cgr.dev/chainguard/minio:latest}
+  storage:
+    # S3-compatible object storage. Defaults to RustFS; STORAGE_IMAGE can point at
+    # another S3-compatible server (adjust environment and healthcheck to match).
+    image: ${STORAGE_IMAGE:-rustfs/rustfs:1.0.6}
     restart: always
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      MINIO_BROWSER: "on"
-      MINIO_SKIP_CLIENT_CERT_VALIDATION: "on"
-    command: server /data --console-address ":9001" --address ":9000"
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
+      RUSTFS_ADDRESS: ":9000"
+      RUSTFS_CONSOLE_ADDRESS: ":9001"
+      RUSTFS_CONSOLE_ENABLE: "true"
     volumes:
-      - minio_data:/data
+      - storage_data:/data
     healthcheck:
-      # `mc ready` instead of curl: not every MinIO image ships curl.
-      test: ["CMD-SHELL", "MC_CONFIG_DIR=/tmp/.mc MC_HOST_self=http://localhost:9000 mc ready self"]
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:9000/health/ready"]
       interval: 5s
       timeout: 5s
       retries: 12
 
   createbuckets:
-    # Any image that provides `sh` and the MinIO client `mc` works here.
-    image: ${MINIO_CLIENT_IMAGE:-cgr.dev/chainguard/minio:latest}
+    # Creates the buckets with the RustFS client `rc`. Any image with `sh` and `rc`
+    # works here; another client needs a different entrypoint.
+    image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
-      MC_CONFIG_DIR: /tmp/.mc
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
+      SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     depends_on:
-      minio:
+      storage:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
       set -e;
-      mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD;
-      mc mb --ignore-existing local/$$S3_BUCKET;
-      mc mb --ignore-existing local/$$S3_APP_BACKUPS_BUCKET;
+      rc alias set local http://storage:9000 $$ACCESS_KEY $$SECRET_KEY;
+      rc bucket create --ignore-existing local/$$S3_BUCKET;
+      rc bucket create --ignore-existing local/$$S3_APP_BACKUPS_BUCKET;
       exit"
 
   server:
@@ -132,10 +132,10 @@ services:
       INSTANT_APP_EMAIL_SENDER_EMAIL: ${INSTANT_APP_EMAIL_SENDER_EMAIL:-}
       INSTANT_TEAM_EMAIL_SENDER_NAME: ${INSTANT_TEAM_EMAIL_SENDER_NAME:-}
       INSTANT_TEAM_EMAIL_SENDER_EMAIL: ${INSTANT_TEAM_EMAIL_SENDER_EMAIL:-}
-      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
       AWS_REGION: ${AWS_REGION:-us-east-1}
-      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://storage:9000}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
@@ -144,5 +144,5 @@ services:
 
 volumes:
   backend-db:
-  minio_data:
+  storage_data:
   server_config:
