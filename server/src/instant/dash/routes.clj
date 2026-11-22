@@ -272,14 +272,14 @@
                     {:id (UUID/randomUUID)
                      :code (instant-user-magic-code-model/rand-code)
                      :user-id user-id})]
-    (when-not (config/postmark-send-enabled?)
+    (when-not (config/email-send-enabled?)
       (log/infof (str "\n"
                       "============================================================\n"
                       "              INSTANT DASHBOARD LOGIN CODE\n"
                       "\n"
                       "                         %s\n"
                       "\n"
-                      "     Postmark is not configured. Use this code to sign in.\n"
+                      "   No email provider is configured. Use this code to sign in.\n"
                       "============================================================")
                  (:code magic-code)))
     (email-router/send-structured!
@@ -1967,7 +1967,7 @@
         record (get-active-app-backup! app-id backup-id)
         prefix (str (backup-storage-prefix! record) "/")
         objects (s3-util/list-all-objects (storage-s3/s3-client)
-                                          config/s3-app-backups-bucket-name
+                                          (backup/backups-bucket-name!)
                                           {:prefix prefix})
         files (->> objects
                    (map (fn [obj]
@@ -1993,7 +1993,7 @@
              (storage-s3/presign-creds)
              {:app-id app-id
               :method :get
-              :bucket-name config/s3-app-backups-bucket-name
+              :bucket-name (backup/backups-bucket-name!)
               :key object-key
               :signing-instant (Instant/now)
               :duration (Duration/ofHours 1)})]
@@ -2025,7 +2025,7 @@
        (with-open [writer (BufferedWriter. (OutputStreamWriter. pipe-out StandardCharsets/UTF_8))]
          (try
            (with-open [s3-stream (s3-util/get-object (storage-s3/s3-async-client)
-                                                     config/s3-app-backups-bucket-name
+                                                     (backup/backups-bucket-name!)
                                                      files-key)
                        zst-stream (ZstdInputStream. s3-stream)
                        rdr (BufferedReader. (InputStreamReader. zst-stream StandardCharsets/UTF_8))]

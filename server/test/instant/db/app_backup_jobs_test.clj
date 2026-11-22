@@ -2,6 +2,7 @@
   (:require
    [clojure.test :refer [deftest is testing]]
    [instant.backup :as backup]
+   [instant.config :as config]
    [instant.data.constants :refer [test-user-id]]
    [instant.db.app-backup-jobs :as app-backup-jobs]
    [instant.model.app :as app-model]
@@ -175,3 +176,27 @@
       (finally
         (deliver block true)
         (app-backup-jobs/shutdown-pool pool wait-timeout)))))
+
+(deftest refuses-backups-when-no-bucket-is-configured
+  (with-redefs [config/s3-app-backups-bucket-name nil]
+    (testing "enqueuing a backup fails with a clear message and creates no job"
+      (with-apps 1
+        (fn [[app]]
+          (let [err (instant-ex-data
+                     (app-backup-jobs/enqueue! {:app-id (:id app)}))]
+            (is (= :instant.util.exception/validation-failed
+                   (:instant.util.exception/type err)))
+            (is (re-find #"S3_APP_BACKUPS_BUCKET"
+                         (:instant.util.exception/message err))))
+          (is (empty? (app-backup-jobs/get-active-for-client (:id app)))))))
+
+    (testing "reading a backup's bucket fails with the same message"
+      (let [err (instant-ex-data (backup/backups-bucket-name!))]
+        (is (= :instant.util.exception/validation-failed
+               (:instant.util.exception/type err)))
+        (is (re-find #"S3_APP_BACKUPS_BUCKET"
+                     (:instant.util.exception/message err)))))))
+
+(deftest uses-the-configured-backups-bucket
+  (with-redefs [config/s3-app-backups-bucket-name "my-backups"]
+    (is (= "my-backups" (backup/backups-bucket-name!)))))

@@ -160,6 +160,10 @@
   ([app-id] (assert-backup-allowed! (aurora/conn-pool :read) app-id))
   ([conn app-id] (assert-backup-allowed! conn app-id (work-estimate conn app-id)))
   ([conn app-id estimate]
+   (when-not (config/app-backups-enabled?)
+     (ex/throw-validation-err! :app-backup-job
+                               {:app-id app-id}
+                               [{:message config/app-backups-not-configured-message}]))
    (when (ephemeral-app? conn app-id)
      (ex/throw-validation-err! :app-backup-job
                                {:app-id app-id}

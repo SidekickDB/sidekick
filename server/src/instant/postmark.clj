@@ -88,11 +88,11 @@
                       :To to
                       :Cc cc
                       :Bcc bcc
-                      :ReplyTo reply-to
                       :Subject subject
                       :MessageStream "outbound"
                       :HTMLBody
                       html}
+               reply-to (assoc :ReplyTo reply-to)
                text (assoc :TextBody text))]
     (if-not (config/postmark-send-enabled?)
       (tracer/with-span! {:name "postmark/send-disabled"

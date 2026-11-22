@@ -25,6 +25,7 @@
    [instant.util.async :as ua]
    [instant.util.date :as date]
    [instant.util.defrecord :refer [defrecord-once]]
+   [instant.util.exception :as ex]
    [instant.util.hsql :as uhsql]
    [instant.util.json :as json]
    [instant.util.lang :as lang]
@@ -48,6 +49,15 @@
    (org.apache.commons.io.output CountingOutputStream)
    (org.postgresql.jdbc PgConnection PgConnection)
    (software.amazon.awssdk.core.async AsyncRequestBody)))
+
+(defn backups-bucket-name!
+  "The bucket that app backups are stored in. Throws a validation error with a
+   clear message when backups are not configured (S3_APP_BACKUPS_BUCKET unset)."
+  []
+  (or config/s3-app-backups-bucket-name
+      (ex/throw-validation-err! :app-backup
+                                {}
+                                [{:message config/app-backups-not-configured-message}])))
 
 (defn expired?
   ([backup] (expired? (Instant/now) backup))
@@ -403,7 +413,7 @@
                                         0
                                         streams))]
     (s3/transfer-manager-upload (s3-transfer-manager)
-                                config/s3-app-backups-bucket-name
+                                (backups-bucket-name!)
                                 {:object-key (format "%s/%s/config.json"
                                                      app-id
                                                      backup-id)
@@ -509,7 +519,7 @@
                                                           :backup-id backup-id
                                                           :etype etype}}
                            (s3/transfer-manager-upload-stream (s3-transfer-manager)
-                                                              config/s3-app-backups-bucket-name
+                                                              (backups-bucket-name!)
                                                               {:object-key (format "%s/%s/entities/%s.jsonl"
                                                                                    app-id
                                                                                    backup-id
