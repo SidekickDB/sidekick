@@ -1232,6 +1232,28 @@
                                 (apply str))]
     (str file-content buffer-content)))
 
+(defn read-stream-files
+  "Reads only the bytes that have been flushed to the stream's files."
+  [app-id stream-id slurp-file]
+  (apply str (map (fn [{:keys [location-id]}]
+                    (slurp-file app-id location-id))
+                  (app-stream-model/get-stream-files {:app-id app-id
+                                                      :stream-id stream-id}))))
+
+(defn read-stream-as-reader
+  "Reads the stream the way a reader sees it: the live stream object's own
+   files followed by its unflushed buffer (see app-stream/stream-init-msg).
+   Unlike `read-full-stream`, it doesn't mix in files flushed by a stream
+   object that has since been replaced."
+  [store app-id stream-id slurp-file]
+  (let [{:keys [$files buffer]} @(rs/get-stream-object-for-subscribe store app-id stream-id)]
+    (str (apply str (map (fn [{:keys [location-id]}]
+                           (slurp-file app-id location-id))
+                         $files))
+         (apply str (map (fn [^bytes ba]
+                           (String. ba "UTF-8"))
+                         buffer)))))
+
 (deftest streams-writer
   (with-file-mock
     (fn [{:keys [slurp-file]}]
@@ -1402,9 +1424,15 @@
                   _ (is (= "HelloABCDEF" (read-full-stream store movies-app-id stream-id slurp-file)))]
 
               (testing "if someone steals our session, we can't write to it"
-                (blocking-send-msg :start-stream-ok socket-3 {:op :start-stream
-                                                              :client-id "stream-1"
-                                                              :reconnect-token reconnect-token})
+                ;; socket-3's stream object is built from the flushed files
+                ;; before it replaces socket-2's, so it starts at offset 8.
+                ;; Replacing socket-2's object runs its cleanup, which flushes
+                ;; socket-2's buffered "DEF" to a third file in the background.
+                (let [{:keys [offset]}
+                      (blocking-send-msg :start-stream-ok socket-3 {:op :start-stream
+                                                                    :client-id "stream-1"
+                                                                    :reconnect-token reconnect-token})]
+                  (is (= 8 offset)))
                 (blocking-send-msg :error socket-2 {:op :append-stream
                                                     :client-id "stream-1"
                                                     :chunks ["GHI"]
@@ -1415,7 +1443,18 @@
                                     :stream-id (str stream-id)
                                     :chunks ["DEF"]
                                     :offset 8})
-                (is (= "HelloABCDEF" (read-full-stream store movies-app-id stream-id slurp-file)))))))))))
+                ;; Wait for socket-2's cleanup flush. Without this the checks
+                ;; below raced it: `read-full-stream` reads the files and then
+                ;; socket-3's buffer, so once the flushed "DEF" landed it was
+                ;; counted twice, as "HelloABCDEFDEF".
+                (test-util/wait-for (fn []
+                                      (= 3 (count (app-stream-model/get-stream-files {:app-id movies-app-id
+                                                                                      :stream-id stream-id}))))
+                                    10000)
+                (testing "socket-2's buffered data was persisted"
+                  (is (= "HelloABCDEF" (read-stream-files movies-app-id stream-id slurp-file))))
+                (testing "readers see socket-3's write once, at offset 8"
+                  (is (= "HelloABCDEF" (read-stream-as-reader store movies-app-id stream-id slurp-file))))))))))))
 
 (deftest streams-writer-flushes-on-disconnect
   (with-redefs [flags/stream-flush-byte-limit (constantly 10)]
