@@ -30,7 +30,8 @@ services:
 
   www:
     depends_on:
-      - server
+      server:
+        condition: service_healthy
     # Local build tag. Kept off ghcr.io/instantdb so it never shadows upstream images.
     image: "${DASHBOARD_IMAGE:-sidekickdb-dashboard:local}"
     build:
@@ -38,6 +39,12 @@ services:
       dockerfile: Dockerfile.www
     ports:
       - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/dash').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     environment:
       # Where the backend url will be available externally
       - INSTANT_BACKEND_URL=${INSTANT_BACKEND_URL:-http://localhost:8888}
@@ -97,6 +104,12 @@ services:
       dockerfile: Dockerfile.self-hosted
     ports:
       - "8888:8888"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8888/health/system"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
     environment:
       WAL_HISTORY_STORAGE: pg
       DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:-pass}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
