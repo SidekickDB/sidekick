@@ -13,10 +13,11 @@
   {"verify@auth-pm.instantdb.com" "verify@auth-sg.instantdb.com"
    "verify@dash-pm.instantdb.com" "verify@auth-sg.instantdb.com"})
 
-(def missing-sender-message
+(defn missing-sender-message []
   (str "Email is configured on this server, but no sender address is set for "
        "this email. The server operator needs to set "
-       (string/join ", " (vals config/email-sender-env-vars))
+       (string/join ", " (or (seq (config/missing-email-sender-env-vars))
+                             (vals config/email-sender-env-vars)))
        "."))
 
 (defn assert-sender!
@@ -28,7 +29,7 @@
     (tracer/record-info! {:name "email-router/missing-sender"
                           :attributes {:missing-env-vars
                                        (string/join ", " (config/missing-email-sender-env-vars))}})
-    (ex/throw-email-send-failed! missing-sender-message)))
+    (ex/throw-email-send-failed! (missing-sender-message))))
 
 (defn send-structured! [req]
   (assert-sender! req)
