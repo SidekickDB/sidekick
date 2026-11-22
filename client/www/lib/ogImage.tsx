@@ -9,23 +9,9 @@ function readFont(filename: string): Buffer {
 }
 
 export async function loadFonts() {
-  const berkRegular = readFont('BerkeleyMono-Regular.ttf');
-  const berkBold = readFont('BerkeleyMono-Bold.ttf');
   const swRegular = readFont('Switzer-Regular.woff');
   const swSemibold = readFont('Switzer-Semibold.woff');
   return [
-    {
-      name: 'Berkeley Mono',
-      data: berkRegular,
-      style: 'normal' as const,
-      weight: 500 as const,
-    },
-    {
-      name: 'Berkeley Mono',
-      data: berkBold,
-      style: 'normal' as const,
-      weight: 700 as const,
-    },
     {
       name: 'Switzer',
       data: swRegular,
@@ -106,7 +92,7 @@ export async function generateOgImage({
           <div
             style={{
               fontSize: 36,
-              fontFamily: 'Berkeley Mono',
+              fontFamily: 'Switzer',
               marginLeft: 14,
               fontWeight: 700,
               color: '#000',
@@ -162,7 +148,7 @@ export async function generateOgImage({
           <div
             style={{
               fontSize: 64,
-              fontFamily: 'Berkeley Mono',
+              fontFamily: 'Switzer',
               marginLeft: 20,
               fontWeight: 700,
               color: '#fff',
@@ -174,7 +160,7 @@ export async function generateOgImage({
             <div
               style={{
                 fontSize: 64,
-                fontFamily: 'Berkeley Mono',
+                fontFamily: 'Switzer',
                 marginLeft: 16,
                 color: '#888',
               }}

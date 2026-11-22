@@ -15,11 +15,7 @@ import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Button, cn, LogoIcon } from '@/components/ui';
 import { ComponentType, SVGProps } from 'react';
-import { useStarCount } from '@/lib/starCountContext';
-import { formatNumberCompact } from '@/lib/format';
-import { RollingNumber } from '@/components/RollingNumber';
 import { SunsetBanner } from '@/components/SunsetBanner';
-import { instantRepo } from '@/lib/config';
 
 type Product = {
   id: string;
@@ -360,8 +356,6 @@ function NavItems() {
 }
 
 function OtherNavItems() {
-  const starCount = useStarCount(instantRepo);
-
   return (
     <>
       <NavLink href="https://github.com/instantdb/instant">
@@ -371,10 +365,7 @@ function OtherNavItems() {
             alt="GitHub"
             className="h-[18px] w-[18px]"
           />
-          <span className="inline-block w-[5ch] pl-1 text-center font-semibold">
-            <RollingNumber value={starCount} format={formatNumberCompact} />
-          </span>
-          stars
+          <span className="pl-1 font-semibold">GitHub</span>
         </span>
       </NavLink>
       <div>

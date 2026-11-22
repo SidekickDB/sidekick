@@ -25,7 +25,6 @@ module.exports = {
     fontFamily: {
       sans: ['Switzer', '"IBM Plex Sans"', ...sans],
       mono: [
-        'Berk Mono',
         'ui-monospace',
         'SFMono-Regular',
         'Menlo',

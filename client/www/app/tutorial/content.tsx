@@ -13,7 +13,6 @@ import { Footer } from '@/components/new-landing/Footer';
 import { TopWash } from '@/components/new-landing/TopWash';
 import { XIcon } from '@/components/new-landing/icons';
 import { AnimateIn } from '@/components/new-landing/AnimateIn';
-import RatingBox from '@/components/docs/RatingBox';
 import useLocalStorage from '@/lib/hooks/useLocalStorage';
 import clsx from 'clsx';
 import { CheckIcon, ClipboardDocumentIcon } from '@heroicons/react/24/solid';
@@ -730,12 +729,6 @@ export default function Tutorial() {
                   <XIcon className="h-4 w-4" />
                   Share on X
                 </a>
-              </div>
-            </AnimateIn>
-
-            <AnimateIn delay={300}>
-              <div className="mt-12 text-lg">
-                <RatingBox pageId="tutorial" />
               </div>
             </AnimateIn>
           </div>
