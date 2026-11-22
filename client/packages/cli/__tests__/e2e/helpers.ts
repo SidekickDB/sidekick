@@ -86,11 +86,11 @@ export async function createTestProject(
     ),
   );
 
-  await mkdir(join(dir, 'node_modules', '@instantdb', 'react'), {
+  await mkdir(join(dir, 'node_modules', '@sidekickdb', 'react'), {
     recursive: true,
   });
   await writeFile(
-    join(dir, 'node_modules', '@instantdb', 'react', 'package.json'),
+    join(dir, 'node_modules', '@sidekickdb', 'react', 'package.json'),
     JSON.stringify({ name: '@sidekickdb/react', version: '0.0.1' }),
   );
 
