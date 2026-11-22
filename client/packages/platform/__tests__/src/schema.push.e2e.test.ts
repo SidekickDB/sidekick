@@ -1,5 +1,17 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test as baseTest } from 'vitest';
 import { PlatformApi, ProgressPromise, i } from '../../src/index';
+
+// SidekickDB: networked suite. It runs only against the backend named by
+// SIDEKICK_E2E_API_URI and is skipped when that is unset; there is no default.
+const apiURI = process.env.SIDEKICK_E2E_API_URI
+  ? new URL(process.env.SIDEKICK_E2E_API_URI).href.replace(/\/+$/, '')
+  : undefined;
+if (!apiURI) {
+  console.warn(
+    '[sidekick] Skipping schemaPush e2e: set SIDEKICK_E2E_API_URI to a SidekickDB server URL to run it.',
+  );
+}
+const test = (apiURI ? baseTest : baseTest.skip) as typeof baseTest;
 
 describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
   for (const fnName of ['planSchemaPush', 'schemaPush'] as const) {
@@ -13,7 +25,7 @@ describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
         },
       });
 
-      const tempApi = new PlatformApi({});
+      const tempApi = new PlatformApi({ apiURI });
       const { app } = await tempApi.createTemporaryApp({
         schema: initialSchema,
         title: 'tempApp',
@@ -27,7 +39,10 @@ describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
           }),
         },
       });
-      const appApi = new PlatformApi({ auth: { token: app.adminToken } });
+      const appApi = new PlatformApi({
+        auth: { token: app.adminToken },
+        apiURI,
+      });
       await expect(
         appApi[fnName](app.id, {
           schema: overwriteSchema,
@@ -58,7 +73,7 @@ describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
           }),
         },
       });
-      const tempApi = new PlatformApi({});
+      const tempApi = new PlatformApi({ apiURI });
       const { app } = await tempApi.createTemporaryApp({
         schema: initialSchema,
         title: 'tempApp',
@@ -72,7 +87,10 @@ describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
           }),
         },
       });
-      const appApi = new PlatformApi({ auth: { token: app.adminToken } });
+      const appApi = new PlatformApi({
+        auth: { token: app.adminToken },
+        apiURI,
+      });
       const res = await appApi[fnName](app.id, {
         schema: additiveSchema,
       });
@@ -107,7 +125,7 @@ describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
         },
       });
 
-      const tempApi = new PlatformApi({});
+      const tempApi = new PlatformApi({ apiURI });
       const { app } = await tempApi.createTemporaryApp({
         schema: initialSchema,
         title: 'tempApp',
@@ -134,7 +152,10 @@ describe.concurrent('schemaPush e2e', { timeout: 20_000 }, () => {
           },
         },
       });
-      const appApi = new PlatformApi({ auth: { token: app.adminToken } });
+      const appApi = new PlatformApi({
+        auth: { token: app.adminToken },
+        apiURI,
+      });
 
       console.log(fnName, app.id);
 

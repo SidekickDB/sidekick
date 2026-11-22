@@ -1,9 +1,22 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it as baseIt, expect } from 'vitest';
 import { randomUUID } from 'crypto';
 import { PlatformApi } from '@sidekickdb/platform';
-import { handleQuery, handleTransact } from '../src/tools.ts';
 
-const API_URL = process.env.INSTANT_API_URL || 'https://api.instantdb.com';
+// SidekickDB: networked suite. It runs only against the backend named by
+// SIDEKICK_E2E_API_URI and is skipped when that is unset; there is no default.
+const API_URL = process.env.SIDEKICK_E2E_API_URI
+  ? new URL(process.env.SIDEKICK_E2E_API_URI).href.replace(/\/+$/, '')
+  : undefined;
+if (!API_URL) {
+  console.warn(
+    '[sidekick] Skipping MCP tools e2e: set SIDEKICK_E2E_API_URI to a SidekickDB server URL to run it.',
+  );
+} else {
+  // src/tools.ts reads INSTANT_API_URL when it is loaded, so set it first.
+  process.env.INSTANT_API_URL = API_URL;
+}
+const it = (API_URL ? baseIt : baseIt.skip) as typeof baseIt;
+const { handleQuery, handleTransact } = await import('../src/tools.ts');
 
 async function createTempApp(): Promise<{
   appId: string;
@@ -22,7 +35,10 @@ async function createTempApp(): Promise<{
   const { app } = await response.json();
   return {
     appId: app.id,
-    api: new PlatformApi({ auth: { token: app['admin-token'] } }),
+    api: new PlatformApi({
+      auth: { token: app['admin-token'] },
+      apiURI: API_URL,
+    }),
   };
 }
 
@@ -73,7 +89,10 @@ describe.concurrent('MCP tools e2e', { timeout: 10_000 }, () => {
     });
 
     it('returns error for bad credentials', async () => {
-      const badApi = new PlatformApi({ auth: { token: randomUUID() } });
+      const badApi = new PlatformApi({
+        auth: { token: randomUUID() },
+        apiURI: API_URL,
+      });
       const result = await handleQuery(badApi, randomUUID(), {
         todos: {},
       });
@@ -131,7 +150,10 @@ describe.concurrent('MCP tools e2e', { timeout: 10_000 }, () => {
     });
 
     it('returns error for bad credentials', async () => {
-      const badApi = new PlatformApi({ auth: { token: randomUUID() } });
+      const badApi = new PlatformApi({
+        auth: { token: randomUUID() },
+        apiURI: API_URL,
+      });
       const result = await handleTransact(badApi, randomUUID(), [
         ['update', 'todos', randomUUID(), { title: 'Nope' }],
       ]);
