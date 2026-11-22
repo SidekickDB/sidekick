@@ -96,7 +96,7 @@ $users: i.entity({
 Push your schema:
 
 ```bash
-npx instant-cli push schema --yes
+npx sidekick-cli push schema --yes
 ```
 
 ## Creating the checkout flow
@@ -266,7 +266,7 @@ This says: "Return `content` only if the post isn't premium OR the user has an a
 Push permissions:
 
 ```bash
-npx instant-cli push perms --yes
+npx sidekick-cli push perms --yes
 ```
 
 Query posts normally — permissions are automatic:

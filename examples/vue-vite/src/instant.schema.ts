@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "@instantdb/vue";
+import { i } from "@sidekickdb/vue";
 
 const _schema = i.schema({
   entities: {

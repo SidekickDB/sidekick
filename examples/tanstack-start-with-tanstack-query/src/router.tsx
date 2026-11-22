@@ -9,7 +9,7 @@ import { routeTree } from "./routeTree.gen";
 import { getStartContext } from "@tanstack/start-storage-context";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { adminDb } from "./lib/adminDb";
-import { User, ValidQuery } from "@instantdb/react";
+import { User, ValidQuery } from "@sidekickdb/react";
 import { AppSchema } from "./instant.schema";
 import { clientDb } from "./lib/db";
 

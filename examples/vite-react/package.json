@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@instantdb/react": "latest",
-    "@instantdb/admin": "latest",
+    "@sidekickdb/react": "latest",
+    "@sidekickdb/admin": "latest",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

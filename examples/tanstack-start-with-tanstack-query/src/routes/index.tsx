@@ -1,6 +1,6 @@
 import { AppSchema } from "@/instant.schema";
 import { clientDb } from "@/lib/db";
-import { id, InstaQLEntity } from "@instantdb/react";
+import { id, InstaQLEntity } from "@sidekickdb/react";
 import { getRequest } from "@tanstack/react-start/server";
 
 import { createFileRoute, redirect } from "@tanstack/react-router";

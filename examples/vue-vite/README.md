@@ -7,9 +7,9 @@ To run the development server:
 `npm run dev`
 
 To push schema changes:
-`npx instant-cli push`
+`npx sidekick-cli push`
 
 To pull schema changes:
-`npx instant-cli pull`
+`npx sidekick-cli pull`
 
 Set `VITE_INSTANT_APP_ID` in an `.env` file before running the app.

@@ -22,8 +22,8 @@ Buy-once digital product with token-based access control — no user accounts re
 ```bash
 pnpm install
 cp .env.example .env.local  # Add your keys
-npx instant-cli push schema
-npx instant-cli push perms
+npx sidekick-cli push schema
+npx sidekick-cli push perms
 npx tsx scripts/seed-wallpapers.ts  # Populate initial wallpapers
 pnpm dev
 ```
@@ -32,6 +32,6 @@ pnpm dev
 
 ```bash
 pnpm dev                        # Start dev server
-npx instant-cli push schema     # Push schema changes
-npx instant-cli push perms      # Push permission changes
+npx sidekick-cli push schema     # Push schema changes
+npx sidekick-cli push perms      # Push permission changes
 ```

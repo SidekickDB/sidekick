@@ -1,4 +1,4 @@
-import { id, type InstaQLEntity } from "@instantdb/react";
+import { id, type InstaQLEntity } from "@sidekickdb/react";
 import "./index.css";
 import type { AppSchema } from "./instant.schema";
 import { db } from "./lib/db";

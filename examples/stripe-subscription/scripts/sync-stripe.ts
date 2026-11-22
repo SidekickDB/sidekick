@@ -7,7 +7,7 @@
  * If email is provided, syncs only that user. Otherwise syncs all users with a Stripe customer ID.
  */
 
-import { init } from "@instantdb/admin";
+import { init } from "@sidekickdb/admin";
 import Stripe from "stripe";
 import schema from "../src/instant.schema";
 

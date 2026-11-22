@@ -1,4 +1,4 @@
-import { init, id } from "@instantdb/admin";
+import { init, id } from "@sidekickdb/admin";
 import schema from "../src/instant.schema";
 
 const adminDb = init({

@@ -12,7 +12,7 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "@instantdb/vue": "latest",
+    "@sidekickdb/vue": "latest",
     "vue": "^3.5.0"
   },
   "devDependencies": {

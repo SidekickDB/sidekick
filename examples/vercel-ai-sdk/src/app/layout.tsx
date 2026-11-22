@@ -4,7 +4,7 @@ import './globals.css';
 import { AuthGate } from '@/components/AuthGate';
 import { Toaster } from 'sonner';
 import { InstantProvider } from '@/components/InstantProvider';
-import { getUnverifiedUserFromInstantCookie } from '@instantdb/react/nextjs';
+import { getUnverifiedUserFromInstantCookie } from '@sidekickdb/react/nextjs';
 
 const headingFont = Space_Grotesk({
   variable: '--font-heading',

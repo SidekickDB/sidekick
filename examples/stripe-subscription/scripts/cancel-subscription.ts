@@ -5,7 +5,7 @@
  *   npx tsx scripts/cancel-subscription.ts <email>
  */
 
-import { init } from "@instantdb/admin";
+import { init } from "@sidekickdb/admin";
 import Stripe from "stripe";
 import schema from "../src/instant.schema";
 

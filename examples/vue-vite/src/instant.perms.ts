@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/permissions
 
-import type { InstantRules } from "@instantdb/vue";
+import type { InstantRules } from "@sidekickdb/vue";
 
 const rules = {
   /**

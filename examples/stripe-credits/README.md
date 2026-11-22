@@ -23,8 +23,8 @@ Credit pack purchases with real-time balance updates — users sign in, buy cred
 ```bash
 pnpm install
 cp .env.example .env.local  # Add your keys
-npx instant-cli push schema
-npx instant-cli push perms
+npx sidekick-cli push schema
+npx sidekick-cli push perms
 pnpm dev
 ```
 
@@ -60,6 +60,6 @@ Use test card `4242 4242 4242 4242` with any future expiry and CVC.
 
 ```bash
 pnpm dev                        # Start dev server
-npx instant-cli push schema     # Push schema changes
-npx instant-cli push perms      # Push permission changes
+npx sidekick-cli push schema     # Push schema changes
+npx sidekick-cli push perms      # Push permission changes
 ```

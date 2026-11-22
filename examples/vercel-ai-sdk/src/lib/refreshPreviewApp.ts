@@ -1,7 +1,7 @@
 import { adminDb } from '@/lib/adminDb';
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import schema from '@/instant.schema';
-import { id as createId } from '@instantdb/core';
+import { id as createId } from '@sidekickdb/core';
 
 const platformApi = new PlatformApi({});
 

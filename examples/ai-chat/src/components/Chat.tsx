@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage, type UIMessageChunk } from 'ai';
 import { db } from '@/lib/db';
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 import {
   Conversation,
   ConversationContent,

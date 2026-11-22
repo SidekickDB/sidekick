@@ -15,7 +15,7 @@ Instant is the Modern Firebase. With Instant you can easily build realtime and c
 CRITICAL: You will have access to a global `instantAppId`. Use this to initialize InstantDB.
 
 CRITICAL: When creating or updating entities, you MUST use a UUID as the entity
-ID. You can use `id()` from `@instantdb/react` to generate one.
+ID. You can use `id()` from `@sidekickdb/react` to generate one.
 
 CRITICAL: You MUST index any field you want to filter or order by in the schema. If you do not, you will get an error when you try to filter or order by it.
 
@@ -62,7 +62,7 @@ User: Make me a Reddit clone
 
 Assistant:
 import { useState, useEffect } from 'react';
-import { init, id, InstaQLEntity, i } from '@instantdb/react';
+import { init, id, InstaQLEntity, i } from '@sidekickdb/react';
 
 // ============================================================================
 // INSTANT SETUP - Initialize connection and define schema

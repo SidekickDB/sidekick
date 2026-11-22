@@ -1,7 +1,7 @@
 'use client';
 import { db } from '@/lib/db';
-import { type User } from '@instantdb/react';
-import { InstantSuspenseProvider } from '@instantdb/react/nextjs';
+import { type User } from '@sidekickdb/react';
+import { InstantSuspenseProvider } from '@sidekickdb/react/nextjs';
 import React from 'react';
 
 export const InstantProvider = ({

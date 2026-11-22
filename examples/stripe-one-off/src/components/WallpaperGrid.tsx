@@ -1,7 +1,7 @@
 "use client";
 
 import { WallpaperCard } from "./WallpaperCard";
-import type { InstaQLEntity } from "@instantdb/react";
+import type { InstaQLEntity } from "@sidekickdb/react";
 import type { AppSchema } from "@/instant.schema";
 
 type Wallpaper = InstaQLEntity<AppSchema, "wallpapers">;

@@ -1,5 +1,5 @@
 import schema, { AppSchema } from "@/instant.schema";
-import { ValidQuery } from "@instantdb/react";
+import { ValidQuery } from "@sidekickdb/react";
 import {
   useQueryClient,
   useSuspenseQuery,
@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { clientDb } from "./db";
-import { InstaQLResponse } from "@instantdb/admin";
+import { InstaQLResponse } from "@sidekickdb/admin";
 
 /**
  * Run an InstantDB query and keep it updated in TanStack query.

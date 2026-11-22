@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { AppSchema } from "@/instant.schema";
-import { InstaQLEntity } from "@instantdb/react-native";
+import { InstaQLEntity } from "@sidekickdb/react-native";
 import { View, Text, Button } from "react-native";
 
 type Color = InstaQLEntity<AppSchema, "colors">;

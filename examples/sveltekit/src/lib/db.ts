@@ -1,4 +1,4 @@
-import { init } from '@instantdb/svelte';
+import { init } from '@sidekickdb/svelte';
 import schema from '../instant.schema';
 
 export const db = init({

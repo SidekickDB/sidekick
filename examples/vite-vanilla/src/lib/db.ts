@@ -1,6 +1,6 @@
 // Initialize the database
 
-import { init } from "@instantdb/core";
+import { init } from "@sidekickdb/core";
 import schema from "../instant.schema";
 
 // ---------

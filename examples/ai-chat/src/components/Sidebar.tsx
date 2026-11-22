@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { db } from '@/lib/db';
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 import { useRouter, useParams } from 'next/navigation';
 
 export function Sidebar() {

@@ -3,7 +3,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { convertToModelMessages, streamText, type UIMessage } from 'ai';
 import { adminDb } from '@/lib/adminDb';
 import systemPrompt from '@/prompts/system.txt';
-import { id as createId, User } from '@instantdb/core';
+import { id as createId, User } from '@sidekickdb/core';
 import { createMockModel } from '@/lib/mockModel';
 import { after } from 'next/server';
 import { notFound } from 'next/navigation';
