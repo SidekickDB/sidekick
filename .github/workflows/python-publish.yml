@@ -1,13 +1,19 @@
 name: Publish Python package
 
+# SidekickDB: disabled until SidekickDB has its own release infrastructure.
+# Upstream triggers are commented out and every job has `if: false`.
+# To re-enable, restore the triggers and remove the job-level `if: false`.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'client/packages/version/src/version.ts'
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'client/packages/version/src/version.ts'
 
 jobs:
   build:
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    if: false
     name: Build wheel
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -61,6 +67,8 @@ jobs:
           path: client/packages/python/dist/
 
   publish:
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    if: false
     name: Publish to PyPI via OIDC
     needs: build
     runs-on: ubuntu-latest

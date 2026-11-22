@@ -1,16 +1,21 @@
 name: Build instantdb skill from instant-rules
 
+# SidekickDB: disabled until SidekickDB has its own release infrastructure.
+# Upstream triggers are commented out and every job has `if: false`.
+# To re-enable, restore the triggers and remove the job-level `if: false`.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'client/www/lib/intern/instant-rules.md'
-      - 'client/www/lib/intern/skills-frontmatter.md'
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'client/www/lib/intern/instant-rules.md'
+  #     - 'client/www/lib/intern/skills-frontmatter.md'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   sync:
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repo

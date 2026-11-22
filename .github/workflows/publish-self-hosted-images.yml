@@ -1,9 +1,13 @@
 name: Publish self-hosted Docker images
 
+# SidekickDB: disabled until SidekickDB has its own release infrastructure.
+# Upstream triggers are commented out and every job has `if: false`.
+# To re-enable, restore the triggers and remove the job-level `if: false`.
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
 
 permissions:
   contents: read
@@ -15,6 +19,8 @@ concurrency:
 
 jobs:
   build:
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    if: false
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -75,6 +81,8 @@ jobs:
           cache-to: type=registry,ref=${{ matrix.image }}:cache-${{ matrix.platform_tag }},mode=max,image-manifest=true,oci-mediatypes=true,compression=zstd
 
   publish:
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    if: false
     runs-on: ubuntu-latest
     needs: build
     strategy:

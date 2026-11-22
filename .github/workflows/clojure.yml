@@ -63,7 +63,8 @@ jobs:
           console.log('output', output);
           return output;
     - name: Fetch timings
-      if: ${{ fromJSON(steps.detect_changes.outputs.result) }}
+      # SidekickDB: disabled. Reads upstream's timings from api.instantdb.com with an admin-token secret.
+      if: ${{ false && fromJSON(steps.detect_changes.outputs.result) }}
       env:
         INSTANT_TIMINGS_ADMIN_TOKEN: ${{ secrets.INSTANT_TIMINGS_ADMIN_TOKEN }}
       continue-on-error: true
@@ -194,9 +195,12 @@ jobs:
       env:
         DATABASE_URL: "jdbc:postgresql://localhost:5432/test_db?user=test_user&password=test_password"
         TEST: "true"
-        STRIPE_API_KEY: ${{ secrets.STRIPE_TEST_KEY }}
-        INSTANT_TIMINGS_ADMIN_TOKEN: ${{ secrets.INSTANT_TIMINGS_ADMIN_TOKEN }}
-        SAVE_TIMINGS: ${{ github.ref == 'refs/heads/main' }}
+        # SidekickDB: no secrets in CI and no test-timing writes to api.instantdb.com.
+        # Upstream values: secrets.STRIPE_TEST_KEY, secrets.INSTANT_TIMINGS_ADMIN_TOKEN,
+        # and SAVE_TIMINGS = github.ref == 'refs/heads/main'.
+        STRIPE_API_KEY: ''
+        INSTANT_TIMINGS_ADMIN_TOKEN: ''
+        SAVE_TIMINGS: 'false'
         NODE_INDEX: ${{ matrix.node_index }}
         # Make sure this matches the length of the matrix
         NODE_COUNT: "5"
@@ -322,7 +326,9 @@ jobs:
 
   publish-image:
     runs-on: ubuntu-latest
-    if: (needs.detect_changes.outputs.clj_did_change == 'true' && github.ref == 'refs/heads/main') || contains(github.event.head_commit.message, '[staging]')
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    # To re-enable, drop the leading `false && ` below.
+    if: false && ((needs.detect_changes.outputs.clj_did_change == 'true' && github.ref == 'refs/heads/main') || contains(github.event.head_commit.message, '[staging]'))
     # Start publish image if we have clj changes
     needs: [ detect_changes ]
     permissions:
@@ -369,6 +375,8 @@ jobs:
           -t 597134865416.dkr.ecr.us-east-1.amazonaws.com/instant-prod-ecr:$DEPLOY_TARGET .
 
   publish-eb:
+    # SidekickDB: disabled until SidekickDB has its own release infrastructure.
+    if: false
     runs-on: ubuntu-latest
     # Publish to elastic beanstalk only if we pass the tests
     needs:
