@@ -12,7 +12,6 @@ import { youtubeParams, youtubePattern } from '@/lib/videos';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { isValidElement } from 'react';
 import type { ExampleApp } from '@/lib/examples/server';
-import RatingBox from '@/components/docs/RatingBox';
 import { Footer } from '@/components/new-landing/Footer';
 
 const buttonVariants = {
@@ -111,7 +110,7 @@ function MarkdownContent({ content }: { content: string }) {
 }
 
 function ExampleDetail({ app }: { app: ExampleApp }) {
-  const { slug, title, content, shortDescription, platform } = app;
+  const { title, content, shortDescription, platform } = app;
   const backHref = platform === 'mobile' ? '/examples?tab=mobile' : '/examples';
   return (
     <div className="relative mx-auto max-w-4xl px-4 pt-28 pb-8 sm:pt-32">
@@ -132,14 +131,6 @@ function ExampleDetail({ app }: { app: ExampleApp }) {
       </div>
       <div className="essay-content prose prose-lg prose-headings:font-normal prose-headings:leading-snug prose-h1:mb-4 prose-h1:mt-12 prose-h2:mb-3 prose-h2:mt-8 mx-auto max-w-2xl">
         <MarkdownContent content={content} />
-      </div>
-      <div className="mx-auto mt-8 max-w-2xl border border-dashed border-orange-600 bg-orange-50/50 px-4 pt-2 pb-4">
-        <div className="py-4 text-sm font-light">
-          What did you think of this example? Are there any other apps you'd
-          like to see implemented with InstantDB? Let us know and we'll do our
-          best to add it!
-        </div>
-        <RatingBox pageId={`examples/${slug}`} />
       </div>
     </div>
   );

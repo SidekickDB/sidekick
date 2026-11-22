@@ -75,20 +75,6 @@ const tools: ToolCard[] = [
     category: 'Comms',
   },
   {
-    title: 'Docs Feedback',
-    href: '/intern/docs-feedback',
-    description:
-      'We let users leave feedback on our docs. This is a quick way to see what they are saying!',
-    category: 'Comms',
-  },
-  {
-    title: 'AI Chat Usage',
-    href: '/intern/chat',
-    description:
-      'Token usage and cost estimates for the docs AI chat assistant.',
-    category: 'Analytics',
-  },
-  {
     title: 'OG Image Preview',
     href: '/intern/og-preview',
     description:
