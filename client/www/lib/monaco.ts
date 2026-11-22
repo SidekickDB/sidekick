@@ -31,8 +31,12 @@ export async function addInstantLibs(monaco: Monaco) {
 
     paths: {
       '@sidekickdb/core': ['file:///node_modules/@sidekickdb/core/index.d.ts'],
-      '@sidekickdb/admin': ['file:///node_modules/@sidekickdb/admin/index.d.ts'],
-      '@sidekickdb/react': ['file:///node_modules/@sidekickdb/react/index.d.ts'],
+      '@sidekickdb/admin': [
+        'file:///node_modules/@sidekickdb/admin/index.d.ts',
+      ],
+      '@sidekickdb/react': [
+        'file:///node_modules/@sidekickdb/react/index.d.ts',
+      ],
       '@sidekickdb/react-native': [
         'file:///node_modules/@sidekickdb/react-native/index.d.ts',
       ],

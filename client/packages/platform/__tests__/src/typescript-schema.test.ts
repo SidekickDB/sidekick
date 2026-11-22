@@ -12,7 +12,9 @@ test('roundtrips schema', () => {
   );
   const extractedSchema = schemaTypescriptFileToInstantSchema(originalCode);
   expect(extractedSchema).toEqual(schema);
-  expect(generateSchemaTypescriptFile(null, schema, '@sidekickdb/core')).toEqual(
+  expect(
+    generateSchemaTypescriptFile(null, schema, '@sidekickdb/core'),
+  ).toEqual(
     generateSchemaTypescriptFile(null, extractedSchema, '@sidekickdb/core'),
   );
 });
