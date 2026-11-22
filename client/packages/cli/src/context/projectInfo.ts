@@ -194,7 +194,7 @@ export const ProjectInfoLive = (
   packageName?: keyof typeof PACKAGE_ALIAS_AND_FULL_NAMES,
 ) => Layer.effect(ProjectInfo, getProjectInfo(coerce, packageName));
 
-function getInstantModuleName(pkgJson: PackageJson) {
+export function getInstantModuleName(pkgJson: PackageJson) {
   const deps = pkgJson.dependencies || {};
   const devDeps = pkgJson.devDependencies || {};
   const instantModuleName = [

@@ -21,7 +21,7 @@ type ConfigCandidate = {
  * Legacy @instantdb/* imports are rewritten the same way so existing
  * schema files keep loading.
  */
-function transformImports(code: string): string {
+export function transformImports(code: string): string {
   return code
     .replace(
       /["']@(sidekickdb|instantdb)\/react-native["']/g,
