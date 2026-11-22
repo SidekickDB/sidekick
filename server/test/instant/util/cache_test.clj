@@ -1,7 +1,9 @@
 (ns instant.util.cache-test
   (:require
    [instant.util.cache :as cache]
-   [clojure.test :refer [deftest is testing]]))
+   [clojure.test :refer [deftest is testing]])
+  (:import
+   (java.util.concurrent ExecutorService Executors)))
 
 ;; Copy of test in core.cached to demonstrate that our version
 ;; of lookup-or-miss works
@@ -96,7 +98,17 @@
                                                   :new-value)))))))
 
 (deftest lookup-or-miss-batch-only-evicts-its-own-errors
-  (let [cache (cache/make-async {:max-size 5})
+  ;; The first load below blocks inside its loader until `wait2` is
+  ;; delivered, and the second load must complete before we deliver it. The
+  ;; two loaders therefore need two threads at once. Without an :executor,
+  ;; Caffeine runs loaders on ForkJoinPool/commonPool, whose parallelism is
+  ;; availableProcessors - 1: a single worker on a 2-CPU machine, such as
+  ;; GitHub's standard runners for private repositories. There the second
+  ;; load queues behind the blocked first one and the test hangs forever. Give the cache its own unbounded executor so the test does not
+  ;; depend on the machine's core count.
+  (let [executor (Executors/newCachedThreadPool)
+        cache (cache/make-async {:max-size 5
+                                 :executor executor})
         wait1 (promise)
         wait2 (promise)
         f1 (future
@@ -119,7 +131,8 @@
 
     (is (= {:instant :instant}
            @(cache/get-all-async cache [:instant] (fn [_]
-                                                    {:instant :new-value}))))))
+                                                    {:instant :new-value}))))
+    (ExecutorService/.shutdown executor)))
 
 ;; Copy of test in core.cached
 ;; https://github.com/clojure/core.cache/blob/4a043644a0706b6d834ebf890a64d2fdcc9c388b/src/test/clojure/clojure/core/cache/wrapped_test.clj#L30
