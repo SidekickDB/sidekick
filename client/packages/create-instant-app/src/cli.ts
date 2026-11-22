@@ -1,9 +1,9 @@
 import { Command, Option } from 'commander';
 import * as p from '@clack/prompts';
 import { findClaudePath } from './claude.js';
-import { version } from '@instantdb/version';
+import { version } from '@sidekickdb/version';
 import { coerceAppName, validateAppName } from './utils/validateAppName.js';
-import { renderUnwrap, UI } from 'instant-cli/ui';
+import { renderUnwrap, UI } from '@sidekickdb/cli/ui';
 import { projectBases, type ProjectBase } from './projectBase.js';
 
 export type Project = {
@@ -186,7 +186,7 @@ export const runCli = async (): Promise<Project> => {
     if (!cliProvidedName) {
       throw new Error(
         'When using --yes, you must specify a project name as the first argument.\n' +
-          'Usage: npx create-instant-app my-app --yes',
+          'Usage: npx create-sidekick-app my-app --yes',
       );
     }
     return {

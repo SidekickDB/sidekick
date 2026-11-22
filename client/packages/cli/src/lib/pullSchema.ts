@@ -2,7 +2,7 @@ import { FileSystem, HttpClientResponse, Path } from '@effect/platform';
 import {
   apiSchemaToInstantSchemaDef,
   generateSchemaTypescriptFile,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { Effect, Schema } from 'effect';
 import prettier from 'prettier';
 import { countEntities, readLocalSchemaFile } from '../old.js';

@@ -1,6 +1,6 @@
 import { useChat, type UIMessage } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { init as initAdmin } from '@instantdb/admin';
+import { init as initAdmin } from '@sidekickdb/admin';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import config from '../../config';
 import EphemeralAppPage from '../../components/EphemeralAppPage';

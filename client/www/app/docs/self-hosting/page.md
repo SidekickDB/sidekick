@@ -148,28 +148,28 @@ To disable temporary app creation, open **Deployment Settings** and turn off **A
 ### Configure the Instant CLI
 
 Instant comes with CLI tools for creating and managing your Instant apps. By
-default, `instant-cli` and `create-instant-app` use the Instant Cloud API. To
+default, `@sidekickdb/cli` and `create-sidekick-app` use the Instant Cloud API. To
 use them with your self-hosted Instant:
 
-- Log into your self-hosted Instant via `instant-cli`
-- Use your self-hosted auth token with `create-instant-app`
+- Log into your self-hosted Instant via `@sidekickdb/cli`
+- Use your self-hosted auth token with `create-sidekick-app`
 
 Set `INSTANT_CLI_API_URI` to your backend URL and `INSTANT_CLI_DASH_URI` to your
-dashboard URL with `instant-cli`:
+dashboard URL with `@sidekickdb/cli`:
 
 ```shell
 INSTANT_CLI_API_URI=https://api.myinstant.com \
 INSTANT_CLI_DASH_URI=https://dash.myinstant.com \
-npx instant-cli@latest login
+npx @sidekickdb/cli@latest login
 ```
 
-After authenticating, provide both URLs when running `create-instant-app`:
+After authenticating, provide both URLs when running `create-sidekick-app`:
 
 ```shell
 # Run this from your terminal
 INSTANT_CLI_API_URI=https://api.myinstant.com \
 INSTANT_CLI_DASH_URI=https://dash.myinstant.com \
-npx create-instant-app@latest
+npx create-sidekick-app@latest
 ```
 
 This connects the generated app to your self-hosted

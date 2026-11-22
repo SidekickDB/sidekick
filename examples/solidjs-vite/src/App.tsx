@@ -1,4 +1,4 @@
-import { id, type InstaQLEntity } from "@instantdb/solidjs";
+import { id, type InstaQLEntity } from "@sidekickdb/solidjs";
 import { createSignal, For, Show, type Component } from "solid-js";
 import { db } from "./lib/db";
 import type { AppSchema } from "./instant.schema";

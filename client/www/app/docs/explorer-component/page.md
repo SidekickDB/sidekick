@@ -9,7 +9,7 @@ The explorer page from the Instant Dashboard is available as an installable Reac
 
 ```tsx
 import './App.css';
-import { Explorer, Toaster } from '@instantdb/components';
+import { Explorer, Toaster } from '@sidekickdb/components';
 
 function App() {
   return (
@@ -50,7 +50,7 @@ module.exports = {
     './_posts/**/*.{js,ts,jsx,tsx,md}',
     './components/**/*.{js,ts,jsx,tsx}',
     './utils/**/*.{js,ts,jsx,tsx}',
-    './node_modules/@instantdb/components/src/**/*.{js,ts,jsx,tsx,md}',
+    './node_modules/@sidekickdb/components/src/**/*.{js,ts,jsx,tsx,md}',
   ],
 };
 ```
@@ -59,7 +59,7 @@ Tailwind V4:
 
 ```css
 @import 'tailwindcss';
-@source '../node_modules/@instantdb/components';
+@source '../node_modules/@sidekickdb/components';
 ```
 
 ---
@@ -70,7 +70,7 @@ For projects without Tailwind, to avoid CSS conflicts, the [Shadow DOM](https://
 
 ```tsx
 import './App.css';
-import { Explorer, Toaster } from '@instantdb/components';
+import { Explorer, Toaster } from '@sidekickdb/components';
 
 function App() {
   return (

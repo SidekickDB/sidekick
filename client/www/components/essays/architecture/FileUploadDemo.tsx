@@ -4,7 +4,7 @@ import {
   init,
   InstantReactWebDatabase,
   InstantUnknownSchema,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import config from '@/lib/config';
 import { Button } from '@/components/ui';
 import { BrowserChrome } from '@/components/BrowserChrome';

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/adminDb";
-import { id } from "@instantdb/admin";
+import { id } from "@sidekickdb/admin";
 import { verifyAuth } from "@/lib/auth";
 
 const HAIKU_TEMPLATES = [

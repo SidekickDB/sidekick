@@ -45,7 +45,7 @@ You may be thinking: when would I use `transact` vs `presence` vs `topics`? Here
 To obtain a room reference, call `db.room(roomType, roomId)`:
 
 ```typescript
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
@@ -65,7 +65,7 @@ const room = db.room('chat', roomId);
 By default rooms accept any kind of data. However, you can enforce typesafety with a schema:
 
 ```typescript
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import schema from '../instant.schema.ts';
 
 // Instant app
@@ -83,7 +83,7 @@ Here's how we could add typesafety to our `chat` rooms:
 ```typescript
 // instant.schema.ts
 
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 const _schema = i.schema({
   // ...
@@ -125,7 +125,7 @@ One common use case for presence is to show who's online.
 Instant's `usePresence` is similar in feel to `useState`. It returns an object containing the current user's presence state, the presence state of every other user in the room, and a function (`publishPresence`) to update the current user's presence. `publishPresence` is similar to React's `setState` and will merge the current and new presence objects.
 
 ```tsx
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
@@ -210,7 +210,7 @@ Here's a live reaction feature using topics. You can also play with it live on [
 ```tsx {% showCopy=true %}
 'use client';
 
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { RefObject, createRef, useRef } from 'react';
 
 // Instant app
@@ -366,7 +366,7 @@ Adding multiplayer cursors to your app is as simple as importing our `<Cursors>`
 ```tsx {% showCopy=true %}
 'use client';
 
-import { init, Cursors } from '@instantdb/react';
+import { init, Cursors } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
@@ -418,7 +418,7 @@ You can render multiple cursor spaces. For instance, imagine you're building a s
 ```tsx {% showCopy=true %}
 'use client';
 
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
@@ -483,7 +483,7 @@ When working with presence, you can use `PresencePeer` for typing `user` and `pe
 values returned from `db.rooms.usePresence`.
 
 ```typescript
-import { PresencePeer } from '@instantdb/react';
+import { PresencePeer } from '@sidekickdb/react';
 import { AppSchema } from '../instant.schema.ts';
 import { db } from '../lib/db.ts';
 

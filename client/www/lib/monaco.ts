@@ -1,5 +1,5 @@
 import { Monaco } from '@monaco-editor/react';
-import { version } from '@instantdb/core';
+import { version } from '@sidekickdb/core';
 
 const bareVersion = version.replace(/^v/, '');
 
@@ -13,13 +13,27 @@ export async function addInstantLibs(monaco: Monaco) {
     'instatx.d.ts',
   ];
 
-  const fileContents = await Promise.all(
+  // @sidekickdb/core is not published yet, so load the type declarations
+  // from the upstream @instantdb/core build of the same version. They are
+  // registered under the @sidekickdb/* paths below. Switch this URL once
+  // @sidekickdb/core is published (or bundle the types).
+  const fetched = await Promise.all(
     files.map(async (file) => {
-      const content = await fetch(
-        `https://unpkg.com/@instantdb/core@${bareVersion}/dist/esm/${file}`,
-      ).then((r) => r.text());
-      return { file, content };
+      try {
+        const r = await fetch(
+          `https://unpkg.com/@instantdb/core@${bareVersion}/dist/esm/${file}`,
+        );
+        // Skip files that fail to load instead of registering an error page
+        // as type declarations.
+        if (!r.ok) return null;
+        return { file, content: await r.text() };
+      } catch {
+        return null;
+      }
     }),
+  );
+  const fileContents = fetched.filter(
+    (f): f is { file: string; content: string } => f !== null,
   );
 
   monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
@@ -30,11 +44,15 @@ export async function addInstantLibs(monaco: Monaco) {
     ...monaco.languages.typescript.typescriptDefaults.getCompilerOptions(),
 
     paths: {
-      '@instantdb/core': ['file:///node_modules/@instantdb/core/index.d.ts'],
-      '@instantdb/admin': ['file:///node_modules/@instantdb/admin/index.d.ts'],
-      '@instantdb/react': ['file:///node_modules/@instantdb/react/index.d.ts'],
-      '@instantdb/react-native': [
-        'file:///node_modules/@instantdb/react-native/index.d.ts',
+      '@sidekickdb/core': ['file:///node_modules/@sidekickdb/core/index.d.ts'],
+      '@sidekickdb/admin': [
+        'file:///node_modules/@sidekickdb/admin/index.d.ts',
+      ],
+      '@sidekickdb/react': [
+        'file:///node_modules/@sidekickdb/react/index.d.ts',
+      ],
+      '@sidekickdb/react-native': [
+        'file:///node_modules/@sidekickdb/react-native/index.d.ts',
       ],
     },
   });
@@ -42,19 +60,19 @@ export async function addInstantLibs(monaco: Monaco) {
   for (const { file, content } of fileContents) {
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       content,
-      `file:///node_modules/@instantdb/core/${file}`,
+      `file:///node_modules/@sidekickdb/core/${file}`,
     );
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       content,
-      `file:///node_modules/@instantdb/admin/${file}`,
+      `file:///node_modules/@sidekickdb/admin/${file}`,
     );
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       content,
-      `file:///node_modules/@instantdb/react/${file}`,
+      `file:///node_modules/@sidekickdb/react/${file}`,
     );
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       content,
-      `file:///node_modules/@instantdb/react-native/${file}`,
+      `file:///node_modules/@sidekickdb/react-native/${file}`,
     );
   }
 }

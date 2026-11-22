@@ -1,4 +1,4 @@
-import { init, id, tx } from "@instantdb/solidjs";
+import { init, id, tx } from "@sidekickdb/solidjs";
 import schema from "../instant.schema";
 
 export { id, tx };

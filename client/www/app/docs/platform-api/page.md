@@ -26,13 +26,13 @@ To manage apps, you have two main tools at your disposal.
 You can either use the Instant CLI:
 
 ```bash
-npx instant-cli
+npx @sidekickdb/cli
 ```
 
 Or if you are running a backend server, the Platform SDK:
 
 ```bash
-npm install @instantdb/platform
+npm install @sidekickdb/platform
 ```
 
 Let's see how to use them.
@@ -48,7 +48,7 @@ You don't need to authenticate to create temporary apps, so they're a great way 
 **Here's how to make a temporary app with the CLI:**
 
 ```bash
-npx instant-cli init-without-files --title my-new-app --temp
+npx @sidekickdb/cli init-without-files --title my-new-app --temp
 ```
 
 And voila, you have a temporary app:
@@ -68,7 +68,7 @@ Successfully created new app!
 **And here's how to make a temporary app with the Platform SDK:**
 
 ```typescript
-import { PlatformApi, i } from '@instantdb/platform';
+import { PlatformApi, i } from '@sidekickdb/platform';
 
 const api = new PlatformApi({});
 
@@ -156,7 +156,7 @@ Now that we have auth tokens, let's use them to create an app.
 **To create a long-lived app with the CLI:**
 
 ```bash
-npx instant-cli init-without-files --title my-long-lived-app --token YOUR_TOKEN
+npx @sidekickdb/cli init-without-files --title my-long-lived-app --token YOUR_TOKEN
 ```
 
 Pretty nice!
@@ -164,7 +164,7 @@ Pretty nice!
 **And similarly, for the platform API:**
 
 ```javascript
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 
 const api = new PlatformApi({
   auth: { token: 'YOUR_TOKEN' } })
@@ -187,7 +187,7 @@ If you are using the CLI, you'll have your `instant.schema.ts` and `instant.perm
 
 ```ts
 // src/instant.schema.ts
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const schema = i.schema({
   entities: {
@@ -201,7 +201,7 @@ const schema = i.schema({
 ```
 
 ```bash
-npx instant-cli push schema --token YOUR_TOKEN
+npx @sidekickdb/cli push schema --token YOUR_TOKEN
 ```
 
 **To change schemas and perms with the platform SDK:**
@@ -211,7 +211,7 @@ For the platform SDK, you can use the corresponding `schemaPush` command.
 Here's a snippet for schema push:
 
 ```typescript
-import { PlatformApi, i } from '@instantdb/platform';
+import { PlatformApi, i } from '@sidekickdb/platform';
 
 const schema = i.schema({
   entities: {
@@ -243,7 +243,7 @@ What you really want in those cases is to get a token _scoped_ to a particular a
 **You can use admin tokens this way.** Simply provide the admin token as auth, and the CLI will only have access to change schema and perms just on that app.
 
 ```bash
-npx instant-cli push schema --token YOUR_ADMIN_TOKEN
+npx @sidekickdb/cli push schema --token YOUR_ADMIN_TOKEN
 ```
 
 ### Questions?

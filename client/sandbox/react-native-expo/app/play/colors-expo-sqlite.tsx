@@ -1,5 +1,5 @@
-import { init, tx } from '@instantdb/react-native';
-import Store from '@instantdb/expo-sqlite';
+import { init, tx } from '@sidekickdb/react-native';
+import Store from '@sidekickdb/expo-sqlite';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import config from '../config';
 

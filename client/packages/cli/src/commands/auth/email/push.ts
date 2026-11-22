@@ -71,7 +71,7 @@ export const authEmailPushCmd = Effect.fn(function* (
     yield* sendSenderVerification;
     yield* Effect.log(
       boxen(
-        "We've sent a confirmation email containing a six digit code to verify the sender email address.\nUse instant-cli auth email verify <code> to complete verification.",
+        "We've sent a confirmation email containing a six digit code to verify the sender email address.\nUse sidekick-cli auth email verify <code> to complete verification.",
         {
           borderColor: 'yellow',
           padding: { right: 1, left: 1 },

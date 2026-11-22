@@ -7,12 +7,12 @@ nextjs:
 
 ## Automatic Setup With Create Instant App
 
-The fastest way to get started with Instant and Vue is to use create-instant-app to scaffold a new project with Instant already set up.
+The fastest way to get started with Instant and Vue is to use create-sidekick-app to scaffold a new project with Instant already set up.
 
 To get started, run:
 
 ```shell
-npx create-instant-app --vue
+npx create-sidekick-app --vue
 ```
 
 ## Manual Setup
@@ -26,13 +26,13 @@ npm create vue@latest my-app
 Add the InstantDB Vue Library:
 
 ```shell
-npm i @instantdb/vue
+npm i @sidekickdb/vue
 ```
 
-Use `instant-cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
 ```shell
-npx instant-cli init
+npx @sidekickdb/cli init
 ```
 
 Create a database client in `src/lib/db.ts`:
@@ -40,7 +40,7 @@ Create a database client in `src/lib/db.ts`:
 {% file label="src/lib/db.ts" /%}
 
 ```ts
-import { init } from '@instantdb/vue';
+import { init } from '@sidekickdb/vue';
 import schema from '../instant.schema';
 
 export const db = init({
@@ -59,7 +59,7 @@ Let's add a "todo" entity to our schema file at `src/instant.schema.ts`:
 {% file label="src/instant.schema.ts" /%}
 
 ```ts {% showCopy=true lineHighlight="14-18" %}
-import { i } from '@instantdb/vue';
+import { i } from '@sidekickdb/vue';
 
 const _schema = i.schema({
   entities: {
@@ -102,7 +102,7 @@ const _schema = i.schema({
 Push the schema:
 
 ```shell {% showCopy=true %}
-npx instant-cli push
+npx @sidekickdb/cli push
 ```
 
 Replace the content of `src/App.vue` with the following:
@@ -112,7 +112,7 @@ Replace the content of `src/App.vue` with the following:
 ```vue {% showCopy=true %}
 <script setup lang="ts">
 import { ref } from 'vue';
-import { id, type InstaQLEntity } from '@instantdb/vue';
+import { id, type InstaQLEntity } from '@sidekickdb/vue';
 import { db } from './lib/db';
 import type { AppSchema } from './instant.schema';
 
@@ -248,7 +248,7 @@ Transactions in Vue work the same way they do in React via `db.transact`:
 
 ```vue
 <script setup lang="ts">
-import { id } from '@instantdb/vue';
+import { id } from '@sidekickdb/vue';
 import { db } from './lib/db';
 
 function addTodo(text: string) {
@@ -304,7 +304,7 @@ For simpler cases where you just need to gate content on auth state, use the `Si
 
 ```vue
 <script setup lang="ts">
-import { SignedIn, SignedOut } from '@instantdb/vue';
+import { SignedIn, SignedOut } from '@sidekickdb/vue';
 import { db } from './lib/db';
 </script>
 
@@ -330,7 +330,7 @@ A multiplayer cursor component that tracks mouse positions via presence. Wrap an
 
 ```vue
 <script setup lang="ts">
-import { Cursors } from '@instantdb/vue';
+import { Cursors } from '@sidekickdb/vue';
 import { db } from './lib/db';
 
 const room = db.room('main', 'my-room-id');

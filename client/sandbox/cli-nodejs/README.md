@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/cli-nodejs</h1>
 </p>
 
-This is sandbox app to play with [instant-cli](../../packages/cli/).
+This is sandbox app to play with [@sidekickdb/cli](../../packages/cli/).
 
 # Development
 
@@ -27,10 +27,10 @@ Now you can run and test the cli tool!
 
 ```bash
 # Pull the schema and permissions from your Instant app in prod
-pnpm exec instant-cli pull
+pnpm exec sidekick-cli pull
 
 # Push the schema and permissions to your Instant app on the local backend
-INSTANT_CLI_DEV=1 pnpm exec instant-cli pull
+INSTANT_CLI_DEV=1 pnpm exec sidekick-cli pull
 ```
 
 # Questions?

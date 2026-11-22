@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { effectScope, ref, nextTick } from 'vue';
-import type { AuthState, ConnectionStatus } from '@instantdb/core';
+import type { AuthState, ConnectionStatus } from '@sidekickdb/core';
 
 import { InstantVueDatabase } from '../InstantVueDatabase.js';
 

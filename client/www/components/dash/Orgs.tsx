@@ -6,7 +6,7 @@ import { Button } from '../ui';
 import { friendlyErrorMessage, useAuthedFetch } from '@/lib/auth';
 import { loadStripe } from '@stripe/stripe-js';
 import { messageFromInstantError } from '@/lib/errors';
-import { InstantIssue } from '@instantdb/core';
+import { InstantIssue } from '@sidekickdb/core';
 import { errorToast } from '@/lib/toast';
 import { useFetchedDash } from './MainDashLayout';
 

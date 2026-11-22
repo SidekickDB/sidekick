@@ -247,13 +247,13 @@ function BackupRow({
     deleteDialog.onOpen();
   }
 
-  // The equivalent `instant-cli backup download` invocation, for scripting or
+  // The equivalent `sidekick-cli backup download` invocation, for scripting or
   // downloading outside the browser. When the dashboard isn't pointed at the
   // CLI's default (production) backend — i.e. dev, staging, or a self-hosted
   // instance — prefix the exact apiURI via INSTANT_CLI_API_URI so the CLI hits
   // the same server this dashboard does.
   const cliDownloadCommand = (() => {
-    const cmd = `npx instant-cli@latest backup download ${backup.id} --app ${app.id}`;
+    const cmd = `npx @sidekickdb/cli@latest backup download ${backup.id} --app ${app.id}`;
     return config.apiURI === 'https://api.instantdb.com'
       ? cmd
       : `INSTANT_CLI_API_URI='${config.apiURI}' ${cmd}`;

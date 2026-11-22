@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
-import { i, id, InstantReactAbstractDatabase } from '@instantdb/react';
+import { i, id, InstantReactAbstractDatabase } from '@sidekickdb/react';
 import EphemeralAppPage, {
   ResetButton,
 } from '../../components/EphemeralAppPage';

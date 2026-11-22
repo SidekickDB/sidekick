@@ -13,8 +13,8 @@
     "vite": "^7.1.2"
   },
   "dependencies": {
-    "@instantdb/core": "latest",
-    "@instantdb/admin": "latest"
+    "@sidekickdb/core": "latest",
+    "@sidekickdb/admin": "latest"
   },
   "packageManager": "pnpm@10.2.0"
 }

@@ -1,13 +1,16 @@
 {
-  "name": "@instantdb/react-native",
+  "name": "@sidekickdb/react-native",
   "version": "0.0.0",
   "description": "Instant DB for React Native",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/react-native",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/react-native",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/react-native"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "main": "dist/index.js",
   "module": "dist/module/index.js",
@@ -48,9 +51,9 @@
     }
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/react-common": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/react-common": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "web-streams-polyfill": "^4.2.0"
   }
 }

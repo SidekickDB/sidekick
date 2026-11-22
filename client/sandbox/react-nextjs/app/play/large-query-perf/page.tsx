@@ -1,6 +1,6 @@
 'use client';
 
-import { init, tx } from '@instantdb/react';
+import { init, tx } from '@sidekickdb/react';
 import { useState, useEffect, useRef } from 'react';
 import config from '../../../config';
 

@@ -20,12 +20,12 @@ import {
   ShieldCheckIcon,
   StarIcon as StarOutlineIcon,
 } from '@heroicons/react/24/outline';
-import { Explorer as NewExplorer } from '@instantdb/components';
+import { Explorer as NewExplorer } from '@sidekickdb/components';
 import {
   ChevronDownIcon,
   StarIcon as StarSolidIcon,
 } from '@heroicons/react/24/solid';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import produce from 'immer';
 import Head from 'next/head';
 import NextLink from 'next/link';

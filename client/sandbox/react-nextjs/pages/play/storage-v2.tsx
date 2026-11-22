@@ -1,6 +1,6 @@
 'use client';
 
-import { init, i, InstaQLEntity } from '@instantdb/react';
+import { init, i, InstaQLEntity } from '@sidekickdb/react';
 import React from 'react';
 import Login from '../../components/Login';
 import config from '../../config';

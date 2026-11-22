@@ -10,20 +10,20 @@ running scripts, custom auth flows, or sensitive application logic.
 
 We currently offer two server-side SDKs:
 
-- **JavaScript:** `@instantdb/admin` — the focus of this page.
+- **JavaScript:** `@sidekickdb/admin` — the focus of this page.
 - **Python:** `instantdb` — see [Getting started with Python](/docs/start-python)
   for the equivalent surface in Python.
 
 ## Admin SDK
 
-`@instantdb/admin` is the JavaScript Admin SDK for using Instant in a
+`@sidekickdb/admin` is the JavaScript Admin SDK for using Instant in a
 non-browser context. This library is similar to our client SDK with a few
 tweaks.
 
 ### init
 
 ```javascript
-import { init, id } from '@instantdb/admin';
+import { init, id } from '@sidekickdb/admin';
 
 // Instant app
 const APP_ID = '__APP_ID__';
@@ -33,7 +33,7 @@ const db = init({
 });
 ```
 
-As with `@instantdb/react`, you must `init` before doing any queries or
+As with `@sidekickdb/react`, you must `init` before doing any queries or
 writes. Running `init` authenticates you against our admin API. In addition to
 providing your `appId`, you can provide your `adminToken`.
 
@@ -71,7 +71,7 @@ console.log('New todo entry made for with tx-id', res['tx-id']);
 ```
 
 `db.transact` is an async function that behaves nearly identically to `db.transact`
-from `@instantdb/react`. It returns a `tx-id` on success.
+from `@sidekickdb/react`. It returns a `tx-id` on success.
 
 ## Subscriptions on the backend
 
@@ -126,7 +126,7 @@ Subscriptions keep a live connection open on your backend. Be sure to close them
 `init` also accepts a schema argument:
 
 ```typescript {% showCopy=true %}
-import { init, id } from '@instantdb/admin';
+import { init, id } from '@sidekickdb/admin';
 import schema from '../instant.schema.ts';
 
 // Instant app
@@ -166,7 +166,7 @@ await scopedDb.query({ logs: {} });
 Impersonation can also let you run the Admin SDK _without_ exposing an admin token.
 
 ```javascript {% showCopy=true %}
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 
 // If you only impersonate with a user token or as a guest,
 // you can _skip_ admin credentials
@@ -313,7 +313,7 @@ Here's a full example:
 
 ```typescript {% showCopy=true %}
 import React, { useState } from 'react';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = "__APP_ID__";
@@ -430,7 +430,7 @@ In your frontend, the `user` object has a `refresh_token` property. You can pass
 
 ```javascript
 // client
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 const db = init(/* ... */)
 
@@ -468,7 +468,7 @@ To use it in Next.js:
 
 ```typescript {% showCopy=true %}
 // src/app/api/instant/route.ts
-import { createInstantRouteHandler } from '@instantdb/react/nextjs';
+import { createInstantRouteHandler } from '@sidekickdb/react/nextjs';
 
 export const { POST } = createInstantRouteHandler({
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
@@ -480,7 +480,7 @@ The GET and POST functions accept a [Request](https://developer.mozilla.org/en-U
 Then, provide your mounted API URL to the `init` function.
 
 ```typescript {% showCopy=true %}
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 export const db = init({
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
@@ -493,7 +493,7 @@ export const db = init({
 If using Next.js, you can call getUnverifiedUserFromInstantCookie with the app ID to retrieve the user in any server component or route handler.
 
 ```typescript
-import { getUnverifiedUserFromInstantCookie } from "@instantdb/react/nextjs";
+import { getUnverifiedUserFromInstantCookie } from "@sidekickdb/react/nextjs";
 
 // This is a server component!
 export default async function RootLayout({

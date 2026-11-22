@@ -1,17 +1,20 @@
 {
-  "name": "create-instant-app",
+  "name": "create-sidekick-app",
   "version": "0.0.0",
   "description": "Scaffold a new web/mobile app with InstantDB",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/create-instant-app",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/create-instant-app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/create-instant-app"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "type": "module",
   "exports": "./dist/index.js",
   "bin": {
-    "create-instant-app": "./dist/index.js"
+    "create-sidekick-app": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -36,15 +39,15 @@
     "@clack/core": "^0.5.0",
     "@clack/prompts": "^0.11.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
-    "@instantdb/platform": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/platform": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "chalk": "5.2.0",
     "commander": "^10.0.1",
     "execa": "^7.2.0",
     "fs-extra": "^11.3.1",
     "gradient-string": "^2.0.2",
     "ignore": "^7.0.5",
-    "instant-cli": "workspace:*",
+    "@sidekickdb/cli": "workspace:*",
     "open": "^10.1.0",
     "ora": "6.3.1",
     "slugify": "^1.6.6",

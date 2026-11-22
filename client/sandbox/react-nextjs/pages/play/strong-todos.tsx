@@ -4,7 +4,7 @@ import {
   init,
   InstaQLEntity,
   type InstaQLParams,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 
 import config from '../../config';
 

@@ -5,7 +5,7 @@
  *   npx tsx scripts/clear-stripe-data.ts <email>
  */
 
-import { init } from "@instantdb/admin";
+import { init } from "@sidekickdb/admin";
 import schema from "../src/instant.schema";
 
 const adminDb = init({

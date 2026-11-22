@@ -1,7 +1,7 @@
 import { HttpClientResponse } from '@effect/platform';
 import { Effect, Schema, Option } from 'effect';
 import { getBaseUrl, InstantHttpAuthed } from '../lib/http.ts';
-import { version } from '@instantdb/version';
+import { version } from '@sidekickdb/version';
 import { CurrentApp } from '../context/currentApp.ts';
 
 const DashMeResponse = Schema.Struct({

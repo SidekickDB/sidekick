@@ -1,5 +1,5 @@
 import React from 'react';
-import { id, InstantReactWebDatabase, tx } from '@instantdb/react';
+import { id, InstantReactWebDatabase, tx } from '@sidekickdb/react';
 import {
   TextareaHTMLAttributes,
   useEffect,

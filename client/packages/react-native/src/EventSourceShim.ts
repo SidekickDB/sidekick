@@ -1,4 +1,4 @@
-import { type EventSourceType } from '@instantdb/core';
+import { type EventSourceType } from '@sidekickdb/core';
 
 // Modified version of https://github.com/binaryminds/react-native-sse/blob/master/src/EventSource.js
 // that conforms to our `EventSourceType` subset of the browser-native `EventSource`.

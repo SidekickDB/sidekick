@@ -4,7 +4,7 @@ import {
   type RoomSchemaShape,
   InstantCoreDatabase,
   InstantSchemaDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 // ------
 // Types

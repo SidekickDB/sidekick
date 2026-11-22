@@ -1,5 +1,5 @@
 import { adminDb } from "./adminDb";
-import { id } from "@instantdb/admin";
+import { id } from "@sidekickdb/admin";
 
 interface CreatePurchaseParams {
   token: string;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 import config from '../../config';
 
 const { transact, useQuery } = init(config);

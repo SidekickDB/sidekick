@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { id } from '@instantdb/core'
+import { id } from '@sidekickdb/core'
 import { v4 } from 'uuid'
 
 const response = ref(null)

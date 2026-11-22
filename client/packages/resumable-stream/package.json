@@ -1,13 +1,16 @@
 {
-  "name": "@instantdb/resumable-stream",
+  "name": "@sidekickdb/resumable-stream",
   "version": "0.0.0",
   "description": "Instant's drop-in replacement for Vercel's resumable-stream package.",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/resumable-stream",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/resumable-stream",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/resumable-stream"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "type": "module",
   "main": "./dist/commonjs/index.js",
@@ -65,6 +68,6 @@
     "vitest": "^1.6.0"
   },
   "dependencies": {
-    "@instantdb/admin": "workspace:*"
+    "@sidekickdb/admin": "workspace:*"
   }
 }

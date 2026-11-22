@@ -233,7 +233,7 @@ describe('google', () => {
     expect(output).toContain('Credentials: Instant dev credentials');
     expect(output).toContain('Ready for production? Run:');
     expect(output).toContain(
-      'instant-cli auth client update --name google-web',
+      'sidekick-cli auth client update --name google-web',
     );
   });
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import config from '../../config';
-import { id, i, init, tx } from '@instantdb/react';
+import { id, i, init, tx } from '@sidekickdb/react';
 import { provisionEphemeralApp } from '../../components/EphemeralAppPage';
 
 const schemaV0 = i.schema({

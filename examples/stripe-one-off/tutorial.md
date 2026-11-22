@@ -99,7 +99,7 @@ const _schema = i.schema({
 Push your schema:
 
 ```bash
-npx instant-cli push schema --yes
+npx @sidekickdb/cli push schema --yes
 ```
 
 The `token` field is the magic — it's a UUID that lives in the user's localStorage and proves they purchased the content.
@@ -274,7 +274,7 @@ The `createPurchase` function creates the record and links it to all wallpapers:
 
 ```ts
 import { adminDb } from "./adminDb";
-import { id } from "@instantdb/admin";
+import { id } from "@sidekickdb/admin";
 
 export async function createPurchase(params: CreatePurchaseParams) {
   // Get all wallpapers to link to the purchase
@@ -364,7 +364,7 @@ This says: "Only return `fullResUrl` if the provided token exists in any purchas
 Push your permissions:
 
 ```bash
-npx instant-cli push perms --yes
+npx @sidekickdb/cli push perms --yes
 ```
 
 Now when querying wallpapers, pass the token via `ruleParams`:

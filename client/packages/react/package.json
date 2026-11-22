@@ -1,13 +1,16 @@
 {
-  "name": "@instantdb/react",
+  "name": "@sidekickdb/react",
   "version": "0.0.0",
   "description": "Instant DB for React",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/react",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/react",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "type": "module",
   "main": "./dist/commonjs/index.js",
@@ -78,9 +81,9 @@
     "react": ">=16"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/react-common": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/react-common": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "eventsource": "^4.0.0"
   }
 }

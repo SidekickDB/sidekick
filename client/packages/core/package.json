@@ -1,13 +1,16 @@
 {
-  "name": "@instantdb/core",
+  "name": "@sidekickdb/core",
   "version": "0.0.0",
   "description": "Instant's core local abstraction",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/core",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/core",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "type": "module",
   "main": "./dist/commonjs/index.js",
@@ -74,7 +77,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "mutative": "^1.0.10",
     "uuid": "^11.1.0"
   },

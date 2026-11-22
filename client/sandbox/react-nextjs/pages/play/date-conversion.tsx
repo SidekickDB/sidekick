@@ -1,6 +1,6 @@
 'use client';
 import config from '../../config';
-import { init, i, id } from '@instantdb/react';
+import { init, i, id } from '@sidekickdb/react';
 import { useRouter } from 'next/router';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 import React, { useState } from 'react';

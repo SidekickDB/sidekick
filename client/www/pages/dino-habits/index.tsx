@@ -7,7 +7,7 @@ import {
   init,
   InstantReactWebDatabase,
   InstaQLEntity,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import { asClientOnlyPage, useReadyRouter } from '@/components/clientOnlyPage';
 
 // ----------

@@ -1,14 +1,17 @@
 {
-  "name": "instant-cli",
+  "name": "@sidekickdb/cli",
   "type": "module",
   "version": "0.0.0",
   "description": "Instant's CLI",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/cli",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/cli",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "exports": {
     "./auth": {
@@ -25,15 +28,16 @@
     }
   },
   "bin": {
+    "sidekick-cli": "bin/index.js",
     "instant-cli": "bin/index.js"
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
     "@effect/platform": "^0.94.1",
     "@effect/platform-node": "^0.104.0",
-    "@instantdb/core": "workspace:*",
-    "@instantdb/platform": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/platform": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "@zip.js/zip.js": "^2.8.34",
     "acorn": "^8.15.0",
     "acorn-typescript": "^1.4.13",

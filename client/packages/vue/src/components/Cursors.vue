@@ -4,7 +4,7 @@
   generic="RoomSchema extends RoomSchemaShape, RoomType extends string & keyof RoomSchema"
 >
 import { computed, toValue } from 'vue';
-import type { RoomSchemaShape } from '@instantdb/core';
+import type { RoomSchemaShape } from '@sidekickdb/core';
 import { usePresence } from '../InstantVueRoom.js';
 import type { InstantVueRoom } from '../InstantVueRoom.js';
 import Cursor from './Cursor.vue';

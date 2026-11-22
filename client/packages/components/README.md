@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/react</h1>
+  <h1 align="center">@sidekickdb/react</h1>
 </p>
 
 <p align="center">
@@ -26,7 +26,7 @@
 
 ```tsx
 import './App.css';
-import { Explorer, Toaster } from '@instantdb/components';
+import { Explorer, Toaster } from '@sidekickdb/components';
 
 function App() {
   return (
@@ -50,13 +50,13 @@ export default App;
 
 ### In www/
 
-The tailwind installation in www/ already scans `./node_modules/@instantdb/components/src/**/*.{js,ts,jsx,tsx,md}'`, so all styles should work out of the box.
+The tailwind installation in www/ already scans `./node_modules/@sidekickdb/components/src/**/*.{js,ts,jsx,tsx,md}'`, so all styles should work out of the box.
 
 Most components are rexported in client/www/components/ui.tsx .
 
 ### In projects that use tailwind
 
-Make sure you add `./node_modules/@instantdb/components/src/**/*.{js,ts,jsx,tsx,md}'` to the content field in your tailwind config.
+Make sure you add `./node_modules/@sidekickdb/components/src/**/*.{js,ts,jsx,tsx,md}'` to the content field in your tailwind config.
 
 ### In projects that don't use Tailwind
 
@@ -78,7 +78,7 @@ To use other components, you can wrap them in a <StyleMe> tag to mount them into
 However, doing this for most components is not practical so you can also import the styles separately.
 
 ```tsx
-import '@instantdb/components/style.css';
+import '@sidekickdb/components/style.css';
 ```
 
 In projects that don't use Tailwind it's recommended to just use the Explorer component with ShadowDOM and none of the other components.

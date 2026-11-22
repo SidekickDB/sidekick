@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/admin</h1>
+  <h1 align="center">@sidekickdb/admin</h1>
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
 Welcome to [Instant's](http://instantdb.com) admin SDK.
 
 ```javascript
-import { init, tx, id } from '@instantdb/admin';
+import { init, tx, id } from '@sidekickdb/admin';
 
 const adminDB = init({
   appId: 'my-instant-app-id',

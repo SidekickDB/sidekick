@@ -1,4 +1,4 @@
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { useMemo } from 'react';
 
 type InstantReactClient = ReturnType<typeof init>;

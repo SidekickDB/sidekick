@@ -10,18 +10,18 @@ Instant is the easy-to-use backend for your frontend. With Instant you can build
 
 ## Automatic Setup With Create Instant App
 
-The fastest way to get started with Instant is to use `npx create-instant-app` to scaffold a new project with Instant already set up.
+The fastest way to get started with Instant is to use `npx create-sidekick-app` to scaffold a new project with Instant already set up.
 
 To get started with Next.js run:
 
 ```bash {% showCopy=true %}
-npx create-instant-app --next
+npx create-sidekick-app --next
 ```
 
 To get started with Vite run:
 
 ```bash {% showCopy=true %}
-npx create-instant-app --vite-react
+npx create-sidekick-app --vite-react
 ```
 
 ## Manual Setup
@@ -37,14 +37,14 @@ npm run dev
 Add the InstantDB React Library:
 
 ```shell
-npm i @instantdb/react
+npm i @sidekickdb/react
 ```
 
 Set up and connect your Instant app.
 This will log you in if you are not logged in already, then create schema and permissions files, and update your `.env` file.
 
 ```shell
-npx instant-cli init
+npx @sidekickdb/cli init
 ```
 
 Create a database client in `src/lib/db.ts`:
@@ -52,7 +52,7 @@ Create a database client in `src/lib/db.ts`:
 {% file label="src/lib/db.ts" /%}
 
 ```ts
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import schema from '../instant.schema';
 
 export const db = init({
@@ -71,7 +71,7 @@ Let's add a "todo" entity to our schema file at `src/instant.schema.ts`:
 {% file label="src/instant.schema.ts" /%}
 
 ```ts {% showCopy=true lineHighlight="14-18" %}
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {
@@ -114,7 +114,7 @@ const _schema = i.schema({
 Push the schema:
 
 ```shell {% showCopy=true %}
-npx instant-cli push
+npx @sidekickdb/cli push
 ```
 
 Replace the content of `src/app/page.tsx` with the following:
@@ -126,7 +126,7 @@ Replace the content of `src/app/page.tsx` with the following:
 
 import schema from "@/instant.schema";
 import { db } from "@/lib/db";
-import { id, i, init, InstaQLEntity } from "@instantdb/react";
+import { id, i, init, InstaQLEntity } from "@sidekickdb/react";
 
 type Todo = InstaQLEntity<typeof schema, "todos", {}, undefined, true>;
 

@@ -1,4 +1,4 @@
-import { init, ConnectionStatus } from '@instantdb/react';
+import { init, ConnectionStatus } from '@sidekickdb/react';
 import config from '../../config';
 
 const db = init(config);

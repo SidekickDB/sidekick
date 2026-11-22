@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { Effect } from 'effect';
-import type { WebhookAction } from '@instantdb/platform';
+import type { WebhookAction } from '@sidekickdb/platform';
 import type { OptsFromCommand, webhooksAddDef } from '../../index.ts';
 import { Args } from '../../lib/args.ts';
 import { runUIEffect } from '../../lib/ui.ts';
@@ -103,7 +103,7 @@ export const webhooksAddCmd = Effect.fn(
       yield* Effect.logError(e.message);
       yield* Effect.log(
         chalk.dim(
-          'hint: run `instant-cli webhook add --help` for available arguments',
+          'hint: run `sidekick-cli webhook add --help` for available arguments',
         ),
       );
     }),

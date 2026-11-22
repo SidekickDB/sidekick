@@ -14,16 +14,24 @@ const toArray = <T>(value: Arrayable<T>): T[] =>
   Array.isArray(value) ? value : [value];
 
 /**
- * Resolve @instantdb packages from the CLI's own dependencies for
- * projects without node_modules. All @instantdb packages re-export
+ * Resolve @sidekickdb packages from the CLI's own dependencies for
+ * projects without node_modules. All @sidekickdb packages re-export
  * schema types from core, so a single core alias covers them all.
+ * Legacy @instantdb/* names are aliased too so existing schema files
+ * keep loading.
  */
 function getInstantAliases(): Record<string, string> | null {
   try {
     const require = createRequire(import.meta.url);
-    const corePackageJson = require.resolve('@instantdb/core/package.json');
+    const corePackageJson = require.resolve('@sidekickdb/core/package.json');
     const coreDir = path.dirname(corePackageJson);
     return {
+      '@sidekickdb/core': coreDir,
+      '@sidekickdb/react': coreDir,
+      '@sidekickdb/react-native': coreDir,
+      '@sidekickdb/svelte': coreDir,
+      '@sidekickdb/vue': coreDir,
+      '@sidekickdb/admin': coreDir,
       '@instantdb/core': coreDir,
       '@instantdb/react': coreDir,
       '@instantdb/react-native': coreDir,

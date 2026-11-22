@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import Head from 'next/head';
-import { Cursors, i, init } from '@instantdb/react';
+import { Cursors, i, init } from '@sidekickdb/react';
 import config from '../../config';
 
 const DemoFlags = {

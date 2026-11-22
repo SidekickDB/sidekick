@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/react-nextjs</h1>
 </p>
 
-This is sandbox app to play with [@instantdb/react](../../packages/react/).
+This is sandbox app to play with [@sidekickdb/react](../../packages/react/).
 
 # Development
 

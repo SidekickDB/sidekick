@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { type AppSchema } from "@/instant.schema";
-import { InstaQLEntity } from "@instantdb/react";
+import { InstaQLEntity } from "@sidekickdb/react";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { CREDITS_PER_PACK, PACK_PRICE_CENTS } from "@/lib/stripe";

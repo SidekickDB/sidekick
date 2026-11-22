@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SignedIn, SignedOut } from '@instantdb/vue';
+import { SignedIn, SignedOut } from '@sidekickdb/vue';
 import { db, isLoading, error } from '../lib/db';
 
 const email = ref('');

@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/sveltekit</h1>
 </p>
 
-This is a sandbox app to play with [@instantdb/svelte](../../packages/svelte/).
+This is a sandbox app to play with [@sidekickdb/svelte](../../packages/svelte/).
 
 # Development
 

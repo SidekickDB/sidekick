@@ -9,7 +9,7 @@ import {
   SyncTableCallbackEventType,
   type SyncTableCallbackEvent,
   type ValidQuery,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import React, { useEffect, useRef, useState } from 'react';
 import config from '../../config';
 import { provisionEphemeralApp } from '../../components/EphemeralAppPage';

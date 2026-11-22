@@ -1,4 +1,4 @@
-import { id } from '@instantdb/react';
+import { id } from '@sidekickdb/react';
 import { useRecipeDB } from './db';
 import { useRef } from 'react';
 

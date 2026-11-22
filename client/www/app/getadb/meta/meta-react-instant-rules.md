@@ -1,7 +1,7 @@
 # InstantDB rules for no-build React apps
 
 Use this when building a single-file HTML app that can load UMD scripts but
-cannot run `instant-cli`, `npx`, `pnpm dlx`, `bunx`, or install packages.
+cannot run `sidekick-cli`, `npx`, `pnpm dlx`, `bunx`, or install packages.
 
 # SDK
 
@@ -13,15 +13,15 @@ Use React UMD, ReactDOM UMD, Babel standalone, and the Instant React UMD.
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://www.unpkg.com/@instantdb/react@latest/dist/standalone/index.umd.cjs"></script>
+<script src="https://www.unpkg.com/@sidekickdb/react@latest/dist/standalone/index.umd.cjs"></script>
 ```
 
 These scripts expose globals: `React`, `ReactDOM`, `Babel`, and
 `window.instantReact`.
 
 Put JSX inside a Babel script. Do not use `import`, `export`, `type="module"`,
-JSX outside the Babel script, `@instantdb/core`, `window.instant`,
-`@instantdb/react` imports, or `ReactDOMClient`.
+JSX outside the Babel script, `@sidekickdb/core`, `window.instant`,
+`@sidekickdb/react` imports, or `ReactDOMClient`.
 
 ```html
 <script type="text/babel" data-presets="react">

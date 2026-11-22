@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 import config from '../../config';
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 
 // Instant app
 const { transact, useQuery } = init(config);

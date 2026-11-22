@@ -1,4 +1,4 @@
-import { UI } from 'instant-cli/ui';
+import { UI } from '@sidekickdb/cli/ui';
 import type { AppTokenResponse } from '../login.js';
 
 export const printAppCreateResult = (result: AppTokenResponse | null) => {

@@ -14,7 +14,7 @@ A multi-conversation chat app built with the Vercel AI SDK and InstantDB Streams
 
 ```bash
 pnpm install
-npx instant-cli push
+npx @sidekickdb/cli push
 pnpm dev
 ```
 

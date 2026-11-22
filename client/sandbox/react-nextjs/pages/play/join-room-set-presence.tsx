@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import config from '../../config';
 
 const db = init(config);

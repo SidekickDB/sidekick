@@ -1,6 +1,6 @@
 import { provisionEphemeralApp } from '../../components/EphemeralAppPage';
 import { useEffect, useState } from 'react';
-import { init, id, i } from '@instantdb/admin';
+import { init, id, i } from '@sidekickdb/admin';
 import config from '../../config';
 
 type TestResult = {

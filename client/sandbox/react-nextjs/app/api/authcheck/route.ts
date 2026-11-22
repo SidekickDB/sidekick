@@ -1,4 +1,4 @@
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import schema from '../../play/ssr/instant.schema';
 
 const appId = process.env.NEXT_PUBLIC_INSTANT_APP_ID;

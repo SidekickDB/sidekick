@@ -1,4 +1,4 @@
-import { i, id, init, InstaQLEntity, lookup, tx } from '@instantdb/react';
+import { i, id, init, InstaQLEntity, lookup, tx } from '@sidekickdb/react';
 import config from '../../config';
 
 const schema = i.schema({

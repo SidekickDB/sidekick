@@ -11,7 +11,7 @@ import {
   diffSchemas,
   SchemaValidationError as PlatformSchemaError,
   validateSchema,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import chalk from 'chalk';
 import { Data, Effect, Schema } from 'effect';
 import { CurrentApp } from '../context/currentApp.ts';

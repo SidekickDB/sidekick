@@ -1,4 +1,4 @@
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 
 const API_URL = process.env.INSTANT_API_URL || 'https://api.instantdb.com';
 

@@ -7,7 +7,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { i, id, InstantReactNativeDatabase } from '@instantdb/react-native';
+import { i, id, InstantReactNativeDatabase } from '@sidekickdb/react-native';
 import EphemeralAppPage, {
   ResetButton,
 } from '../../components/EphemeralAppPage';

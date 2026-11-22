@@ -4,7 +4,7 @@ import type {
   UpdateWebhookParams,
   WebhookAction,
   WebhookInfo,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import type { OptsFromCommand, webhooksUpdateDef } from '../../index.ts';
 import { GlobalOpts } from '../../context/globalOpts.ts';
 import { BadArgsError } from '../../errors.ts';
@@ -213,7 +213,7 @@ export const webhooksUpdateCmd = Effect.fn(
       yield* Effect.logError(e.message);
       yield* Effect.log(
         chalk.dim(
-          'hint: run `instant-cli webhook update --help` for available arguments',
+          'hint: run `sidekick-cli webhook update --help` for available arguments',
         ),
       );
     }),

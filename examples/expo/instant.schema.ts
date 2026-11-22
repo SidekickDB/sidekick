@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "@instantdb/react-native";
+import { i } from "@sidekickdb/react-native";
 
 const _schema = i.schema({
   entities: {

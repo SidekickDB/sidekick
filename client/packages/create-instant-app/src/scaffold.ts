@@ -6,7 +6,7 @@ import { PKG_ROOT } from './consts.js';
 import { Project } from './cli.js';
 import chalk from 'chalk';
 import { getUserPkgManager } from './utils/getUserPkgManager.js';
-import { renderUnwrap, UI } from 'instant-cli/ui';
+import { renderUnwrap, UI } from '@sidekickdb/cli/ui';
 import slugify from 'slugify';
 import ignore from 'ignore';
 

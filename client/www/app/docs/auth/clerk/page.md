@@ -43,7 +43,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type clerk --name clerk --publishable-key <publishable-key>
 ```
 
@@ -69,7 +69,7 @@ import {
   SignedIn,
   SignedOut,
 } from '@clerk/nextjs';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { useEffect } from 'react';
 
 // Instant app

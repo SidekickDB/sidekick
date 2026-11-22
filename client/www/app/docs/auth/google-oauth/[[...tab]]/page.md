@@ -84,7 +84,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type google --app-type web --name google-web --dev-credentials
 ```
 
@@ -190,7 +190,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type google --app-type web --name google-web \
   --client-id <id> --client-secret <secret>
 ```
@@ -220,7 +220,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth origin add --type website --url <your-domain>
+npx @sidekickdb/cli@latest auth origin add --type website --url <your-domain>
 ```
 
 {% /terminal-path %}
@@ -252,9 +252,9 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type google --app-type ios --name google-ios --client-id <ios-id>
-npx instant-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type google --app-type android --name google-android --client-id <android-id>
 ```
 
@@ -293,7 +293,7 @@ Once you install it, include the button, and use `db.auth.signInWithIdToken` to 
 'use client';
 
 import React, { useState } from 'react';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const APP_ID = '__APP_ID__';
@@ -383,7 +383,7 @@ Create an authorization URL via `db.auth.createAuthorizationURL` and then use th
 'use client';
 
 import React, { useState } from 'react';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
@@ -475,8 +475,8 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx instant-cli@latest auth origin add --type custom-scheme --scheme exp://
-npx instant-cli@latest auth origin add --type custom-scheme --scheme mycoolredirect://
+npx @sidekickdb/cli@latest auth origin add --type custom-scheme --scheme exp://
+npx @sidekickdb/cli@latest auth origin add --type custom-scheme --scheme mycoolredirect://
 ```
 
 {% /terminal-path %}
@@ -489,7 +489,7 @@ And from here you're ready to add a login button to your Expo app! Here's a full
 
 ```jsx {% showCopy=true %}
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { init } from '@instantdb/react-native';
+import { init } from '@sidekickdb/react-native';
 import {
   makeRedirectUri,
   useAuthRequest,
@@ -599,7 +599,7 @@ Now you're ready to add the Google sign-in button to your Expo app! Here's a ful
 
 ```jsx {% showCopy=true %}
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { init } from '@instantdb/react-native';
+import { init } from '@sidekickdb/react-native';
 import {
   GoogleSignin,
   GoogleSigninButton,

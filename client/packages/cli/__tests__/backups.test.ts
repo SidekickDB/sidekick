@@ -18,7 +18,7 @@ const state = vi.hoisted(() => ({
 
 // Mock at the SDK boundary: any `new InstantPlatformApi(...)` returns a stub
 // whose `.backups(appId)` is the per-test fake manager.
-vi.mock('@instantdb/platform', async (importOriginal) => {
+vi.mock('@sidekickdb/platform', async (importOriginal) => {
   const orig: any = await importOriginal();
   return {
     ...orig,

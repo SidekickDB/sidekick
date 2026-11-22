@@ -1,4 +1,4 @@
-import { PlatformApi as InstantPlatformApi } from '@instantdb/platform';
+import { PlatformApi as InstantPlatformApi } from '@sidekickdb/platform';
 import { Data, Effect } from 'effect';
 import { getBaseUrl } from '../lib/http.ts';
 

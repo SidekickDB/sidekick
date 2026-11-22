@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { id, type InstaQLEntity } from '@instantdb/svelte';
+  import { id, type InstaQLEntity } from '@sidekickdb/svelte';
   import { db } from '$lib/db';
   import type { AppSchema } from '../instant.schema';
 

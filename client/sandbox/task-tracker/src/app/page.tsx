@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { type AppSchema } from '@/instant.schema';
-import { id, InstaQLEntity } from '@instantdb/react';
+import { id, InstaQLEntity } from '@sidekickdb/react';
 import React, { useState } from 'react';
 
 type BaseProject = InstaQLEntity<AppSchema, 'projects', {}>;

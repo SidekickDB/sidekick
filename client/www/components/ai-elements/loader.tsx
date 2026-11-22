@@ -1,4 +1,4 @@
-import { cn } from '@instantdb/components';
+import { cn } from '@sidekickdb/components';
 import type { HTMLAttributes } from 'react';
 
 type LoaderIconProps = {

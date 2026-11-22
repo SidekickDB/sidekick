@@ -1,4 +1,4 @@
-import { InstantReactWebDatabase } from '@instantdb/react';
+import { InstantReactWebDatabase } from '@sidekickdb/react';
 import { useEffect, useState } from 'react';
 import { DBAttr, SchemaNamespace } from '@/lib/types';
 import { dbAttrsToExplorerSchema } from '@/lib/schema';

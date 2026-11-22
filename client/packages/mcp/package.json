@@ -1,13 +1,16 @@
 {
-  "name": "@instantdb/mcp",
+  "name": "@sidekickdb/mcp",
   "version": "0.0.0",
   "description": "Model Context Protocol (MCP) server for managing Instant apps, schemas, and permissions!",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/mcp",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "type": "module",
   "bin": {
@@ -25,18 +28,18 @@
     "build": "rm -rf dist && tsc",
     "prepublishOnly": "npm run build",
     "publish-package": "pnpm pack && npm publish *.tgz --access public",
-    "pull:dev": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts instant-cli pull --app 2366e905-5ce1-4cfa-8de1-ed3450a4ed2b",
-    "push:dev": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts instant-cli push --app 2366e905-5ce1-4cfa-8de1-ed3450a4ed2b",
-    "instant-cli-init:dev": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts instant-cli init --app 22d72c26-0514-4d75-b410-564416ddf0ba",
-    "pull": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts instant-cli pull --app 22d72c26-0514-4d75-b410-564416ddf0ba",
-    "push": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts instant-cli push --app 22d72c26-0514-4d75-b410-564416ddf0ba",
-    "instant-cli-init": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts instant-cli init --app 22d72c26-0514-4d75-b410-564416ddf0ba"
+    "pull:dev": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts sidekick-cli pull --app 2366e905-5ce1-4cfa-8de1-ed3450a4ed2b",
+    "push:dev": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts sidekick-cli push --app 2366e905-5ce1-4cfa-8de1-ed3450a4ed2b",
+    "sidekick-cli-init:dev": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts sidekick-cli init --app 22d72c26-0514-4d75-b410-564416ddf0ba",
+    "pull": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts sidekick-cli pull --app 22d72c26-0514-4d75-b410-564416ddf0ba",
+    "push": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts sidekick-cli push --app 22d72c26-0514-4d75-b410-564416ddf0ba",
+    "sidekick-cli-init": "INSTANT_SCHEMA_FILE_PATH=./src/db/instant.schema.ts INSTANT_PERMS_FILE_PATH=./src/db/instant.perms.ts sidekick-cli init --app 22d72c26-0514-4d75-b410-564416ddf0ba"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
     "@types/express": "^4.17.21",
     "@types/node": "^18.11.18",
-    "instant-cli": "^0.19.20",
+    "@sidekickdb/cli": "workspace:*",
     "pino-pretty": "^13.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.9.3",
@@ -44,10 +47,10 @@
   },
   "dependencies": {
     "@honeycombio/opentelemetry-node": "^0.7.2",
-    "@instantdb/admin": "workspace:*",
-    "@instantdb/core": "workspace:*",
-    "@instantdb/platform": "workspace:*",
-    "@instantdb/version": "workspace:*",
+    "@sidekickdb/admin": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/platform": "workspace:*",
+    "@sidekickdb/version": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.17.2",
     "@opentelemetry/api": "^1.9.0",
     "cookie-parser": "^1.4.7",

@@ -94,7 +94,7 @@ export const emailStatusCmd = Effect.fn(function* (
 
   if (!info) {
     yield* Effect.log(
-      "No custom magic code email associated with this app.\nTo add one, run 'instant-cli auth email pull', edit the file, then run 'instant-cli auth email push'",
+      "No custom magic code email associated with this app.\nTo add one, run 'sidekick-cli auth email pull', edit the file, then run 'sidekick-cli auth email push'",
     );
     return;
   }

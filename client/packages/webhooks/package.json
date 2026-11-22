@@ -1,14 +1,17 @@
 {
-  "name": "@instantdb/webhooks",
+  "name": "@sidekickdb/webhooks",
   "version": "0.0.0",
   "description": "Webhook handlers for Instant DB",
   "license": "Apache-2.0",
   "type": "module",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/webhooks",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/webhooks",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/webhooks"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "main": "./dist/commonjs/index.js",
   "types": "./dist/commonjs/index.d.ts",
@@ -56,6 +59,6 @@
     "vitest": "^0.21.0"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*"
+    "@sidekickdb/core": "workspace:*"
   }
 }

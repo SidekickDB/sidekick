@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/solidjs</h1>
+  <h1 align="center">@sidekickdb/solidjs</h1>
 </p>
 
 <p align="center">
@@ -29,7 +29,7 @@ Welcome to [Instant's](http://instantdb.com) SolidJS SDK.
 // * Multiplayer
 // * Works offline
 
-import { init, id } from '@instantdb/solidjs';
+import { init, id } from '@sidekickdb/solidjs';
 
 const db = init({
   appId: import.meta.env.VITE_INSTANT_APP_ID,

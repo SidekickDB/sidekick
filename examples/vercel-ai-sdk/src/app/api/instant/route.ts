@@ -1,4 +1,4 @@
-import { createInstantRouteHandler } from '@instantdb/react';
+import { createInstantRouteHandler } from '@sidekickdb/react';
 
 const appId = process.env.NEXT_PUBLIC_INSTANT_APP_ID!;
 

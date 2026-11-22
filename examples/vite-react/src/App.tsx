@@ -1,6 +1,6 @@
 import { db } from "./lib/db";
 import { type AppSchema } from "./instant.schema";
-import { id, type InstaQLEntity } from "@instantdb/react";
+import { id, type InstaQLEntity } from "@sidekickdb/react";
 
 type Todo = InstaQLEntity<AppSchema, "todos">;
 

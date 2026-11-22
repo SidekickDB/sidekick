@@ -1,4 +1,4 @@
-import { init } from "@instantdb/react-native";
+import { init } from "@sidekickdb/react-native";
 import schema from "../instant.schema";
 
 export const db = init({

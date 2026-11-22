@@ -1,4 +1,4 @@
-import { i, id, InstantReactNativeDatabase } from '@instantdb/react-native';
+import { i, id, InstantReactNativeDatabase } from '@sidekickdb/react-native';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import EphemeralAppPage, {
   ResetButton,

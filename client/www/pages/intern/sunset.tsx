@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { v4 } from 'uuid';
 
 import config from '@/lib/config';

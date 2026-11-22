@@ -1,4 +1,4 @@
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {

@@ -1,4 +1,4 @@
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 const schema = i.schema({
   entities: {

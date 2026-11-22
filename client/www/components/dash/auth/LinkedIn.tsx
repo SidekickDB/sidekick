@@ -20,7 +20,7 @@ import {
   LINKEDIN_AUTHORIZATION_ENDPOINT,
   LINKEDIN_TOKEN_ENDPOINT,
   LINKEDIN_DISCOVERY_ENDPOINT,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import {
   addClient,
   findName,

@@ -11,7 +11,7 @@ const apiUrl = process.env.INSTANT_CLI_API_URI || 'https://api.instantdb.com';
 
 // Temp directory used to sandbox CLI config (auth tokens, etc.)
 // so tests never read or mutate the real user config on disk.
-const sandboxHome = join(tmpdir(), 'instant-cli-e2e-home');
+const sandboxHome = join(tmpdir(), 'sidekick-cli-e2e-home');
 
 export type CliResult = {
   stdout: string;
@@ -71,7 +71,7 @@ export async function createTestProject(
     permsFile?: string;
   } = {},
 ): Promise<TestProject> {
-  const dir = await mkdtemp(join(tmpdir(), 'instant-cli-e2e-'));
+  const dir = await mkdtemp(join(tmpdir(), 'sidekick-cli-e2e-'));
 
   await writeFile(
     join(dir, 'package.json'),
@@ -79,19 +79,19 @@ export async function createTestProject(
       {
         name: 'e2e-test-project',
         version: '1.0.0',
-        dependencies: { '@instantdb/react': '^0.0.1' },
+        dependencies: { '@sidekickdb/react': '^0.0.1' },
       },
       null,
       2,
     ),
   );
 
-  await mkdir(join(dir, 'node_modules', '@instantdb', 'react'), {
+  await mkdir(join(dir, 'node_modules', '@sidekickdb', 'react'), {
     recursive: true,
   });
   await writeFile(
-    join(dir, 'node_modules', '@instantdb', 'react', 'package.json'),
-    JSON.stringify({ name: '@instantdb/react', version: '0.0.1' }),
+    join(dir, 'node_modules', '@sidekickdb', 'react', 'package.json'),
+    JSON.stringify({ name: '@sidekickdb/react', version: '0.0.1' }),
   );
 
   if (opts.appId) {

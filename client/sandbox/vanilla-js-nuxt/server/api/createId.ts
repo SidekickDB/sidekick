@@ -1,4 +1,4 @@
-import { id as coreId } from '@instantdb/core';
+import { id as coreId } from '@sidekickdb/core';
 
 export default defineEventHandler(async () => {
   try {

@@ -1,14 +1,17 @@
 {
-  "name": "@instantdb/svelte",
+  "name": "@sidekickdb/svelte",
   "type": "module",
   "version": "0.0.0",
   "description": "Svelte client for InstantDB",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/svelte",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/svelte",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/svelte"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "scripts": {
     "test": "vitest run",
@@ -41,8 +44,8 @@
     "svelte": "^5.0.0"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/version": "workspace:*"
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/version": "workspace:*"
   },
   "devDependencies": {
     "@sveltejs/package": "^2.3.0",

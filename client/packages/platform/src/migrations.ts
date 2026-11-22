@@ -6,7 +6,7 @@ import {
   InstantDBCheckedDataType,
   InstantSchemaDef,
   LinkDef,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { PlanStep } from './api.ts';
 import { attrDefToNewAttrTx, linkDefToNewAttrTx } from './migrationUtils.ts';
 import { relationshipConstraints, RelationshipKinds } from './relationships.ts';

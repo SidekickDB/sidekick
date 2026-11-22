@@ -5,7 +5,7 @@ import { jsonFetch } from '@/lib/fetch';
 import { useContext, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { messageFromInstantError } from '@/lib/errors';
-import { InstantIssue } from '@instantdb/core';
+import { InstantIssue } from '@sidekickdb/core';
 import { errorToast } from '@/lib/toast';
 import { friendlyUsage, GB_1, GB_10, GB_250, ProgressBar } from '../Billing';
 import { useFetchedDash } from '../MainDashLayout';

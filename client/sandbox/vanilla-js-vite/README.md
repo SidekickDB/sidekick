@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/vanilla-js-vite</h1>
 </p>
 
-This is sandbox app to play with [@instantdb/core](../../packages/core/).
+This is sandbox app to play with [@sidekickdb/core](../../packages/core/).
 
 # Development
 

@@ -15,19 +15,19 @@ Let's build a full example of how to upload and display a grid of images:
 ```shell {% showCopy=true %}
 npx create-next-app instant-storage --tailwind --yes
 cd instant-storage
-npm i @instantdb/react
+npm i @sidekickdb/react
 ```
 
 Initialize your schema and permissions via the [CLI tool](/docs/cli):
 
 ```
-npx instant-cli@latest init
+npx @sidekickdb/cli@latest init
 ```
 
 Now open `instant.schema.ts` and replace the contents with the following code.
 
 ```javascript {% showCopy=true %}
-import { i } from "@instantdb/react";
+import { i } from "@sidekickdb/react";
 
 const _schema = i.schema({
   entities: {
@@ -55,7 +55,7 @@ export default schema;
 Similarly, open `instant.perms.ts` and replace the contents with the following:
 
 ```javascript {% showCopy=true %}
-import type { InstantRules } from "@instantdb/react";
+import type { InstantRules } from "@sidekickdb/react";
 
 // Not recommended for production since this allows anyone to
 // upload/delete, but good for getting started
@@ -75,7 +75,7 @@ export default rules;
 Push up both the schema and permissions to your Instant app with the following command:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest push
+npx @sidekickdb/cli@latest push
 ```
 
 And then replace the contents of `app/page.tsx` with the following code.
@@ -83,7 +83,7 @@ And then replace the contents of `app/page.tsx` with the following code.
 ```javascript {% showCopy=true %}
 'use client';
 
-import { init, InstaQLEntity } from '@instantdb/react';
+import { init, InstaQLEntity } from '@sidekickdb/react';
 import schema, { AppSchema } from '../instant.schema';
 import React from 'react';
 
@@ -329,7 +329,7 @@ to filter and sort your files.
 ```javascript {% showCopy=true %}
 // instant.schema.ts
 // ---------------
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 const _schema = i.schema({
   entities: {
     $files: i.entity({
@@ -396,7 +396,7 @@ You can use `db.transact` to update file paths, as well as any custom columns yo
 So if your schema looked like this:
 
 ```javascript
-import { i } from "@instantdb/react";
+import { i } from "@sidekickdb/react";
 
 const _schema = i.schema({
   entities: {

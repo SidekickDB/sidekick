@@ -25,7 +25,7 @@ import {
   RoomsOf,
   InstantError,
   IInstantDatabase,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 
 import { createSignal, createEffect, onCleanup, createMemo } from 'solid-js';
 import type { Accessor } from 'solid-js';
@@ -437,13 +437,13 @@ export class InstantSolidDatabase<
  * Visit https://instantdb.com/dash to get your `appId` :)
  *
  * @example
- *  import { init } from "@instantdb/solidjs"
+ *  import { init } from "@sidekickdb/solidjs"
  *
  *  const db = init({ appId: "my-app-id" })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
- *  import { init } from "@instantdb/solidjs"
+ *  import { init } from "@sidekickdb/solidjs"
  *  import schema from "../instant.schema.ts";
  *
  *  const db = init({ appId: "my-app-id", schema })

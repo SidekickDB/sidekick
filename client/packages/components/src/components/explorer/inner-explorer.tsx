@@ -24,8 +24,8 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { coerceToDate, tx } from '@instantdb/core';
-import { InstantReactAbstractDatabase } from '@instantdb/react';
+import { coerceToDate, tx } from '@sidekickdb/core';
+import { InstantReactAbstractDatabase } from '@sidekickdb/react';
 import {
   ColumnDef,
   ColumnSizingState,

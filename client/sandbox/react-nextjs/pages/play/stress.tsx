@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import config from '../../config';
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 import { useRouter } from 'next/router';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 

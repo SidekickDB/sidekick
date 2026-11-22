@@ -1,4 +1,4 @@
-import { StoreInterface, StoreInterfaceStoreName } from '@instantdb/core';
+import { StoreInterface, StoreInterfaceStoreName } from '@sidekickdb/core';
 
 const version = 5;
 
@@ -68,7 +68,7 @@ class MissingStore extends StoreInterface {
     throw new Error(
       'Instant needs a store to persist data on device. ' +
         'Install `@react-native-async-storage/async-storage`, ' +
-        'or pass a `Store` to `init` (e.g. from `@instantdb/react-native-mmkv` or `@instantdb/expo-sqlite`).' +
+        'or pass a `Store` to `init` (e.g. from `@sidekickdb/react-native-mmkv` or `@sidekickdb/expo-sqlite`).' +
         (asyncStorageLoadError
           ? `\n\nLoading async-storage failed with: ${asyncStorageLoadError}`
           : ''),

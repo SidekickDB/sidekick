@@ -1,4 +1,4 @@
-import { i, id, init, UpdateParams } from '@instantdb/admin';
+import { i, id, init, UpdateParams } from '@sidekickdb/admin';
 
 const _schema = i.schema({
   entities: { users: i.entity({ email: i.string() }) },

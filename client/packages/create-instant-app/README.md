@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">create-instant-app</h1>
+  <h1 align="center">create-sidekick-app</h1>
 </p>
 
 <p align="center">
@@ -20,14 +20,14 @@
    <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
 <p>
 
-Welcome to `create-instant-app`.
+Welcome to `create-sidekick-app`.
 
 # Get Started
 
 Run the command to spin up different instant apps!
 
 ```bash
-npx create-instant-app
+npx create-sidekick-app
 ```
 
 And you're ready to go!
@@ -38,6 +38,6 @@ Build or develop code with `pnpm run build` or `pnpm run dev`
 
 Then link with pnpm: `pnpm link --global`
 
-Now you can use the command anywhere! `create-instant-app`
+Now you can use the command anywhere! `create-sidekick-app`
 
-Once you're done, you can unlink: `pnpm uninstall create-instant-app --global`
+Once you're done, you can unlink: `pnpm uninstall create-sidekick-app --global`

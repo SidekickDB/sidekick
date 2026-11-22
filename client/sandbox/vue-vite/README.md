@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/vue-vite</h1>
 </p>
 
-This is a sandbox app to play with [@instantdb/vue](../../packages/vue/).
+This is a sandbox app to play with [@sidekickdb/vue](../../packages/vue/).
 
 # Development
 

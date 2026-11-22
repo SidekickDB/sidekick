@@ -1,5 +1,5 @@
 import { Config, Effect, Option, Schema } from 'effect';
-import { oauthCallbackURL } from '@instantdb/platform';
+import { oauthCallbackURL } from '@sidekickdb/platform';
 import { BadArgsError } from '../errors.ts';
 import { readInstantConfigFile } from '../util/instantConfig.ts';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

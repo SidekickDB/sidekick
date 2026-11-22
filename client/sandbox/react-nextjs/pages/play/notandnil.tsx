@@ -1,5 +1,5 @@
 import config from '../../config';
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 import EphemeralAppPage, {
   ResetButton,
 } from '../../components/EphemeralAppPage';

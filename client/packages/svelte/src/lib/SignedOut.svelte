@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { InstantSchemaDef } from '@instantdb/core';
+  import type { InstantSchemaDef } from '@sidekickdb/core';
   import type { InstantSvelteDatabase } from './InstantSvelteDatabase.svelte.js';
   import type { Snippet } from 'svelte';
 

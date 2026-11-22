@@ -3,7 +3,7 @@ import {
   id,
   InstantReactAbstractDatabase,
   InstantRules,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 import config from '../../config';
 import { useEffect, useRef, useState } from 'react';

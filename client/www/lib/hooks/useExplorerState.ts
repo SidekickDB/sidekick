@@ -3,7 +3,7 @@ import {
   Explorer,
   ExplorerDialog,
   ExplorerNav,
-} from '@instantdb/components';
+} from '@sidekickdb/components';
 import { useCallback, useMemo } from 'react';
 import {
   parseAsBoolean,

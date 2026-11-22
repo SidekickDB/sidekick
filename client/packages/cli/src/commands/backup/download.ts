@@ -8,7 +8,7 @@ import {
   formatFileSize,
   type AppBackup,
   type BackupsManager,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import type { backupDownloadDef, OptsFromCommand } from '../../index.ts';
 import { BadArgsError } from '../../errors.ts';
 import { GlobalOpts } from '../../context/globalOpts.ts';

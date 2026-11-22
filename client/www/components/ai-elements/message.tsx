@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@instantdb/components';
+} from '@sidekickdb/components';
 import type { FileUIPart, UIMessage } from 'ai';
 import { PaperclipIcon, XIcon } from 'lucide-react';
 import type { ComponentProps, HTMLAttributes, ReactElement } from 'react';

@@ -229,7 +229,7 @@ export const authOriginAddCmd = Effect.fn(
       yield* Effect.logError(e.message);
       yield* Effect.log(
         chalk.dim(
-          'hint: run `instant-cli auth origin add --help` for available arguments',
+          'hint: run `sidekick-cli auth origin add --help` for available arguments',
         ),
       );
     }),

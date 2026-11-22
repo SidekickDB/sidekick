@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import * as Babel from '@babel/standalone';
 import React from 'react';
-import { id as instantId, i, init } from '@instantdb/react';
+import { id as instantId, i, init } from '@sidekickdb/react';
 import { db } from '@/lib/db';
 import { UIMessage } from 'ai';
 import {
@@ -93,7 +93,7 @@ export default function PreviewSubdomainPage({
         const require = function(name) {
           const modules = {
             'react': React,
-            '@instantdb/react': { id, i, init, InstaQLEntity: {} }
+            '@sidekickdb/react': { id, i, init, InstaQLEntity: {} }
           };
 
           if (modules[name]) return modules[name];

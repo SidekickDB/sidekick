@@ -23,7 +23,7 @@ import {
 } from '../src/auth/index.ts';
 
 beforeEach(async () => {
-  paths.root = await mkdtemp(join(tmpdir(), 'instant-cli-auth-'));
+  paths.root = await mkdtemp(join(tmpdir(), 'sidekick-cli-auth-'));
 });
 
 afterEach(async () => {

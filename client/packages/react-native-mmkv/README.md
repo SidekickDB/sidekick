@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">@instantdb/react-native-mmkv</h1>
+  <h1 align="center">@sidekickdb/react-native-mmkv</h1>
 </p>
 
 <p align="center">
@@ -34,7 +34,7 @@ cd instant-rn-demo
 ### Install instant
 
 ```shell
-npm i @instantdb/react-native @instantdb/react-native-mmkv
+npm i @sidekickdb/react-native @sidekickdb/react-native-mmkv
 ```
 
 ### Install peer dependencies
@@ -49,7 +49,7 @@ npx expo install react-native-mmkv react-native-nitro-modules @react-native-comm
 npx expo prebuild
 ```
 
-### Import Storage from @instantdb/react-native-mmkv
+### Import Storage from @sidekickdb/react-native-mmkv
 
 ```javascript
 // ༼ つ ◕_◕ ༽つ Real-time Chat
@@ -58,8 +58,8 @@ npx expo prebuild
 // * Multiplayer
 // * Works offline
 
-import { init, id } from '@instantdb/react-native';
-import MMKVStore from '@instantdb/react-native-mmkv';
+import { init, id } from '@sidekickdb/react-native';
+import MMKVStore from '@sidekickdb/react-native-mmkv';
 
 const db = init({
   appId: process.env.EXPO_PUBLIC_INSTANT_APP_ID,

@@ -32,9 +32,28 @@ const overviewSteps = [
 ];
 
 const packageManagers = [
-  { id: 'npm', name: 'npx', runner: 'npx', scriptRunner: 'npm' },
-  { id: 'pnpm', name: 'pnpx', runner: 'pnpx', scriptRunner: 'pnpm' },
-  { id: 'bun', name: 'bunx', runner: 'bunx', scriptRunner: 'bun' },
+  {
+    id: 'npm',
+    name: 'npx',
+    runner: 'npx',
+    scriptRunner: 'npm',
+    cliRunner: 'npx @sidekickdb/cli',
+  },
+  {
+    id: 'pnpm',
+    name: 'pnpx',
+    runner: 'pnpx',
+    scriptRunner: 'pnpm',
+    // @sidekickdb/cli ships two binaries, so pnpm and bun need the binary name
+    cliRunner: 'pnpx --package=@sidekickdb/cli sidekick-cli',
+  },
+  {
+    id: 'bun',
+    name: 'bunx',
+    runner: 'bunx',
+    scriptRunner: 'bun',
+    cliRunner: 'bunx --package=@sidekickdb/cli sidekick-cli',
+  },
 ] as const;
 
 const examplePrompts = [
@@ -295,12 +314,17 @@ function TerminalBlock({
   onPmChange,
 }: {
   commandTemplate: string;
-  type?: 'runner' | 'script';
+  type?: 'runner' | 'script' | 'cli';
   selectedPmIndex: number;
   onPmChange?: (index: number) => void;
 }) {
   const pm = packageManagers[selectedPmIndex];
-  const prefix = type === 'script' ? pm.scriptRunner : pm.runner;
+  const prefix =
+    type === 'script'
+      ? pm.scriptRunner
+      : type === 'cli'
+        ? pm.cliRunner
+        : pm.runner;
   const command = `${prefix} ${commandTemplate}`;
 
   return (
@@ -533,7 +557,7 @@ export default function Tutorial() {
               <div className="mb-3 text-lg font-medium text-orange-600">
                 Step 1
               </div>
-              <Subheading>Log in to Instant via instant-cli</Subheading>
+              <Subheading>Log in to Instant via @sidekickdb/cli</Subheading>
               <div className="mt-4 space-y-4 text-lg text-gray-700">
                 <p>
                   As a first step let's make sure you're logged in. Run the
@@ -543,7 +567,8 @@ export default function Tutorial() {
               </div>
               <div className="mt-6">
                 <TerminalBlock
-                  commandTemplate="instant-cli login"
+                  type="cli"
+                  commandTemplate="login"
                   selectedPmIndex={selectedPmIndex}
                   onPmChange={setSelectedPmIndex}
                 />
@@ -568,14 +593,14 @@ export default function Tutorial() {
                   unless you delete the data later — woohoo!
                 </p>
                 <p>
-                  As a next step we'll use <b>create-instant-app</b>, our CLI
+                  As a next step we'll use <b>create-sidekick-app</b>, our CLI
                   tool, which makes it super easy to get started with a new
                   Instant project. Run the following in your terminal.
                 </p>
               </div>
               <div className="mt-6">
                 <TerminalBlock
-                  commandTemplate="create-instant-app"
+                  commandTemplate="create-sidekick-app"
                   selectedPmIndex={selectedPmIndex}
                   onPmChange={setSelectedPmIndex}
                 />

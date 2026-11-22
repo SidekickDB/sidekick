@@ -2,10 +2,10 @@ import {
   id,
   init as core_init,
   BackwardsCompatibleSchema,
-} from '@instantdb/core';
-import { init as react_init } from '@instantdb/react';
-import { init as react_native_init } from '@instantdb/react-native';
-import { init as admin_init } from '@instantdb/admin';
+} from '@sidekickdb/core';
+import { init as react_init } from '@sidekickdb/react';
+import { init as react_native_init } from '@sidekickdb/react-native';
+import { init as admin_init } from '@sidekickdb/admin';
 
 type Message = {
   content: string;

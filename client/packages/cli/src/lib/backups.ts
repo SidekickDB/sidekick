@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import type { BackupsManager } from '@instantdb/platform';
+import type { BackupsManager } from '@sidekickdb/platform';
 import { CurrentApp } from '../context/currentApp.ts';
 import { PlatformApiError } from '../context/platformApi.ts';
 import { getAuthedPlatformApi } from './platformApi.ts';

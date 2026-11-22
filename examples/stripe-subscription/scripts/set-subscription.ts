@@ -11,7 +11,7 @@
  *   pnpm tsx scripts/set-subscription.ts test@example.com none
  */
 
-import { init } from "@instantdb/admin";
+import { init } from "@sidekickdb/admin";
 import schema from "../src/instant.schema";
 
 const adminDb = init({

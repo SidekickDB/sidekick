@@ -10,7 +10,7 @@ Instant automatically generates a nightly backup that contains all of the data f
 You can view backups for the last 7 days from the `Backups` page on the dashboard, or with the cli:
 
 ```sh {% showCopy=true %}
-npx instant-cli@latest backup list
+npx @sidekickdb/cli@latest backup list
 ```
 
 ## Downloading backups
@@ -18,7 +18,7 @@ npx instant-cli@latest backup list
 You can download the backup as a zip file from the dashboard or through the cli:
 
 ```sh {% showCopy=true %}
-npx instant-cli@latest backup download --latest
+npx @sidekickdb/cli@latest backup download --latest
 ```
 
 The backup contains your app's schema, rules, magic code email template, entities, and files.
@@ -102,19 +102,19 @@ If you have any OAuth clients set up with client secrets, go to the Auth dashboa
 
 ```shell
 # List the downloadable backups for your app
-npx instant-cli@latest backup list
+npx @sidekickdb/cli@latest backup list
 
 # Output the list as JSON
-npx instant-cli@latest backup list --json
+npx @sidekickdb/cli@latest backup list --json
 
 # Download a backup (interactive picker when no backup is given)
-npx instant-cli@latest backup download
+npx @sidekickdb/cli@latest backup download
 
 # Download the most recent backup
-npx instant-cli@latest backup download --latest
+npx @sidekickdb/cli@latest backup download --latest
 
 # Download a specific backup to a path of your choosing
-npx instant-cli@latest backup download <backup-id> --out my-backup.zip
+npx @sidekickdb/cli@latest backup download <backup-id> --out my-backup.zip
 ```
 
 All commands read the app ID from your `.env` file (`INSTANT_APP_ID`, or a framework-specific variant like `NEXT_PUBLIC_INSTANT_APP_ID`; see [App ID](/docs/cli#app-id)). Pass `--app <app-id>` to target a different one, and run `--help` on any command for the full list of flags.

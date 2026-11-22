@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { id, type InstaQLEntity } from '@instantdb/svelte';
+  import { id, type InstaQLEntity } from '@sidekickdb/svelte';
   import { dbState, type AppSchema } from '$lib/db.svelte';
 
   type Todo = InstaQLEntity<AppSchema, 'todos'>;

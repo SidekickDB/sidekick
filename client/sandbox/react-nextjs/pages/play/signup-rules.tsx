@@ -1,4 +1,4 @@
-import { i, User, InstantReactAbstractDatabase } from '@instantdb/react';
+import { i, User, InstantReactAbstractDatabase } from '@sidekickdb/react';
 import { useState } from 'react';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 import config from '../../config';

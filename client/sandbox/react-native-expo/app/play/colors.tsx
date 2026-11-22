@@ -1,4 +1,4 @@
-import { init, tx } from '@instantdb/react-native';
+import { init, tx } from '@sidekickdb/react-native';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import config from '../config';
 

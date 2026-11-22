@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 import Login from '../../components/Login';
 import config from '../../config';

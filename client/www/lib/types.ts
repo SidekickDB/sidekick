@@ -1,4 +1,4 @@
-import { InstantIssue } from '@instantdb/core';
+import { InstantIssue } from '@sidekickdb/core';
 
 export type AppStatus = 'active' | 'read-only' | 'disabled';
 

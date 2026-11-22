@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { Prompt, SelectState } from '../ui/lib.ts';
 import type { ModifyOutputFn } from '../ui/lib.ts';
-import { isRenamePromptItem } from '@instantdb/platform';
+import { isRenamePromptItem } from '@sidekickdb/platform';
 
 export interface RenamePromptItem<T> {
   from: T;

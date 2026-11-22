@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { tick } from 'svelte';
-import type { AuthState, ConnectionStatus } from '@instantdb/core';
+import type { AuthState, ConnectionStatus } from '@sidekickdb/core';
 
 function createMockCore() {
   return {
@@ -44,8 +44,8 @@ function createMockCore() {
   };
 }
 
-vi.mock('@instantdb/core', async () => {
-  const actual = await vi.importActual('@instantdb/core');
+vi.mock('@sidekickdb/core', async () => {
+  const actual = await vi.importActual('@sidekickdb/core');
   return {
     ...actual,
     init: vi.fn(),

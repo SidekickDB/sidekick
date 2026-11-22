@@ -7,7 +7,7 @@ import {
   ValidQuery,
   weakHash,
   getInfiniteQueryInitialSnapshot,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { useCallback, useRef, useSyncExternalStore } from 'react';
 
 export type InfiniteQueryResult<

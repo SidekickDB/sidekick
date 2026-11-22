@@ -12,7 +12,7 @@ The Instant CLI was designed to drive your Instant application entirely from a p
 To get started, you need to log in to your Instant account. You can do this by running:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest login
+npx @sidekickdb/cli@latest login
 ```
 
 This will open a browser window where you can authenticate with your Instant account. Once authenticated, you'll be able to run commands that interact with your Instant apps!
@@ -22,7 +22,7 @@ This will open a browser window where you can authenticate with your Instant acc
 To log out of your Instant account and remove your authentication token from your local device, run:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest logout
+npx @sidekickdb/cli@latest logout
 ```
 
 This will clear your stored credentials. You'll need to log in again to interact with your Instant apps.
@@ -32,7 +32,7 @@ This will clear your stored credentials. You'll need to log in again to interact
 After logging in, head on over to your project's root repository, and write:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest init
+npx @sidekickdb/cli@latest init
 ```
 
 This will guide you through picking an Instant app and generate two files for you:
@@ -43,10 +43,10 @@ This will guide you through picking an Instant app and generate two files for yo
 If you want to quickly spin up a temporary app (for experiments or testing), you can use the `--temp` flag:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest init --temp
+npx @sidekickdb/cli@latest init --temp
 ```
 
-This will create an ephemeral app that automatically deletes itself after 24 hours. You can later transfer a temporary app to your account with `instant-cli claim`.
+This will create an ephemeral app that automatically deletes itself after 24 hours. You can later transfer a temporary app to your account with `npx @sidekickdb/cli claim`.
 
 To learn how to change `instant.schema.ts`, check out our [Modeling Data](/docs/modeling-data). For `instant.perms.ts`, check out the [permissions](/docs/permissions) page.
 
@@ -55,7 +55,7 @@ To learn how to change `instant.schema.ts`, check out our [Modeling Data](/docs/
 When you're ready to publish your changes to `instant.schema.ts`, run:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest push schema
+npx @sidekickdb/cli@latest push schema
 ```
 
 This will evaluate your schema, compare it with production, and migrate your data model.
@@ -63,7 +63,7 @@ This will evaluate your schema, compare it with production, and migrate your dat
 Similarly, when you change `instant.perms.ts`, you can run:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest push perms
+npx @sidekickdb/cli@latest push perms
 ```
 
 ## Renaming fields
@@ -83,19 +83,19 @@ Use the arrow keys to select whether the field is a rename or a new creation.
 If you're running `push` in a non-interactive environment (e.g. CI), you can pass the `--rename` flag to specify renames explicitly:
 
 ```shell
-npx instant-cli@latest push schema --rename posts.author:posts.creator
+npx @sidekickdb/cli@latest push schema --rename posts.author:posts.creator
 ```
 
 The format is `oldName:newName`. You can rename multiple fields at once:
 
 ```shell
-npx instant-cli@latest push schema --rename posts.author:posts.creator stores.owner:stores.manager
+npx @sidekickdb/cli@latest push schema --rename posts.author:posts.creator stores.owner:stores.manager
 ```
 
 This is especially useful when combined with `--yes` to skip confirmation prompts:
 
 ```shell
-npx instant-cli@latest push schema --yes --rename posts.author:posts.creator
+npx @sidekickdb/cli@latest push schema --yes --rename posts.author:posts.creator
 ```
 
 ## Pull
@@ -103,7 +103,7 @@ npx instant-cli@latest push schema --yes --rename posts.author:posts.creator
 Sometimes, you change your schema or rules from your Explorer. If you want to `pull` the latest version of schema and perms for production, write:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest pull
+npx @sidekickdb/cli@latest pull
 ```
 
 This will generate new `instant.schema.ts` and `instant.perms.ts` files, based on your production state.
@@ -113,7 +113,7 @@ This will generate new `instant.schema.ts` and `instant.perms.ts` files, based o
 You can run InstaQL queries against your app directly from the terminal:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest query '{ posts: { comments: {} } }'
+npx @sidekickdb/cli@latest query '{ posts: { comments: {} } }'
 ```
 
 This outputs clean JSON to stdout, making it easy to pipe into `jq` or use in scripts. It supports JSON5 syntax, so you don't need to quote your keys.
@@ -128,7 +128,7 @@ Each query requires an auth context flag:
 For example, to see what a specific user can access:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest query --as-email alice@example.com '{ posts: {} }'
+npx @sidekickdb/cli@latest query --as-email alice@example.com '{ posts: {} }'
 ```
 
 The results match what your client queries return, including cardinality. If your schema defines a relationship as `has: "one"`, you'll get back a single object instead of an array.
@@ -138,7 +138,7 @@ The results match what your client queries return, including cardinality. If you
 Whenever you run a CLI command, we look up your app ID. You can either provide an app ID as an option:
 
 ```shell
-  npx instant-cli@latest init --app $MY_APP_ID
+  npx @sidekickdb/cli@latest init --app $MY_APP_ID
 ```
 
 Or store it in your `.env` file:
@@ -183,7 +183,7 @@ In these cases, you can provide an `INSTANT_CLI_AUTH_TOKEN` environment variable
 To obtain a token for later use, run:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest login -p
+npx @sidekickdb/cli@latest login -p
 ```
 
 Instead of saving the token to your local device, the CLI will print it to your console. You can copy this token and provide it as `INSTANT_CLI_AUTH_TOKEN` later in your CI tool.
@@ -193,7 +193,7 @@ Instead of saving the token to your local device, the CLI will print it to your 
 Sometimes you want to create an Instant app without generating `instant.schema.ts` and `instant.perms.ts` or modifying your .env files. You can do this by running:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest init-without-files --title "Hello World"
+npx @sidekickdb/cli@latest init-without-files --title "Hello World"
 ```
 
 The app's ID and admin token are outputted to stdout as JSON:
@@ -212,13 +212,13 @@ You can also make ephemeral apps that will clean themselves up after more than 2
 via the `--temp` flag:
 
 ```shell {% showCopy=true %}
-npx instant-cli@latest init-without-files --title "Hello World" --temp
+npx @sidekickdb/cli@latest init-without-files --title "Hello World" --temp
 ```
 
 You can also pipe the output of this command to `jq` to extract the app information for use in scripts:
 
 ```shell {% showCopy=true %}
-output=$(npx instant-cli@latest init-without-files --title "Hello World" --temp)
+output=$(npx @sidekickdb/cli@latest init-without-files --title "Hello World" --temp)
 if echo "$output" | jq -e '.error' > /dev/null; then
   echo "Error: $(echo "$output" | jq -r '.error')"
   exit 1
@@ -233,20 +233,20 @@ You can manage OAuth clients and redirect origins from the CLI in addition to th
 
 ```shell
 # Add a Google web client using Instant's dev credentials
-npx instant-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type google --app-type web \
   --name google-web --dev-credentials
 
 # List existing clients
-npx instant-cli@latest auth client list
+npx @sidekickdb/cli@latest auth client list
 
 # Upgrade a Google dev client to your own credentials
-npx instant-cli@latest auth client update \
+npx @sidekickdb/cli@latest auth client update \
   --name google-web \
   --client-id <id> --client-secret <secret>
 
 # Add a redirect origin
-npx instant-cli@latest auth origin add \
+npx @sidekickdb/cli@latest auth origin add \
   --type website --url <your-domain>
 ```
 
@@ -257,7 +257,7 @@ You can manage your email templates for sending magic codes by using an `instant
 To create the file and pull in the current configuration:
 
 ```shell
-npx instant-cli@latest auth email pull
+npx @sidekickdb/cli@latest auth email pull
 ```
 
 It will create a file like this:
@@ -304,17 +304,17 @@ Commands to manage the email template:
 
 ```shell
 # Save your changes to `instant.email.ts`
-npx instant-cli@latest auth email push
+npx @sidekickdb/cli@latest auth email push
 
 # View the status of the email configuration and verification
-npx instant-cli@latest auth email status
+npx @sidekickdb/cli@latest auth email status
 
 # Reset your email template to the Instant default template (only updates the file, requires push)
-npx instant-cli@latest auth email reset
+npx @sidekickdb/cli@latest auth email reset
 
 # Verify a custom email address using the code sent to the email.
-npx instant-cli@latest auth email verify <code>
+npx @sidekickdb/cli@latest auth email verify <code>
 
 # Resend the custom address verification email
-npx instant-cli@latest auth email resend
+npx @sidekickdb/cli@latest auth email resend
 ```

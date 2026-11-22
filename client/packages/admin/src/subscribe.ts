@@ -9,7 +9,7 @@ import {
   InstaQLResponse,
   ValidQuery,
   PageInfoResponse,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { MessageEventPolyfill } from './polyfill.ts';
 
 export type SubscriptionReadyState = 'closed' | 'connecting' | 'open';

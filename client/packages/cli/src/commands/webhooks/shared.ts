@@ -6,7 +6,7 @@ import type {
   WebhookEventInfo,
   WebhookEventStatus,
   WebhookInfo,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { GlobalOpts } from '../../context/globalOpts.ts';
 import { BadArgsError } from '../../errors.ts';
 import { runUIEffect } from '../../lib/ui.ts';
@@ -293,7 +293,7 @@ export const pickEvent = (params: {
                 truncationHint =
                   '\n' +
                   chalk.dim(
-                    `    … ${omitted} more lines · run \`instant-cli webhook event payload --webhook-id ${params.webhookId} --isn ${e.isn}\` for full output`,
+                    `    … ${omitted} more lines · run \`sidekick-cli webhook event payload --webhook-id ${params.webhookId} --isn ${e.isn}\` for full output`,
                   );
               }
 

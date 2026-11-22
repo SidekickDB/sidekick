@@ -1,4 +1,4 @@
-import { init } from "@instantdb/vue";
+import { init } from "@sidekickdb/vue";
 import schema from "../instant.schema";
 
 export const db = init({

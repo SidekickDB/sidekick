@@ -1,6 +1,6 @@
 'use client';
 
-import { Explorer, Toaster } from '@instantdb/components';
+import { Explorer, Toaster } from '@sidekickdb/components';
 import { useEphemeralApp } from '../../hooks/useEphemeralApp';
 
 function Main({ appId, adminToken }: { appId: string; adminToken: string }) {

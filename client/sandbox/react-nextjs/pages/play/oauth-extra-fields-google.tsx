@@ -1,4 +1,4 @@
-import { init, User, i } from '@instantdb/react';
+import { init, User, i } from '@sidekickdb/react';
 import { useState } from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import config from '../../config';

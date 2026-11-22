@@ -5,7 +5,7 @@ import {
   PageInfoResponse,
   RuleParams,
   ValidQuery,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import InstantReactWebDatabase from '../InstantReactWebDatabase.ts';
 import { useContext } from 'react';
 import { SuspsenseQueryContext } from './InstantSuspenseProvider.tsx';

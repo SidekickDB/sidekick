@@ -9,7 +9,7 @@ import { DBAttr } from '@/lib/types';
 import {
   apiSchemaToInstantSchemaDef,
   generateSchemaTypescriptFile,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { Monaco } from '@monaco-editor/react';
 import { useState } from 'react';
 import Highlight, { defaultProps, Prism } from 'prism-react-renderer';
@@ -20,10 +20,10 @@ import { addInstantLibs } from '@/lib/monaco';
 import { useDarkMode } from './DarkModeToggle';
 
 type Pkg =
-  | '@instantdb/core'
-  | '@instantdb/react'
-  | '@instantdb/react-native'
-  | '@instantdb/admin';
+  | '@sidekickdb/core'
+  | '@sidekickdb/react'
+  | '@sidekickdb/react-native'
+  | '@sidekickdb/admin';
 
 function attrsToTsFile(attrs: Record<string, DBAttr>, pkg: Pkg) {
   const schema = apiSchemaToInstantSchemaDef(
@@ -35,11 +35,11 @@ function attrsToTsFile(attrs: Record<string, DBAttr>, pkg: Pkg) {
 
 export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
   const [pkg, setPkg] = useState<
-    | '@instantdb/core'
-    | '@instantdb/admin'
-    | '@instantdb/react'
-    | '@instantdb/react-native'
-  >('@instantdb/core');
+    | '@sidekickdb/core'
+    | '@sidekickdb/admin'
+    | '@sidekickdb/react'
+    | '@sidekickdb/react-native'
+  >('@sidekickdb/core');
 
   const onMount = (_editor: any, monaco: Monaco) => {
     addInstantLibs(monaco);
@@ -54,8 +54,8 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
         <p>This is the schema for your app in code form.</p>
         <p>
           We recommend you use the{' '}
-          <code className="tracking-tight">instant-cli</code> to push and pull
-          changes to your schema:
+          <code className="tracking-tight">@sidekickdb/cli</code> to push and
+          pull changes to your schema:
         </p>
         <p>
           <div className="overflow-auto rounded-sm border bg-white text-sm dark:border-neutral-600 dark:bg-neutral-800">
@@ -63,7 +63,7 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
               darkMode={darkMode}
               copyable
               className="border-none!"
-              code={`npx instant-cli@latest pull`}
+              code={`npx @sidekickdb/cli@latest pull`}
               language="bash"
             />
           </div>
@@ -88,13 +88,13 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
             <Select
               value={pkg}
               options={[
-                { label: '@instantdb/core', value: '@instantdb/core' },
-                { label: '@instantdb/react', value: '@instantdb/react' },
+                { label: '@sidekickdb/core', value: '@sidekickdb/core' },
+                { label: '@sidekickdb/react', value: '@sidekickdb/react' },
                 {
-                  label: '@instantdb/react-native',
-                  value: '@instantdb/react-native',
+                  label: '@sidekickdb/react-native',
+                  value: '@sidekickdb/react-native',
                 },
-                { label: '@instantdb/admin', value: '@instantdb/admin' },
+                { label: '@sidekickdb/admin', value: '@sidekickdb/admin' },
               ]}
               onChange={(o) => {
                 if (o) {

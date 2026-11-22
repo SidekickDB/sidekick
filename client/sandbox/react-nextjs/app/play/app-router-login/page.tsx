@@ -1,6 +1,6 @@
 'use client';
 
-import { init, User } from '@instantdb/react';
+import { init, User } from '@sidekickdb/react';
 import Link from 'next/link';
 import config from '../../../config';
 

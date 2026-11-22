@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
-import { init, RoomHandle } from '@instantdb/core';
+import { init, RoomHandle } from '@sidekickdb/core';
 import config from '../../config';
 
 const db = init(config);

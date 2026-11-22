@@ -20,7 +20,7 @@ RUN pnpm install --global turbo@2.5.4
 
 COPY . .
 
-RUN turbo prune @instantdb/mcp --docker
+RUN turbo prune @sidekickdb/mcp --docker
 
 # ----
 # deps

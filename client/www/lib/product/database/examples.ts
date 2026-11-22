@@ -488,7 +488,7 @@ db.transact([
 export const typeSafetyBlocks = [
   {
     label: 'Typed queries',
-    code: `import { i, init } from "@instantdb/react";
+    code: `import { i, init } from "@sidekickdb/react";
 
 // Define a typed schema
 const schema = i.schema({
@@ -511,7 +511,7 @@ const { data } = db.useQuery({ todos: {} });
   },
   {
     label: 'Typed transactions',
-    code: `import { InstaQLEntity, id } from "@instantdb/react";
+    code: `import { InstaQLEntity, id } from "@sidekickdb/react";
 
 type Todo = InstaQLEntity<AppSchema, "todos">;
 

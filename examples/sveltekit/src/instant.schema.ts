@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "@instantdb/svelte";
+import { i } from "@sidekickdb/svelte";
 
 const _schema = i.schema({
   entities: {

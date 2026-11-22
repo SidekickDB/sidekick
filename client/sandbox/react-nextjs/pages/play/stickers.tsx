@@ -8,7 +8,7 @@
  * the query becomes very slow.
  * */
 import React, { useEffect, useState } from 'react';
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 import Login from '../../components/Login';
 import config from '../../config';
 

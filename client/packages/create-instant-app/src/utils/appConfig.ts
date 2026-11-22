@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import {
   permsTypescriptFileToCode,
   schemaTypescriptFileToInstantSchema,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 
 export function getRules(
   projectDir: string,

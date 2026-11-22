@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { i, id, InstantReactAbstractDatabase } from '@instantdb/react';
+import { i, id, InstantReactAbstractDatabase } from '@sidekickdb/react';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 import config from '../../config';
 

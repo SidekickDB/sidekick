@@ -1,4 +1,4 @@
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 
 import config from '../../../config';
 

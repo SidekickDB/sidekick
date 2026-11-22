@@ -23,7 +23,7 @@ import {
 } from '@modelcontextprotocol/sdk/server/auth/router.js';
 import { pinoHttp } from 'pino-http';
 import { pino } from 'pino';
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 
 import schema from './db/instant.schema.ts';
 import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
@@ -35,7 +35,7 @@ import {
   tokensOfBearerToken,
 } from './oauth-service-provider.ts';
 import { KeyConfig } from './crypto.ts';
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import indexHtml from './index.html.ts';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { handleQuery, handleTransact } from './tools.ts';
@@ -44,7 +44,7 @@ import { handleQuery, handleTransact } from './tools.ts';
 // -----------
 function createMCPServer(): McpServer {
   return new McpServer({
-    name: '@instantdb/mcp',
+    name: '@sidekickdb/mcp',
     version,
   });
 }
@@ -125,10 +125,10 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      You can fetch the schema for the app by using the instant-cli tool:
+      You can fetch the schema for the app by using the @sidekickdb/cli tool:
 
       \`\`\`
-      npx instant-cli pull schema --app ${appId} --yes
+      npx @sidekickdb/cli pull schema --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts. Now 'instant.schema.ts' will contain the schema for the app.
@@ -153,10 +153,10 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      You fetch the permissions for the app by using the instant-cli tool:
+      You fetch the permissions for the app by using the @sidekickdb/cli tool:
 
       \`\`\`
-      npx instant-cli pull perms --app ${appId} --yes
+      npx @sidekickdb/cli pull perms --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts. Now 'instant.perms.ts' will contain the permissions for the app.
@@ -182,19 +182,19 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      Push schema changes by using the instant-cli tool:
+      Push schema changes by using the @sidekickdb/cli tool:
 
       \`\`\`
-      npx instant-cli push schema --app ${appId} --yes
+      npx @sidekickdb/cli push schema --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts.
 
-      By default the instant-cli tool will assume new fields from the previous schema are additions and missing fields are deletions.
+      By default the @sidekickdb/cli tool will assume new fields from the previous schema are additions and missing fields are deletions.
       If you want to rename fields as part of your schema changes you can use the --rename flag to specify renames.
 
       \`\`\`
-      npx instant-cli push schema --app ${appId} --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
+      npx @sidekickdb/cli push schema --app ${appId} --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
       \`\`\`
       `;
 
@@ -218,10 +218,10 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      Push permission changes by using the instant-cli tool:
+      Push permission changes by using the @sidekickdb/cli tool:
 
       \`\`\`
-      npx instant-cli push perms --app ${appId} --yes
+      npx @sidekickdb/cli push perms --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts.

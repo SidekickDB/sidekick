@@ -7,12 +7,12 @@ nextjs:
 
 ## Automatic Setup With Create Instant App
 
-The fastest way to get started with Instant on TanStack Start is to use npx create-instant-app to scaffold a new project with Instant already set up.
+The fastest way to get started with Instant on TanStack Start is to use npx create-sidekick-app to scaffold a new project with Instant already set up.
 
 To get started, run:
 
 ```shell
-npx create-instant-app -b tanstack-start
+npx create-sidekick-app -b tanstack-start
 ```
 
 ## Manual Setup
@@ -28,13 +28,13 @@ npx @tanstack/cli create my-app
 Add the InstantDB React Library:
 
 ```shell
-npm i @instantdb/react
+npm i @sidekickdb/react
 ```
 
-Use `instant-cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
 ```shell
-npx instant-cli init
+npx @sidekickdb/cli init
 ```
 
 Create a database client in `src/lib/db.ts`:
@@ -42,7 +42,7 @@ Create a database client in `src/lib/db.ts`:
 {% file label="src/lib/db.ts" /%}
 
 ```ts
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import schema from '../instant.schema';
 
 export const db = init({
@@ -61,7 +61,7 @@ Let's add a "todo" entity to our schema file at `src/instant.schema.ts`:
 {% file label="src/instant.schema.ts" /%}
 
 ```ts {% showCopy=true lineHighlight="14-18" %}
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const _schema = i.schema({
   entities: {
@@ -104,7 +104,7 @@ const _schema = i.schema({
 Push the schema:
 
 ```shell {% showCopy=true %}
-npx instant-cli push
+npx @sidekickdb/cli push
 ```
 
 Replace the content of `src/routes/index.tsx` with the following:
@@ -114,7 +114,7 @@ Replace the content of `src/routes/index.tsx` with the following:
 ```typescript {% showCopy=true %}
 import { createFileRoute } from "@tanstack/react-router";
 import { AppSchema } from "../instant.schema";
-import { id, InstaQLEntity } from "@instantdb/react";
+import { id, InstaQLEntity } from "@sidekickdb/react";
 import { db } from "@/lib/db";
 
 export const Route = createFileRoute("/")({
@@ -258,7 +258,7 @@ Go to `localhost:3000`, and huzzah 🎉 You've got a fully functional todo list 
 
 Want to dive deeper on how this todo app works? Check out our step-by-step [Todo List Tutorial](/examples/todos). In this tutorial we walk through how to build a todo list app from scratch, and explain how the queries and transactions work in more detail.
 
-For the advanced use case of integrating with TanStack Query and enabling SSR, refer to our [tanstack-start-with-tanstack-query](https://github.com/instantdb/instant/tree/main/examples/tanstack-start-with-tanstack-query) example. It can be scaffolded using `npx create-instant-app -b tanstack-start-with-tanstack-query`.
+For the advanced use case of integrating with TanStack Query and enabling SSR, refer to our [tanstack-start-with-tanstack-query](https://github.com/instantdb/instant/tree/main/examples/tanstack-start-with-tanstack-query) example. It can be scaffolded using `npx create-sidekick-app -b tanstack-start-with-tanstack-query`.
 
 You can also check out the [Working with data](/docs/init) section to learn more about Instant concepts.
 

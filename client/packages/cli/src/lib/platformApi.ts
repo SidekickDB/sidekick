@@ -1,5 +1,5 @@
 import { Effect } from 'effect';
-import { PlatformApi as InstantPlatformApi } from '@instantdb/platform';
+import { PlatformApi as InstantPlatformApi } from '@sidekickdb/platform';
 import { AuthToken } from '../context/authToken.ts';
 import { getBaseUrl } from './config.ts';
 

@@ -3,7 +3,7 @@ import { mergeSchema } from '../src/util/mergeSchema.ts';
 
 test('preserves type annotations', () => {
   const oldFile = `
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { Label } from './types';
 
 const _schema = i.schema({
@@ -44,7 +44,7 @@ export default _schema;
 `;
 
   const newFile = `
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 const _schema = i.schema({
   entities: {
@@ -97,7 +97,7 @@ export default _schema;
 
 test('preserves different import styles', () => {
   const oldFile = `
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { Label } from './types';
 import { Tag as MyTag } from './types';
 import Priority from './Priority';
@@ -116,7 +116,7 @@ const _schema = i.schema({
 `;
 
   const newFile = `
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 
 const _schema = i.schema({
   entities: {
@@ -148,7 +148,7 @@ const _schema = i.schema({
 
 test('handles entity additions and removals', () => {
   const oldFile = `
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { Label } from './types';
 
 const _schema = i.schema({
@@ -164,7 +164,7 @@ const _schema = i.schema({
 `;
 
   const newFile = `
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { Label } from './types';
 
 const _schema = i.schema({

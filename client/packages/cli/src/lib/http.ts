@@ -1,5 +1,5 @@
 import { HttpClient, HttpClientRequest } from '@effect/platform';
-import { version } from '@instantdb/version';
+import { version } from '@sidekickdb/version';
 import { Context, Data, Effect, Layer, Schema } from 'effect';
 import { AuthToken } from '../context/authToken.ts';
 import { TimeoutException } from 'effect/Cause';

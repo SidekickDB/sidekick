@@ -11,13 +11,13 @@ This houses Instant's javascript monorepo! Here's the lay of the land:
    1. This is a nextjs app. It’s the frontend for [instantdb.com](https://instantdb.com), including the dashboard and docs.
 2. [`packages/`](./packages/)
    1. These are where our client libraries live:
-      1. [`@instantdb/core`](./packages/core)
-      2. [`@instantdb/react`](./packages/react/)
-      3. [`@instantdb/react-native`](./packages/react-native)
-      4. [`@instantdb/admin`](./packages/admin)
-      5. [`instant-cli`.](./packages/cli/)
-      6. [`@instantdb/platform`](./packages/platform)
-      7. [`@instantdb/mcp`](./packages/mcp)
+      1. [`@sidekickdb/core`](./packages/core)
+      2. [`@sidekickdb/react`](./packages/react/)
+      3. [`@sidekickdb/react-native`](./packages/react-native)
+      4. [`@sidekickdb/admin`](./packages/admin)
+      5. [`@sidekickdb/cli`.](./packages/cli/)
+      6. [`@sidekickdb/platform`](./packages/platform)
+      7. [`@sidekickdb/mcp`](./packages/mcp)
 3. [`sandbox/`](./sandbox/)
    1. We built a few example apps, to make it easy to develop against the local version of `packages`.
 
@@ -39,7 +39,7 @@ With that, all frontend code should be up and running!
 
 When you `make dev`, we start up the most common packages you'll want to hack on:
 
-- The client libraries: `@instantdb/core`, `@instantdb/react`, `@instantdb/react-native`, `@instantdb/admin`
+- The client libraries: `@sidekickdb/core`, `@sidekickdb/react`, `@sidekickdb/react-native`, `@sidekickdb/admin`
 - A few services that use them: `www`, `sandbox/react-nextjs`, `sandbox/admin-sdk-express`
 
 What should you do if you want to work on other packages that we haven't included? For example, if you wanted to make a change to expo?
@@ -48,7 +48,7 @@ You can either add `--filter` to make dev:
 
 ```bash
 # Run dev for a sandbox app
-make dev -- --filter create-instant-app
+make dev -- --filter create-sidekick-app
 ```
 
 Or cd into the package and run a separate command there:
@@ -111,10 +111,10 @@ To develop against them, we've created a few `sandbox` examples. These examples 
 
 Based on what you change, you'll play with different examples:
 
-1. [`@instantdb/core`](./packages/core) ➡ [`sandbox/vanilla-js-vite/`](./sandbox/vanilla-js-vite/)
-2. [`@instantdb/react`](./packages/react/) ➡ [`sandbox/react-nextjs/`](./sandbox/react-nextjs/)
-3. [`@instantdb/react-native`](./packages/react-native) ➡[`sandbox/react-native-expo/`](./sandbox/react-native-expo/)
-4. [`@instantdb/admin`](./packages/admin) ➡ [`sandbox/admin-sdk-express`](./sandbox/admin-sdk-express/)
+1. [`@sidekickdb/core`](./packages/core) ➡ [`sandbox/vanilla-js-vite/`](./sandbox/vanilla-js-vite/)
+2. [`@sidekickdb/react`](./packages/react/) ➡ [`sandbox/react-nextjs/`](./sandbox/react-nextjs/)
+3. [`@sidekickdb/react-native`](./packages/react-native) ➡[`sandbox/react-native-expo/`](./sandbox/react-native-expo/)
+4. [`@sidekickdb/admin`](./packages/admin) ➡ [`sandbox/admin-sdk-express`](./sandbox/admin-sdk-express/)
 
 Check out the sandbox READMEs to see how to run them.
 

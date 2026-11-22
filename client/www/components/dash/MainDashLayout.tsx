@@ -16,7 +16,7 @@ import { useWorkspace } from '@/lib/hooks/useWorkspace';
 import { InstantApp, SunsetStage } from '@/lib/types';
 import { useReadyRouter } from '../clientOnlyPage';
 import { useDarkMode } from './DarkModeToggle';
-import { Toaster } from '@instantdb/components';
+import { Toaster } from '@sidekickdb/components';
 import { useRouter } from 'next/router';
 import useLocalStorage from '@/lib/hooks/useLocalStorage';
 import { isSelfHosted } from '@/lib/config';

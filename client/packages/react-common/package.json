@@ -1,13 +1,16 @@
 {
-  "name": "@instantdb/react-common",
+  "name": "@sidekickdb/react-common",
   "version": "0.0.0",
   "description": "Instant DB shared components for React and React Native",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/react-common",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/react-common",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/react-common"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "type": "module",
   "main": "./dist/commonjs/index.js",
@@ -67,7 +70,7 @@
     "react": ">=16"
   },
   "dependencies": {
-    "@instantdb/core": "workspace:*",
-    "@instantdb/version": "workspace:*"
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/version": "workspace:*"
   }
 }

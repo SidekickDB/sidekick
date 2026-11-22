@@ -30,7 +30,7 @@ import {
   type InstantRouteHandlerPayloadByType,
   type InstantRouteHandlerType,
   type InstantRouteHandlerBody,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import { exchangeCodeForToken, exchangeRefreshToken } from './serverOAuth.ts';
 import { clerkDomainFromPublishableKey } from './clerk.ts';
 import {
@@ -53,7 +53,7 @@ import {
   type CreateWebhookParams,
   type UpdateWebhookParams,
   WebhooksManager,
-} from '@instantdb/webhooks';
+} from '@sidekickdb/webhooks';
 
 export {
   type InstantAPIPlatformSchema,

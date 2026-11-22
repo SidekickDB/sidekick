@@ -9,8 +9,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@instantdb/react": "latest",
-    "@instantdb/admin": "latest",
+    "@sidekickdb/react": "latest",
+    "@sidekickdb/admin": "latest",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-router": "^1.132.0",

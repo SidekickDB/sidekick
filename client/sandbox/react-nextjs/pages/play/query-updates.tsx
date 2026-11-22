@@ -3,7 +3,7 @@
  * when transacted together are applied together #1681 #1686
  */
 
-import { i, init, tx } from '@instantdb/react';
+import { i, init, tx } from '@sidekickdb/react';
 import { useEffect } from 'react';
 import config from '../../config';
 

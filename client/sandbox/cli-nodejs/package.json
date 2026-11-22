@@ -2,9 +2,9 @@
   "name": "sb-cli-nodejs",
   "private": true,
   "dependencies": {
-    "@instantdb/admin": "workspace:*",
-    "@instantdb/core": "workspace:*",
-    "instant-cli": "workspace:*"
+    "@sidekickdb/admin": "workspace:*",
+    "@sidekickdb/core": "workspace:*",
+    "@sidekickdb/cli": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

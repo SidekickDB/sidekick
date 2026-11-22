@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from 'react';
 import config from '@/lib/config';
 import { jsonFetch } from '@/lib/fetch';
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { asClientOnlyPage, useReadyRouter } from '@/components/clientOnlyPage';
 import { useAuthToken, useTokenFetch } from '@/lib/auth';
 import Auth from '@/components/dash/Auth';
@@ -61,7 +61,7 @@ curl -X POST "${config.apiURI}/superadmin/apps" \\
 const exampleInit = (appId: string): string => {
   return `
 
-import { init } from '@instantdb/react'; 
+import { init } from '@sidekickdb/react'; 
 
 const db = init({
   appId: "${appId}" // 🎉
@@ -71,7 +71,7 @@ const db = init({
 
 const exampleSchemaGen = () => {
   return `
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const schema = i.schema({
   entities: {

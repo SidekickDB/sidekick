@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { id, type InstaQLEntity } from "@instantdb/vue";
+import { id, type InstaQLEntity } from "@sidekickdb/vue";
 import { db } from "./lib/db";
 import type { AppSchema } from "./instant.schema";
 

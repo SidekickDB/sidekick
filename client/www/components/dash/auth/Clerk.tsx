@@ -1,5 +1,5 @@
 import { FormEventHandler, useContext, useState } from 'react';
-import { clerkDomainFromPublishableKey } from '@instantdb/platform';
+import { clerkDomainFromPublishableKey } from '@sidekickdb/platform';
 import { errorToast, successToast } from '@/lib/toast';
 import { TokenContext } from '@/lib/contexts';
 import {
@@ -44,7 +44,7 @@ function clerkExampleCode({
   SignedIn,
   SignedOut,
 } from "@clerk/clerk-react";
-import { init } from "@instantdb/react";
+import { init } from "@sidekickdb/react";
 import { useEffect } from "react";
 
 const db = init({ appId: "${appId}" });

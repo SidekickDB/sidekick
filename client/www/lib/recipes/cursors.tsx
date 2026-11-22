@@ -1,4 +1,4 @@
-import { Cursors } from '@instantdb/react';
+import { Cursors } from '@sidekickdb/react';
 import { useRecipeDB } from './db';
 import { useRef } from 'react';
 

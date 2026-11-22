@@ -1,4 +1,4 @@
-import { init } from "@instantdb/solidjs";
+import { init } from "@sidekickdb/solidjs";
 import schema from "../instant.schema";
 
 export const db = init({

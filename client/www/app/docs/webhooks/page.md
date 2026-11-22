@@ -51,11 +51,11 @@ A webhook that fails too many times in a row is automatically disabled. You can 
 
 The easiest way to create a webhook is from the **Webhooks** tab in the dashboard: pick the namespaces, the actions, and the URL Instant should POST to.
 
-You can also manage webhooks programmatically with `npx instant-cli webhook` or through the Admin SDK:
+You can also manage webhooks programmatically with `npx @sidekickdb/cli webhook` or through the Admin SDK:
 
 ```ts {% showCopy=true %}
 // scripts/create-webhook.ts
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import schema from './instant.schema';
 
 const db = init({
@@ -81,7 +81,7 @@ The URL must be `https` and resolve to a public host. An app can have up to **10
 
 ```ts {% showCopy=true %}
 // app/api/instant-webhook/route.ts
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 import { sendNewPostEmail } from '@/lib/emails';
 import schema from '@/instant.schema';
 
@@ -123,7 +123,7 @@ The Pages Router gives you a Node-style request, so use `processNodeRequest`. Yo
 ```ts {% showCopy=true %}
 // pages/api/instant-webhook.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { init, Webhooks } from '@instantdb/admin';
+import { init, Webhooks } from '@sidekickdb/admin';
 import { sendNewPostEmail } from '@/lib/emails';
 import schema from '@/instant.schema';
 
@@ -163,7 +163,7 @@ Anywhere you have a Web `Request`, `processRequest` works directly. For framewor
 
 ```ts {% showCopy=true %}
 import express from 'express';
-import { init, Webhooks } from '@instantdb/admin';
+import { init, Webhooks } from '@sidekickdb/admin';
 import schema from './instant.schema';
 
 const { typedHandlers, combineHandlers } = Webhooks.helpers<typeof schema>();
@@ -279,7 +279,7 @@ Each `event.attempts` entry records the HTTP status, response body (first 256 by
 
 ## Verifying and fetching from any language
 
-The `@instantdb/admin` SDK is the easiest way to receive webhooks, but the protocol is plain HTTP + Ed25519 — you can implement a receiver in any language. The steps below are what `validate` and `fetchPayloads` do under the hood.
+The `@sidekickdb/admin` SDK is the easiest way to receive webhooks, but the protocol is plain HTTP + Ed25519 — you can implement a receiver in any language. The steps below are what `validate` and `fetchPayloads` do under the hood.
 
 ### 1. The request
 

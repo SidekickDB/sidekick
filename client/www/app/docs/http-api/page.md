@@ -5,7 +5,7 @@ nextjs:
     description: "Direct HTTP access to Instant's admin API for non-JavaScript environments."
 ---
 
-If your backend is written in JavaScript, you can use the [`@instantdb/admin`](/docs/backend) SDK to connect your server to Instant.
+If your backend is written in JavaScript, you can use the [`@sidekickdb/admin`](/docs/backend) SDK to connect your server to Instant.
 
 But what if your backend isn't written in JavaScript? That's where the HTTP API comes in.
 

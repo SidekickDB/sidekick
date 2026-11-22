@@ -1,5 +1,5 @@
 import React from 'react';
-import { id, InstantReactWebDatabase } from '@instantdb/react';
+import { id, InstantReactWebDatabase } from '@sidekickdb/react';
 import { useState } from 'react';
 import { DBAttr } from '@lib/types';
 import { ActionButton, ActionForm, TextInput } from '../ui';

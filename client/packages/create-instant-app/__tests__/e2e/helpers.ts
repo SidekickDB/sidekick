@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BIN = join(__dirname, '../../dist/index.js');
 
-const sandboxHomeDir = join(tmpdir(), 'create-instant-app-e2e-home');
+const sandboxHomeDir = join(tmpdir(), 'create-sidekick-app-e2e-home');
 
 export type CliResult = {
   stdout: string;
@@ -16,7 +16,7 @@ export type CliResult = {
 };
 
 /**
- * Run `create-instant-app` with the given args inside a fresh temp directory.
+ * Run `create-sidekick-app` with the given args inside a fresh temp directory.
  */
 export function runCreateInstantApp(
   args: string[],
@@ -69,7 +69,7 @@ export type TestDir = {
 };
 
 /**
- * Create a temporary directory to run `create-instant-app` in.
+ * Create a temporary directory to run `create-sidekick-app` in.
  * The scaffolded project will appear as a subdirectory inside `dir`.
  */
 export async function createTestDir(): Promise<TestDir> {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { id, i, InstantReactAbstractDatabase } from '@instantdb/react';
+import { id, i, InstantReactAbstractDatabase } from '@sidekickdb/react';
 
 import { InstaQLFields } from '../../../../packages/core/dist/esm';
 import EphemeralAppPage, {

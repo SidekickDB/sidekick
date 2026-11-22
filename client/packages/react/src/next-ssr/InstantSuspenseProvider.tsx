@@ -10,7 +10,7 @@ import {
   RuleParams,
   User,
   ValidQuery,
-} from '@instantdb/core';
+} from '@sidekickdb/core';
 import InstantReactWebDatabase from '../InstantReactWebDatabase.ts';
 import {
   createHydrationStreamProvider,
@@ -28,7 +28,7 @@ import {
 import {
   InstantReactAbstractDatabase,
   useQueryInternal,
-} from '@instantdb/react-common';
+} from '@sidekickdb/react-common';
 
 type InstantSuspenseProviderProps<
   Schema extends InstantSchemaDef<any, any, any>,

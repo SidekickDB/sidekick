@@ -4,10 +4,10 @@ import {
   InstaQLParams,
   InstaQLEntity,
   InstaQLResult,
-} from '@instantdb/core';
-import { init as react_init } from '@instantdb/react';
-import { init as react_native } from '@instantdb/react-native';
-import { init as admin_init } from '@instantdb/admin';
+} from '@sidekickdb/core';
+import { init as react_init } from '@sidekickdb/react';
+import { init as react_native } from '@sidekickdb/react-native';
+import { init as admin_init } from '@sidekickdb/admin';
 import schema, { AppSchema } from '../instant.schema.v2';
 
 // ----

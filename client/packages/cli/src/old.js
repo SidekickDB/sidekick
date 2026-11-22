@@ -470,7 +470,7 @@ export async function readConfigAuthTokenWithErrorLogging(apiURI) {
   const token = await readConfigAuthToken(apiURI);
   if (!token) {
     error(
-      `Looks like you are not logged in. Please log in with ${chalk.green('`instant-cli login`')}`,
+      `Looks like you are not logged in. Please log in with ${chalk.green('`sidekick-cli login`')}`,
     );
   }
   return token;

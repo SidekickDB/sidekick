@@ -1,5 +1,5 @@
-import type { InstantConfig, InstantSchemaDef } from '@instantdb/core';
-import { InstantReactAbstractDatabase } from '@instantdb/react-common';
+import type { InstantConfig, InstantSchemaDef } from '@sidekickdb/core';
+import { InstantReactAbstractDatabase } from '@sidekickdb/react-common';
 import { EventSource } from 'eventsource';
 
 export default class InstantReactWebDatabase<

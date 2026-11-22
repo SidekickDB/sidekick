@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { i, init, id } from '@instantdb/react';
+import { i, init, id } from '@sidekickdb/react';
 import config from '../../config';
 
 const schema = i.schema({

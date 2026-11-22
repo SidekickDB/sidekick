@@ -1,6 +1,6 @@
 // written by claude
 import { stdin, stdout } from 'process';
-import { setRawModeWindowsFriendly } from 'instant-cli/ui';
+import { setRawModeWindowsFriendly } from '@sidekickdb/cli/ui';
 
 /**
  * Query terminal background color using OSC 11

@@ -1,5 +1,5 @@
-import { InstantAPIError, version as coreVersion } from '@instantdb/core';
-import type { WithAuth } from '@instantdb/webhooks';
+import { InstantAPIError, version as coreVersion } from '@sidekickdb/core';
+import type { WithAuth } from '@sidekickdb/webhooks';
 import version from './version.ts';
 import {
   downloadBackupArchive,

@@ -1,7 +1,7 @@
 import { Fence } from '@/components/ui';
 import { type DemoState } from './Demos';
 
-const CODE_TEMPLATE = `import { init, id } from '@instantdb/react';
+const CODE_TEMPLATE = `import { init, id } from '@sidekickdb/react';
 
 const db = init({ appId: '__APP_ID__' });
 

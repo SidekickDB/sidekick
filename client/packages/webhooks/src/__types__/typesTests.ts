@@ -1,4 +1,4 @@
-import { i } from '@instantdb/core';
+import { i } from '@sidekickdb/core';
 import { Webhooks } from '../index.ts';
 import type { Equal, Expect, IsAny, NotAny, NotNever } from './typeUtils.ts';
 

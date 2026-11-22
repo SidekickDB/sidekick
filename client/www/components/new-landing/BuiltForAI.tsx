@@ -13,7 +13,7 @@ import { UndoDemo } from './UndoDemo';
 import { TabbedCodeExample, CodePanel } from './TabbedCodeExample';
 import { rosePineDawnColors as c } from '@/lib/rosePineDawnTheme';
 
-// Animated terminal showing `npx instant-cli push` with schema diff
+// Animated terminal showing `npx @sidekickdb/cli push` with schema diff
 type TerminalPhase =
   | 'idle'
   | 'typing'
@@ -23,7 +23,7 @@ type TerminalPhase =
   | 'cancelled'
   | 'pause';
 
-const PUSH_COMMAND = 'npx instant-cli push schema';
+const PUSH_COMMAND = 'npx @sidekickdb/cli push schema';
 
 export function AnimatedTerminal() {
   const [phase, setPhase] = useState<TerminalPhase>('idle');
@@ -618,7 +618,7 @@ const chatCode = `// ༼ つ ◕_◕ ༽つ Real-time Chat
 // * Multiplayer
 // * Works offline
 
-import { init, id } from "@instantdb/react"
+import { init, id } from "@sidekickdb/react"
 
 const db = init({ appId: "your-app-id" })
 
@@ -640,7 +640,7 @@ export default Chat`;
 const schemaCode = `// Declarative data model
 // ----------------------------------
 
-import { i } from "@instantdb/core"
+import { i } from "@sidekickdb/core"
 
 const schema = i.schema({
   entities: {

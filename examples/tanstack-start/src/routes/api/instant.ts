@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createInstantRouteHandler } from "@instantdb/react";
+import { createInstantRouteHandler } from "@sidekickdb/react";
 
 const appId = process.env.VITE_INSTANT_APP_ID!;
 

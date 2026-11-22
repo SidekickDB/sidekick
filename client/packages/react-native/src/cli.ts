@@ -1,1 +1,1 @@
-export * from '@instantdb/core';
+export * from '@sidekickdb/core';

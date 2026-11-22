@@ -6,10 +6,10 @@ import { ArrowRightIcon } from '@heroicons/react/24/solid';
 
 import { Button, CodeEditor, cn } from '@/components/ui';
 import { errorToast } from '@/lib/toast';
-import { init, InstantReactWebDatabase } from '@instantdb/react';
+import { init, InstantReactWebDatabase } from '@sidekickdb/react';
 import { DBAttr, SchemaNamespace } from '@/lib/types';
 import { attrsToSchema } from '@/lib/schema';
-import { apiSchemaToInstantSchemaDef } from '@instantdb/platform';
+import { apiSchemaToInstantSchemaDef } from '@sidekickdb/platform';
 import { useDarkMode } from '../DarkModeToggle';
 
 const SAVED_QUERIES_CACHE_KEY = '__instant:explorer-saved-queries';

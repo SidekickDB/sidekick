@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from "@instantdb/solidjs";
+import { i } from "@sidekickdb/solidjs";
 
 const _schema = i.schema({
   entities: {

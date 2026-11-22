@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { id } from '@instantdb/vue';
+import { id } from '@sidekickdb/vue';
 import { resetEphemeralApp, type DB } from '../lib/db';
 
 const props = defineProps<{ db: DB }>();

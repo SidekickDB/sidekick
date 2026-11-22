@@ -3,7 +3,7 @@ import './globals.css';
 import { InstantProvider } from '@/components/InstantProvider';
 import { AuthGate } from '@/components/AuthGate';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { getUnverifiedUserFromInstantCookie } from '@instantdb/react/nextjs';
+import { getUnverifiedUserFromInstantCookie } from '@sidekickdb/react/nextjs';
 
 export const metadata: Metadata = {
   title: 'AI Chat with Instant Streams',

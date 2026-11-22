@@ -5,7 +5,7 @@
  * to validate if the item already exists.
  * */
 
-import { init, id, tx, i } from '@instantdb/react';
+import { init, id, tx, i } from '@sidekickdb/react';
 import Head from 'next/head';
 import { useEffect, FormEvent } from 'react';
 import config from '../../config';

@@ -1,4 +1,4 @@
-import { Config, init, InstantError } from '@instantdb/admin';
+import { Config, init, InstantError } from '@sidekickdb/admin';
 
 export interface CreateResumableStreamContextOptions {
   /**

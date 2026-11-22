@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import { init, i, type InstantSchemaDef } from '@instantdb/solidjs';
+import { init, i, type InstantSchemaDef } from '@sidekickdb/solidjs';
 import config from './config';
 
 const STORAGE_KEY = 'sb-solid-vite-ephemeral-app';

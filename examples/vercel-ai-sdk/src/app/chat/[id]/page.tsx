@@ -5,7 +5,7 @@ import { DefaultChatTransport, UIMessageChunk, type UIMessage } from 'ai';
 import { Preview } from '@/components/Preview';
 import Link from 'next/link';
 import { db } from '@/lib/db';
-import { id as generateId } from '@instantdb/react';
+import { id as generateId } from '@sidekickdb/react';
 import { useChat } from '@ai-sdk/react';
 import { extractText, getLatestAssistantCode } from '@/lib/codeUtils';
 

@@ -84,7 +84,7 @@ export const initWithoutFilesCommand = (
     Effect.catchTag('NotAuthedError', (e) =>
       NotAuthedError.make({
         message:
-          'Please log in first with `instant-cli login` before running this command.',
+          'Please log in first with `sidekick-cli login` before running this command.',
       }),
     ),
     Effect.catchAll((e) =>

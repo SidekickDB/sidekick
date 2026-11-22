@@ -18,7 +18,7 @@ function getModel(): LanguageModel {
   return mockModel;
 }
 import { after, NextResponse } from 'next/server';
-import { id as generateId } from '@instantdb/admin';
+import { id as generateId } from '@sidekickdb/admin';
 import { adminDb } from '@/lib/adminDb';
 
 async function saveChat({
