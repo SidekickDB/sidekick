@@ -25,6 +25,13 @@
 (def ^:dynamic *env*
   nil)
 
+(defn non-blank-env
+  "The environment variable's trimmed value, or nil when it is unset or blank.
+   Compose files pass unset variables through as empty strings, so empty must
+   mean unset."
+  [var-name]
+  (some-> (System/getenv var-name) string/trim not-empty))
+
 (def staging-env (System/getenv "STAGING"))
 (def prod-env (System/getenv "PRODUCTION"))
 
@@ -290,13 +297,18 @@
          :staging "https://staging.instantdb.com"
          "http://localhost:3000"))))
 
+;; The load-balancer listener's SNS topic and SQS queue prefix have no
+;; defaults: we must never subscribe to a topic in someone else's AWS
+;; account. When either is unset the listener doesn't start.
 (def instance-events-sns-topic-arn
-  (or (System/getenv "INSTANCE_EVENTS_SNS_TOPIC_ARN")
-      "arn:aws:sns:us-east-1:597134865416:instance-events"))
+  (non-blank-env "INSTANCE_EVENTS_SNS_TOPIC_ARN"))
 
 (def instance-events-sqs-queue-arn-prefix
-  (or (System/getenv "INSTANCE_EVENTS_SQS_TOPIC_ARN_PREFIX")
-      "arn:aws:sqs:us-east-1:597134865416:"))
+  (non-blank-env "INSTANCE_EVENTS_SQS_TOPIC_ARN_PREFIX"))
+
+(defn loadbalancer-listener-configured? []
+  (boolean (and instance-events-sns-topic-arn
+                instance-events-sqs-queue-arn-prefix)))
 
 ;; ---
 ;; Stripe
@@ -377,29 +389,40 @@
 (defn shared-oauth-clients []
   (-> @config-map :shared-oauth-clients))
 
+;; Buckets have no defaults outside of tests. S3 bucket names are global, so a
+;; default name would point at a bucket in someone else's AWS account.
 (def s3-bucket-name
-  (or (System/getenv "S3_BUCKET")
-      (case (get-env)
-        :prod "instant-storage"
-        :staging "instant-storage-staging"
+  (or (non-blank-env "S3_BUCKET")
+      (when (= :test (get-env))
         "instantdb-test-bucket")))
 
+;; nil means WAL history is stored in postgres.
 (def s3-wal-history-bucket-name
   (when-not (= "pg" (System/getenv "WAL_HISTORY_STORAGE"))
-    (or (System/getenv "WAL_HISTORY_BUCKET_NAME")
-        (case (get-env)
-          :prod "instant-wal-logs-prod--use1-az4--x-s3"
-          :staging "instant-wal-logs-staging--use1-az4--x-s3"
-          :dev "instant-wal-logs-dev--use1-az4--x-s3"
-          nil))))
+    (non-blank-env "WAL_HISTORY_BUCKET_NAME")))
 
+;; nil means app backups are disabled.
 (def s3-app-backups-bucket-name
-  (or (System/getenv "S3_APP_BACKUPS_BUCKET")
-      (case (get-env)
-        :prod "app-backups-prod-597134865416-us-east-1-an"
-        :staging "app-backups-staging-597134865416-us-east-1-an"
-        :dev "app-backups-dev-597134865416-us-east-1-an"
-        nil)))
+  (or (non-blank-env "S3_APP_BACKUPS_BUCKET")
+      (when (= :test (get-env))
+        "instantdb-test-app-backups")))
+
+(def app-backups-not-configured-message
+  (str "Backups are not configured on this server. Set S3_APP_BACKUPS_BUCKET "
+       "to an existing S3 bucket and restart the server."))
+
+(defn app-backups-enabled? []
+  (some? s3-app-backups-bucket-name))
+
+(defn startup-warnings
+  "Configuration problems that should be logged loudly when the server boots."
+  []
+  (cond-> []
+    (nil? s3-bucket-name)
+    (conj "S3_BUCKET is not set. File storage will fail until it is set.")
+
+    (not (app-backups-enabled?))
+    (conj "S3_APP_BACKUPS_BUCKET is not set. App backups are disabled.")))
 
 (def wal-history-prefix
   (when (= :dev (get-env))
@@ -407,12 +430,9 @@
 
 (def cloudfront-s3-url
   (case (get-env)
-    :prod {"instant-storage" "https://files.instantdb.com"
-           "app-backups-prod-597134865416-us-east-1-an" "https://backups.instantdb.com"}
-    :dev {"instantdb-test-bucket" "https://files-dev.instantdb.com"
-          "app-backups-dev-597134865416-us-east-1-an" "https://app-backups-dev.instantdb.com"}
-    :staging {"instant-storage-staging" "https://files-staging.instantdb.com"
-              "app-backups-staging-597134865416-us-east-1-an" "https://app-backups-staging.instantdb.com"}
+    :prod {"instant-storage" "https://files.instantdb.com"}
+    :dev {"instantdb-test-bucket" "https://files-dev.instantdb.com"}
+    :staging {"instant-storage-staging" "https://files-staging.instantdb.com"}
     {}))
 
 (def cloudfront-signing-key

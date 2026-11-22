@@ -79,11 +79,13 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
+      S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     entrypoint: >
       /bin/sh -c "
       set -e;
       until mc alias set local http://minio:9000 $$$$MINIO_ROOT_USER $$$$MINIO_ROOT_PASSWORD; do sleep 2; done;
       mc mb --ignore-existing local/$$$$S3_BUCKET;
+      mc mb --ignore-existing local/$$$$S3_APP_BACKUPS_BUCKET;
       exit"
     deploy:
       restart_policy:
@@ -124,6 +126,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:? example http://storage.localhost}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
+      S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     secrets:
       - source: server_config
         target: /app/resources/config/override.edn
