@@ -4,11 +4,14 @@
   "version": "0.0.0",
   "description": "Vue client for InstantDB",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/vue",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/vue",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/vue"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "scripts": {
     "test": "vitest run",

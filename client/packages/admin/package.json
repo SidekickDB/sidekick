@@ -4,11 +4,14 @@
   "description": "Admin SDK for Instant DB",
   "license": "Apache-2.0",
   "type": "module",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/admin",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/admin",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/admin"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "main": "./dist/commonjs/index.js",
   "types": "./dist/commonjs/index.d.ts",

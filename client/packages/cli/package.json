@@ -4,11 +4,14 @@
   "version": "0.0.0",
   "description": "Instant's CLI",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/cli",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/cli",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "exports": {
     "./auth": {

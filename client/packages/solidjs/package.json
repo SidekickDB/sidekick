@@ -6,9 +6,13 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/solidjs"
   },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
+  },
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/solidjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "check": "tsc --noEmit",

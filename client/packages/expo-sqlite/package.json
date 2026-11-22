@@ -3,11 +3,14 @@
   "version": "0.0.0",
   "description": "Expo SQLite interface for Instant DB",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/instantdb/instant/tree/main/client/packages/expo-sqlite",
+  "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/expo-sqlite",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/instantdb/instant.git",
+    "url": "git+https://github.com/SidekickDB/sidekick.git",
     "directory": "client/packages/expo-sqlite"
+  },
+  "bugs": {
+    "url": "https://github.com/SidekickDB/sidekick/issues"
   },
   "main": "dist/index.js",
   "module": "dist/module/index.js",
