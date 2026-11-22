@@ -2,7 +2,7 @@
  * Script for generating LLM rule files.
  *
  * Reads instant-rules.md and writes it to the docs site and the
- * create-instant-app template.
+ * create-sidekick-app template.
  *
  * Usage: pnpm exec tsx scripts/gen-llm-rules.ts
  */

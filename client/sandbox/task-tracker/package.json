@@ -6,8 +6,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "schema:push": "INSTANT_CLI_DEV=true pnpm exec instant-cli push --yes",
-    "schema:pull": "INSTANT_CLI_DEV=true pnpm exec instant-cli pull --yes"
+    "schema:push": "INSTANT_CLI_DEV=true pnpm exec sidekick-cli push --yes",
+    "schema:pull": "INSTANT_CLI_DEV=true pnpm exec sidekick-cli pull --yes"
   },
   "dependencies": {
     "@sidekickdb/react": "workspace:*",
@@ -16,7 +16,7 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "instant-cli": "workspace:*",
+    "sidekick-cli": "workspace:*",
     "@types/node": "^17.0.35",
     "@types/react": ">=16",
     "@types/react-dom": ">=16",

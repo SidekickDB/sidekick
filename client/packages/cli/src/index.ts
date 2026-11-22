@@ -58,7 +58,7 @@ export type OptsFromCommand<C> =
   C extends Command<any, infer R, any> ? R : never;
 
 program
-  .name('instant-cli')
+  .name('sidekick-cli')
   .addOption(globalOption('-t --token <token>', 'Auth token override'))
   .addOption(globalOption('-y --yes', "Answer 'yes' to all prompts"))
   .addOption(globalOption('--env <file>', 'Use a specific .env file'))
@@ -966,7 +966,7 @@ export const pullDef = program
   )
   .option(
     '--experimental-type-preservation',
-    "[Experimental] Preserve manual type changes like `status: i.json<'online' | 'offline'>()` when doing `instant-cli pull schema`",
+    "[Experimental] Preserve manual type changes like `status: i.json<'online' | 'offline'>()` when doing `sidekick-cli pull schema`",
   )
   .description('Pull schema and perm files from production.')
   .addHelpText(

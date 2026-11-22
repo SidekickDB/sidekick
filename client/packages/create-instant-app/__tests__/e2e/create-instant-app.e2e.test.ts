@@ -3,7 +3,7 @@ import { readFile, readdir, access } from 'fs/promises';
 import { join } from 'path';
 import { runCreateInstantApp, createTestDir } from './helpers.js';
 
-describe.concurrent('create-instant-app e2e', { timeout: 120_000 }, () => {
+describe.concurrent('create-sidekick-app e2e', { timeout: 120_000 }, () => {
   describe('basic scaffolding (next-js-app-dir default)', () => {
     it('scaffolds a project with default template', async () => {
       const t = await createTestDir();
@@ -182,7 +182,7 @@ describe.concurrent('create-instant-app e2e', { timeout: 120_000 }, () => {
         const output = result.stdout + result.stderr;
         expect(output).toMatch(/uv sync/);
         expect(output).toMatch(/uv run python main\.py/);
-        expect(output).toMatch(/npx instant-cli push/);
+        expect(output).toMatch(/npx sidekick-cli push/);
       } finally {
         await t.cleanup();
       }

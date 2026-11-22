@@ -18,7 +18,7 @@ const promptSpans: TermSpan[] = [
   { text: ' at ', color: gray },
   { text: 'main\n', color: green },
   { text: '$ ', color: gray },
-  { text: 'npx instant-cli push\n', color: gray },
+  { text: 'npx sidekick-cli push\n', color: gray },
   { text: 'Found ', color: gray },
   { text: 'NEXT_PUBLIC_INSTANT_APP_ID', color: green },
   { text: ': a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d\n', color: gray },

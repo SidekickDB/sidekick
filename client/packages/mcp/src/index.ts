@@ -125,10 +125,10 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      You can fetch the schema for the app by using the instant-cli tool:
+      You can fetch the schema for the app by using the sidekick-cli tool:
 
       \`\`\`
-      npx instant-cli pull schema --app ${appId} --yes
+      npx sidekick-cli pull schema --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts. Now 'instant.schema.ts' will contain the schema for the app.
@@ -153,10 +153,10 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      You fetch the permissions for the app by using the instant-cli tool:
+      You fetch the permissions for the app by using the sidekick-cli tool:
 
       \`\`\`
-      npx instant-cli pull perms --app ${appId} --yes
+      npx sidekick-cli pull perms --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts. Now 'instant.perms.ts' will contain the permissions for the app.
@@ -182,19 +182,19 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      Push schema changes by using the instant-cli tool:
+      Push schema changes by using the sidekick-cli tool:
 
       \`\`\`
-      npx instant-cli push schema --app ${appId} --yes
+      npx sidekick-cli push schema --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts.
 
-      By default the instant-cli tool will assume new fields from the previous schema are additions and missing fields are deletions.
+      By default the sidekick-cli tool will assume new fields from the previous schema are additions and missing fields are deletions.
       If you want to rename fields as part of your schema changes you can use the --rename flag to specify renames.
 
       \`\`\`
-      npx instant-cli push schema --app ${appId} --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
+      npx sidekick-cli push schema --app ${appId} --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
       \`\`\`
       `;
 
@@ -218,10 +218,10 @@ function registerTools(server: McpServer, api: PlatformApi) {
     },
     async ({ appId }) => {
       const instructions = `
-      Push permission changes by using the instant-cli tool:
+      Push permission changes by using the sidekick-cli tool:
 
       \`\`\`
-      npx instant-cli push perms --app ${appId} --yes
+      npx sidekick-cli push perms --app ${appId} --yes
       \`\`\`
 
       We supply the --yes flag to skip confirmation prompts.

@@ -7,8 +7,8 @@ import {
   instantDashOrigin,
   ScaffoldMetadata,
 } from './utils/fetch.js';
-import { renderUnwrap, UI } from 'instant-cli/ui';
-import { readAuthToken, writeAuthToken } from 'instant-cli/auth';
+import { renderUnwrap, UI } from 'sidekick-cli/ui';
+import { readAuthToken, writeAuthToken } from 'sidekick-cli/auth';
 import { toTitleCase } from './utils/titleCase.js';
 
 const forceEphemeral = Boolean(process.env.INSTANT_CLI_FORCE_EPHEMERAL);
@@ -281,7 +281,7 @@ export const tryConnectApp = async (
     // No token and not logged in - error
     throw new Error(
       `You must be logged in or provide --token when using --app. ` +
-        `Either run 'npx instant-cli login' first, or use: --app ${project.app} --token <token>`,
+        `Either run 'npx sidekick-cli login' first, or use: --app ${project.app} --token <token>`,
     );
   }
 

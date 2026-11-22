@@ -533,7 +533,7 @@ export default function Tutorial() {
               <div className="mb-3 text-lg font-medium text-orange-600">
                 Step 1
               </div>
-              <Subheading>Log in to Instant via instant-cli</Subheading>
+              <Subheading>Log in to Instant via sidekick-cli</Subheading>
               <div className="mt-4 space-y-4 text-lg text-gray-700">
                 <p>
                   As a first step let's make sure you're logged in. Run the
@@ -543,7 +543,7 @@ export default function Tutorial() {
               </div>
               <div className="mt-6">
                 <TerminalBlock
-                  commandTemplate="instant-cli login"
+                  commandTemplate="sidekick-cli login"
                   selectedPmIndex={selectedPmIndex}
                   onPmChange={setSelectedPmIndex}
                 />
@@ -568,14 +568,14 @@ export default function Tutorial() {
                   unless you delete the data later — woohoo!
                 </p>
                 <p>
-                  As a next step we'll use <b>create-instant-app</b>, our CLI
+                  As a next step we'll use <b>create-sidekick-app</b>, our CLI
                   tool, which makes it super easy to get started with a new
                   Instant project. Run the following in your terminal.
                 </p>
               </div>
               <div className="mt-6">
                 <TerminalBlock
-                  commandTemplate="create-instant-app"
+                  commandTemplate="create-sidekick-app"
                   selectedPmIndex={selectedPmIndex}
                   onPmChange={setSelectedPmIndex}
                 />

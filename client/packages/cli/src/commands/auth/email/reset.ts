@@ -32,6 +32,6 @@ export const authEmailResetCmd = Effect.fn(function* () {
   });
 
   yield* Effect.log(
-    'instant.email.ts file reset to default. To apply this change, run instant-cli auth email push',
+    'instant.email.ts file reset to default. To apply this change, run sidekick-cli auth email push',
   );
 });

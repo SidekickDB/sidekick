@@ -139,12 +139,12 @@ const main = async () => {
     3. ${getCodeColors(theme, 'uv run python main.py')}
 
   To push schema and permissions:
-    ${getCodeColors(theme, 'npx instant-cli push')}
+    ${getCodeColors(theme, 'npx sidekick-cli push')}
   `);
       if (possibleAppTokenPair.approach === 'ephemeral') {
         console.log(`
   An ephemeral app has been created and added to your .env file.
-  It will expire in two weeks. For a permanent app, sign in and use ${getCodeColors(theme, 'npx instant-cli claim')}
+  It will expire in two weeks. For a permanent app, sign in and use ${getCodeColors(theme, 'npx sidekick-cli claim')}
 `);
       }
     } else {
@@ -159,7 +159,7 @@ const main = async () => {
     5. ${getCodeColors(theme, 'uv run python main.py')}
 
   To push schema and permissions:
-    ${getCodeColors(theme, 'npx instant-cli push')}
+    ${getCodeColors(theme, 'npx sidekick-cli push')}
   `);
     }
   } else {
@@ -177,7 +177,7 @@ const main = async () => {
       if (possibleAppTokenPair.approach === 'ephemeral') {
         console.log(`
   An ephemeral app has been created and added to your .env file.
-  It will expire in two weeks. For a permanent app, sign in and use ${getCodeColors(theme, 'npx instant-cli claim')}
+  It will expire in two weeks. For a permanent app, sign in and use ${getCodeColors(theme, 'npx sidekick-cli claim')}
 `);
       }
     } else {

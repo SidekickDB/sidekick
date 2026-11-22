@@ -205,6 +205,14 @@ function getInstantModuleName(pkgJson: PackageJson) {
     '@sidekickdb/solidjs',
     '@sidekickdb/svelte',
     '@sidekickdb/vue',
+    // Legacy package names, so existing projects keep working
+    '@instantdb/react',
+    '@instantdb/react-native',
+    '@instantdb/core',
+    '@instantdb/admin',
+    '@instantdb/solidjs',
+    '@instantdb/svelte',
+    '@instantdb/vue',
   ].find((name) => deps[name] || devDeps[name]);
   return instantModuleName;
 }

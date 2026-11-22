@@ -98,7 +98,7 @@ function getSteps(
       id: 'start_guide_create_project',
       title: 'Create your project',
       description: `Scaffold a new ${framework === 'nextjs' ? 'Next.js' : 'Expo'} app with Instant pre-configured`,
-      command: `${backendEnv}npx create-instant-app ${dirName} --app ${appId} --token ${adminToken} ${config.flag} --rules`,
+      command: `${backendEnv}npx create-sidekick-app ${dirName} --app ${appId} --token ${adminToken} ${config.flag} --rules`,
     },
     {
       id: 'start_guide_start_server',

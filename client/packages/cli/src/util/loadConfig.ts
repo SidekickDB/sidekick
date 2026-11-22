@@ -14,9 +14,11 @@ const toArray = <T>(value: Arrayable<T>): T[] =>
   Array.isArray(value) ? value : [value];
 
 /**
- * Resolve @instantdb packages from the CLI's own dependencies for
- * projects without node_modules. All @instantdb packages re-export
+ * Resolve @sidekickdb packages from the CLI's own dependencies for
+ * projects without node_modules. All @sidekickdb packages re-export
  * schema types from core, so a single core alias covers them all.
+ * Legacy @instantdb/* names are aliased too so existing schema files
+ * keep loading.
  */
 function getInstantAliases(): Record<string, string> | null {
   try {
@@ -30,6 +32,12 @@ function getInstantAliases(): Record<string, string> | null {
       '@sidekickdb/svelte': coreDir,
       '@sidekickdb/vue': coreDir,
       '@sidekickdb/admin': coreDir,
+      '@instantdb/core': coreDir,
+      '@instantdb/react': coreDir,
+      '@instantdb/react-native': coreDir,
+      '@instantdb/svelte': coreDir,
+      '@instantdb/vue': coreDir,
+      '@instantdb/admin': coreDir,
     };
   } catch {
     return null;

@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 import { PackageManager } from './utils/getUserPkgManager.js';
-import { renderUnwrap, UI } from 'instant-cli/ui';
+import { renderUnwrap, UI } from 'sidekick-cli/ui';
 
 export const runInstallCommand = async (
   pkgManager: PackageManager,

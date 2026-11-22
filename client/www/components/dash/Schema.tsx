@@ -54,7 +54,7 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
         <p>This is the schema for your app in code form.</p>
         <p>
           We recommend you use the{' '}
-          <code className="tracking-tight">instant-cli</code> to push and pull
+          <code className="tracking-tight">sidekick-cli</code> to push and pull
           changes to your schema:
         </p>
         <p>
@@ -63,7 +63,7 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
               darkMode={darkMode}
               copyable
               className="border-none!"
-              code={`npx instant-cli@latest pull`}
+              code={`npx sidekick-cli@latest pull`}
               language="bash"
             />
           </div>

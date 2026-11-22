@@ -136,7 +136,7 @@ const updateGoogleToDevCredentials = Effect.fn(function* (
         'Works on localhost and Expo during development.',
         '',
         chalk.bold('Ready for production? Run:'),
-        `  instant-cli auth client update --name ${response.client.client_name} --client-id <id> --client-secret <secret>`,
+        `  sidekick-cli auth client update --name ${response.client.client_name} --client-id <id> --client-secret <secret>`,
       ].join('\n'),
       { dimBorder: true, padding: { right: 1, left: 1 } },
     ),
@@ -822,7 +822,7 @@ export const authClientUpdateCmd = Effect.fn(
       yield* Effect.logError(e.message);
       yield* Effect.log(
         chalk.dim(
-          'hint: run `instant-cli auth client update --help` for available arguments',
+          'hint: run `sidekick-cli auth client update --help` for available arguments',
         ),
       );
     }),

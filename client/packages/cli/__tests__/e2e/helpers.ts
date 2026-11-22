@@ -11,7 +11,7 @@ const apiUrl = process.env.INSTANT_CLI_API_URI || 'https://api.instantdb.com';
 
 // Temp directory used to sandbox CLI config (auth tokens, etc.)
 // so tests never read or mutate the real user config on disk.
-const sandboxHome = join(tmpdir(), 'instant-cli-e2e-home');
+const sandboxHome = join(tmpdir(), 'sidekick-cli-e2e-home');
 
 export type CliResult = {
   stdout: string;
@@ -71,7 +71,7 @@ export async function createTestProject(
     permsFile?: string;
   } = {},
 ): Promise<TestProject> {
-  const dir = await mkdtemp(join(tmpdir(), 'instant-cli-e2e-'));
+  const dir = await mkdtemp(join(tmpdir(), 'sidekick-cli-e2e-'));
 
   await writeFile(
     join(dir, 'package.json'),
