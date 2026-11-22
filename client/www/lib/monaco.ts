@@ -13,13 +13,27 @@ export async function addInstantLibs(monaco: Monaco) {
     'instatx.d.ts',
   ];
 
-  const fileContents = await Promise.all(
+  // @sidekickdb/core is not published yet, so load the type declarations
+  // from the upstream @instantdb/core build of the same version. They are
+  // registered under the @sidekickdb/* paths below. Switch this URL once
+  // @sidekickdb/core is published (or bundle the types).
+  const fetched = await Promise.all(
     files.map(async (file) => {
-      const content = await fetch(
-        `https://unpkg.com/@sidekickdb/core@${bareVersion}/dist/esm/${file}`,
-      ).then((r) => r.text());
-      return { file, content };
+      try {
+        const r = await fetch(
+          `https://unpkg.com/@instantdb/core@${bareVersion}/dist/esm/${file}`,
+        );
+        // Skip files that fail to load instead of registering an error page
+        // as type declarations.
+        if (!r.ok) return null;
+        return { file, content: await r.text() };
+      } catch {
+        return null;
+      }
     }),
+  );
+  const fileContents = fetched.filter(
+    (f): f is { file: string; content: string } => f !== null,
   );
 
   monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
