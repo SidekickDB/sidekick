@@ -8,6 +8,8 @@ on:
 
 jobs:
   detect_changes:
+    # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
       clj_did_change: ${{ fromJSON(steps.detect_changes.outputs.result).clj_did_change }}
@@ -88,6 +90,8 @@ jobs:
 
 
   clj-check:
+    # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     needs: [ detect_changes ]
     if: needs.detect_changes.outputs.clj_did_change == 'true'
@@ -224,6 +228,8 @@ jobs:
 
 
   clj-build-check:
+    # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     needs: [ detect_changes ]
     if: needs.detect_changes.outputs.clj_did_change == 'true'
@@ -261,6 +267,8 @@ jobs:
       run: clojure -T:build uber
 
   lint:
+    # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: [ detect_changes ]
     if: needs.detect_changes.outputs.clj_did_change == 'true'
@@ -307,6 +315,8 @@ jobs:
       run: clojure -M:lint "--config" ".clj-kondo/ci-config.edn"
 
   vector-test:
+    # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: [ detect_changes ]
     if: needs.detect_changes.outputs.vector_did_change == 'true'

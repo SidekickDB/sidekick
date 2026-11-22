@@ -8,6 +8,8 @@ on:
 
 jobs:
   detect_changes:
+    # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
       client_did_change: ${{ fromJSON(steps.detect_changes.outputs.result).client_did_change }}
