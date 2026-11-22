@@ -18,6 +18,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:ci": "vitest run",
     "build": "vite build",
     "dev": "vite build --watch --mode development",
     "publish-package": "pnpm pack && npm publish *.tgz --access public",
