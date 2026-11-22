@@ -84,7 +84,7 @@ function processCode(raw: string): string {
 /**
  * Auto-transforms recipe code for display:
  * 1. Strips `import type { ... } from './types'` lines
- * 2. Adds `init` to the @instantdb/react import (or creates one)
+ * 2. Adds `init` to the @sidekickdb/react import (or creates one)
  * 3. Inserts `const db = init(...)` after imports
  * 4. Rewrites `export default function Foo({ db }: RecipeProps)` → `Foo()`
  */
@@ -108,7 +108,7 @@ function autoTransform(code: string): string {
       continue;
     }
 
-    // Add `init` to @instantdb/react import
+    // Add `init` to @sidekickdb/react import
     if (trimmed.match(/^import\s+\{.*\}\s+from\s+['"]@instantdb\/react['"]/)) {
       hasInstantImport = true;
       const replaced = line.replace(
@@ -140,12 +140,12 @@ function autoTransform(code: string): string {
     result.push(line);
   }
 
-  // If no @instantdb/react import was found, add one
+  // If no @sidekickdb/react import was found, add one
   if (!hasInstantImport && lastImportIndex >= 0) {
     result.splice(
       lastImportIndex + 1,
       0,
-      `import { init } from '@instantdb/react';`,
+      `import { init } from '@sidekickdb/react';`,
     );
     lastImportIndex++;
   }

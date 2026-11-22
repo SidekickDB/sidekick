@@ -1,4 +1,4 @@
-import { id, init as initAdmin, lookup, tx } from '@instantdb/admin';
+import { id, init as initAdmin, lookup, tx } from '@sidekickdb/admin';
 import { init as initCore, InstantUnknownSchema } from '@sidekickdb/core';
 import Json from '@uiw/react-json-view';
 import { darkTheme } from '@uiw/react-json-view/dark';
@@ -31,7 +31,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import { InstantReactWebDatabase } from '@instantdb/react';
+import { InstantReactWebDatabase } from '@sidekickdb/react';
 import { Editor, Monaco, type OnMount } from '@monaco-editor/react';
 
 import clsx from 'clsx';
@@ -52,7 +52,7 @@ import { parsePermsJSON } from '@/lib/parsePermsJSON';
 import {
   apiSchemaToInstantSchemaDef,
   generateSchemaTypescriptFile,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import permsJsonSchema from '@/lib/permsJsonSchema';
 import { useMonacoJSONSchema } from '@/lib/hooks/useMonacoJsonSchema';
 
@@ -1364,7 +1364,7 @@ const schemaTs = (attrs: Record<string, DBAttr>) => {
     attrsToSchema(Object.values(attrs)),
   );
 
-  return generateSchemaTypescriptFile(schema, schema, '@instantdb/admin');
+  return generateSchemaTypescriptFile(schema, schema, '@sidekickdb/admin');
 };
 
 const tsTypesWithSchema = /* ts */ `

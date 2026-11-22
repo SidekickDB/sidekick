@@ -13,7 +13,7 @@ import {
   InstantSchemaDef,
   Config,
   InstantUnknownSchema,
-} from '@instantdb/react-native';
+} from '@sidekickdb/react-native';
 import config from '../app/config';
 
 interface ProvisionEphemeralAppParams<

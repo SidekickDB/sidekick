@@ -11,7 +11,7 @@ import {
   updateOAuthClient,
 } from '../../../lib/oauth.ts';
 import { UI } from '../../../ui/index.ts';
-import { clerkDomainFromPublishableKey } from '@instantdb/platform';
+import { clerkDomainFromPublishableKey } from '@sidekickdb/platform';
 import { getOAuthCallbackUrl } from '../../../lib/config.ts';
 import chalk from 'chalk';
 import boxen from 'boxen';

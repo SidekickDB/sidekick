@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/react-common",
+  "name": "@sidekickdb/react-common",
   "version": "0.0.0",
   "description": "Instant DB shared components for React and React Native",
   "license": "Apache-2.0",

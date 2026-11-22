@@ -1,4 +1,4 @@
-import { i, init } from '@instantdb/react';
+import { i, init } from '@sidekickdb/react';
 import config from '../../config';
 
 const schema = i.schema({

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 
 // 1. Import Instant
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 import config from '../../../../config';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

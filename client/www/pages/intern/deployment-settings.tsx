@@ -13,7 +13,7 @@ import { useIsHydrated } from '@/lib/hooks/useIsHydrated';
 import { errorToast, successToast } from '@/lib/toast';
 import { InstantApp } from '@/lib/types';
 import { ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { id, init } from '@instantdb/react';
+import { id, init } from '@sidekickdb/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';

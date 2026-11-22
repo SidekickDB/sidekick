@@ -4,7 +4,7 @@ import {
   generateId,
   UIMessage,
 } from 'ai';
-import { createResumableStreamContext } from '@instantdb/resumable-stream';
+import { createResumableStreamContext } from '@sidekickdb/resumable-stream';
 import { after } from 'next/server';
 import { getFilePubSub } from '../../../lib/file-pubsub';
 

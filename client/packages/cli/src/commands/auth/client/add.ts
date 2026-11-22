@@ -23,7 +23,7 @@ import {
   LINKEDIN_AUTHORIZATION_ENDPOINT,
   LINKEDIN_DISCOVERY_ENDPOINT,
   LINKEDIN_TOKEN_ENDPOINT,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { getOAuthCallbackUrl } from '../../../lib/config.ts';
 import { UI } from '../../../ui/index.ts';
 import chalk from 'chalk';

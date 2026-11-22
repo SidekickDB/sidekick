@@ -1,5 +1,5 @@
 import { ref, shallowRef } from 'vue';
-import { init, i, type InstantSchemaDef } from '@instantdb/vue';
+import { init, i, type InstantSchemaDef } from '@sidekickdb/vue';
 import config from './config';
 
 const URL_PARAM = 'app';

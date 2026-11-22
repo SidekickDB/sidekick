@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 // 1. Import Instant
-import { init, tx, id } from '@instantdb/react';
+import { init, tx, id } from '@sidekickdb/react';
 import config from '../../config';
 
 // 2. Get your app id

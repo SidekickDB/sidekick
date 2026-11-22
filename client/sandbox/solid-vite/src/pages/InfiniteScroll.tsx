@@ -1,5 +1,5 @@
 import { Show, createMemo, createSignal } from 'solid-js';
-import { id, tx } from '@instantdb/solidjs';
+import { id, tx } from '@sidekickdb/solidjs';
 import { dbState, resetEphemeralApp, type DB } from '../lib/db';
 
 const pageSize = 4;

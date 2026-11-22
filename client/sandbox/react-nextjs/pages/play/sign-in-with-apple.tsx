@@ -1,4 +1,4 @@
-import { init, tx, id, User } from '@instantdb/react';
+import { init, tx, id, User } from '@sidekickdb/react';
 import config from '../../config';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';

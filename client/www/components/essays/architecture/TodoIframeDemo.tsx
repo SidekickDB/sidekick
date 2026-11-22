@@ -3,7 +3,7 @@ import {
   init,
   InstantReactWebDatabase,
   InstantUnknownSchema,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
 import config from '@/lib/config';
 import { Button } from '@/components/ui';

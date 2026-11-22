@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "@sidekickdb/core": "workspace:*",
-    "@instantdb/admin": "workspace:*"
+    "@sidekickdb/admin": "workspace:*"
   }
 }

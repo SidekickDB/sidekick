@@ -1,4 +1,4 @@
-import { id, init } from '@instantdb/react';
+import { id, init } from '@sidekickdb/react';
 import schema from '../instant.schema.v2';
 
 const db = init({

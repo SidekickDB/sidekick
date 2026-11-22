@@ -374,13 +374,13 @@ export class InstantVueDatabase<
  * Visit https://instantdb.com/dash to get your `appId` :)
  *
  * @example
- *  import { init } from "@instantdb/vue"
+ *  import { init } from "@sidekickdb/vue"
  *
  *  const db = init({ appId: "my-app-id" })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
- *  import { init } from "@instantdb/vue"
+ *  import { init } from "@sidekickdb/vue"
  *  import schema from "../instant.schema.ts";
  *
  *  const db = init({ appId: "my-app-id", schema })

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 
-import { tx, id, i, InstantReactAbstractDatabase } from '@instantdb/react';
+import { tx, id, i, InstantReactAbstractDatabase } from '@sidekickdb/react';
 import EphemeralAppPage, {
   ResetButton,
 } from '../../components/EphemeralAppPage';

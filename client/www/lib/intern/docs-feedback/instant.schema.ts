@@ -1,6 +1,6 @@
 // Docs: https://www.instantdb.com/docs/modeling-data
 
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 import { UIMessagePart } from 'ai';
 
 const _schema = i.schema({

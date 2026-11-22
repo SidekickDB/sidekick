@@ -1,4 +1,4 @@
-import { OAuthHandler } from '@instantdb/platform';
+import { OAuthHandler } from '@sidekickdb/platform';
 import { OAUTH_HANDLER, ClientIdReadme } from '../play/platform-sdk-demo';
 import { useEffect, useState } from 'react';
 

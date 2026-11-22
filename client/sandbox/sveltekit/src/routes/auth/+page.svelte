@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SignedIn, SignedOut } from '@instantdb/svelte';
+  import { SignedIn, SignedOut } from '@sidekickdb/svelte';
   import { dbState } from '$lib/db.svelte';
 
   let email = $state('');

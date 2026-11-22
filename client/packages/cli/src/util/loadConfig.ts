@@ -25,11 +25,11 @@ function getInstantAliases(): Record<string, string> | null {
     const coreDir = path.dirname(corePackageJson);
     return {
       '@sidekickdb/core': coreDir,
-      '@instantdb/react': coreDir,
-      '@instantdb/react-native': coreDir,
-      '@instantdb/svelte': coreDir,
-      '@instantdb/vue': coreDir,
-      '@instantdb/admin': coreDir,
+      '@sidekickdb/react': coreDir,
+      '@sidekickdb/react-native': coreDir,
+      '@sidekickdb/svelte': coreDir,
+      '@sidekickdb/vue': coreDir,
+      '@sidekickdb/admin': coreDir,
     };
   } catch {
     return null;

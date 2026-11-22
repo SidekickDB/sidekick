@@ -6,7 +6,7 @@ import type {
   WebhookEventInfo,
   WebhookEventStatus,
   WebhookInfo,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { GlobalOpts } from '../../context/globalOpts.ts';
 import { BadArgsError } from '../../errors.ts';
 import { runUIEffect } from '../../lib/ui.ts';

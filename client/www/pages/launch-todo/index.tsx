@@ -1,6 +1,6 @@
 'use client';
 
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { asClientOnlyPage, useReadyRouter } from '@/components/clientOnlyPage';
 import config from '@/lib/config';
 import TodoApp from '@/components/essays/architecture/TodoApp';

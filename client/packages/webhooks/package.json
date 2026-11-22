@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/webhooks",
+  "name": "@sidekickdb/webhooks",
   "version": "0.0.0",
   "description": "Webhook handlers for Instant DB",
   "license": "Apache-2.0",

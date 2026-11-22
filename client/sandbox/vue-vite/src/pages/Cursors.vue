@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Cursors } from '@instantdb/vue';
+import { Cursors } from '@sidekickdb/vue';
 import { db, isLoading, error } from '../lib/db';
 
 const room = computed(() => db.value?.room('main' as any, 'cursors-demo'));

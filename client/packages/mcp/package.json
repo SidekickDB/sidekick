@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/mcp",
+  "name": "@sidekickdb/mcp",
   "version": "0.0.0",
   "description": "Model Context Protocol (MCP) server for managing Instant apps, schemas, and permissions!",
   "license": "Apache-2.0",
@@ -44,9 +44,9 @@
   },
   "dependencies": {
     "@honeycombio/opentelemetry-node": "^0.7.2",
-    "@instantdb/admin": "workspace:*",
+    "@sidekickdb/admin": "workspace:*",
     "@sidekickdb/core": "workspace:*",
-    "@instantdb/platform": "workspace:*",
+    "@sidekickdb/platform": "workspace:*",
     "@sidekickdb/version": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.17.2",
     "@opentelemetry/api": "^1.9.0",

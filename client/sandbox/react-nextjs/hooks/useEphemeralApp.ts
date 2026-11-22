@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 import config from '../config';
 import { provisionEphemeralApp } from '../components/EphemeralAppPage';
 

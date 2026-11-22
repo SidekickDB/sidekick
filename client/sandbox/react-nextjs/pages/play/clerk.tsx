@@ -8,7 +8,7 @@ import {
   UserButton,
 } from '@clerk/nextjs';
 
-import { init, InstantReactWebDatabase } from '@instantdb/react';
+import { init, InstantReactWebDatabase } from '@sidekickdb/react';
 import config from '../../config';
 
 function App({ db }: { db: InstantReactWebDatabase<any> }) {

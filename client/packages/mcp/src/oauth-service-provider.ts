@@ -13,7 +13,7 @@ import {
   InstaQLEntity,
   InstaQLResult,
   lookup,
-} from '@instantdb/admin';
+} from '@sidekickdb/admin';
 import { AppSchema } from './db/instant.schema.ts';
 import {
   AuthorizationParams,
@@ -27,10 +27,10 @@ import {
 } from '@modelcontextprotocol/sdk/shared/auth.js';
 import { decrypt, encrypt, hash, KeyConfig } from './crypto.ts';
 import { escapeHtml } from './escape-html.ts';
-import { exchangeCodeForToken } from '@instantdb/platform';
+import { exchangeCodeForToken } from '@sidekickdb/platform';
 import { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { PlatformApiAuth } from '../../platform/dist/esm/api.js';
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import cookieParser from 'cookie-parser';
 import {
   InvalidRequestError,

@@ -1,4 +1,4 @@
-import { init, BackwardsCompatibleSchema } from '@instantdb/react';
+import { init, BackwardsCompatibleSchema } from '@sidekickdb/react';
 
 type Message = {
   content: string;

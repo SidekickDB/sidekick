@@ -2,7 +2,7 @@
 
 import { CheckIcon } from '@heroicons/react/24/outline';
 import slugify from '@sindresorhus/slugify';
-import { cn } from '@instantdb/components';
+import { cn } from '@sidekickdb/components';
 import { useState } from 'react';
 
 export function Heading({ level = 1, id, children, ...props }) {

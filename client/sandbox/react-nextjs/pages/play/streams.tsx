@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { i, init, InstantReactAbstractDatabase } from '@instantdb/react';
-import { init as initAdmin } from '@instantdb/admin';
+import { i, init, InstantReactAbstractDatabase } from '@sidekickdb/react';
+import { init as initAdmin } from '@sidekickdb/admin';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 import config from '../../config';
 

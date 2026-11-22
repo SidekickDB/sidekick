@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Cursors } from '@instantdb/svelte';
+  import { Cursors } from '@sidekickdb/svelte';
   import { dbState } from '$lib/db.svelte';
 </script>
 

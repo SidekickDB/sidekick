@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/platform",
+  "name": "@sidekickdb/platform",
   "version": "0.0.0",
   "description": "Instant's platform package for managing Instant apps.",
   "license": "Apache-2.0",
@@ -69,6 +69,6 @@
     "@babel/types": "^8.0.0-beta.0",
     "@sidekickdb/core": "workspace:*",
     "@sidekickdb/version": "workspace:*",
-    "@instantdb/webhooks": "workspace:*"
+    "@sidekickdb/webhooks": "workspace:*"
   }
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { id, tx } from '@instantdb/svelte';
+  import { id, tx } from '@sidekickdb/svelte';
   import { dbState, resetEphemeralApp } from '$lib/db.svelte';
 
   const pageSize = 4;

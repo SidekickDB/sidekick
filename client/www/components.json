@@ -13,9 +13,9 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components/shadcn",
-    "utils": "@instantdb/components",
+    "utils": "@sidekickdb/components",
     "ui": "@/components/components/ui",
-    "lib": "@instantdb/components",
+    "lib": "@sidekickdb/components",
     "hooks": "@/components/hooks"
   },
   "registries": {

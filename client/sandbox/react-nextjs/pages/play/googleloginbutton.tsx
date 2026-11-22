@@ -1,7 +1,7 @@
 // Now in your App.js
 
 // 1. Import Instant
-import { init, tx, id, User } from '@instantdb/react';
+import { init, tx, id, User } from '@sidekickdb/react';
 import config from '../../config';
 import Link from 'next/link';
 // 2. Import Google login button

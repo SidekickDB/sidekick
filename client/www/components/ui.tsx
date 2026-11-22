@@ -13,7 +13,7 @@ require('prismjs/components/prism-clojure');
 
 import Link from 'next/link';
 
-import { ui } from '@instantdb/components';
+import { ui } from '@sidekickdb/components';
 
 export const {
   Button,

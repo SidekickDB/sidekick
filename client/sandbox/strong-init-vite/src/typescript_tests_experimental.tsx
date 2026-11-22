@@ -7,9 +7,9 @@ import {
   InstantSchema,
   InstantSchemaDatabase,
 } from '@sidekickdb/core';
-import { init as react_init } from '@instantdb/react';
-import { init as react_native_init } from '@instantdb/react-native';
-import { init as admin_init } from '@instantdb/admin';
+import { init as react_init } from '@sidekickdb/react';
+import { init as react_native_init } from '@sidekickdb/react-native';
+import { init as admin_init } from '@sidekickdb/admin';
 import graph from '../instant.schema';
 
 type EmojiName = 'fire' | 'wave' | 'confetti' | 'heart';

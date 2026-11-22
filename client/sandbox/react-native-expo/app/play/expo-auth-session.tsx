@@ -7,7 +7,7 @@ import {
   id,
   InstantReactNativeDatabase,
   User,
-} from '@instantdb/react-native';
+} from '@sidekickdb/react-native';
 import {
   makeRedirectUri,
   useAuthRequest,

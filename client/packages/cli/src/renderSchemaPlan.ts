@@ -1,9 +1,9 @@
-import { convertTxSteps } from '@instantdb/platform';
+import { convertTxSteps } from '@sidekickdb/platform';
 import type {
   MigrationTx,
   MigrationTxSpecific,
   MigrationTxTypes,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { cn } from '@instantdb/components';
+import { cn } from '@sidekickdb/components';
 
 const Card = React.forwardRef<
   HTMLDivElement,

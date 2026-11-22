@@ -13,7 +13,7 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 
-import { init, InstantReactWebDatabase } from '@instantdb/react';
+import { init, InstantReactWebDatabase } from '@sidekickdb/react';
 import config from '../../config';
 
 const firebaseConfig = {

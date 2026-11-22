@@ -8,7 +8,7 @@
  *
  */
 
-import { init, i } from '@instantdb/react';
+import { init, i } from '@sidekickdb/react';
 import Head from 'next/head';
 import { useEffect, FormEvent, useRef, useState } from 'react';
 import config from '../../config';

@@ -12,9 +12,9 @@ import {
   InstantReactWebDatabase,
   InstantUnknownSchema,
   init,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import { errorToast } from '@/lib/toast';
-import { Toaster } from '@instantdb/components';
+import { Toaster } from '@sidekickdb/components';
 import { CopyToClipboardButton } from '@/components/new-landing/CopyToClipboardButton';
 import { BrowserChrome } from '@/components/BrowserChrome';
 

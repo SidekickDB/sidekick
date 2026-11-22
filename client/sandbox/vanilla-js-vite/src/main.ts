@@ -1,5 +1,5 @@
 import './style.css';
-import { init as initAdmin } from '@instantdb/admin';
+import { init as initAdmin } from '@sidekickdb/admin';
 import { User, init } from '@sidekickdb/core';
 
 const APP_ID = import.meta.env.VITE_INSTANT_APP_ID;

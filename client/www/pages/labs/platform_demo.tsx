@@ -43,7 +43,7 @@ curl -X POST "${config.apiURI}/superadmin/apps" \\
 const exampleInit = (appId: string): string => {
   return `
 
-import { init } from '@instantdb/react'; 
+import { init } from '@sidekickdb/react'; 
 
 const db = init({
   appId: "${appId}" // 🎉
@@ -53,7 +53,7 @@ const db = init({
 
 const exampleSchemaGen = () => {
   return `
-import { i } from '@instantdb/react';
+import { i } from '@sidekickdb/react';
 
 const schema = i.schema({
   entities: {

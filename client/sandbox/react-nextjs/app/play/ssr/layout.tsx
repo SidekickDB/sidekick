@@ -1,5 +1,5 @@
 import { InstantProvider } from './InstantProvider';
-import { getUnverifiedUserFromInstantCookie } from '@instantdb/react/nextjs';
+import { getUnverifiedUserFromInstantCookie } from '@sidekickdb/react/nextjs';
 
 // (server page)
 export default async function ({ children }: { children: React.ReactNode }) {

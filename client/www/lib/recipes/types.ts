@@ -1,6 +1,6 @@
 import type {
   InstantReactWebDatabase,
   InstantUnknownSchema,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 
 export type InstantDB = InstantReactWebDatabase<InstantUnknownSchema>;

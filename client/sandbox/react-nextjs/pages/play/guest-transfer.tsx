@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { id, i, InstantReactAbstractDatabase } from '@instantdb/react';
+import { id, i, InstantReactAbstractDatabase } from '@sidekickdb/react';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 
 const schema = i.schema({

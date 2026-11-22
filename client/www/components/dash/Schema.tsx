@@ -9,7 +9,7 @@ import { DBAttr } from '@/lib/types';
 import {
   apiSchemaToInstantSchemaDef,
   generateSchemaTypescriptFile,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { Monaco } from '@monaco-editor/react';
 import { useState } from 'react';
 import Highlight, { defaultProps, Prism } from 'prism-react-renderer';
@@ -21,9 +21,9 @@ import { useDarkMode } from './DarkModeToggle';
 
 type Pkg =
   | '@sidekickdb/core'
-  | '@instantdb/react'
-  | '@instantdb/react-native'
-  | '@instantdb/admin';
+  | '@sidekickdb/react'
+  | '@sidekickdb/react-native'
+  | '@sidekickdb/admin';
 
 function attrsToTsFile(attrs: Record<string, DBAttr>, pkg: Pkg) {
   const schema = apiSchemaToInstantSchemaDef(
@@ -36,9 +36,9 @@ function attrsToTsFile(attrs: Record<string, DBAttr>, pkg: Pkg) {
 export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
   const [pkg, setPkg] = useState<
     | '@sidekickdb/core'
-    | '@instantdb/admin'
-    | '@instantdb/react'
-    | '@instantdb/react-native'
+    | '@sidekickdb/admin'
+    | '@sidekickdb/react'
+    | '@sidekickdb/react-native'
   >('@sidekickdb/core');
 
   const onMount = (_editor: any, monaco: Monaco) => {
@@ -89,12 +89,12 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
               value={pkg}
               options={[
                 { label: '@sidekickdb/core', value: '@sidekickdb/core' },
-                { label: '@instantdb/react', value: '@instantdb/react' },
+                { label: '@sidekickdb/react', value: '@sidekickdb/react' },
                 {
-                  label: '@instantdb/react-native',
-                  value: '@instantdb/react-native',
+                  label: '@sidekickdb/react-native',
+                  value: '@sidekickdb/react-native',
                 },
-                { label: '@instantdb/admin', value: '@instantdb/admin' },
+                { label: '@sidekickdb/admin', value: '@sidekickdb/admin' },
               ]}
               onChange={(o) => {
                 if (o) {

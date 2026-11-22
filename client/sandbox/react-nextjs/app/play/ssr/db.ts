@@ -1,5 +1,5 @@
 'use client';
-import { init } from '@instantdb/react/nextjs';
+import { init } from '@sidekickdb/react/nextjs';
 import schema from './instant.schema';
 
 export const appId = process.env.NEXT_PUBLIC_INSTANT_APP_ID;

@@ -32,7 +32,7 @@
     "@effect/platform": "^0.94.1",
     "@effect/platform-node": "^0.104.0",
     "@sidekickdb/core": "workspace:*",
-    "@instantdb/platform": "workspace:*",
+    "@sidekickdb/platform": "workspace:*",
     "@sidekickdb/version": "workspace:*",
     "@zip.js/zip.js": "^2.8.34",
     "acorn": "^8.15.0",

@@ -8,11 +8,11 @@ import {
   InstantConfig,
   LinksDef,
   InstantReactWebDatabase,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import { ReactNode, useEffect, useState } from 'react';
 import { RoomsDef, TransactionChunk } from '../../../packages/core/dist/esm';
 import { IContainEntitiesAndLinks } from '../../../packages/core/dist/esm/schemaTypes';
-import { Explorer, Toaster } from '@instantdb/components';
+import { Explorer, Toaster } from '@sidekickdb/components';
 
 function getStoredAdminToken(appId: string): string | null {
   try {

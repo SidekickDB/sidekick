@@ -16,7 +16,7 @@ import {
   APPLE_AUTHORIZATION_ENDPOINT,
   APPLE_DISCOVERY_ENDPOINT,
   APPLE_TOKEN_ENDPOINT,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 
 // Editor for an Apple client's credentials. The Services ID, Team ID, and Key
 // ID are readable and prefilled; the Private Key is write-only (never returned

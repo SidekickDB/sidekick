@@ -4,12 +4,12 @@ import {
   init_experimental as _a,
   BackwardsCompatibleSchema,
 } from '@sidekickdb/core';
-import { init as react_init, init_experimental as _b } from '@instantdb/react';
+import { init as react_init, init_experimental as _b } from '@sidekickdb/react';
 import {
   init as react_native_init,
   init_experimental as _c,
-} from '@instantdb/react-native';
-import { init as admin_init, init_experimental as _d } from '@instantdb/admin';
+} from '@sidekickdb/react-native';
+import { init as admin_init, init_experimental as _d } from '@sidekickdb/admin';
 
 type Message = {
   content: string;

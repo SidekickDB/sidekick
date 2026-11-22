@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { randomUUID } from 'crypto';
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import { handleQuery, handleTransact } from '../src/tools.ts';
 
 const API_URL = process.env.INSTANT_API_URL || 'https://api.instantdb.com';

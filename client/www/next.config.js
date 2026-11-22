@@ -8,15 +8,15 @@ const nextConfig = {
     : {}),
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md'],
-  transpilePackages: ['@instantdb/components'],
+  transpilePackages: ['@sidekickdb/components'],
   webpack: (config, { dev }) => {
-    // Resolve @instantdb/components to source for Fast Refresh in development
+    // Resolve @sidekickdb/components to source for Fast Refresh in development
     if (dev) {
       const componentsSrc = path.resolve(
         __dirname,
         '../packages/components/src',
       );
-      config.resolve.alias['@instantdb/components'] = componentsSrc;
+      config.resolve.alias['@sidekickdb/components'] = componentsSrc;
       // Also add the @lib alias used within the components package
       config.resolve.alias['@lib'] = componentsSrc;
     }

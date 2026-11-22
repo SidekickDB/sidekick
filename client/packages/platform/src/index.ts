@@ -53,7 +53,7 @@ import {
   type CreateWebhookParams,
   type UpdateWebhookParams,
   WebhooksManager,
-} from '@instantdb/webhooks';
+} from '@sidekickdb/webhooks';
 
 export {
   type InstantAPIPlatformSchema,

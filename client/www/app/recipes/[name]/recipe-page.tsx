@@ -6,8 +6,8 @@ import {
   InstantReactWebDatabase,
   InstantUnknownSchema,
   init,
-} from '@instantdb/react';
-import { Toaster } from '@instantdb/components';
+} from '@sidekickdb/react';
+import { Toaster } from '@sidekickdb/components';
 import { demoConfig } from '@/lib/config';
 import { errorToast } from '@/lib/toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';

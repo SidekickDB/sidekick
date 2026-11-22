@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { id, i, init, type Logger } from '@instantdb/react';
+import { id, i, init, type Logger } from '@sidekickdb/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import config from '../../config';

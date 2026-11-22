@@ -18,7 +18,7 @@ import {
   toAppBackup,
   type AppBackup,
   type BackupDownloadProgress,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 
 import config from '@/lib/config';
 import { messageFromInstantError } from '@/lib/errors';

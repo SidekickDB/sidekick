@@ -7,7 +7,7 @@ import {
   SubscribeQueryPayload,
   SubscribeQueryResponse,
   ValidQuery,
-} from '@instantdb/admin';
+} from '@sidekickdb/admin';
 import config from '../../config';
 
 let j = 0;

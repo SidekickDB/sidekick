@@ -119,7 +119,7 @@ import {
   type WebhookHelpers,
   type CreateWebhookParams,
   type UpdateWebhookParams,
-} from '@instantdb/webhooks';
+} from '@sidekickdb/webhooks';
 
 type DebugCheckResult = {
   /** The ID of the record. */
@@ -390,7 +390,7 @@ function makeEventSourceWrapper(opts: {
  * Visit https://instantdb.com/dash to get your `appId` :)
  *
  * @example
- *  import { init } from "@instantdb/admin"
+ *  import { init } from "@sidekickdb/admin"
  *
  *  const db = init({
  *    appId: process.env.INSTANT_APP_ID!,
@@ -399,7 +399,7 @@ function makeEventSourceWrapper(opts: {
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
- *  import { init } from "@instantdb/admin"
+ *  import { init } from "@sidekickdb/admin"
  *  import schema from ""../instant.schema.ts";
  *
  *  const db = init({
@@ -447,11 +447,11 @@ function init<
  * @example
  *
  * // Before
- * import { init_experimental } from "@instantdb/admin"
+ * import { init_experimental } from "@sidekickdb/admin"
  * const db = init_experimental({  ...  });
  *
  * // After
- * import { init } from "@instantdb/admin"
+ * import { init } from "@sidekickdb/admin"
  * const db = init({ ...  });
  */
 const init_experimental = init;

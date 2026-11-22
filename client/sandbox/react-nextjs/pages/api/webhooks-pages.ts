@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { id, init, InstantError } from '@instantdb/admin';
+import { id, init, InstantError } from '@sidekickdb/admin';
 
 export const config = {
   api: { bodyParser: false },

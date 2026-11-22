@@ -1,4 +1,4 @@
-import { i, init } from '@instantdb/react';
+import { i, init } from '@sidekickdb/react';
 
 type BusinessEmail = string & { readonly __brand: unique symbol };
 

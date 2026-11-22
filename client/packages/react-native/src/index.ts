@@ -6,7 +6,7 @@ import NetworkListener from './NetworkListener';
 import version from './version';
 import { streamConstructors } from './Streams';
 
-import { InstantReactAbstractDatabase } from '@instantdb/react-common';
+import { InstantReactAbstractDatabase } from '@sidekickdb/react-common';
 
 import {
   i,
@@ -112,13 +112,13 @@ import {
  * Visit https://instantdb.com/dash to get your `appId` :)
  *
  * @example
- *  import { init } from "@instantdb/react-native"
+ *  import { init } from "@sidekickdb/react-native"
  *
  *  const db = init({ appId: "my-app-id" })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
- *  import { init } from "@instantdb/react-native"
+ *  import { init } from "@sidekickdb/react-native"
  *  import schema from ""../instant.schema.ts";
  *
  *  const db = init({ appId: "my-app-id", schema })
@@ -161,11 +161,11 @@ function init<
  * @example
  *
  * // Before
- * import { init_experimental } from "@instantdb/react-native"
+ * import { init_experimental } from "@sidekickdb/react-native"
  * const db = init_experimental({  ...  });
  *
  * // After
- * import { init } from "@instantdb/react-native"
+ * import { init } from "@sidekickdb/react-native"
  * const db = init({ ...  });
  */
 const init_experimental = init;

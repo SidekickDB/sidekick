@@ -6,7 +6,7 @@ import {
   i,
   InstantReactAbstractDatabase,
   InstantSchemaDef,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 import config from '../../config';
 import EphemeralAppPage from '../../components/EphemeralAppPage';
 

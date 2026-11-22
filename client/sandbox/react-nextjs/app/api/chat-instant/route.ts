@@ -4,7 +4,7 @@ import {
   generateId,
   UIMessage,
 } from 'ai';
-import { init, i } from '@instantdb/admin';
+import { init, i } from '@sidekickdb/admin';
 import { getFilePubSub } from '../../../lib/file-pubsub';
 
 const schema = i.schema({ entities: {} });

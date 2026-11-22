@@ -1,4 +1,4 @@
-import { init, i } from '@instantdb/react-native';
+import { init, i } from '@sidekickdb/react-native';
 import {
   View,
   Text,

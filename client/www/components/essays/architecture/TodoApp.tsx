@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
-import { id } from '@instantdb/react';
+import { id } from '@sidekickdb/react';
 import type {
   InstantReactWebDatabase,
   InstantUnknownSchema,
-} from '@instantdb/react';
+} from '@sidekickdb/react';
 
 type InstantDB = InstantReactWebDatabase<InstantUnknownSchema>;
 

@@ -4,7 +4,7 @@ import {
   PlatformApi,
   i,
   generateSchemaTypescriptFile,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { useState } from 'react';
 import config from '../../config';
 

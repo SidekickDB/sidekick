@@ -1,4 +1,4 @@
-import { init, InstantError } from '@instantdb/admin';
+import { init, InstantError } from '@sidekickdb/admin';
 
 const API_URI =
   process.env.INSTANT_WEBHOOKS_API_URI || 'https://api.instantdb.com';

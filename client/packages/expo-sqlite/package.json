@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/expo-sqlite",
+  "name": "@sidekickdb/expo-sqlite",
   "version": "0.0.0",
   "description": "Expo SQLite interface for Instant DB",
   "license": "Apache-2.0",

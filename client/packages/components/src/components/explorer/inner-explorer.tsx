@@ -25,7 +25,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { coerceToDate, tx } from '@sidekickdb/core';
-import { InstantReactAbstractDatabase } from '@instantdb/react';
+import { InstantReactAbstractDatabase } from '@sidekickdb/react';
 import {
   ColumnDef,
   ColumnSizingState,

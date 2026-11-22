@@ -1,6 +1,6 @@
 import { DBAttr, SchemaAttr, SchemaNamespace } from '@/lib/types';
 import { InstantDBAttr } from '@sidekickdb/core';
-import { InstantAPIPlatformSchema } from '@instantdb/platform';
+import { InstantAPIPlatformSchema } from '@sidekickdb/platform';
 
 // We show most attrs in the explorer except for some system attrs
 function isVisibleAttr(attr: DBAttr) {

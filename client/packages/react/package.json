@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/react",
+  "name": "@sidekickdb/react",
   "version": "0.0.0",
   "description": "Instant DB for React",
   "license": "Apache-2.0",
@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "@sidekickdb/core": "workspace:*",
-    "@instantdb/react-common": "workspace:*",
+    "@sidekickdb/react-common": "workspace:*",
     "@sidekickdb/version": "workspace:*",
     "eventsource": "^4.0.0"
   }

@@ -102,7 +102,7 @@ import {
   type Logger,
 } from '@sidekickdb/core';
 
-import { InstantReactAbstractDatabase } from '@instantdb/react-common';
+import { InstantReactAbstractDatabase } from '@sidekickdb/react-common';
 import InstantReactWebDatabase from './InstantReactWebDatabase.ts';
 import { init, init_experimental } from './init.ts';
 import { Cursors } from './Cursors.tsx';

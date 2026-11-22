@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/svelte",
+  "name": "@sidekickdb/svelte",
   "type": "module",
   "version": "0.0.0",
   "description": "Svelte client for InstantDB",

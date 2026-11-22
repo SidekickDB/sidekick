@@ -1,5 +1,5 @@
 import { UI_MESSAGE_STREAM_HEADERS } from 'ai';
-import { init, i } from '@instantdb/admin';
+import { init, i } from '@sidekickdb/admin';
 import { getFilePubSub } from '../../../../../lib/file-pubsub';
 
 const schema = i.schema({ entities: {} });

@@ -16,7 +16,7 @@ const state = vi.hoisted(() => ({
 // whose `.webhooks(appId).manager` is the per-test fake manager, and whose
 // `getSchema` reflects state.namespaces (null → reject, simulating an auth /
 // network / missing-app failure that getRemoteNamespaces catches).
-vi.mock('@instantdb/platform', async (importOriginal) => {
+vi.mock('@sidekickdb/platform', async (importOriginal) => {
   const orig: any = await importOriginal();
   return {
     ...orig,

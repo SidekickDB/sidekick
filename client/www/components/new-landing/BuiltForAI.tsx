@@ -618,7 +618,7 @@ const chatCode = `// ༼ つ ◕_◕ ༽つ Real-time Chat
 // * Multiplayer
 // * Works offline
 
-import { init, id } from "@instantdb/react"
+import { init, id } from "@sidekickdb/react"
 
 const db = init({ appId: "your-app-id" })
 

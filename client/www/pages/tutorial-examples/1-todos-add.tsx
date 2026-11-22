@@ -1,7 +1,7 @@
 'use client';
 
 import config from '@/lib/config'; // hide-line
-import { init, id } from '@instantdb/react';
+import { init, id } from '@sidekickdb/react';
 
 // Connect to the database
 // ---------

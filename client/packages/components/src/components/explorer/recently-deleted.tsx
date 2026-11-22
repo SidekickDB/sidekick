@@ -3,7 +3,7 @@ import { ActionForm, Button, Divider, useDialog } from '@lib/components/ui';
 import { errorToast } from '../toast';
 import { SchemaNamespace, DBAttr } from '@lib/types';
 import useSWR from 'swr';
-import { InstantReactWebDatabase } from '@instantdb/react';
+import { InstantReactWebDatabase } from '@sidekickdb/react';
 import { useEffect, useState } from 'react';
 import { ArrowPathIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { InstantAPIError } from '@sidekickdb/core';

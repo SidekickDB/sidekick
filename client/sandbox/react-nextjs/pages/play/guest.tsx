@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { init, id } from '@instantdb/react';
+import { init, id } from '@sidekickdb/react';
 import config from '../../config';
 // Import Google OAuth components
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';

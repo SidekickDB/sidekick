@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/admin",
+  "name": "@sidekickdb/admin",
   "version": "0.0.0",
   "description": "Admin SDK for Instant DB",
   "license": "Apache-2.0",
@@ -61,7 +61,7 @@
   "dependencies": {
     "@sidekickdb/core": "workspace:*",
     "@sidekickdb/version": "workspace:*",
-    "@instantdb/webhooks": "workspace:*",
+    "@sidekickdb/webhooks": "workspace:*",
     "cookie": "^1.1.1",
     "@instantdb/eventsource": "4.1.0-2",
     "uuid": "^11.1.0"

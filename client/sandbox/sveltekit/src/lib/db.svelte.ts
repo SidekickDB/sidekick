@@ -1,4 +1,4 @@
-import { init, i, type InstantSchemaDef } from '@instantdb/svelte';
+import { init, i, type InstantSchemaDef } from '@sidekickdb/svelte';
 import config from './config';
 
 const STORAGE_KEY = 'sb-sveltekit-ephemeral-app';

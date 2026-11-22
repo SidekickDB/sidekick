@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useMemo } from 'react';
 import { motion, useAnimation } from 'motion/react';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { demoConfig } from '@/lib/config';
 import schema from '@/lib/intern/docs-feedback/instant.schema';
 

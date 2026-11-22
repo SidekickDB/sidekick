@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { Effect } from 'effect';
-import type { WebhookAction } from '@instantdb/platform';
+import type { WebhookAction } from '@sidekickdb/platform';
 import type { OptsFromCommand, webhooksAddDef } from '../../index.ts';
 import { Args } from '../../lib/args.ts';
 import { runUIEffect } from '../../lib/ui.ts';

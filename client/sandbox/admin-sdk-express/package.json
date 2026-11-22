@@ -8,7 +8,7 @@
     "dev:schema": "node --watch --watch-preserve-output --loader ts-node/esm ./src/with-schema.ts"
   },
   "dependencies": {
-    "@instantdb/admin": "workspace:*",
+    "@sidekickdb/admin": "workspace:*",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

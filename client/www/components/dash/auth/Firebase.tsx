@@ -28,7 +28,7 @@ function firebaseExampleCode({
 }) {
   return /* ts */ `import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 
 const db = init({ appId: "${appId}" });
 

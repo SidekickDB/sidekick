@@ -25,13 +25,13 @@ export class ProjectInfo extends Context.Tag(
 const execAsync = promisify(exec);
 
 export const PACKAGE_ALIAS_AND_FULL_NAMES = {
-  react: '@instantdb/react',
-  'react-native': '@instantdb/react-native',
+  react: '@sidekickdb/react',
+  'react-native': '@sidekickdb/react-native',
   core: '@sidekickdb/core',
-  admin: '@instantdb/admin',
-  solid: '@instantdb/solidjs',
-  svelte: '@instantdb/svelte',
-  vue: '@instantdb/vue',
+  admin: '@sidekickdb/admin',
+  solid: '@sidekickdb/solidjs',
+  svelte: '@sidekickdb/svelte',
+  vue: '@sidekickdb/vue',
 };
 
 export class ProjectInfoError extends Data.TaggedError('ProjectInfoError')<{
@@ -120,16 +120,16 @@ const getProjectInfo = (
           new UI.Select({
             promptText: 'Which package would you like to use?',
             options: [
-              { label: '@instantdb/react', value: '@instantdb/react' },
+              { label: '@sidekickdb/react', value: '@sidekickdb/react' },
               {
-                label: '@instantdb/react-native',
-                value: '@instantdb/react-native',
+                label: '@sidekickdb/react-native',
+                value: '@sidekickdb/react-native',
               },
               { label: '@sidekickdb/core', value: '@sidekickdb/core' },
-              { label: '@instantdb/admin', value: '@instantdb/admin' },
-              { label: '@instantdb/solidjs', value: '@instantdb/solidjs' },
-              { label: '@instantdb/svelte', value: '@instantdb/svelte' },
-              { label: '@instantdb/vue', value: '@instantdb/vue' },
+              { label: '@sidekickdb/admin', value: '@sidekickdb/admin' },
+              { label: '@sidekickdb/solidjs', value: '@sidekickdb/solidjs' },
+              { label: '@sidekickdb/svelte', value: '@sidekickdb/svelte' },
+              { label: '@sidekickdb/vue', value: '@sidekickdb/vue' },
             ],
           }),
         ).pipe(
@@ -143,7 +143,7 @@ const getProjectInfo = (
         );
       }
       const packagesToInstall = [moduleName];
-      if (moduleName === '@instantdb/react-native') {
+      if (moduleName === '@sidekickdb/react-native') {
         packagesToInstall.push(
           'react-native-get-random-values',
           '@react-native-async-storage/async-storage',
@@ -198,13 +198,13 @@ function getInstantModuleName(pkgJson: PackageJson) {
   const deps = pkgJson.dependencies || {};
   const devDeps = pkgJson.devDependencies || {};
   const instantModuleName = [
-    '@instantdb/react',
-    '@instantdb/react-native',
+    '@sidekickdb/react',
+    '@sidekickdb/react-native',
     '@sidekickdb/core',
-    '@instantdb/admin',
-    '@instantdb/solidjs',
-    '@instantdb/svelte',
-    '@instantdb/vue',
+    '@sidekickdb/admin',
+    '@sidekickdb/solidjs',
+    '@sidekickdb/svelte',
+    '@sidekickdb/vue',
   ].find((name) => deps[name] || devDeps[name]);
   return instantModuleName;
 }

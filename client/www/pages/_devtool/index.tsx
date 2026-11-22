@@ -6,7 +6,7 @@ import { useSchemaQuery } from '@/lib/hooks/explorer';
 import { jsonFetch } from '@/lib/fetch';
 import { APIResponse, signOut, useAuthToken, useTokenFetch } from '@/lib/auth';
 import { Sandbox } from '@/components/dash/Sandbox';
-import { init } from '@instantdb/react';
+import { init } from '@sidekickdb/react';
 import { useEffect, useState, useContext, useMemo } from 'react';
 import {
   Button,
@@ -31,7 +31,7 @@ import {
   FetchedDash,
   useFetchedDash,
 } from '@/components/dash/MainDashLayout';
-import { Explorer } from '@instantdb/components';
+import { Explorer } from '@sidekickdb/components';
 
 type InstantReactClient = ReturnType<typeof init>;
 

@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/vue",
+  "name": "@sidekickdb/vue",
   "type": "module",
   "version": "0.0.0",
   "description": "Vue client for InstantDB",

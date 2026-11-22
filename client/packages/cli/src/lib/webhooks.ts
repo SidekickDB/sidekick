@@ -3,7 +3,7 @@ import {
   type WebhookAction,
   type WebhookEventInfo,
   type WebhooksManager,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import { CurrentApp } from '../context/currentApp.ts';
 import { PlatformApiError } from '../context/platformApi.ts';
 import { BadArgsError } from '../errors.ts';

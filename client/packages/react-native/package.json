@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/react-native",
+  "name": "@sidekickdb/react-native",
   "version": "0.0.0",
   "description": "Instant DB for React Native",
   "license": "Apache-2.0",
@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@sidekickdb/core": "workspace:*",
-    "@instantdb/react-common": "workspace:*",
+    "@sidekickdb/react-common": "workspace:*",
     "@sidekickdb/version": "workspace:*",
     "web-streams-polyfill": "^4.2.0"
   }

@@ -26,7 +26,7 @@ import { jsonFetch } from '@/lib/fetch';
 import { errorToast, successToast } from '@/lib/toast';
 import { InstantApp, SchemaNamespace } from '@/lib/types';
 import { HomeButton } from '@/pages/dash';
-import { InstantReactWebDatabase } from '@instantdb/react';
+import { InstantReactWebDatabase } from '@sidekickdb/react';
 import { FetchedDash, useFetchedDash } from './MainDashLayout';
 import permsJsonSchema from '@/lib/permsJsonSchema';
 import { useDarkMode } from './DarkModeToggle';

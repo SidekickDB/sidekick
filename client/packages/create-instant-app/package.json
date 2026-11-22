@@ -36,7 +36,7 @@
     "@clack/core": "^0.5.0",
     "@clack/prompts": "^0.11.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
-    "@instantdb/platform": "workspace:*",
+    "@sidekickdb/platform": "workspace:*",
     "@sidekickdb/version": "workspace:*",
     "chalk": "5.2.0",
     "commander": "^10.0.1",

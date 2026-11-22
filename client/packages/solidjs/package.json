@@ -1,5 +1,5 @@
 {
-  "name": "@instantdb/solidjs",
+  "name": "@sidekickdb/solidjs",
   "type": "module",
   "version": "0.0.0",
   "description": "SolidJS client for InstantDB",

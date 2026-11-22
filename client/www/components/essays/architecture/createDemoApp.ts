@@ -1,4 +1,4 @@
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import { i } from '@sidekickdb/core';
 import config from '@/lib/config';
 import { type DemoState } from './Demos';

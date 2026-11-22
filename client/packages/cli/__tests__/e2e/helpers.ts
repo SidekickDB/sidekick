@@ -79,7 +79,7 @@ export async function createTestProject(
       {
         name: 'e2e-test-project',
         version: '1.0.0',
-        dependencies: { '@instantdb/react': '^0.0.1' },
+        dependencies: { '@sidekickdb/react': '^0.0.1' },
       },
       null,
       2,
@@ -91,7 +91,7 @@ export async function createTestProject(
   });
   await writeFile(
     join(dir, 'node_modules', '@instantdb', 'react', 'package.json'),
-    JSON.stringify({ name: '@instantdb/react', version: '0.0.1' }),
+    JSON.stringify({ name: '@sidekickdb/react', version: '0.0.1' }),
   );
 
   if (opts.appId) {

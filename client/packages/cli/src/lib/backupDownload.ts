@@ -12,7 +12,7 @@ import type {
   BackupDownloadProgress,
   BackupDownloadResult,
   BackupsManager,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import version from '../version.js';
 
 // Set a user-agent or else cloudfront might block the request
@@ -21,7 +21,7 @@ const userAgent = `instant-cli/${version}`;
 export type {
   BackupDownloadProgress,
   BackupDownloadResult,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 
 // zstd landed in node:zlib in 22.15 / 23.8; on older Nodes the property is
 // absent, so feature-detect instead of assuming the type declarations match

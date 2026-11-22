@@ -4,7 +4,7 @@ module.exports = {
     './pages/**/*.{js,ts,jsx,tsx}',
     './app/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
-    './node_modules/@instantdb/components/src/**/*.{js,ts,jsx,tsx,md}',
+    './node_modules/@sidekickdb/components/src/**/*.{js,ts,jsx,tsx,md}',
   ],
   theme: {
     extend: {},

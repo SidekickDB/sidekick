@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { Effect } from 'effect';
-import { formatFileSize, type AppBackup } from '@instantdb/platform';
+import { formatFileSize, type AppBackup } from '@sidekickdb/platform';
 import type { backupListDef, OptsFromCommand } from '../../index.ts';
 import { useBackupsManager } from '../../lib/backups.ts';
 

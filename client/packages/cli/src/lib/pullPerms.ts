@@ -7,7 +7,7 @@ import { getPermsPathToWrite } from '../util/findConfigCandidates.ts';
 import { promptOk } from './ui.ts';
 import { UI } from '../ui/index.ts';
 import { writeTypescript } from './pullSchema.ts';
-import { generatePermsTypescriptFile } from '@instantdb/platform';
+import { generatePermsTypescriptFile } from '@sidekickdb/platform';
 import { ProjectInfo } from '../context/projectInfo.ts';
 import { Path } from '@effect/platform';
 

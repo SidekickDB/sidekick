@@ -14,7 +14,7 @@ import {
   InstantDBInferredType,
   DataAttrDef,
 } from '@sidekickdb/core';
-import { Webhooks, type WithAuth } from '@instantdb/webhooks';
+import { Webhooks, type WithAuth } from '@sidekickdb/webhooks';
 import { BackupsManager } from './backups.ts';
 import version from './version.ts';
 import {
@@ -1431,7 +1431,7 @@ export class PlatformApiMissingAuthError extends Error {
  * Usage:
  *
  * ```ts
- * import { PlatformApi } from '@instantdb/platform';
+ * import { PlatformApi } from '@sidekickdb/platform';
  *
  * const api = new PlatformApi({ auth: { token: 'oauth-access-token' } });
  * const { apps } = await api.getApps({

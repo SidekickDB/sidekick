@@ -1,4 +1,4 @@
-import { id, init, InstantError } from '@instantdb/admin';
+import { id, init, InstantError } from '@sidekickdb/admin';
 
 const apiURI =
   process.env.NEXT_PUBLIC_INSTANT_API_URI || 'http://localhost:8888';

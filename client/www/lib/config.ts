@@ -1,4 +1,4 @@
-import { oauthCallbackURL } from '@instantdb/platform';
+import { oauthCallbackURL } from '@sidekickdb/platform';
 
 export const isBrowser = typeof window != 'undefined';
 

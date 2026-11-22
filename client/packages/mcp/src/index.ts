@@ -23,7 +23,7 @@ import {
 } from '@modelcontextprotocol/sdk/server/auth/router.js';
 import { pinoHttp } from 'pino-http';
 import { pino } from 'pino';
-import { init } from '@instantdb/admin';
+import { init } from '@sidekickdb/admin';
 
 import schema from './db/instant.schema.ts';
 import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
@@ -35,7 +35,7 @@ import {
   tokensOfBearerToken,
 } from './oauth-service-provider.ts';
 import { KeyConfig } from './crypto.ts';
-import { PlatformApi } from '@instantdb/platform';
+import { PlatformApi } from '@sidekickdb/platform';
 import indexHtml from './index.html.ts';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { handleQuery, handleTransact } from './tools.ts';
@@ -44,7 +44,7 @@ import { handleQuery, handleTransact } from './tools.ts';
 // -----------
 function createMCPServer(): McpServer {
   return new McpServer({
-    name: '@instantdb/mcp',
+    name: '@sidekickdb/mcp',
     version,
   });
 }

@@ -4,8 +4,8 @@ import {
   type WebhookEventInfo,
   type WebhookAction,
   type WebhookPayload,
-} from '@instantdb/admin';
-import { i, id, type InstantReactWebDatabase } from '@instantdb/react';
+} from '@sidekickdb/admin';
+import { i, id, type InstantReactWebDatabase } from '@sidekickdb/react';
 import { useEffect, useMemo, useState } from 'react';
 import config from '../../config';
 import EphemeralAppPage from '../../components/EphemeralAppPage';

@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { once } from 'node:events';
 import zlib from 'node:zlib';
-import { BackupsManager } from '@instantdb/platform';
+import { BackupsManager } from '@sidekickdb/platform';
 import { downloadBackupToFile } from '../src/lib/backupDownload.ts';
 
 // Exercises the real pipeline end-to-end against a local HTTP server: zstd

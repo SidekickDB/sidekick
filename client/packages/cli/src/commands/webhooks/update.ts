@@ -4,7 +4,7 @@ import type {
   UpdateWebhookParams,
   WebhookAction,
   WebhookInfo,
-} from '@instantdb/platform';
+} from '@sidekickdb/platform';
 import type { OptsFromCommand, webhooksUpdateDef } from '../../index.ts';
 import { GlobalOpts } from '../../context/globalOpts.ts';
 import { BadArgsError } from '../../errors.ts';
