@@ -164,6 +164,11 @@
                                                         (when script-shas
                                                           (str " "
                                                                (clojure.string/join " " script-shas)))
+                                                        ;; SidekickDB: the OAuth landing and error
+                                                        ;; pages style themselves with inline
+                                                        ;; <style> blocks, which default-src 'none'
+                                                        ;; would otherwise block.
+                                                        "; style-src 'unsafe-inline'"
                                                         "; object-src 'none'; "
                                                         "base-uri 'self'; "
                                                         "frame-ancestors 'none'")
