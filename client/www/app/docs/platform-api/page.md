@@ -26,7 +26,7 @@ To manage apps, you have two main tools at your disposal.
 You can either use the Instant CLI:
 
 ```bash
-npx sidekick-cli
+npx @sidekickdb/cli
 ```
 
 Or if you are running a backend server, the Platform SDK:
@@ -48,7 +48,7 @@ You don't need to authenticate to create temporary apps, so they're a great way 
 **Here's how to make a temporary app with the CLI:**
 
 ```bash
-npx sidekick-cli init-without-files --title my-new-app --temp
+npx @sidekickdb/cli init-without-files --title my-new-app --temp
 ```
 
 And voila, you have a temporary app:
@@ -156,7 +156,7 @@ Now that we have auth tokens, let's use them to create an app.
 **To create a long-lived app with the CLI:**
 
 ```bash
-npx sidekick-cli init-without-files --title my-long-lived-app --token YOUR_TOKEN
+npx @sidekickdb/cli init-without-files --title my-long-lived-app --token YOUR_TOKEN
 ```
 
 Pretty nice!
@@ -201,7 +201,7 @@ const schema = i.schema({
 ```
 
 ```bash
-npx sidekick-cli push schema --token YOUR_TOKEN
+npx @sidekickdb/cli push schema --token YOUR_TOKEN
 ```
 
 **To change schemas and perms with the platform SDK:**
@@ -243,7 +243,7 @@ What you really want in those cases is to get a token _scoped_ to a particular a
 **You can use admin tokens this way.** Simply provide the admin token as auth, and the CLI will only have access to change schema and perms just on that app.
 
 ```bash
-npx sidekick-cli push schema --token YOUR_ADMIN_TOKEN
+npx @sidekickdb/cli push schema --token YOUR_ADMIN_TOKEN
 ```
 
 ### Questions?

@@ -15,7 +15,7 @@ export const Route = createRootRoute({
   beforeLoad: () => {
     if (!import.meta.env.VITE_INSTANT_APP_ID) {
       throw new Error(
-        "VITE_INSTANT_APP_ID is not defined. Make sure to include it in your environment variables. In dev, `sidekick-cli init` can do this for you.",
+        "VITE_INSTANT_APP_ID is not defined. Make sure to include it in your environment variables. In dev, `npx @sidekickdb/cli init` can do this for you.",
       );
     }
   },

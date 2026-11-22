@@ -8,9 +8,9 @@ To run the development server:
 `npm run dev`
 
 To push schema changes:
-`npx sidekick-cli push`
+`npx @sidekickdb/cli push`
 
 To pull schema changes:
-`npx sidekick-cli pull`
+`npx @sidekickdb/cli pull`
 
 Got any feedback or questions? Join our [Discord](https://discord.gg/hgVf9R6SBm)

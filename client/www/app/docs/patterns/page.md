@@ -347,7 +347,7 @@ follow this workflow:
 1. **Push schema/perms changes locally first**
 
    ```bash
-   npx sidekick-cli push --app your-local-app-id
+   npx @sidekickdb/cli push --app your-local-app-id
    ```
 
 2. **Test code changes** - Verify your new code works as expected with your changes in your local environment and app.
@@ -355,7 +355,7 @@ follow this workflow:
 3. **Push changes to production**
 
    ```bash
-   npx sidekick-cli push --app your-production-app-id
+   npx @sidekickdb/cli push --app your-production-app-id
    ```
 
 4. **Deploy code changes to prod!** - And that should be it!
@@ -434,7 +434,7 @@ backfillDefaults();
 Then run the script before pushing your schema:
 
 ```bash
-npx tsx scripts/backfill-todos.ts && npx sidekick-cli push
+npx tsx scripts/backfill-todos.ts && npx @sidekickdb/cli push
 ```
 
 This pattern gives you full control over setting default values. You can set

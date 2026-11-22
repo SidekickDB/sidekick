@@ -39,7 +39,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": ">=16",
-    "sidekick-cli": "workspace:*"
+    "@sidekickdb/cli": "workspace:*"
   },
   "private": true
 }

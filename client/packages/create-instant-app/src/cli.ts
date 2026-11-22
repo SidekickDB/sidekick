@@ -3,7 +3,7 @@ import * as p from '@clack/prompts';
 import { findClaudePath } from './claude.js';
 import { version } from '@sidekickdb/version';
 import { coerceAppName, validateAppName } from './utils/validateAppName.js';
-import { renderUnwrap, UI } from 'sidekick-cli/ui';
+import { renderUnwrap, UI } from '@sidekickdb/cli/ui';
 import { projectBases, type ProjectBase } from './projectBase.js';
 
 export type Project = {

@@ -4,7 +4,7 @@
   "dependencies": {
     "@sidekickdb/admin": "workspace:*",
     "@sidekickdb/core": "workspace:*",
-    "sidekick-cli": "workspace:*"
+    "@sidekickdb/cli": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

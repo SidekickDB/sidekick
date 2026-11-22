@@ -13,7 +13,7 @@ import { UndoDemo } from './UndoDemo';
 import { TabbedCodeExample, CodePanel } from './TabbedCodeExample';
 import { rosePineDawnColors as c } from '@/lib/rosePineDawnTheme';
 
-// Animated terminal showing `npx sidekick-cli push` with schema diff
+// Animated terminal showing `npx @sidekickdb/cli push` with schema diff
 type TerminalPhase =
   | 'idle'
   | 'typing'
@@ -23,7 +23,7 @@ type TerminalPhase =
   | 'cancelled'
   | 'pause';
 
-const PUSH_COMMAND = 'npx sidekick-cli push schema';
+const PUSH_COMMAND = 'npx @sidekickdb/cli push schema';
 
 export function AnimatedTerminal() {
   const [phase, setPhase] = useState<TerminalPhase>('idle');

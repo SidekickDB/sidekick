@@ -132,7 +132,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab:
 {% terminal-path %}
 
 \`\`\`shell
-npx sidekick-cli@latest auth client add --type google --name google-web
+npx @sidekickdb/cli@latest auth client add --type google --name google-web
 \`\`\`
 
 {% /terminal-path %}
@@ -144,7 +144,7 @@ npx sidekick-cli@latest auth client add --type google --name google-web
   expect(result).toContain('**From the terminal**');
   expect(result).toContain('From the [Auth](/dash?s=main&t=auth) tab:');
   expect(result).toContain('- Click "Set up Google"');
-  expect(result).toContain('npx sidekick-cli@latest auth client add');
+  expect(result).toContain('npx @sidekickdb/cli@latest auth client add');
   expect(result).not.toContain('setup-paths');
   expect(result).not.toContain('dashboard-path');
   expect(result).not.toContain('terminal-path');

@@ -44,7 +44,7 @@ Set up and connect your Instant app.
 This will log you in if you are not logged in already, then create schema and permissions files, and update your `.env` file.
 
 ```shell
-npx sidekick-cli init
+npx @sidekickdb/cli init
 ```
 
 Create a database client in `src/lib/db.ts`:
@@ -114,7 +114,7 @@ const _schema = i.schema({
 Push the schema:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli push
+npx @sidekickdb/cli push
 ```
 
 Replace the content of `src/app/page.tsx` with the following:

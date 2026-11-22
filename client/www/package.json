@@ -132,7 +132,7 @@
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.3",
     "csv-parse": "^5.1.0",
-    "sidekick-cli": "workspace:*",
+    "@sidekickdb/cli": "workspace:*",
     "next-sitemap": "^4.2.3",
     "postcss": "^8.4.5",
     "tailwindcss": "^4.1.17",

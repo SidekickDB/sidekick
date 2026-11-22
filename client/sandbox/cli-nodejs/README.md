@@ -5,7 +5,7 @@
   <h1 align="center">sandbox/cli-nodejs</h1>
 </p>
 
-This is sandbox app to play with [sidekick-cli](../../packages/cli/).
+This is sandbox app to play with [@sidekickdb/cli](../../packages/cli/).
 
 # Development
 

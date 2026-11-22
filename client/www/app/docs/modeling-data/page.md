@@ -19,7 +19,7 @@ We’ll build a micro-blog to illustrate; we'll have authors, posts, comments, a
 With Instant you can define your schema and your permissions in code. If you haven't already, use the [CLI](/docs/cli) to generate an `instant.schema.ts` and an `instant.perms.ts` file:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli@latest init
+npx @sidekickdb/cli@latest init
 ```
 
 The CLI will guide you through picking an Instant app and generate these files for you.
@@ -375,7 +375,7 @@ postAuthor: {
 Now that you have your schema, you can use the CLI to `push` it to your app:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli@latest push schema
+npx @sidekickdb/cli@latest push schema
 ```
 
 The CLI will look at your app in production, show you the new columns you'd create, and run the changes for you!
@@ -475,7 +475,7 @@ export default rules;
 Once you push these permissions to production:
 
 ```bash
-npx sidekick-cli@latest push perms
+npx @sidekickdb/cli@latest push perms
 ```
 
 {% ansi %}

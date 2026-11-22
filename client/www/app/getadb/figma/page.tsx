@@ -65,7 +65,7 @@ export default function GetadbFigma() {
             <p>
               Once you're happy with your app, you can simply claim it with{' '}
               <code className="rounded-md border border-gray-200 bg-gray-100 px-1.5 py-0.5 font-mono text-[0.92em]">
-                npx sidekick-cli claim
+                npx @sidekickdb/cli claim
               </code>
               .
             </p>

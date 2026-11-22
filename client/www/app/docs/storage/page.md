@@ -21,7 +21,7 @@ npm i @sidekickdb/react
 Initialize your schema and permissions via the [CLI tool](/docs/cli):
 
 ```
-npx sidekick-cli@latest init
+npx @sidekickdb/cli@latest init
 ```
 
 Now open `instant.schema.ts` and replace the contents with the following code.
@@ -75,7 +75,7 @@ export default rules;
 Push up both the schema and permissions to your Instant app with the following command:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli@latest push
+npx @sidekickdb/cli@latest push
 ```
 
 And then replace the contents of `app/page.tsx` with the following code.

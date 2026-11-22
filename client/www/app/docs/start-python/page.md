@@ -95,7 +95,7 @@ so you can manage your app from your Python project. Push changes with
 the Instant CLI as you would normally:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli push
+npx @sidekickdb/cli push
 ```
 
 ## FastAPI with Pydantic

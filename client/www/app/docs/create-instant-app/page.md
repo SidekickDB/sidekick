@@ -17,7 +17,7 @@ If you haven't already, authenticate with the [Instant CLI](/docs/cli) in your
 terminal.
 
 ```shell {% showCopy=true %}
-npx sidekick-cli login
+npx @sidekickdb/cli login
 ```
 
 This will open a browser window where you can log in or sign up for an account.

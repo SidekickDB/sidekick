@@ -1,5 +1,5 @@
 {
-  "name": "sidekick-cli",
+  "name": "@sidekickdb/cli",
   "type": "module",
   "version": "0.0.0",
   "description": "Instant's CLI",

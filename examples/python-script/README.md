@@ -11,7 +11,7 @@ To run the script:
 `uv run python main.py`
 
 To push schema and permission changes (requires Node):
-`npx sidekick-cli push`
+`npx @sidekickdb/cli push`
 
 `instant.schema.ts` and `instant.perms.ts` are included so you can manage your app with the Instant CLI.
 

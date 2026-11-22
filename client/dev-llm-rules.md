@@ -43,7 +43,7 @@ The client directory is a pnpm monorepo managed with Turbo. It contains the Inst
 
 - **`admin/`** (`@sidekickdb/admin`) - Server-side admin SDK for backend access to Instant.
 - **`platform/`** (`@sidekickdb/platform`) - Platform package for managing apps, schemas, permissions, and migrations. Used by CLI and internal tools.
-- **`cli/`** (`sidekick-cli`) - Command-line tool for project init, schema management, and config.
+- **`cli/`** (`@sidekickdb/cli`) - Command-line tool for project init, schema management, and config.
 - **`create-instant-app/`** (`create-sidekick-app`) - Scaffolding tool for new Instant projects.
 - **`components/`** (`@sidekickdb/components`) - Reusable UI components including the database Explorer (Monaco Editor, dnd-kit, Radix UI).
 - **`mcp/`** (`@sidekickdb/mcp`) - MCP server enabling AI assistants to manage Instant apps.
@@ -105,7 +105,7 @@ Development sandboxes for testing local changes to client libraries:
 - **`vanilla-js-vite/`** - Vanilla JS testing `@sidekickdb/core`
 - **`react-native-expo/`** - Expo app testing `@sidekickdb/react-native`
 - **`admin-sdk-express/`** - Express app testing `@sidekickdb/admin`
-- **`cli-nodejs/`** - Node.js testing `sidekick-cli`
+- **`cli-nodejs/`** - Node.js testing `@sidekickdb/cli`
 - **`strong-init-vite/`** - Vite app testing typed initialization
 - **`vanilla-js-nuxt/`** - Nuxt 3 integration
 - **`task-tracker/`** - Full-featured example app

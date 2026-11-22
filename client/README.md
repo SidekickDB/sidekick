@@ -15,7 +15,7 @@ This houses Instant's javascript monorepo! Here's the lay of the land:
       2. [`@sidekickdb/react`](./packages/react/)
       3. [`@sidekickdb/react-native`](./packages/react-native)
       4. [`@sidekickdb/admin`](./packages/admin)
-      5. [`sidekick-cli`.](./packages/cli/)
+      5. [`@sidekickdb/cli`.](./packages/cli/)
       6. [`@sidekickdb/platform`](./packages/platform)
       7. [`@sidekickdb/mcp`](./packages/mcp)
 3. [`sandbox/`](./sandbox/)

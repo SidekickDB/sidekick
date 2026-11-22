@@ -47,7 +47,7 @@
     "fs-extra": "^11.3.1",
     "gradient-string": "^2.0.2",
     "ignore": "^7.0.5",
-    "sidekick-cli": "workspace:*",
+    "@sidekickdb/cli": "workspace:*",
     "open": "^10.1.0",
     "ora": "6.3.1",
     "slugify": "^1.6.6",

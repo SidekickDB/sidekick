@@ -7,9 +7,9 @@ nextjs:
 
 At a high level, here is the recommended workflow for developing with Instant:
 
-1. Authenticate with Instant in your terminal via `npx sidekick-cli login`.
+1. Authenticate with Instant in your terminal via `npx @sidekickdb/cli login`.
 1. Create new projects via `npx create-sidekick-app`.
-1. Push changes to your schema and permissions via `npx sidekick-cli push`.
+1. Push changes to your schema and permissions via `npx @sidekickdb/cli push`.
 1. Use the [Sandbox](https://www.instantdb.com/dash?t=sandbox) to debug queries,
    transactions, and permissions.
 1. When you're ready for production, [restrict creating](/docs/patterns#restrict-creating-new-attributes) new attributes.
@@ -30,7 +30,7 @@ and have them associated with your Instant account. This will also enable you to
 push and pull changes to your projects. To authenticate, run:
 
 ```
-npx sidekick-cli login
+npx @sidekickdb/cli login
 ```
 
 This will open a browser window where you can log in or sign up for an account.
@@ -50,11 +50,11 @@ page URL to get the raw Markdown. For example, here are the docs for
 
 As your project evolves, you'll likely need to update your schema and permissions. We
 recommend using the Instant CLI to do this. You can make
-edits to your local schema and permission files, and then run `npx sidekick-cli push` to push changes to your project.
+edits to your local schema and permission files, and then run `npx @sidekickdb/cli push` to push changes to your project.
 
 If you prefer a GUI, you can also make changes via the explorer in the [Instant
 dashboard](https://www.instantdb.com/dash?t=explorer). To pull these changes
-into your local files, run `npx sidekick-cli pull`.
+into your local files, run `npx @sidekickdb/cli pull`.
 
 ## Debugging queries, transactions, and permissions
 

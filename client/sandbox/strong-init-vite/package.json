@@ -15,7 +15,7 @@
     "@sidekickdb/react-native": "workspace:*",
     "@sidekickdb/admin": "workspace:*",
     "@sidekickdb/core": "workspace:*",
-    "sidekick-cli": "workspace:*"
+    "@sidekickdb/cli": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

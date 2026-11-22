@@ -26,7 +26,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type firebase --name firebase --project-id <project-id>
 ```
 

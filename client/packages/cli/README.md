@@ -2,7 +2,7 @@
   <a href="https://instantdb.com">
     <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
   </a>
-  <h1 align="center">sidekick-cli</h1>
+  <h1 align="center">@sidekickdb/cli</h1>
 </p>
 
 <p align="center">
@@ -23,16 +23,16 @@
 Welcome to [Instant's](http://instantdb.com) command line tool. You can create apps, write schema, and push permissions.
 
 ```javascript
-npx sidekick-cli init
+npx @sidekickdb/cli init
 ```
 
 ## Get Started
 
-Start by peeking at the [sidekick-cli docs](https://www.instantdb.com/docs/cli).
+Start by peeking at the [@sidekickdb/cli docs](https://www.instantdb.com/docs/cli).
 
 # Contributing
 
-Here's how to set up a local development environment for sidekick-cli.
+Here's how to set up a local development environment for @sidekickdb/cli.
 
 ## Quick Start
 
@@ -44,9 +44,9 @@ git clone ..
 cd server
 make dev
 
-# Add --filter sidekick-cli to the 'dev' script in client/package.json to include
-# sidekick-cli in the dev process
-"dev": "turbo run dev ... --filter sidekick-cli"
+# Add --filter @sidekickdb/cli to the 'dev' script in client/package.json to include
+# @sidekickdb/cli in the dev process
+"dev": "turbo run dev ... --filter @sidekickdb/cli"
 
 # Now run the client to listen to cli changes
 cd client
@@ -54,12 +54,12 @@ make dev
 
 # Now go into a place where you can test out the CLI in your terminal
 cd client/sandbox/cli-nodejs
-INSTANT_CLI_DEV=1 npx sidekick-cli ...
+INSTANT_CLI_DEV=1 npx @sidekickdb/cli ...
 ```
 
 ## Testing local builds
 
-You can link a local build of `sidekick-cli` globally so it's available as a regular command:
+You can link a local build of `@sidekickdb/cli` globally so it's available as a regular command:
 
 ```bash
 cd client/packages/cli
@@ -73,7 +73,7 @@ Now you can run `sidekick-cli` anywhere and it will use your local build.
 To unlink:
 
 ```bash
-pnpm unlink --global sidekick-cli
+pnpm unlink --global @sidekickdb/cli
 ```
 
 # Questions?

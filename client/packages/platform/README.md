@@ -448,7 +448,7 @@ const recoveredSchema = schemaTypescriptFileToInstantSchema(code);
 schema == recoveredSchema;
 ```
 
-This is useful when parsing a schema that the user manually edited or pulled with `npx sidekick-cli pull`.
+This is useful when parsing a schema that the user manually edited or pulled with `npx @sidekickdb/cli pull`.
 
 # Questions?
 

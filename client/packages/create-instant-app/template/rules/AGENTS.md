@@ -36,7 +36,7 @@ If schema/perm files exist but the app id/admin token are missing, ask the user 
 To create a new app:
 
 ```bash
-npx sidekick-cli init-without-files --title <APP_NAME>
+npx @sidekickdb/cli init-without-files --title <APP_NAME>
 ```
 
 This outputs an app id and admin token. Store them in an env file.
@@ -44,13 +44,13 @@ This outputs an app id and admin token. Store them in an env file.
 If you get an error related to not being logged in tell the user to:
 
 - Sign up for free or log in at https://instantdb.com
-- Then run `npx sidekick-cli login` to authenticate the CLI
+- Then run `npx @sidekickdb/cli login` to authenticate the CLI
 - Then re-run the init command
 
 If you have an app id/admin token but no schema/perm files, pull them:
 
 ```bash
-npx sidekick-cli pull --yes
+npx @sidekickdb/cli pull --yes
 ```
 
 ## Schema changes
@@ -58,7 +58,7 @@ npx sidekick-cli pull --yes
 Edit `instant.schema.ts`, then push:
 
 ```bash
-npx sidekick-cli push schema --yes
+npx @sidekickdb/cli push schema --yes
 ```
 
 New fields = additions; missing fields = deletions.
@@ -66,7 +66,7 @@ New fields = additions; missing fields = deletions.
 To rename fields:
 
 ```bash
-npx sidekick-cli push schema --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
+npx @sidekickdb/cli push schema --rename 'posts.author:posts.creator stores.owner:stores.manager' --yes
 ```
 
 ## Permission changes
@@ -74,7 +74,7 @@ npx sidekick-cli push schema --rename 'posts.author:posts.creator stores.owner:s
 Edit `instant.perms.ts`, then push:
 
 ```bash
-npx sidekick-cli push perms --yes
+npx @sidekickdb/cli push perms --yes
 ```
 
 # CRITICAL Query Guidelines
@@ -399,7 +399,7 @@ if (created) {
 
 # Ad-hoc queries from the CLI
 
-Run `npx sidekick-cli query '{ posts: {} }' --admin` to query your app. A context flag is required: `--admin`, `--as-email <email>`, or `--as-guest`. Also supports `--app <id>`.
+Run `npx @sidekickdb/cli query '{ posts: {} }' --admin` to query your app. A context flag is required: `--admin`, `--as-email <email>`, or `--as-guest`. Also supports `--app <id>`.
 
 # Instant Documentation
 

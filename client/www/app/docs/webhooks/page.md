@@ -51,7 +51,7 @@ A webhook that fails too many times in a row is automatically disabled. You can 
 
 The easiest way to create a webhook is from the **Webhooks** tab in the dashboard: pick the namespaces, the actions, and the URL Instant should POST to.
 
-You can also manage webhooks programmatically with `npx sidekick-cli webhook` or through the Admin SDK:
+You can also manage webhooks programmatically with `npx @sidekickdb/cli webhook` or through the Admin SDK:
 
 ```ts {% showCopy=true %}
 // scripts/create-webhook.ts

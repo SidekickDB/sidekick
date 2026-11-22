@@ -14,7 +14,7 @@ A simple single-shot app builder that takes one prompt and creates a single-page
 
 ```bash
 pnpm install
-npx sidekick-cli push
+npx @sidekickdb/cli push
 pnpm dev
 ```
 

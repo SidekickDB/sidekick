@@ -253,7 +253,7 @@ function BackupRow({
   // instance — prefix the exact apiURI via INSTANT_CLI_API_URI so the CLI hits
   // the same server this dashboard does.
   const cliDownloadCommand = (() => {
-    const cmd = `npx sidekick-cli@latest backup download ${backup.id} --app ${app.id}`;
+    const cmd = `npx @sidekickdb/cli@latest backup download ${backup.id} --app ${app.id}`;
     return config.apiURI === 'https://api.instantdb.com'
       ? cmd
       : `INSTANT_CLI_API_URI='${config.apiURI}' ${cmd}`;

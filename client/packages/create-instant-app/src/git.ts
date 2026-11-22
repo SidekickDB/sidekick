@@ -4,7 +4,7 @@ import * as p from '@clack/prompts';
 import chalk from 'chalk';
 import { execa } from 'execa';
 import fs from 'fs-extra';
-import { renderUnwrap, UI } from 'sidekick-cli/ui';
+import { renderUnwrap, UI } from '@sidekickdb/cli/ui';
 
 const isGitInstalled = (dir: string): boolean => {
   try {

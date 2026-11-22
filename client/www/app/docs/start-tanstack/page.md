@@ -31,10 +31,10 @@ Add the InstantDB React Library:
 npm i @sidekickdb/react
 ```
 
-Use `sidekick-cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
 ```shell
-npx sidekick-cli init
+npx @sidekickdb/cli init
 ```
 
 Create a database client in `src/lib/db.ts`:
@@ -104,7 +104,7 @@ const _schema = i.schema({
 Push the schema:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli push
+npx @sidekickdb/cli push
 ```
 
 Replace the content of `src/routes/index.tsx` with the following:

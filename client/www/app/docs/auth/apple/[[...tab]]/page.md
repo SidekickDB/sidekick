@@ -102,7 +102,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type apple --name apple \
   --services-id <services-id> \
   --team-id <team-id> --key-id <key-id> \
@@ -131,7 +131,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type apple --name apple --services-id <services-id>
 ```
 
@@ -160,7 +160,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth origin add --type website --url myapp.com
+npx @sidekickdb/cli@latest auth origin add --type website --url myapp.com
 ```
 
 {% /terminal-path %}
@@ -280,7 +280,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth origin add --type custom-scheme --scheme exp://
+npx @sidekickdb/cli@latest auth origin add --type custom-scheme --scheme exp://
 ```
 
 {% /terminal-path %}

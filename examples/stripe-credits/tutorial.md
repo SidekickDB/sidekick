@@ -118,7 +118,7 @@ links: {
 Push your schema:
 
 ```bash
-npx sidekick-cli push schema --yes
+npx @sidekickdb/cli push schema --yes
 ```
 
 ## Creating the checkout flow
@@ -346,7 +346,7 @@ Each user only sees their own haikus. The permission enforcement happens server-
 Push permissions:
 
 ```bash
-npx sidekick-cli push perms --yes
+npx @sidekickdb/cli push perms --yes
 ```
 
 ## Testing your integration

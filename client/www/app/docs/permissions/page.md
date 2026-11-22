@@ -42,13 +42,13 @@ You can also add [rate limits](/docs/rate-limits) to your rules to control how o
 With Instant you can define your permissions in code. If you haven't already, use the [CLI](/docs/cli) to generate an `instant.perms.ts` file:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli@latest init
+npx @sidekickdb/cli@latest init
 ```
 
 The CLI will guide you through picking an Instant app and generate this file for you. Once you've made changes to `instant.perms.ts`, you can use the CLI to push those changes to production:
 
 ```shell {% showCopy=true %}
-npx sidekick-cli@latest push perms
+npx @sidekickdb/cli@latest push perms
 ```
 
 ## Permissions in the dashboard

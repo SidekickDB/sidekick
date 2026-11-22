@@ -83,7 +83,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth client add \
+npx @sidekickdb/cli@latest auth client add \
   --type linkedin --name linkedin-web \
   --client-id <id> --client-secret <secret>
 ```
@@ -109,7 +109,7 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth origin add --type website --url <your-domain>
+npx @sidekickdb/cli@latest auth origin add --type website --url <your-domain>
 ```
 
 {% /terminal-path %}
@@ -224,8 +224,8 @@ From the {% blank-link href="/dash?s=main&t=auth" label="Auth" /%} tab on the In
 {% terminal-path %}
 
 ```shell
-npx sidekick-cli@latest auth origin add --type custom-scheme --scheme exp://
-npx sidekick-cli@latest auth origin add --type custom-scheme --scheme mycoolredirect://
+npx @sidekickdb/cli@latest auth origin add --type custom-scheme --scheme exp://
+npx @sidekickdb/cli@latest auth origin add --type custom-scheme --scheme mycoolredirect://
 ```
 
 {% /terminal-path %}

@@ -182,7 +182,7 @@ describe.concurrent('create-sidekick-app e2e', { timeout: 120_000 }, () => {
         const output = result.stdout + result.stderr;
         expect(output).toMatch(/uv sync/);
         expect(output).toMatch(/uv run python main\.py/);
-        expect(output).toMatch(/npx sidekick-cli push/);
+        expect(output).toMatch(/npx @sidekickdb\/cli push/);
       } finally {
         await t.cleanup();
       }
