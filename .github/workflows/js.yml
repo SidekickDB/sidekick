@@ -27,20 +27,47 @@ jobs:
           const head = context.payload.after || context.payload.pull_request?.head.sha;
           const owner = context.repo.owner;
           const repo = context.repo.repo;
-          const { data } = await (base === '0000000000000000000000000000000000000000'
-            ? github.rest.repos.getCommit({
-                owner,
-                repo,
-                ref: head,
-              })
-            : github.rest.repos.compareCommits({
-                owner,
-                repo,
-                base,
-                head,
-              }));
-
-          const files = data.files.map((f) => f.filename);
+          // SidekickDB: on the first push of a ref, `before` is all zeros. Upstream
+          // then inspected only the tip commit, so changes in earlier commits of a
+          // new branch were missed. Instead, compare the ref with its merge base on
+          // the default branch (a three-dot compare). If that cannot give a
+          // complete file list, act as if this workflow file changed, so the test
+          // jobs run rather than being skipped. Other events are unchanged.
+          const runEverything = ['.github/workflows/js.yml'];
+          let files;
+          if (base === '0000000000000000000000000000000000000000') {
+            const defaultBranch = context.payload.repository.default_branch;
+            if (context.ref === `refs/heads/${defaultBranch}`) {
+              console.log('First push of the default branch: running everything');
+              files = runEverything;
+            } else {
+              try {
+                const { data } = await github.rest.repos.compareCommits({
+                  owner,
+                  repo,
+                  base: defaultBranch,
+                  head,
+                });
+                files = (data.files || []).map((f) => f.filename);
+                // The compare API lists at most 300 files.
+                if (files.length >= 300) {
+                  console.log('Comparison may be truncated: running everything');
+                  files = runEverything;
+                }
+              } catch (e) {
+                console.log('Comparison with the default branch failed: running everything', e);
+                files = runEverything;
+              }
+            }
+          } else {
+            const { data } = await github.rest.repos.compareCommits({
+              owner,
+              repo,
+              base,
+              head,
+            });
+            files = data.files.map((f) => f.filename);
+          }
 
           const output = {
             client_did_change: false,
