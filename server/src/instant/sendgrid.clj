@@ -34,12 +34,13 @@
   (let [personalization (cond-> {:to to}
                           cc (assoc :cc cc)
                           bcc (assoc :bcc bcc))
-        body {:personalizations [personalization]
-              :from from
-              :reply_to {:email (or reply-to (config/email-reply-to))}
-              :subject subject
-              :content
-              [{:type "text/html" :value html}]}]
+        reply-to (or reply-to (config/email-reply-to))
+        body (cond-> {:personalizations [personalization]
+                      :from from
+                      :subject subject
+                      :content
+                      [{:type "text/html" :value html}]}
+               reply-to (assoc :reply_to {:email reply-to}))]
 
     (if-not (config/sendgrid-send-enabled?)
       (tracer/with-span! {:name "sendgrid/send-disabled"

@@ -134,42 +134,47 @@
       "us-east-1"))
 
 (defn postmark-token []
-  (or (System/getenv "POSTMARK_TOKEN")
+  (or (non-blank-env "POSTMARK_TOKEN")
       (some-> @config-map :postmark-token crypt-util/secret-value)))
 
 (defn sendgrid-token []
-  (or (some-> (System/getenv "SENDGRID_TOKEN") string/trim not-empty)
+  (or (non-blank-env "SENDGRID_TOKEN")
       (some-> @config-map :sendgrid-token crypt-util/secret-value)))
 
 (defn resend-token []
-  (or (some-> (System/getenv "RESEND_TOKEN") string/trim not-empty)
-      (some-> (System/getenv "RESEND_API_KEY") string/trim not-empty)
+  (or (non-blank-env "RESEND_TOKEN")
+      (non-blank-env "RESEND_API_KEY")
       (some-> @config-map :resend-token crypt-util/secret-value)))
 
 (defn postmark-account-token []
-  (or (System/getenv "POSTMARK_ACCOUNT_TOKEN")
+  (or (non-blank-env "POSTMARK_ACCOUNT_TOKEN")
       (some-> @config-map :postmark-account-token crypt-util/secret-value)))
 
+;; Sender and reply-to addresses have no defaults: we must never send mail as
+;; someone else's domain. When a provider is configured but a sender is not,
+;; sends that need that sender fail (see instant.email-router) and the server
+;; warns at boot (see `startup-warnings`).
 (defn email-reply-to []
-  (or (System/getenv "INSTANT_EMAIL_REPLY_TO")
-      "hello@instantdb.com"))
+  (non-blank-env "INSTANT_EMAIL_REPLY_TO"))
+
+(def email-sender-env-vars
+  {:dashboard "INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL"
+   :app "INSTANT_APP_EMAIL_SENDER_EMAIL"
+   :team "INSTANT_TEAM_EMAIL_SENDER_EMAIL"})
 
 (defn dashboard-email-sender []
-  {:name (or (System/getenv "INSTANT_DASHBOARD_EMAIL_SENDER_NAME")
+  {:name (or (non-blank-env "INSTANT_DASHBOARD_EMAIL_SENDER_NAME")
              "Instant")
-   :email (or (System/getenv "INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL")
-              "verify@dash-pm.instantdb.com")})
+   :email (non-blank-env (:dashboard email-sender-env-vars))})
 
 (defn app-email-sender []
-  {:name (System/getenv "INSTANT_APP_EMAIL_SENDER_NAME")
-   :email (or (System/getenv "INSTANT_APP_EMAIL_SENDER_EMAIL")
-              "verify@auth-pm.instantdb.com")})
+  {:name (non-blank-env "INSTANT_APP_EMAIL_SENDER_NAME")
+   :email (non-blank-env (:app email-sender-env-vars))})
 
 (defn team-email-sender []
-  {:name (or (System/getenv "INSTANT_TEAM_EMAIL_SENDER_NAME")
+  {:name (or (non-blank-env "INSTANT_TEAM_EMAIL_SENDER_NAME")
              "Instant")
-   :email (or (System/getenv "INSTANT_TEAM_EMAIL_SENDER_EMAIL")
-              "teams@pm.instantdb.com")})
+   :email (non-blank-env (:team email-sender-env-vars))})
 
 (defn email-provider
   "Explicit email-provider override for self-hosted deployments
@@ -190,6 +195,24 @@
 
 (defn postmark-send-enabled? []
   (not (string/blank? (postmark-token))))
+
+(defn email-send-enabled?
+  "True when any email provider has a token, i.e. mail will really be sent."
+  []
+  (or (resend-send-enabled?)
+      (sendgrid-send-enabled?)
+      (postmark-send-enabled?)))
+
+(defn missing-email-sender-env-vars
+  "Sender env vars that are unset while an email provider is configured."
+  []
+  (when (email-send-enabled?)
+    (let [senders {:dashboard (dashboard-email-sender)
+                   :app (app-email-sender)
+                   :team (team-email-sender)}]
+      (vec (for [[k env-var] email-sender-env-vars
+                 :when (nil? (:email (get senders k)))]
+             env-var)))))
 
 (defn postmark-admin-enabled? []
   (not (string/blank? (postmark-account-token))))
@@ -422,7 +445,16 @@
     (conj "S3_BUCKET is not set. File storage will fail until it is set.")
 
     (not (app-backups-enabled?))
-    (conj "S3_APP_BACKUPS_BUCKET is not set. App backups are disabled.")))
+    (conj "S3_APP_BACKUPS_BUCKET is not set. App backups are disabled.")
+
+    (not (email-send-enabled?))
+    (conj (str "No email provider is configured. Emails are not sent; "
+               "dashboard login codes are printed to this log."))
+
+    (seq (missing-email-sender-env-vars))
+    (conj (str "An email provider is configured, but "
+               (string/join ", " (missing-email-sender-env-vars))
+               " is not set. Emails from that sender will fail until it is set."))))
 
 (def wal-history-prefix
   (when (= :dev (get-env))

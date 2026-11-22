@@ -1,16 +1,37 @@
 (ns instant.email-router
   (:require
+   [clojure.string :as string]
    [instant.config :as config]
    [instant.flags :as flags]
    [instant.postmark :as postmark]
    [instant.resend :as resend]
-   [instant.sendgrid :as sendgrid]))
+   [instant.sendgrid :as sendgrid]
+   [instant.util.exception :as ex]
+   [instant.util.tracer :as tracer]))
 
 (def sendgrid-froms
   {"verify@auth-pm.instantdb.com" "verify@auth-sg.instantdb.com"
    "verify@dash-pm.instantdb.com" "verify@auth-sg.instantdb.com"})
 
+(def missing-sender-message
+  (str "Email is configured on this server, but no sender address is set for "
+       "this email. The server operator needs to set "
+       (string/join ", " (vals config/email-sender-env-vars))
+       "."))
+
+(defn assert-sender!
+  "Refuses to hand mail without a From address to a real email provider. With
+   no provider configured nothing is sent, so a missing sender is fine."
+  [req]
+  (when (and (config/email-send-enabled?)
+             (string/blank? (-> req :from :email)))
+    (tracer/record-info! {:name "email-router/missing-sender"
+                          :attributes {:missing-env-vars
+                                       (string/join ", " (config/missing-email-sender-env-vars))}})
+    (ex/throw-email-send-failed! missing-sender-message)))
+
 (defn send-structured! [req]
+  (assert-sender! req)
   (cond
     ;; Explicit provider override (self-hosted)
     (= :resend (config/email-provider))
