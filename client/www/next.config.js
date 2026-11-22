@@ -1,26 +1,6 @@
 const path = require('path');
 const withMarkdoc = require('@markdoc/next.js');
 
-async function fetchStarCount() {
-  const { init } = await import('@instantdb/admin');
-  const db = init({
-    appId:
-      process.env.NEXT_PUBLIC_FEEDBACK_APP_ID ||
-      '5d9c6277-e6ac-42d6-8e51-2354b4870c05',
-  }).asUser({ guest: true });
-  const { instantRepo } = await import('./lib/config.ts');
-  const data = await db.query({
-    ghStarTotals: {
-      $: { where: { repoFullName: instantRepo }, limit: 1 },
-    },
-  });
-  const count = data?.ghStarTotals?.[0]?.stargazersCount;
-  if (count == null) {
-    throw new Error('Missing star count');
-  }
-  return String(count);
-}
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   ...(process.env.NEXT_PUBLIC_SELF_HOSTED === 'true'
@@ -164,19 +144,6 @@ const nextConfig = {
   skipTrailingSlashRedirect: true,
 };
 
-// The star-count fetch contacts a third-party host, so it is opt-in.
-// Without FETCH_GITHUB_STAR_COUNT=true the star count uses the client-side
-// fallback in lib/starCountContext.tsx.
 module.exports = async () => {
-  const starCount =
-    process.env.FETCH_GITHUB_STAR_COUNT === 'true'
-      ? await fetchStarCount()
-      : null;
-  if (starCount) {
-    nextConfig.env = {
-      ...nextConfig.env,
-      NEXT_PUBLIC_FALLBACK_STAR_COUNT: starCount,
-    };
-  }
   return withMarkdoc()(nextConfig);
 };
