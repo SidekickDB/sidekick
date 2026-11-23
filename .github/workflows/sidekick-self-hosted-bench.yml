@@ -7,7 +7,9 @@
 #
 # Read-only: no secrets, no write permissions, nothing is pushed or published.
 # It runs on demand, and on pull requests that change the harness or this
-# file. Committing results does not start it again.
+# file. A pull request that changes only results/ does not start it; on one
+# that also changes the harness, every push runs it, because GitHub matches
+# the paths against the whole pull request.
 name: Self-hosted benchmark
 
 on:
