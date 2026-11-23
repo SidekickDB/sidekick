@@ -183,13 +183,6 @@ type DebugTransactResult = {
 
 const requireApiURIOpts = { target: 'init() in @sidekickdb/admin' };
 
-function configWithDefaults(config: Config): FilledConfig {
-  return {
-    ...config,
-    apiURI: requireApiURI(config.apiURI, requireApiURIOpts),
-  };
-}
-
 function instantConfigWithDefaults<
   Schema extends InstantSchemaDef<any, any, any>,
   UseDates extends boolean,

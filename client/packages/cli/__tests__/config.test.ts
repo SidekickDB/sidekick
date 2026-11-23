@@ -120,3 +120,18 @@ describe('dashboard URL without configuration', () => {
     );
   });
 });
+
+describe('indexing job dashboard links', () => {
+  it('reads dashURI from instant.config.ts', async () => {
+    const { readDashOrigin } = await import('../src/old.js');
+    mocks.readInstantConfigFile.mockResolvedValue({
+      dashURI: 'https://dash.config.example',
+    });
+    await expect(readDashOrigin()).resolves.toBe('https://dash.config.example');
+  });
+
+  it('returns null when no dashboard is configured', async () => {
+    const { readDashOrigin } = await import('../src/old.js');
+    await expect(readDashOrigin()).resolves.toBeNull();
+  });
+});

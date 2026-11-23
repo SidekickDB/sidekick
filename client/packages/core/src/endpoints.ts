@@ -54,33 +54,48 @@ export function requireApiURI(
   throw new MissingApiURIError(missingApiURIMessage(opts));
 }
 
+function invalidApiURIError(apiURI: string): InstantError {
+  return new InstantError(
+    `Invalid apiURI ${JSON.stringify(apiURI)}: expected an http(s) URL. ` +
+      'Pass `websocketURI` as well if you need a custom websocket URL.',
+  );
+}
+
+// scheme://authority path, stopping at the query or fragment.
+const API_URI_RE = /^(https?):\/\/([^/?#]+)([^?#]*)/i;
+
 /**
  * Derives the websocket URL from the API URL:
  * `https://host/prefix` becomes `wss://host/prefix/runtime/session` and
- * `http://` becomes `ws://`.
+ * `http://` becomes `ws://`. Query and fragment are dropped, trailing slashes
+ * trimmed; ports, path prefixes and IPv6 brackets are kept.
+ *
+ * Uses string operations only: React Native's built-in `URL` does not
+ * implement (or allow setting) `protocol`, `pathname`, `search` or `hash`.
  */
 export function websocketURIFromApiURI(apiURI: string): string {
-  let url: URL;
-  try {
-    url = new URL(apiURI);
-  } catch (_e) {
-    throw new InstantError(
-      `Invalid apiURI ${JSON.stringify(apiURI)}: expected an http(s) URL. ` +
-        'Pass `websocketURI` as well if you need a custom websocket URL.',
-    );
+  const match = API_URI_RE.exec(apiURI.trim());
+  if (!match) {
+    throw invalidApiURIError(apiURI);
   }
-  if (url.protocol === 'https:') {
-    url.protocol = 'wss:';
-  } else if (url.protocol === 'http:') {
-    url.protocol = 'ws:';
-  } else {
-    throw new InstantError(
-      `Invalid apiURI ${JSON.stringify(apiURI)}: expected an http(s) URL. ` +
-        'Pass `websocketURI` as well if you need a custom websocket URL.',
-    );
+  const scheme = match[1].toLowerCase();
+  let authority = match[2];
+  const path = match[3];
+
+  // Normalise the host like the WHATWG URL parser: lowercase it and drop
+  // the scheme's default port (ws/wss share http/https default ports).
+  const at = authority.lastIndexOf('@');
+  const userinfo = at === -1 ? '' : authority.slice(0, at + 1);
+  let host = (at === -1 ? authority : authority.slice(at + 1)).toLowerCase();
+  if (!host || host.startsWith(':')) {
+    throw invalidApiURIError(apiURI);
   }
-  url.pathname = `${url.pathname.replace(/\/+$/, '')}/runtime/session`;
-  url.search = '';
-  url.hash = '';
-  return url.toString();
+  const defaultPort = scheme === 'https' ? ':443' : ':80';
+  if (host.endsWith(defaultPort)) {
+    host = host.slice(0, -defaultPort.length);
+  }
+  authority = userinfo + host;
+
+  const wsScheme = scheme === 'https' ? 'wss' : 'ws';
+  return `${wsScheme}://${authority}${path.replace(/\/+$/, '')}/runtime/session`;
 }
