@@ -253,8 +253,9 @@ services. SidekickDB releases only through its own two release workflows (PR
   pull request replaces; runs on `main` are never cancelled. The
   `detect_changes` scripts compare a pull request's base with its head (the
   whole pull request, not only the latest push), and treat a file list of 300
-  or more as truncated and run everything. A branch without a pull request gets
-  no run.
+  or more (or a missing list) as truncated and run everything. A branch without
+  a pull request gets no run, so PR #5's first-push comparison is now reached
+  only by the first push of `main`; it is kept to keep the diff small.
 
 Every edit is marked `# SidekickDB:` or `// SidekickDB:`.
 

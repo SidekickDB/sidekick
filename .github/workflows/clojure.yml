@@ -81,12 +81,14 @@ jobs:
               base,
               head,
             });
-            files = (data.files || []).map((f) => f.filename);
             // SidekickDB: the compare API lists at most 300 files, so a large
             // push (an upstream sync merge) could hide the files that matter.
-            if (files.length >= 300) {
-              console.log('Comparison may be truncated: running everything');
+            // A missing list is treated the same way rather than as "no changes".
+            if (!data.files || data.files.length >= 300) {
+              console.log('Comparison missing or possibly truncated: running everything');
               files = runEverything;
+            } else {
+              files = data.files.map((f) => f.filename);
             }
           }
 
