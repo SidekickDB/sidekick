@@ -70,7 +70,7 @@ export function summarize(results) {
 
   if (results.env_file && !results.env_file.as_shipped_env_accepted) {
     lines.push(
-      `**Deviation:** Compose ${env.compose} rejected the env file written from \`self-hosting/.env.example\` (${results.env_file.as_shipped_env_error}). The run set ${results.env_file.workaround}.`,
+      `**Deviation:** Compose ${env.compose} rejected the env file written from \`self-hosting/.env.example\` as shipped (${results.env_file.as_shipped_env_error}). To proceed, the harness added MINIO_ROOT_USER and MINIO_ROOT_PASSWORD with the same values as STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY. Everything else ran on the shipped files.`,
       '',
     );
   }
@@ -84,6 +84,11 @@ export function summarize(results) {
 
   lines.push(
     table('Start-up (fresh volumes)', 's from `docker compose up -d`', [
+      row(
+        '`docker compose up -d` returns',
+        pick('cold_start.up_returned_ms'),
+        's',
+      ),
       row('Server answers `GET /`', pick('cold_start.server_http_ms'), 's'),
       row('`/health/system` WAL ok', pick('cold_start.wal_ok_ms'), 's'),
       row('Compose: server healthy', pick('cold_start.server_healthy_ms'), 's'),
@@ -136,17 +141,50 @@ export function summarize(results) {
 
   lines.push(
     table('Workload: live queries and writes', 'ms', [
-      row('Client-visible update p50', pick('workload.visible_ms.p50')),
-      row('Client-visible update p95', pick('workload.visible_ms.p95')),
-      row('Client-visible update max', pick('workload.visible_ms.max')),
-      row('transact-ok p50', pick('workload.ack_ms.p50')),
-      row('transact-ok p95', pick('workload.ack_ms.p95')),
+      row(
+        'Pipelined: client-visible update p50',
+        pick('workload.visible_ms.p50'),
+      ),
+      row(
+        'Pipelined: client-visible update p95',
+        pick('workload.visible_ms.p95'),
+      ),
+      row(
+        'Pipelined: client-visible update max',
+        pick('workload.visible_ms.max'),
+      ),
+      row(
+        'Pipelined: visible p50, first half',
+        pick('workload.visible_ms_first_half.p50'),
+      ),
+      row(
+        'Pipelined: visible p50, second half',
+        pick('workload.visible_ms_second_half.p50'),
+      ),
+      row('Pipelined: transact-ok p50', pick('workload.ack_ms.p50')),
+      row('Pipelined: transact-ok p95', pick('workload.ack_ms.p95')),
+      row(
+        'Sequential: client-visible update p50',
+        pick('workload.sequential_visible_ms.p50'),
+      ),
+      row(
+        'Sequential: client-visible update p95',
+        pick('workload.sequential_visible_ms.p95'),
+      ),
+      row(
+        'Sequential: transact-ok p50',
+        pick('workload.sequential_ack_ms.p50'),
+      ),
+      row(
+        'Sequential: transact-ok p95',
+        pick('workload.sequential_ack_ms.p95'),
+      ),
       row(
         'Initial results for every subscriber',
         pick('workload.initial_subscribe_ms'),
       ),
     ]),
-    `Missed updates across all samples: ${pick('workload.missing_updates').reduce((a, b) => a + (b ?? 0), 0)} (must be 0). Latency is measured per subscriber and write, after ${ok[0]?.workload?.warmup_writes ?? 'n/a'} warm-up writes; each sample's p50/p95 is over ${ok[0]?.workload?.visible_ms?.count ?? 'n/a'} observations, and the table shows the spread of those per-sample values.`,
+    `Missed updates across all samples: ${pick('workload.missing_updates').reduce((a, b) => a + (b ?? 0), 0)} (must be 0). Latency is measured per subscriber and write. Pipelined: ${ok[0]?.workload?.writes ?? 'n/a'} writes ${ok[0]?.workload?.interval_ms ?? 'n/a'} ms apart without waiting, the first ${ok[0]?.workload?.warmup_writes ?? 'n/a'} not counted, ${ok[0]?.workload?.visible_ms?.count ?? 'n/a'} observations per sample. Sequential: ${ok[0]?.workload?.sequential_writes ?? 'n/a'} writes, each sent after every subscriber saw the previous one, ${ok[0]?.workload?.sequential_visible_ms?.count ?? 'n/a'} observations per sample. Each row shows the spread of the per-sample values.`,
     '',
   );
 

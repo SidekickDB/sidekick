@@ -22,7 +22,8 @@
 // summarize.mjs, <out>/summary.md. Exits 1 if a sample failed, including a
 // workload that missed an update.
 
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFile, execFileSync, spawn, spawnSync } from 'node:child_process';
+import { promisify } from 'node:util';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -247,16 +248,19 @@ function writeEnvFile() {
   return {
     as_shipped_env_accepted: false,
     as_shipped_env_error: check.stderr.trim().slice(0, 500),
-    workaround: 'MINIO_ROOT_USER and MINIO_ROOT_PASSWORD set to the STORAGE_* values',
+    workaround:
+      'MINIO_ROOT_USER and MINIO_ROOT_PASSWORD set to the STORAGE_* values',
   };
 }
 
 // ---------------------------------------------------------------------------
 // Probes
 
+const execFileAsync = promisify(execFile);
+
 async function httpOk(url) {
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(1000) });
     const body = await res.text();
     return { ok: res.ok, body };
   } catch {
@@ -264,46 +268,89 @@ async function httpOk(url) {
   }
 }
 
-function health(service) {
-  const id = containerId(service);
-  if (!id) return null;
-  return tryRun('docker', [
-    'inspect',
-    '--format',
-    '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}',
-    id,
-  ]).stdout.trim();
+async function healthAsync(service) {
+  try {
+    const { stdout: id } = await execFileAsync('docker', [
+      ...dcArgs,
+      'ps',
+      '-a',
+      '-q',
+      service,
+    ]);
+    if (!id.trim()) return null;
+    const { stdout } = await execFileAsync('docker', [
+      'inspect',
+      '--format',
+      '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}',
+      id.trim(),
+    ]);
+    return stdout.trim();
+  } catch {
+    return null;
+  }
 }
 
-async function waitForStack(t0, timeoutMs = 360_000) {
-  const marks = {};
+// Polls one condition every 250 ms and returns the ms from t0 at which a
+// check that succeeded completed. Each signal has its own poller, so a slow
+// check cannot delay another signal's timestamp.
+async function pollUntil(t0, check, timeoutMs) {
   while (now() - t0 < timeoutMs) {
-    const elapsed = now() - t0;
-    if (marks.server_http_ms === undefined) {
-      if ((await httpOk(`${apiURI}/`)).ok) marks.server_http_ms = elapsed;
-    }
-    if (marks.wal_ok_ms === undefined) {
-      const h = await httpOk(`${apiURI}/health/system`);
-      if (h.ok && /"wal"\s*:\s*"ok"/.test(h.body)) marks.wal_ok_ms = elapsed;
-    }
-    if (marks.server_healthy_ms === undefined && health('server') === 'healthy')
-      marks.server_healthy_ms = elapsed;
-    if (marks.www_healthy_ms === undefined && health('www') === 'healthy')
-      marks.www_healthy_ms = elapsed;
-    if (
-      [
-        'server_http_ms',
-        'wal_ok_ms',
-        'server_healthy_ms',
-        'www_healthy_ms',
-      ].every((k) => marks[k] !== undefined)
-    )
-      return marks;
+    if (await check()) return now() - t0;
     await sleep(250);
   }
-  throw new Error(
-    `stack not ready after ${timeoutMs} ms: ${JSON.stringify(marks)}`,
+  return null;
+}
+
+// `docker compose up -d` itself waits for depends_on conditions (the
+// dashboard waits for a healthy server), so it is started without waiting,
+// and the pollers run from the same t0.
+async function startStack(timeoutMs = 360_000) {
+  const t0 = now();
+  const up = spawn('docker', [...dcArgs, 'up', '-d'], {
+    cwd: root,
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  let upStderr = '';
+  up.stderr.on('data', (d) => (upStderr += d));
+  const upDone = new Promise((resolve) =>
+    up.on('close', (code) => resolve({ code, ms: now() - t0 })),
   );
+  const [serverHttp, walOk, serverHealthy, wwwHealthy, upResult] =
+    await Promise.all([
+      pollUntil(t0, async () => (await httpOk(`${apiURI}/`)).ok, timeoutMs),
+      pollUntil(
+        t0,
+        async () => {
+          const h = await httpOk(`${apiURI}/health/system`);
+          return h.ok && /"wal"\s*:\s*"ok"/.test(h.body);
+        },
+        timeoutMs,
+      ),
+      pollUntil(
+        t0,
+        async () => (await healthAsync('server')) === 'healthy',
+        timeoutMs,
+      ),
+      pollUntil(
+        t0,
+        async () => (await healthAsync('www')) === 'healthy',
+        timeoutMs,
+      ),
+      upDone,
+    ]);
+  const marks = {
+    up_returned_ms: upResult.ms,
+    server_http_ms: serverHttp,
+    wal_ok_ms: walOk,
+    server_healthy_ms: serverHealthy,
+    www_healthy_ms: wwwHealthy,
+  };
+  if (upResult.code !== 0 || Object.values(marks).some((v) => v === null)) {
+    throw new Error(
+      `stack not ready after ${timeoutMs} ms: ${JSON.stringify(marks)} ${upStderr.slice(-1000)}`,
+    );
+  }
+  return marks;
 }
 
 // Seconds from the server container's start to the main server JVM's start
@@ -375,7 +422,7 @@ function serverProcess() {
   const h = heap.stdout;
   const k2m = (x) => (x === undefined ? null : Math.round(Number(x) / 1024));
   const g1 = h.match(/total reserved (\d+)K, committed (\d+)K, used (\d+)K/);
-  const meta = h.match(/Metaspace\s+used (\d+)K, committed (\d+)K/);
+  const meta = h.match(/Metaspace\s+used\s+(\d+)K,\s+committed\s+(\d+)K/);
   const cmd = exec('cat', '/proc/1/cmdline').stdout.split('\0').join(' ');
   return {
     comm: exec('cat', '/proc/1/comm').stdout.trim(),
@@ -390,6 +437,7 @@ function serverProcess() {
     metaspace_committed_mib: k2m(meta?.[2]),
     jcmd_ok: heap.ok && !!g1,
     jcmd_error: heap.ok ? null : heap.stderr.trim().slice(0, 300),
+    heap_info_raw: h.slice(0, 1500),
     java_flags: cmd.slice(0, 1000),
   };
 }
@@ -459,10 +507,7 @@ function saveLogs(label) {
 async function sample(n) {
   log(`sample ${n}: down -v`);
   tryDc('down', '-v', '--remove-orphans');
-  const t0 = now();
-  dc('up', '-d');
-  const upReturnedMs = now() - t0;
-  const marks = await waitForStack(t0);
+  const marks = await startStack();
   log(`sample ${n}: ready`, JSON.stringify(marks));
   const phases = serverBootPhases();
 
@@ -490,7 +535,7 @@ async function sample(n) {
 
   return {
     sample: n,
-    cold_start: { up_returned_ms: upReturnedMs, ...marks, ...phases },
+    cold_start: { ...marks, ...phases },
     idle,
     workload: work,
     after_workload: after,

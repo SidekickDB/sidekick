@@ -17,6 +17,13 @@
 // from the WAL and the refresh has reached that session. All clocks are this
 // process's performance.now(), so no clock sync is involved.
 //
+// Writes in the main phase are pipelined: one every --interval-ms, without
+// waiting for the previous one. The result splits that phase into its first
+// and second half, so latency that grows during the run (writes queueing up)
+// shows. A second, sequential phase then sends --sequential-writes writes one
+// at a time, each only after every subscriber has seen the previous one: the
+// latency of a single write on an otherwise idle server.
+//
 // The first --warmup writes are not counted. The run fails (exit 1) if any
 // subscriber misses any write: a fast run that drops updates is not a result.
 // Prints one JSON object on stdout.
@@ -33,6 +40,7 @@ const { values: args } = parseArgs({
     writes: { type: 'string', default: '100' },
     warmup: { type: 'string', default: '10' },
     'interval-ms': { type: 'string', default: '100' },
+    'sequential-writes': { type: 'string', default: '20' },
     'timeout-ms': { type: 'string', default: '30000' },
   },
 });
@@ -43,6 +51,7 @@ const writeCount = Number(args.writes);
 const warmup = Number(args.warmup);
 const intervalMs = Number(args['interval-ms']);
 const timeoutMs = Number(args['timeout-ms']);
+const sequentialWrites = Number(args['sequential-writes']);
 
 // @sidekickdb/core expects a browser. These are the parts it needs in Node:
 // `window` must exist for the reactor to connect, and the network listener
@@ -187,7 +196,7 @@ await withTimeout(
 const subscribeMs = performance.now() - subscribeStart;
 
 const writer = openDb(app.id, 'bench-writer');
-const ackMs = [];
+const ackBySeq = new Map();
 const pendingAcks = [];
 
 for (let seq = 0; seq < writeCount; seq++) {
@@ -196,7 +205,7 @@ for (let seq = 0; seq < writeCount; seq++) {
   const ack = writer
     .transact(writer.tx.items[id()].update({ run: runId, seq }))
     .then(() => {
-      if (seq >= warmup) ackMs.push(performance.now() - t0);
+      ackBySeq.set(seq, performance.now() - t0);
     });
   pendingAcks.push(ack);
   await sleep(intervalMs);
@@ -213,9 +222,26 @@ while (
   await sleep(50);
 }
 
-const visibleMs = [];
-const perSubscriber = [];
 let missing = 0;
+const half = warmup + Math.floor((writeCount - warmup) / 2);
+const visibleIn = (from, to) => {
+  const lat = [];
+  for (const s of subscribers) {
+    for (let seq = from; seq < to; seq++) {
+      const at = s.seen.get(seq);
+      if (at !== undefined) lat.push(at - sentAt.get(seq));
+    }
+  }
+  return lat;
+};
+const ackIn = (from, to) => {
+  const lat = [];
+  for (let seq = from; seq < to; seq++) {
+    if (ackBySeq.has(seq)) lat.push(ackBySeq.get(seq));
+  }
+  return lat;
+};
+const perSubscriber = [];
 for (const [i, s] of subscribers.entries()) {
   const lat = [];
   for (let seq = 0; seq < writeCount; seq++) {
@@ -226,8 +252,34 @@ for (const [i, s] of subscribers.entries()) {
     }
     if (seq >= warmup) lat.push(at - sentAt.get(seq));
   }
-  visibleMs.push(...lat);
   perSubscriber.push({ subscriber: i, ...stats(lat) });
+}
+
+// Sequential phase: one write at a time on an otherwise idle server.
+const seqVisible = [];
+const seqAck = [];
+let seqMissing = 0;
+for (let k = 0; k < sequentialWrites; k++) {
+  const seq = writeCount + k;
+  const t0 = performance.now();
+  sentAt.set(seq, t0);
+  const ack = writer
+    .transact(writer.tx.items[id()].update({ run: runId, seq }))
+    .then(() => seqAck.push(performance.now() - t0));
+  const until = performance.now() + timeoutMs;
+  while (
+    performance.now() < until &&
+    subscribers.some((s) => !s.seen.has(seq))
+  ) {
+    await sleep(5);
+  }
+  await withTimeout(ack, timeoutMs, `transact-ok of sequential write ${k}`);
+  for (const s of subscribers) {
+    const at = s.seen.get(seq);
+    if (at === undefined) seqMissing++;
+    else seqVisible.push(at - t0);
+  }
+  await sleep(intervalMs);
 }
 
 for (const s of subscribers) {
@@ -242,17 +294,24 @@ const result = {
   writes: writeCount,
   warmup_writes: warmup,
   interval_ms: intervalMs,
-  missing_updates: missing,
+  missing_updates: missing + seqMissing,
   initial_subscribe_ms: Math.round(subscribeMs),
-  ack_ms: stats(ackMs),
-  visible_ms: stats(visibleMs),
+  ack_ms: stats(ackIn(warmup, writeCount)),
+  visible_ms: stats(visibleIn(warmup, writeCount)),
+  ack_ms_first_half: stats(ackIn(warmup, half)),
+  ack_ms_second_half: stats(ackIn(half, writeCount)),
+  visible_ms_first_half: stats(visibleIn(warmup, half)),
+  visible_ms_second_half: stats(visibleIn(half, writeCount)),
+  sequential_writes: sequentialWrites,
+  sequential_ack_ms: stats(seqAck),
+  sequential_visible_ms: stats(seqVisible),
   per_subscriber_visible_ms: perSubscriber,
   total_ms: Math.round(performance.now() - startedAt),
 };
 
 console.log(JSON.stringify(result));
-if (missing > 0) {
-  console.error(`${missing} updates never reached a subscriber`);
+if (result.missing_updates > 0) {
+  console.error(`${result.missing_updates} updates never reached a subscriber`);
   process.exit(1);
 }
 process.exit(0);
