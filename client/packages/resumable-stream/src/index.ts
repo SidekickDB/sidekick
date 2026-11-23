@@ -10,16 +10,19 @@ export interface CreateResumableStreamContextOptions {
    */
   waitUntil: ((promise: Promise<unknown>) => void) | null;
   /**
-   * The appId for your InstantDB app. It may also be provided with the INSTANT_APP_ID or NEXT_PUBLIC_INSTANT_APP_ID environment variable.
+   * The appId for your app. It may also be provided with the SIDEKICK_APP_ID or NEXT_PUBLIC_SIDEKICK_APP_ID environment variable
+   * (or their older names, INSTANT_APP_ID and NEXT_PUBLIC_INSTANT_APP_ID).
    */
   appId?: string;
   /**
-   * The appId for your InstantDB app. It may also be provided with the INSTANT_APP_ADMIN_TOKEN environment variable.
+   * The admin token for your app. It may also be provided with the SIDEKICK_APP_ADMIN_TOKEN environment variable
+   * (or its older name, INSTANT_APP_ADMIN_TOKEN).
    */
   adminToken?: string;
   /**
-   * URL of your SidekickDB server. Falls back to the INSTANT_API_URI
-   * environment variable; one of the two is required.
+   * URL of your SidekickDB server. Falls back to the SIDEKICK_API_URI
+   * environment variable (or its older name, INSTANT_API_URI); one of the two
+   * is required.
    */
   apiURI?: string;
   /**
@@ -99,28 +102,40 @@ function skipCharactersTransformer(skipCharacters: number) {
   });
 }
 
+/**
+ * Reads an environment variable that can be set under its SidekickDB name
+ * (`SIDEKICK_APP_ID`) or its older name (`INSTANT_APP_ID`). The SidekickDB name
+ * wins; an empty value counts as unset.
+ */
+function readEnv(sidekickName: string): string | undefined {
+  return (
+    process.env[sidekickName] ||
+    process.env[sidekickName.replace('SIDEKICK_', 'INSTANT_')]
+  );
+}
+
 export function createResumableStreamContext(
   options: CreateResumableStreamContextOptions,
 ): ResumableStreamContext {
   const appId =
     options.appId ||
-    process.env.INSTANT_APP_ID ||
-    process.env.NEXT_PUBLIC_INSTANT_APP_ID;
+    readEnv('SIDEKICK_APP_ID') ||
+    readEnv('NEXT_PUBLIC_SIDEKICK_APP_ID');
   if (!appId) {
     throw new Error(
-      'Missing appId. Pass it as an argument to createResumableStreamContext or set either the INSTANT_APP_ID or NEXT_PUBLIC_INSTANT_APP_ID environment variable.',
+      'Missing appId. Pass it as an argument to createResumableStreamContext or set either the SIDEKICK_APP_ID or NEXT_PUBLIC_SIDEKICK_APP_ID environment variable.',
     );
   }
-  const adminToken = options.adminToken || process.env.INSTANT_APP_ADMIN_TOKEN;
+  const adminToken = options.adminToken || readEnv('SIDEKICK_APP_ADMIN_TOKEN');
   if (!adminToken) {
     throw new Error(
-      'Missing adminToken. Pass it as an argument to createResumableStreamContext or set the INSTANT_APP_ADMIN_TOKEN environment variable.',
+      'Missing adminToken. Pass it as an argument to createResumableStreamContext or set the SIDEKICK_APP_ADMIN_TOKEN environment variable.',
     );
   }
 
-  const apiURI = requireApiURI(options.apiURI || process.env.INSTANT_API_URI, {
+  const apiURI = requireApiURI(options.apiURI || readEnv('SIDEKICK_API_URI'), {
     target: 'createResumableStreamContext()',
-    envVar: 'INSTANT_API_URI',
+    envVar: 'SIDEKICK_API_URI',
   });
 
   const config: Config = { appId, adminToken, apiURI };

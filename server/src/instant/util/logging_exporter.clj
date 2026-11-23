@@ -6,6 +6,7 @@
    [instant.config :as config]
    [instant.flags :as flags]
    [instant.util.coll :as ucoll]
+   [instant.util.env :as env]
    [instant.util.logfmt :as logfmt])
   (:import
    (instant SpanTrackException)
@@ -225,7 +226,7 @@
     (= "postmark/send-disabled" name)))
 
 (def log-spans?
-  (not= "false" (System/getenv "INSTANT_LOG_SPANS")))
+  (not= "false" (env/getenv "INSTANT_LOG_SPANS")))
 
 (defn should-log? [^SpanData span]
   (if-let [app-id (-> span .getAttributes (.get app-id-attr-key))]

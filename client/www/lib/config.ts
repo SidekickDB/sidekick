@@ -18,7 +18,7 @@ type RuntimeDashboardConfig = Partial<DashboardConfig> & {
 };
 
 const selfHostedConfigError =
-  'Self-hosted dashboard requires INSTANT_API_URI or INSTANT_BACKEND_URL to be a valid HTTP(S) URL.';
+  'Self-hosted dashboard requires SIDEKICK_API_URI or SIDEKICK_BACKEND_URL (or the older INSTANT_ names) to be a valid HTTP(S) URL.';
 
 declare global {
   interface Window {
@@ -54,7 +54,14 @@ function getRuntimeApiURI() {
     return window.__instantConfig?.apiURI;
   }
 
-  return process.env.INSTANT_API_URI || process.env.INSTANT_BACKEND_URL;
+  // Each setting can use its SIDEKICK_ name or its older INSTANT_ name; the
+  // SIDEKICK_ name wins.
+  return (
+    process.env.SIDEKICK_API_URI ||
+    process.env.INSTANT_API_URI ||
+    process.env.SIDEKICK_BACKEND_URL ||
+    process.env.INSTANT_BACKEND_URL
+  );
 }
 
 export function requireSelfHostedConfig(
@@ -107,6 +114,7 @@ export const defaultOAuthCallbackURL = oauthCallbackURL(config.apiURI);
 /**
  * Whether the dashboard offers "Continue with Google". A self-hosted dashboard
  * offers it only when the deployment sets
+ * SIDEKICK_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID or the older
  * INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID (see client/Dockerfile.www).
  */
 export function isDashboardGoogleOAuthEnabled(

@@ -44,6 +44,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Each of these can also be set under its SIDEKICK_ name (SIDEKICK_API_URI,
+# SIDEKICK_BACKEND_URL, SIDEKICK_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID), which wins.
 ENV INSTANT_API_URI=
 ENV INSTANT_BACKEND_URL=
 # Only its presence is used: the login page shows "Continue with Google" when set.
@@ -67,11 +69,13 @@ set -eu
 node <<'NODE'
 const fs = require('fs');
 
-const apiURI = (
-  process.env.INSTANT_API_URI ||
-  process.env.INSTANT_BACKEND_URL ||
-  ''
-).trim();
+// A setting can be given under its SIDEKICK_ name or its older INSTANT_ name.
+// The SIDEKICK_ name wins; a blank value counts as unset.
+const env = (name) =>
+  (process.env[`SIDEKICK_${name}`] || '').trim() ||
+  (process.env[`INSTANT_${name}`] || '').trim();
+
+const apiURI = env('API_URI') || env('BACKEND_URL');
 
 try {
   const url = new URL(apiURI);
@@ -80,14 +84,12 @@ try {
   }
 } catch (_e) {
   console.error(
-    'INSTANT_API_URI or INSTANT_BACKEND_URL must be a valid HTTP(S) URL.',
+    'SIDEKICK_API_URI or SIDEKICK_BACKEND_URL (or the older INSTANT_ names) must be a valid HTTP(S) URL.',
   );
   process.exit(1);
 }
 
-const dashboardGoogleOAuth = Boolean(
-  (process.env.INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID || '').trim(),
-);
+const dashboardGoogleOAuth = Boolean(env('DASHBOARD_GOOGLE_OAUTH_CLIENT_ID'));
 
 fs.writeFileSync(
   '/app/www/public/publicSelfHostedVariables.js',

@@ -1,6 +1,7 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import chalk from 'chalk';
+import { envNameForDisplay } from './envAliases.ts';
 
 type ConfigCandidate = {
   files: string;
@@ -32,6 +33,25 @@ export function transformImports(code: string): string {
       '"@$1/svelte/dist/cli"',
     )
     .replace(/["']@(sidekickdb|instantdb)\/vue["']/g, '"@$1/vue/dist/cli"');
+}
+
+const LEGACY_CONFIG_FILE = /(^|[\\/])instant\.(?=(?:schema|perms|email)$)/;
+
+/**
+ * `sidekick.schema`, `sidekick.perms` and `sidekick.email` are the SidekickDB
+ * names for the `instant.*` files, in the same places. They are listed first,
+ * so a `sidekick.*` file wins over an `instant.*` one.
+ */
+export function withSidekickFileNames(
+  candidates: ConfigCandidate[],
+): ConfigCandidate[] {
+  const renamed = candidates
+    .filter((candidate) => LEGACY_CONFIG_FILE.test(candidate.files))
+    .map((candidate) => ({
+      ...candidate,
+      files: candidate.files.replace(LEGACY_CONFIG_FILE, '$1sidekick.'),
+    }));
+  return [...renamed, ...candidates];
 }
 
 function findPathsRecursive(
@@ -76,7 +96,7 @@ function getEnvSchemaPathWithLogging(): string | undefined {
   const path = process.env.INSTANT_SCHEMA_FILE_PATH;
   if (path) {
     console.log(
-      `Using INSTANT_SCHEMA_FILE_PATH=${chalk.green(process.env.INSTANT_SCHEMA_FILE_PATH)}`,
+      `Using ${envNameForDisplay('INSTANT_SCHEMA_FILE_PATH')}=${chalk.green(process.env.INSTANT_SCHEMA_FILE_PATH)}`,
     );
   }
   return path;
@@ -86,7 +106,7 @@ function getEnvPermsPathWithLogging(): string | undefined {
   const path = process.env.INSTANT_PERMS_FILE_PATH;
   if (path) {
     console.log(
-      `Using INSTANT_PERMS_FILE_PATH=${chalk.green(process.env.INSTANT_PERMS_FILE_PATH)}`,
+      `Using ${envNameForDisplay('INSTANT_PERMS_FILE_PATH')}=${chalk.green(process.env.INSTANT_PERMS_FILE_PATH)}`,
     );
   }
   return path;
@@ -96,7 +116,7 @@ function getEnvEmailPathWithLogging(): string | undefined {
   const path = process.env.INSTANT_EMAIL_FILE_PATH;
   if (path) {
     console.log(
-      `Using INSTANT_EMAIL_FILE_PATH=${chalk.green(process.env.INSTANT_EMAIL_FILE_PATH)}`,
+      `Using ${envNameForDisplay('INSTANT_EMAIL_FILE_PATH')}=${chalk.green(process.env.INSTANT_EMAIL_FILE_PATH)}`,
     );
   }
   return path;
@@ -148,7 +168,7 @@ export function getSchemaReadCandidates(): ConfigCandidate[] {
     transform: transformImports,
   });
 
-  return candidates;
+  return withSidekickFileNames(candidates);
 }
 
 export function getPermsReadCandidates(): ConfigCandidate[] {
@@ -190,7 +210,7 @@ export function getPermsReadCandidates(): ConfigCandidate[] {
     transform: transformImports,
   });
 
-  return candidates;
+  return withSidekickFileNames(candidates);
 }
 
 export function getEmailReadCandidates(emailPath?: string): ConfigCandidate[] {
@@ -232,7 +252,7 @@ export function getEmailReadCandidates(emailPath?: string): ConfigCandidate[] {
     transform: transformImports,
   });
 
-  return candidates;
+  return withSidekickFileNames(candidates);
 }
 
 export function getSchemaPathToWrite(existingPath?: string): string {

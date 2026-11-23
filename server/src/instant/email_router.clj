@@ -6,6 +6,7 @@
    [instant.postmark :as postmark]
    [instant.resend :as resend]
    [instant.sendgrid :as sendgrid]
+   [instant.util.env :as env]
    [instant.util.exception :as ex]
    [instant.util.tracer :as tracer]))
 
@@ -16,8 +17,9 @@
 (defn missing-sender-message []
   (str "Email is configured on this server, but no sender address is set for "
        "this email. The server operator needs to set "
-       (string/join ", " (or (seq (config/missing-email-sender-env-vars))
-                             (vals config/email-sender-env-vars)))
+       (string/join ", " (map env/describe
+                              (or (seq (config/missing-email-sender-env-vars))
+                                  (vals config/email-sender-env-vars))))
        "."))
 
 (defn assert-sender!

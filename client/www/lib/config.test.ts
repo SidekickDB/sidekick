@@ -14,12 +14,12 @@ test('builds dashboard config from an API URI', () => {
 
 test('requires valid self-hosted dashboard config', () => {
   expect(() => requireSelfHostedConfig(undefined)).toThrow(
-    'Self-hosted dashboard requires INSTANT_API_URI or INSTANT_BACKEND_URL to be a valid HTTP(S) URL.',
+    'Self-hosted dashboard requires SIDEKICK_API_URI or SIDEKICK_BACKEND_URL (or the older INSTANT_ names) to be a valid HTTP(S) URL.',
   );
   expect(() => requireSelfHostedConfig('not a url')).toThrow(
-    'Self-hosted dashboard requires INSTANT_API_URI or INSTANT_BACKEND_URL to be a valid HTTP(S) URL.',
+    'Self-hosted dashboard requires SIDEKICK_API_URI or SIDEKICK_BACKEND_URL (or the older INSTANT_ names) to be a valid HTTP(S) URL.',
   );
   expect(() => requireSelfHostedConfig('ftp://api.example.com')).toThrow(
-    'Self-hosted dashboard requires INSTANT_API_URI or INSTANT_BACKEND_URL to be a valid HTTP(S) URL.',
+    'Self-hosted dashboard requires SIDEKICK_API_URI or SIDEKICK_BACKEND_URL (or the older INSTANT_ names) to be a valid HTTP(S) URL.',
   );
 });

@@ -4,7 +4,8 @@
             [clojure.spec.alpha :as s]
             [clojure.string]
             [clojure.walk :as w]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [instant.util.env :as env])
   (:import (org.apache.commons.codec.binary Hex)))
 
 (defn hex-encoded? [^String s]
@@ -177,7 +178,8 @@
 
 (defn config-env-var-name
   "The env var that overrides `config-key`, e.g. :s3-endpoint ->
-   INSTANT_CONFIG_S3_ENDPOINT."
+   INSTANT_CONFIG_S3_ENDPOINT. It can also be set under its SIDEKICK_ name,
+   SIDEKICK_CONFIG_S3_ENDPOINT, which wins (see instant.util.env)."
   [config-key]
   (str "INSTANT_CONFIG_"
        (-> (name config-key)
@@ -191,7 +193,7 @@
   [obfuscate]
   (reduce (fn [acc k]
             (if-let [t (overridable-key-type k)]
-              (if-let [v (System/getenv (config-env-var-name k))]
+              (if-let [v (env/getenv (config-env-var-name k))]
                 (assoc acc k (if (= t :secret) (obfuscate v) v))
                 acc)
               acc))

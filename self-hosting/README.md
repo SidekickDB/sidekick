@@ -4,6 +4,26 @@ Documentation for self hosting is available at [www.instantdb.com/docs/self-host
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
 
+## Variable names
+
+Settings are named `SIDEKICK_*`, for example `SIDEKICK_BACKEND_URL`. Each one
+can also be set under its older `INSTANT_*` name (`INSTANT_BACKEND_URL`), so an
+existing `.env` keeps working. When both are set, the `SIDEKICK_*` value wins;
+an empty `SIDEKICK_*` value counts as unset.
+
+- `docker-compose.yml`, `docker-compose.with-caddy.yml` and
+  `docker-compose.local.yml` accept both names from `.env`, with any server
+  image.
+- `deploy-swarm.sh` accepts both names from the environment. `swarm.yml` itself
+  reads only the `INSTANT_*` names, because `docker stack` cannot fall back from
+  one variable to another; deploy with the script, or set the `INSTANT_*` names
+  when you run `docker stack deploy` yourself.
+- A server started without these files reads both names too, including
+  `SIDEKICK_CONFIG_*` for the `INSTANT_CONFIG_*` overrides of the config file.
+
+Variables without the prefix (`POSTGRES_PASSWORD`, `STORAGE_*`, `S3_*`,
+`JAVA_OPTS` and the others) have one name.
+
 ## Required secrets
 
 `docker-compose.yml`, `docker-compose.with-caddy.yml` and `swarm.yml` have no
@@ -89,12 +109,12 @@ raise `SERVER_MEMORY_LIMIT`, or lower `-XX:MaxRAMPercentage` or add
 
 The server only prefetches Google's OpenID configuration and signing keys at
 startup when dashboard Google sign-in is configured
-(`INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` and `_SECRET`). Otherwise they are
+(`SIDEKICK_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` and `_SECRET`). Otherwise they are
 fetched on first use, for example when an app uses Google sign-in.
 
 Outbound requests to user-supplied URLs (webhooks, OAuth discovery and keys)
 resolve hostnames with DNS-over-HTTPS through Cloudflare and Google by default.
-Set `INSTANT_DNS_OVER_HTTPS_URLS` to a comma-separated list of DoH endpoints to
+Set `SIDEKICK_DNS_OVER_HTTPS_URLS` to a comma-separated list of DoH endpoints to
 use your own, or to `system` to use only the system resolver. Private and
 loopback addresses are rejected in every mode.
 
@@ -103,7 +123,7 @@ cannot resolve names that exist only inside your network (`/etc/hosts`, search
 domains, Docker's embedded DNS, private zones), which keeps app owners from
 pointing a webhook or an OAuth provider at an internal service by name. On a
 network that blocks the DoH endpoints, those requests fail with a DNS error
-after up to 10 seconds; set `INSTANT_DNS_OVER_HTTPS_URLS=system` there. With
+after up to 10 seconds; set `SIDEKICK_DNS_OVER_HTTPS_URLS=system` there. With
 `system`, internal names resolve, and the address filter is the only
 protection left: it rejects private, loopback and link-local addresses, but
 not internal services that use public address space.

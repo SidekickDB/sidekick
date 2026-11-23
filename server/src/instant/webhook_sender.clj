@@ -5,6 +5,7 @@
    [instant.util.async :as ua]
    [instant.util.crypt :as crypt]
    [instant.util.defrecord :refer [defrecord-once]]
+   [instant.util.env :as env]
    [instant.util.exception :as ex]
    [instant.util.tracer :as tracer])
   (:import
@@ -39,7 +40,8 @@
 (defn make-dns-client ^DnsOverHttps [executor url]
   (let [parsed-url (HttpUrl/parse url)]
     (when-not parsed-url
-      (throw (ex-info (str "Invalid DNS-over-HTTPS URL in INSTANT_DNS_OVER_HTTPS_URLS: " url)
+      (throw (ex-info (str "Invalid DNS-over-HTTPS URL in "
+                           (env/describe "INSTANT_DNS_OVER_HTTPS_URLS") ": " url)
                       {:url url})))
     (.. (DnsOverHttps$Builder.)
         (client (.. (OkHttpClient$Builder.)

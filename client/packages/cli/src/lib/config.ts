@@ -13,14 +13,16 @@ const HttpUrl = Schema.URL.pipe(
 );
 
 export const missingApiUrlMessage =
-  'No SidekickDB server URL configured. Set the INSTANT_CLI_API_URI ' +
-  'environment variable (for example INSTANT_CLI_API_URI=https://sidekick.example.com) ' +
-  'or add `apiURI` to instant.config.ts. SidekickDB has no default server.';
+  'No SidekickDB server URL configured. Set the SIDEKICK_CLI_API_URI ' +
+  'environment variable (for example SIDEKICK_CLI_API_URI=https://sidekick.example.com; ' +
+  'its older name, INSTANT_CLI_API_URI, works too) ' +
+  'or add `apiURI` to sidekick.config.ts or instant.config.ts. SidekickDB has no default server.';
 
 export const missingDashUrlMessage =
-  'No SidekickDB dashboard URL configured. Set the INSTANT_CLI_DASH_URI ' +
-  'environment variable (for example INSTANT_CLI_DASH_URI=https://dash.sidekick.example.com) ' +
-  'or add `dashURI` to instant.config.ts. SidekickDB has no default dashboard.';
+  'No SidekickDB dashboard URL configured. Set the SIDEKICK_CLI_DASH_URI ' +
+  'environment variable (for example SIDEKICK_CLI_DASH_URI=https://dash.sidekick.example.com; ' +
+  'its older name, INSTANT_CLI_DASH_URI, works too) ' +
+  'or add `dashURI` to sidekick.config.ts or instant.config.ts. SidekickDB has no default dashboard.';
 
 export const getBaseUrl = Effect.gen(function* () {
   const setEnv = yield* Config.string('INSTANT_CLI_API_URI').pipe(
