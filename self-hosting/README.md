@@ -4,6 +4,76 @@ Documentation for self hosting is available at [www.instantdb.com/docs/self-host
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
 
+## Required secrets
+
+`docker-compose.yml`, `docker-compose.with-caddy.yml` and `swarm.yml` have no
+default credentials. They refuse to start, naming the missing variable, until
+these are set in `.env` (or in the environment for `swarm.yml`):
+
+| Variable | Used for | Generate with |
+|---|---|---|
+| `POSTGRES_PASSWORD` | Postgres superuser, and the server's `DATABASE_URL` | `openssl rand -hex 32` |
+| `STORAGE_ACCESS_KEY` | RustFS access key, and the server's S3 access key ID | `openssl rand -hex 16` |
+| `STORAGE_SECRET_KEY` | RustFS secret key, and the server's S3 secret key | `openssl rand -hex 32` |
+
+```sh
+cp .env.example .env
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)" >> .env
+echo "STORAGE_ACCESS_KEY=$(openssl rand -hex 16)" >> .env
+echo "STORAGE_SECRET_KEY=$(openssl rand -hex 32)" >> .env
+```
+
+Generate them once and keep them. Postgres and RustFS store the first values
+they start with in their volumes, so changing them later locks the server out.
+Hex values are safe inside `DATABASE_URL`; a password you choose yourself must
+not contain URL characters such as `@ : / ?`. When using AWS S3, set the two
+storage variables to your AWS access key ID and secret access key.
+
+`deploy-swarm.sh` reads the same variables, plus `SSH_HOST`, `DASHBOARD_URL`,
+`SERVER_URL` and `S3_PUBLIC_ENDPOINT`, from the environment and stops if one is
+missing. It does not generate secrets, because a new value on every deploy
+would not match the existing volumes.
+
+## Local development
+
+`docker-compose.local.yml` is for local development only. It builds the server
+and dashboard from source, binds every port to `127.0.0.1`, and falls back to
+the well-known credentials `pass` (Postgres) and `rustfsadmin` (storage) when
+`.env` does not set them. Do not use it for a deployment.
+
+## Server memory
+
+The server container has a memory limit, `SERVER_MEMORY_LIMIT` (default `2g`),
+and `JAVA_OPTS` defaults to:
+
+```
+-XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000
+```
+
+The heap may grow to 60% of the container limit (1.2 GiB with the default),
+leaving the rest for metaspace, thread stacks and native buffers. Without a
+container limit the JVM would size its heap from host memory instead. The other
+two flags are the native-memory settings upstream uses for its own deployment:
+they cap the size of cached NIO buffers and return freed native memory to the
+OS every 60 seconds. Raise `SERVER_MEMORY_LIMIT` on a bigger host; setting
+`JAVA_OPTS` replaces all three defaults, so repeat the ones you want to keep.
+
+## Startup and DNS
+
+The server only prefetches Google's OpenID configuration and signing keys at
+startup when dashboard Google sign-in is configured
+(`INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` and `_SECRET`). Otherwise they are
+fetched on first use, for example when an app uses Google sign-in.
+
+Outbound requests to user-supplied URLs (webhooks, OAuth discovery and keys)
+resolve hostnames with DNS-over-HTTPS through Cloudflare and Google by default,
+and fall back to the system resolver when both fail (after up to 10 seconds
+when they time out). Set
+`INSTANT_DNS_OVER_HTTPS_URLS` to a comma-separated list of DoH endpoints to use
+your own, or to `system` to use only the system resolver, for example on a
+network that blocks those endpoints. Private and loopback addresses are
+rejected in every mode.
+
 ## Object storage
 
 The compose files run [RustFS](https://rustfs.com), an S3-compatible object

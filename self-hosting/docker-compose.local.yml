@@ -1,9 +1,15 @@
+# LOCAL DEVELOPMENT ONLY. This file builds the server and dashboard from
+# source and falls back to well-known credentials (Postgres password "pass",
+# storage keys "rustfsadmin") when .env does not set them. Every port is bound
+# to 127.0.0.1 so those credentials are not reachable from other machines.
+# Do not use it for a deployment; use docker-compose.yml,
+# docker-compose.with-caddy.yml or swarm.yml, which require real secrets.
 services:
   postgres:
     # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
     image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
     ports:
-      - "8890:5432"
+      - "127.0.0.1:8890:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
       POSTGRES_USER: ${POSTGRES_USER:-instant}
@@ -38,7 +44,7 @@ services:
       context: ../client
       dockerfile: Dockerfile.www
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/dash').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 10s
@@ -55,8 +61,8 @@ services:
     image: ${STORAGE_IMAGE:-rustfs/rustfs:1.0.6}
     restart: always
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     environment:
       RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
       RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
@@ -109,7 +115,7 @@ services:
       context: ../server
       dockerfile: Dockerfile.self-hosted
     ports:
-      - "8888:8888"
+      - "127.0.0.1:8888:8888"
     healthcheck:
       # Liveness only: the web server starts last during boot. Not /health/system,
       # which reports a shared wal-errors row that a crashed process can leave
@@ -120,7 +126,12 @@ services:
       timeout: 5s
       retries: 5
       start_period: 180s
+    mem_limit: ${SERVER_MEMORY_LIMIT:-2g}
     environment:
+      # JVM flags. Defaults: heap up to 60% of the container memory limit, and
+      # upstream's native-memory bounds (cap on cached NIO buffers, periodic
+      # return of freed native memory). Setting JAVA_OPTS replaces all of them.
+      JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000}"
       WAL_HISTORY_STORAGE: pg
       DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:-pass}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
       CONNECTION_POOL_SIZE: ${CONNECTION_POOL_SIZE:-20}
@@ -129,6 +140,9 @@ services:
       INSTANT_SUPERUSER_EMAIL: ${INSTANT_SUPERUSER_EMAIL:-}
       INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID:-}
       INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET:-}
+      # DNS-over-HTTPS resolvers for outbound requests (webhooks, OAuth); "system"
+      # uses the system resolver. Unset means Cloudflare and Google DoH.
+      INSTANT_DNS_OVER_HTTPS_URLS: ${INSTANT_DNS_OVER_HTTPS_URLS:-}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}
