@@ -2796,7 +2796,7 @@
 
   (GET "/dash/cli/version" [] (response/ok {:min-version cli-min-version}))
 
-
+  ;; SidekickDB: GET /dash/session_counts is removed, see UPSTREAM.md.
   (POST "/dash/apps/:app_id/checkout_session" [] checkout-session-post)
   (POST "/dash/apps/:app_id/portal_session" [] create-portal)
   (POST "/dash/apps/:app_id/self_hosted_subscription" [] activate-self-hosted-app-subscription-post)

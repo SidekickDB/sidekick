@@ -510,6 +510,7 @@
         (agg/start-global))
       (with-log-init :ephemeral-app
         (ephemeral-app/start))
+      ;; SidekickDB: the session-counter step is removed, see UPSTREAM.md.
       (with-log-init :join-room-logger
         (join-room-logger/start))
       (with-log-init :indexing-jobs
