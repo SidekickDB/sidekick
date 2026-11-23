@@ -113,8 +113,11 @@ gh workflow run sidekick-release-npm.yml -R SidekickDB/sidekick --ref main \
   -f dry_run=false
 ```
 
-Every release goes to the `latest` dist-tag. A version that is already on npm
-is skipped, so a run that failed halfway can be re-run as it is; a run in which
+Every release goes to the `latest` dist-tag; there is no `next` channel (a
+plain version published under `next` could not be promoted by re-running,
+since the version would already be on npm). Until the first release, `latest`
+of every package is the empty `0.0.0` placeholder from `claim-names`. A version
+that is already on npm is skipped, so a run that failed halfway can be re-run as it is; a run in which
 every package is already published fails and asks for a version bump.
 
 ### Version rules
