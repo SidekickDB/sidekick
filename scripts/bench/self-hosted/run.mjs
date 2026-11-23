@@ -337,8 +337,8 @@ async function healthAsync(service) {
 // Polls one condition every 250 ms and returns the ms from t0 at which a
 // check that succeeded completed. Each signal has its own poller, so a slow
 // check cannot delay another signal's timestamp.
-async function pollUntil(t0, check, timeoutMs) {
-  while (now() - t0 < timeoutMs) {
+async function pollUntil(t0, check, timeoutMs, stop = { stopped: false }) {
+  while (now() - t0 < timeoutMs && !stop.stopped) {
     if (await check()) return now() - t0;
     await sleep(250);
   }
@@ -356,12 +356,22 @@ async function startStack(timeoutMs = 360_000) {
   });
   let upStderr = '';
   up.stderr.on('data', (d) => (upStderr += d));
+  // If up -d fails, stop the pollers at once instead of waiting them out.
+  const stop = { stopped: false };
   const upDone = new Promise((resolve) =>
-    up.on('close', (code) => resolve({ code, ms: now() - t0 })),
+    up.on('close', (code) => {
+      if (code !== 0) stop.stopped = true;
+      resolve({ code, ms: now() - t0 });
+    }),
   );
   const [serverHttp, walOk, serverHealthy, wwwHealthy, upResult] =
     await Promise.all([
-      pollUntil(t0, async () => (await httpOk(`${apiURI}/`)).ok, timeoutMs),
+      pollUntil(
+        t0,
+        async () => (await httpOk(`${apiURI}/`)).ok,
+        timeoutMs,
+        stop,
+      ),
       pollUntil(
         t0,
         async () => {
@@ -369,16 +379,19 @@ async function startStack(timeoutMs = 360_000) {
           return h.ok && /"wal"\s*:\s*"ok"/.test(h.body);
         },
         timeoutMs,
+        stop,
       ),
       pollUntil(
         t0,
         async () => (await healthAsync('server')) === 'healthy',
         timeoutMs,
+        stop,
       ),
       pollUntil(
         t0,
         async () => (await healthAsync('www')) === 'healthy',
         timeoutMs,
+        stop,
       ),
       upDone,
     ]);
@@ -389,7 +402,12 @@ async function startStack(timeoutMs = 360_000) {
     server_healthy_ms: serverHealthy,
     www_healthy_ms: wwwHealthy,
   };
-  if (upResult.code !== 0 || Object.values(marks).some((v) => v === null)) {
+  if (upResult.code !== 0) {
+    throw new Error(
+      `docker compose up -d exited ${upResult.code}: ${upStderr.slice(-1500)}`,
+    );
+  }
+  if (Object.values(marks).some((v) => v === null)) {
     throw new Error(
       `stack not ready after ${timeoutMs} ms: ${JSON.stringify(marks)} ${upStderr.slice(-1000)}`,
     );
@@ -605,6 +623,13 @@ for (const image of [serverImage, dashboardImage]) {
 }
 log('pulling images', registryServices.join(', '));
 dc('pull', '--quiet', ...registryServices);
+for (const image of [serverImage, dashboardImage]) {
+  if (localImageId(image) !== localImages[image]) {
+    throw new Error(
+      `${image} changed during the pull: not the image built for this run`,
+    );
+  }
+}
 results.images = imageInfo();
 
 let failed = false;
