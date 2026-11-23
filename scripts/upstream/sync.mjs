@@ -580,7 +580,13 @@ function afterMerge({ o, root, state, attribution, conf }) {
     handResolved: continued
       ? [...new Set([...(state.handResolved || []), ...(state.leftForHand || [])])]
       : state.handResolved || [],
-    leftForHand: [...new Set([...(continued ? [] : state.leftForHand || []), ...remaining.map((r) => r.file)])],
+    leftForHand: [
+      ...new Set([
+        ...(continued ? [] : state.leftForHand || []),
+        ...remaining.map((r) => r.file),
+        ...norm.result.leftovers.map((l) => l.file),
+      ]),
+    ],
   };
   if (o.reportFile) fs.writeFileSync(o.reportFile, report.join('\n') + '\n');
   fs.writeFileSync(statePath(root), JSON.stringify(next, null, 2));
