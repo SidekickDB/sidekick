@@ -16,6 +16,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "build": "rm -rf dist && svelte-package -i src/lib -o dist",
     "dev": "svelte-package -i src/lib -o dist --watch",
