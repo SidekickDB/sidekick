@@ -28,7 +28,7 @@ Instant's streams have no dependency on Redis and they never expire.
 
 ## Usage
 
-You can provide your `appId` and `adminToken` as arguments to `createResumableStreamContext` or export `INSTANT_APP_ID` and `INSTANT_APP_ADMIN_TOKEN`.
+You can provide your `appId`, `adminToken` and `apiURI` as arguments to `createResumableStreamContext` or export `INSTANT_APP_ID`, `INSTANT_APP_ADMIN_TOKEN` and `INSTANT_API_URI`. The server URL is required: there is no default server.
 
 ### Idempotent API
 
@@ -40,6 +40,7 @@ const streamContext = createResumableStreamContext({
   waitUntil: after,
   appId: YOUR_INSTANT_APP_ID, // or export INSTANT_APP_ID
   adminToken: YOUR_INSTANT_APP_ADMIN_TOKEN, // or export INSTANT_APP_ADMIN_TOKEN
+  apiURI: YOUR_SIDEKICK_SERVER_URL, // or export INSTANT_API_URI
 });
 
 export async function GET(
@@ -71,6 +72,7 @@ const streamContext = createResumableStreamContext({
   waitUntil: after,
   appId: YOUR_INSTANT_APP_ID, // or export INSTANT_APP_ID
   adminToken: YOUR_INSTANT_APP_ADMIN_TOKEN, // or export INSTANT_APP_ADMIN_TOKEN
+  apiURI: YOUR_SIDEKICK_SERVER_URL, // or export INSTANT_API_URI
 });
 
 export async function POST(
