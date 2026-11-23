@@ -5,8 +5,8 @@ description: Work with upstream InstantDB from the SidekickDB fork - check for n
 
 # Upstream
 
-`UPSTREAM.md` is the authority. Read the section named below before acting;
-this file only says which section and what not to do.
+`UPSTREAM.md` is the authority. Read the section named below before acting and
+follow its commands; this file only says which section and what not to do.
 
 - `upstream` = `instantdb/instant`, fetch only. Its push URL is `DISABLED`.
   Never push, comment, or open pull requests or issues there.
@@ -17,27 +17,39 @@ this file only says which section and what not to do.
 ## Is there anything new?
 
 ```sh
-git fetch upstream
-git log --oneline $(git merge-base origin/main upstream/main)..upstream/main
+node scripts/upstream/sync.mjs --report
 ```
+
+Fetches and reports only: new upstream commits, the areas they touch, and which
+SidekickDB divergences they overlap.
 
 ## Sync (merge upstream main)
 
-`UPSTREAM.md`, "The routine": report, merge, resolve, after the merge. The
-script is `scripts/upstream/sync.mjs`. Always a merge commit, never a rebase.
-For each conflict, find the file under "Intentional divergences": every entry
-says how to resolve it. Afterwards work through "Re-check after every sync" and
-update the "Last synced upstream commit" table.
+`UPSTREAM.md`, "The routine": report, merge, resolve, after the merge. Always a
+merge commit, never a rebase. For each conflict, find the file under
+"Intentional divergences": every entry says how to resolve it. Afterwards work
+through "Re-check after every sync" and update the "Last synced upstream
+commit" table. A sync pull request follows the routine's own test
+instructions.
 
 ## Take an open upstream pull request early
 
-`UPSTREAM.md`, "Cherry-picking open upstream PRs". Open upstream PRs are local
-refs `upstream-pr/<number>`.
+`UPSTREAM.md`, "Cherry-picking open upstream PRs", is the procedure: fetch
+`pull/<N>/head`, cherry-pick one commit at a time keeping the author, add the
+`Upstream-PR:` and `Upstream-Commit:` trailers, run
+`scripts/upstream/normalize-rename.mjs` if it touches `client/`, and compare
+`git patch-id --stable` with upstream's.
+
+To look before deciding:
 
 ```sh
-git diff $(git merge-base upstream/main upstream-pr/<n>)..upstream-pr/<n> --stat
-git merge-tree --write-tree origin/main upstream-pr/<n>   # read-only: does it conflict?
+git fetch --no-tags upstream pull/<N>/head   # nothing is written upstream
+git log --oneline upstream/main..FETCH_HEAD  # the PR's commits
+git diff upstream/main...FETCH_HEAD --stat
 ```
+
+Some clones also have older fetches as `upstream-pr/<N>`; they go stale, so
+fetch again.
 
 Before taking one, check:
 
@@ -49,9 +61,3 @@ Before taking one, check:
 
 Record what was taken under "Upstream fixes taken early" so the next sync knows
 the change will arrive again.
-
-## Watch list
-
-Not taken, to look at again at each sync: #2913, #2924 (large query performance
-changes tied to specific upstream apps), #2854 (changes the IndexedDB schema
-version).

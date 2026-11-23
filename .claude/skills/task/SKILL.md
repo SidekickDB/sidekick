@@ -13,7 +13,7 @@ items, not issues. Rules for which card may be taken are in
 
 ```sh
 gh project item-list 1 --owner SidekickDB --limit 200 --format json \
-  --jq '.items[] | select(.status=="Ready") | "\(.priority) \(.area) | \(.title)"'
+  --jq '.items[] | select(.status=="Ready") | "\(.priority) \(.area) | \(.title)"' | sort
 ```
 
 Each item has `id` (the project item, `PVTI_…`), `content.id` (the draft,
@@ -33,8 +33,8 @@ gh project item-edit --id <PVTI_…> --project-id <project id> \
 ```
 
 - Start: `In progress`.
-- Pull request open: stay `In progress`, add a `PR:` line with the link at the
-  top of the body.
+- Pull request open: stay `In progress`, add a `PR: <link>` line as the very
+  first line of the body (above `Blocked by:` if there is one).
 - Merged: `Done`.
 
 ## Edit a card's text
@@ -43,7 +43,8 @@ gh project item-edit --id <PVTI_…> --project-id <project id> \
 gh project item-edit --id <DI_…> --title "<title>" --body "<full new body>"
 ```
 
-`--body` replaces the whole body. Pass the title too, or it is cleared.
+`--body` replaces the whole body. Pass the title too: older `gh` versions
+clear it otherwise.
 
 ## Add a card
 
@@ -59,6 +60,7 @@ The body must stand on its own. Someone who has read nothing else must be able
 to do the task from it:
 
 ```markdown
+PR: <link>                      (once a pull request exists)
 Blocked by: <card title>        (only if blocked)
 
 ## Context

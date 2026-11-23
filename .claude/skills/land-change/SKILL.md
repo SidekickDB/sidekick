@@ -34,9 +34,16 @@ Never commit to `main`.
 ```sh
 node scripts/upstream/check.mjs          # no publishing job enabled, no Instant-owned host added
 node --test scripts/upstream/*.test.mjs  # if scripts/upstream changed
-cd client && pnpm exec tsc --noEmit      # types; do not run `pnpm build`
-cd client && pnpm run check-format
 ```
+
+For client changes, after `pnpm install` in `client/`:
+
+```sh
+(cd client/packages/<pkg> && pnpm exec tsc --noEmit)   # or client/www; types of the package you changed
+(cd client && pnpm run check-format)
+```
+
+Do not run `pnpm build` in `client/` to check your work.
 
 Server (Clojure) tests run in CI only. Compose files are rendered in CI too
 (`sidekick-self-hosting-check.yml`); Compose versions differ, so do not trust a
@@ -63,7 +70,8 @@ messages or comments. Put the PR link in the card.
 
 ## 6. Merge
 
-Only on the owner's word, and only as a merge commit:
+Only on the owner's word (the command asks for confirmation), and only as a
+merge commit:
 
 ```sh
 gh pr merge <n> -R SidekickDB/sidekick --merge

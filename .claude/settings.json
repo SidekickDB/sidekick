@@ -5,8 +5,12 @@
       "Bash(git log:*)",
       "Bash(git diff:*)",
       "Bash(git show:*)",
-      "Bash(git branch:*)",
-      "Bash(git fetch:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git branch --list:*)",
+      "Bash(git branch -r:*)",
+      "Bash(git branch -vv)",
+      "Bash(git fetch origin)",
+      "Bash(git fetch upstream)",
       "Bash(git merge-base:*)",
       "Bash(git cherry:*)",
       "Bash(gh repo set-default --view)",
@@ -21,10 +25,7 @@
       "Bash(gh run view:*)",
       "Bash(node scripts/upstream/check.mjs:*)"
     ],
-    "deny": [
-      "Bash(git push upstream:*)",
-      "Bash(gh pr merge --squash:*)",
-      "Bash(gh pr merge --rebase:*)"
-    ]
+    "ask": ["Bash(gh pr merge:*)"],
+    "deny": ["Bash(git push upstream:*)"]
   }
 }

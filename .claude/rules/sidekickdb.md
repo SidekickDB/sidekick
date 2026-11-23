@@ -54,8 +54,8 @@ Use the `land-change` skill. In short:
   No squash, no rebase-merge. The owner says when to merge.
 - Commit and push only when asked. Releases, repository settings and anything
   that contacts a third party are the owner's.
-- Server (Clojure) tests run in CI only; there is no JVM on the maintainer's
-  machine. The benchmark workflow takes 35 to 60 minutes: batch changes to its
+- Server (Clojure) tests run in CI; there is no JVM on the maintainer's
+  machine. An upstream sync follows the test steps in `UPSTREAM.md`. The benchmark workflow takes 35 to 60 minutes: batch changes to its
   harness.
 - Every intentional difference from upstream is recorded in `UPSTREAM.md` and
   `scripts/upstream/divergences.mjs`, and marked `SidekickDB:` in a comment
