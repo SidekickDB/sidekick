@@ -27,6 +27,33 @@
       "Bash(node scripts/upstream/check.mjs:*)"
     ],
     "ask": ["Bash(gh pr merge:*)"],
-    "deny": ["Bash(git push upstream:*)"]
+    "deny": [
+      "Bash(git push upstream:*)",
+      "Bash(git push *instantdb/instant*)",
+      "Bash(gh pr create *-R instantdb/instant*)",
+      "Bash(gh pr create *--repo instantdb/instant*)",
+      "Bash(gh pr comment *-R instantdb/instant*)",
+      "Bash(gh pr comment *--repo instantdb/instant*)",
+      "Bash(gh pr review *-R instantdb/instant*)",
+      "Bash(gh pr review *--repo instantdb/instant*)",
+      "Bash(gh pr edit *-R instantdb/instant*)",
+      "Bash(gh pr edit *--repo instantdb/instant*)",
+      "Bash(gh pr close *-R instantdb/instant*)",
+      "Bash(gh pr close *--repo instantdb/instant*)",
+      "Bash(gh pr reopen *-R instantdb/instant*)",
+      "Bash(gh pr reopen *--repo instantdb/instant*)",
+      "Bash(gh pr merge *-R instantdb/instant*)",
+      "Bash(gh pr merge *--repo instantdb/instant*)",
+      "Bash(gh issue create *-R instantdb/instant*)",
+      "Bash(gh issue create *--repo instantdb/instant*)",
+      "Bash(gh issue comment *-R instantdb/instant*)",
+      "Bash(gh issue comment *--repo instantdb/instant*)",
+      "Bash(gh issue edit *-R instantdb/instant*)",
+      "Bash(gh issue edit *--repo instantdb/instant*)",
+      "Bash(gh issue close *-R instantdb/instant*)",
+      "Bash(gh issue close *--repo instantdb/instant*)",
+      "Bash(gh issue reopen *-R instantdb/instant*)",
+      "Bash(gh issue reopen *--repo instantdb/instant*)"
+    ]
   }
 }

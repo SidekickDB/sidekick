@@ -28,6 +28,11 @@ git worktree remove <tmp dir>
 `gh pr diff <n> -R SidekickDB/sidekick` shows the change; the worktree shows
 the files in full.
 
+Remove the worktree before you report, also when a check failed or you stopped
+early. Use `git worktree remove` (add `--force` if checks left files behind),
+not `rm`: deleting the directory leaves the worktree registered. Afterwards
+`git worktree list` must not show `<tmp dir>`.
+
 ## What to check
 
 1. **Does it do the card?** Compare the diff with the card's "Done when".
