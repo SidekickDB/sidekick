@@ -112,6 +112,15 @@ export const DIVERGENCES = {
       "in a way the harness depends on, keep upstream's change and adjust run.mjs or workload.mjs; " +
       "re-run the workflow and compare against the last kept result only on the same runner label.",
   },
+  "two-node-smoke": {
+    title:
+      "Two-node smoke test: two server nodes against one Postgres (scripts/smoke/two-node) and a read-only workflow",
+    prs: [],
+    resolve:
+      "Upstream has none of these files. If upstream changes self-hosting/docker-compose.yml, swarm.yml, " +
+      "server/Dockerfile.self-hosted or how init-hz discovers peers (SWARM_SERVICE_NAME, tasks.<name>, ports " +
+      "5701/5801), keep upstream's change and adapt compose.two-node.yml or run.mjs, then run the workflow.",
+  },
   "runtime-mode": {
     title: "Self-hosted runtime mode (INSTANT_RUNTIME_MODE / SIDEKICK_RUNTIME_MODE)",
     prs: [22],

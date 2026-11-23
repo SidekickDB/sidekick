@@ -594,3 +594,29 @@ test("the self-hosting compose check workflow stays read-only", () => {
     r1.failures.join("\n"),
   );
 });
+
+test("the two-node smoke workflow stays read-only and does not push", () => {
+  const file = "sidekick-two-node-smoke.yml";
+  const r0 = withWorkflows();
+  assert.deepEqual(r0.failures, []);
+  assert.ok(
+    !r0.warnings.some((w) => w.includes(file)),
+    r0.warnings.join("\n"),
+  );
+  const r1 = withWorkflows((d) =>
+    edit(d, file, "  contents: read\n", "  contents: read\n  packages: write\n"),
+  );
+  assert.ok(
+    r1.failures.some(
+      (f) => f.includes(file) && f.includes("write permission"),
+    ),
+    r1.failures.join("\n"),
+  );
+  const r2 = withWorkflows((d) =>
+    edit(d, file, "          push: false\n", "          push: true\n"),
+  );
+  assert.ok(
+    r2.failures.some((f) => f.includes(file) && f.includes("pushes images")),
+    r2.failures.join("\n"),
+  );
+});

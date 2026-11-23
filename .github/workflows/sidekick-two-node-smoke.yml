@@ -1,0 +1,131 @@
+# SidekickDB: boots two server nodes against one Postgres, found by each other
+# the way the replicas of self-hosting/swarm.yml are, and checks that a write
+# on one node reaches a subscriber on the other and that presence is shared
+# (scripts/smoke/two-node). See the README there for what is and is not the
+# same as a swarm deployment.
+#
+# Read-only: no secrets, no write permissions, nothing is pushed or published.
+# The image is built and loaded locally; the GitHub Actions cache keeps its
+# layers between runs. Runs on demand and on pull requests that change
+# self-hosting or clustering files.
+name: Two-node smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      restart:
+        description: Also restart node A and run the checks again
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - 'self-hosting/**'
+      - 'server/Dockerfile.self-hosted'
+      - 'server/src/instant/reactive/ephemeral.clj'
+      - 'server/src/instant/reactive/invalidator.clj'
+      - 'server/src/instant/util/hazelcast.clj'
+      - 'server/src/instant/grpc*.clj'
+      - 'scripts/smoke/two-node/**'
+      - 'scripts/bench/self-hosted/client.mjs'
+      - '.github/workflows/sidekick-two-node-smoke.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sidekick-two-node-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Two-node smoke test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: '10.2.0'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Get pnpm cache directory path
+        id: pnpm-cache-dir-path
+        run: echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('client/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Build @sidekickdb/core for the test clients
+        working-directory: client
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
+        run: |
+          pnpm i --frozen-lockfile --prefer-offline
+          pnpm exec turbo run build --filter='@sidekickdb/core...' --no-update-notifier
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      # Loaded into the local Docker only. Reads the layer cache of the image
+      # release workflow and of earlier runs of this one.
+      - name: Build the server image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: ./server
+          file: ./server/Dockerfile.self-hosted
+          load: true
+          push: false
+          provenance: false
+          tags: sidekick-smoke/server:local
+          cache-from: |
+            type=gha,scope=two-node-smoke-server
+            type=gha,scope=server-amd64
+          cache-to: type=gha,scope=two-node-smoke-server,mode=max
+
+      - name: Run the two-node smoke test
+        env:
+          RESTART: ${{ inputs.restart && '--restart' || '' }}
+        run: |
+          node scripts/smoke/two-node/run.mjs --skip-build \
+            --out "$RUNNER_TEMP/two-node-out" $RESTART
+
+      - name: Summary
+        if: always()
+        run: |
+          f="$RUNNER_TEMP/two-node-out/result.json"
+          if [ -f "$f" ]; then
+            {
+              echo '```json'
+              cat "$f"
+              echo
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload result and logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: two-node-smoke-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/two-node-out
+          retention-days: 14
+
+      - name: Remove containers and volumes
+        if: always()
+        run: |
+          docker ps -aq --filter label=com.docker.compose.project=sidekicktwonode | xargs -r docker rm -f
+          docker volume ls -q --filter label=com.docker.compose.project=sidekicktwonode | xargs -r docker volume rm

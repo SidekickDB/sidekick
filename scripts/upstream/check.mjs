@@ -129,6 +129,10 @@ export const BENCH_WORKFLOWS = ["sidekick-self-hosted-bench.yml"];
 // Upstream has no file with this name. No exception: every RISKY rule applies.
 export const SELF_HOSTING_CHECK_WORKFLOWS = ["sidekick-self-hosting-check.yml"];
 
+// SidekickDB's two-node smoke test (scripts/smoke/two-node). Upstream has no
+// file with this name. No exception: every RISKY rule applies.
+export const TWO_NODE_SMOKE_WORKFLOWS = ["sidekick-two-node-smoke.yml"];
+
 export const KNOWN_WORKFLOWS = [
   "clojure.yml",
   "js.yml",
@@ -136,6 +140,7 @@ export const KNOWN_WORKFLOWS = [
   ...DISPATCH_ONLY,
   ...BENCH_WORKFLOWS,
   ...SELF_HOSTING_CHECK_WORKFLOWS,
+  ...TWO_NODE_SMOKE_WORKFLOWS,
   ...Object.keys(RELEASE_WORKFLOWS),
 ];
 
