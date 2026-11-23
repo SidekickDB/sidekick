@@ -630,7 +630,7 @@ compose file, the self-hosted Dockerfiles or the core client API the workload
 uses, keep upstream's change and adapt the harness. Compare a new run only with
 a kept result from the same runner label.
 
-### Security policy
+### Security policy (PR #30)
 
 `SECURITY.md`: SidekickDB's own policy, reports through GitHub private
 vulnerability reporting on `SidekickDB/sidekick`.

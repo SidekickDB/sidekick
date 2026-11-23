@@ -128,7 +128,7 @@ export const DIVERGENCES = {
   },
   "security-policy": {
     title: "SidekickDB's own security policy (SECURITY.md)",
-    prs: [],
+    prs: [30],
     resolve: "Upstream has no SECURITY.md. If it adds one, keep SidekickDB's.",
   },
   rename: {
@@ -167,6 +167,7 @@ const PR_CATEGORY = {
   24: "own-fixes",
   27: "ci-lockdown",
   29: "removed-session-counter",
+  30: "security-policy",
 };
 
 export function categoryFor(pr, file) {
