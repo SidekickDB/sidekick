@@ -12,10 +12,11 @@ import {
 } from '@/components/ui';
 import { InviteToOrgDialog } from './InviteToOrgDialog';
 import { isMinRole, Role } from '@/pages/dash';
-import config from '@/lib/config';
+import config, { isSelfHosted } from '@/lib/config';
 import { useAuthToken } from '@/lib/auth';
 import { MemberMenu } from './MemberMenu';
 import { useOrgPaid } from '@/lib/hooks/useOrgPaid';
+import { ActivateSelfHostedPlanButton } from '../ActivateSelfHostedPlan';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,7 +98,13 @@ export const Members = () => {
     <div className="">
       <div className="flex items-end justify-between py-2">
         <SubsectionHeading>Current Members</SubsectionHeading>
-        {isMinRole('admin', myRole) && (
+        {/* Self-hosted dashboards have no billing tab to activate the plan from. */}
+        {isMinRole('admin', myRole) && isSelfHosted && !canAddMembers && (
+          <ActivateSelfHostedPlanButton
+            target={{ type: 'org', orgId: org.id }}
+          />
+        )}
+        {isMinRole('admin', myRole) && (canAddMembers || !isSelfHosted) && (
           <Tooltip>
             <TooltipTrigger>
               <Button

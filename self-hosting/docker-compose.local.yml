@@ -48,6 +48,8 @@ services:
     environment:
       # Where the backend url will be available externally
       - INSTANT_BACKEND_URL=${INSTANT_BACKEND_URL:-http://localhost:8888}
+      # Shows "Continue with Google" on the login page when set.
+      - INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID=${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID:-}
 
   storage:
     # S3-compatible object storage. Defaults to RustFS; STORAGE_IMAGE can point at

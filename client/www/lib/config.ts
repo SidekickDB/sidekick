@@ -12,7 +12,10 @@ type DashboardConfig = {
   websocketURI: string;
 };
 
-type RuntimeDashboardConfig = Partial<DashboardConfig>;
+type RuntimeDashboardConfig = Partial<DashboardConfig> & {
+  // Written by the self-hosted dashboard container at startup.
+  dashboardGoogleOAuth?: boolean;
+};
 
 const selfHostedConfigError =
   'Self-hosted dashboard requires INSTANT_API_URI or INSTANT_BACKEND_URL to be a valid HTTP(S) URL.';
@@ -100,6 +103,22 @@ export const config =
     : configFromApiURI(defaultApiURI)!;
 
 export const defaultOAuthCallbackURL = oauthCallbackURL(config.apiURI);
+
+/**
+ * Whether the dashboard offers "Continue with Google". A self-hosted dashboard
+ * offers it only when the deployment sets
+ * INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID (see client/Dockerfile.www).
+ */
+export function isDashboardGoogleOAuthEnabled(
+  runtimeConfig: RuntimeDashboardConfig | undefined = isBrowser
+    ? window.__instantConfig
+    : undefined,
+) {
+  if (!isSelfHosted || devBackend) {
+    return true;
+  }
+  return runtimeConfig?.dashboardGoogleOAuth === true;
+}
 
 export const demoConfig = {
   apiURI:

@@ -8,7 +8,11 @@ import {
   ScreenHeading,
   TextInput,
 } from '../ui';
-import config, { isDev, isSelfHosted } from '@/lib/config';
+import config, {
+  isDashboardGoogleOAuthEnabled,
+  isDev,
+  isSelfHosted,
+} from '@/lib/config';
 import googleIconSvg from '../../public/img/google_g.svg';
 import Image from 'next/image';
 import { InstantIssue } from '@/lib/types';
@@ -112,7 +116,7 @@ function EmailStep(props: {
           Send Code
         </Button>
       </form>
-      {props.emailOnly ? null : (
+      {props.emailOnly || !isDashboardGoogleOAuthEnabled() ? null : (
         <>
           <Divider>
             <span className="mx-4 text-xs text-gray-900 dark:text-neutral-400">
