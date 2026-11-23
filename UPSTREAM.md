@@ -395,7 +395,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31, PR #TBD)
+### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31, PR #34)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -427,7 +427,7 @@ The self-hosted stack works without Instant infrastructure.
   8890 to `${POSTGRES_BIND_ADDRESS:-127.0.0.1}` and `swarm.yml` has no
   published port (swarm ignores a host address). Upstream publishes
   `8890:5432` on all interfaces in both.
-- PR #TBD: the development stack `server/docker-compose-dev.yml` publishes
+- PR #34: the development stack `server/docker-compose-dev.yml` publishes
   Postgres (8890), the server (8888) and nREPL (6005) on `127.0.0.1` only.
   `NREPL_BIND_ADDRESS` stays `0.0.0.0` inside the container so the published
   port reaches nREPL. Upstream publishes all three on all interfaces.
