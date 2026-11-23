@@ -71,8 +71,8 @@ export const DIVERGENCES = {
   },
   "own-fixes": {
     title:
-      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool",
-    prs: [6, 8, 16],
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool, presence refresh combine keeps snapshots",
+    prs: [6, 8, 16, 24],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are.",
@@ -151,6 +151,7 @@ const PR_CATEGORY = {
   20: "bench",
   21: "selfhost",
   22: "runtime-mode",
+  24: "own-fixes",
 };
 
 export function categoryFor(pr, file) {
