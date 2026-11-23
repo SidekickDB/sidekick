@@ -171,3 +171,29 @@ export function areaOf(p) {
   }
   return s.length > 1 ? s[0] : 'repository root';
 }
+
+/**
+ * Upstream PRs SidekickDB cherry-picked before they landed upstream, from
+ * the Upstream-PR trailers of commits on mainRef that upstream does not have.
+ * @returns {Map<number, string[]>} upstream PR number -> SidekickDB commits
+ */
+export function cherryPickedUpstreamPRs(mainRef, upstreamRef) {
+  const out = new Map();
+  const log = git([
+    'log',
+    '--no-merges',
+    '--format=%h%x09%(trailers:key=Upstream-PR,valueonly,separator=%x2C)',
+    mainRef,
+    '--not',
+    upstreamRef,
+  ]);
+  for (const l of lines(log)) {
+    const [sha, prs] = l.split('\t');
+    for (const m of (prs || '').matchAll(/instantdb\/instant#(\d+)/g)) {
+      const n = Number(m[1]);
+      if (!out.has(n)) out.set(n, []);
+      out.get(n).push(sha);
+    }
+  }
+  return out;
+}

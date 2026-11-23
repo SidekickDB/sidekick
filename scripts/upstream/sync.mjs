@@ -48,7 +48,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { git, gitTry, lines, repoRoot, run, showBlob } from './git.mjs';
-import { areaOf, buildAttribution, describeCategory, DIVERGENCES, groupByDivergence } from './divergences.mjs';
+import { areaOf, buildAttribution, cherryPickedUpstreamPRs, describeCategory, groupByDivergence } from './divergences.mjs';
 import { normalizeFiles, printReport, regenerateLockfile } from './normalize-rename.mjs';
 import { isBinary, isExcluded, isLockfile, isWorkspacePackageJson, normalizeText } from './rename.mjs';
 import { printChecks, runChecks } from './check.mjs';
@@ -191,6 +191,17 @@ function reportNewCommits({ root, ours, theirs, base, attribution }) {
   if (files.includes(WORKSPACE_LOCKFILE)) flags.push('Upstream changed client/pnpm-lock.yaml: it will be regenerated.');
   if (files.includes('client/www/next.config.js')) flags.push('Upstream changed client/www/next.config.js: check for build-time fetches.');
   const newPkgs = files.filter((f) => /^client\/packages\/[^/]+\/package\.json$/.test(f) && gitTry(['cat-file', '-e', `${base}:${f}`], { cwd: root }).status !== 0);
+  const picked = cherryPickedUpstreamPRs(ours, theirs);
+  for (const c of commits) {
+    const [sha, , , subject] = c.split('\t');
+    const n = Number(subject.match(/\(#(\d+)\)\s*$/)?.[1]);
+    if (picked.has(n)) {
+      flags.push(
+        `Upstream merged instantdb/instant#${n} as ${sha.slice(0, 10)}; SidekickDB cherry-picked it earlier as ${picked.get(n).join(', ')}. ` +
+          'Expect overlap there: prefer upstream\'s merged version and drop the cherry-pick\'s leftovers.',
+      );
+    }
+  }
   for (const p of newPkgs) flags.push(`New upstream package ${p}: add it to SCOPED_PACKAGES in scripts/upstream/rename.mjs if it is published as @instantdb/*.`);
   say('');
   say('## Things to look at');
