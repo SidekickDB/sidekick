@@ -1,0 +1,7 @@
+# The only change the benchmark makes to self-hosting/docker-compose.yml:
+# publish the server on loopback so the workload can reach it. Everything else
+# (images, memory limit, JAVA_OPTS, healthchecks, volumes) is the shipped file.
+services:
+  server:
+    ports:
+      - "127.0.0.1:8888:8888"

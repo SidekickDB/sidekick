@@ -98,6 +98,16 @@ export const DIVERGENCES = {
       "findConfigCandidates.ts and the sidekick.config source in instantConfig.ts; a new instant.* file " +
       "kind must be added to LEGACY_CONFIG_FILE. Take upstream's other changes.",
   },
+  bench: {
+    title:
+      "Self-hosted stack benchmark: harness in scripts/bench/self-hosted and a read-only workflow",
+    prs: [20],
+    resolve:
+      "Upstream has none of these files. If upstream changes self-hosting/docker-compose.yml, " +
+      "server/Dockerfile.self-hosted, client/Dockerfile.www or @sidekickdb/core's init()/subscribeQuery " +
+      "in a way the harness depends on, keep upstream's change and adjust run.mjs or workload.mjs; " +
+      "re-run the workflow and compare against the last kept result only on the same runner label.",
+  },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
@@ -127,6 +137,7 @@ const PR_CATEGORY = {
   16: "own-fixes",
   18: "release",
   19: "config-aliases",
+  20: "bench",
 };
 
 export function categoryFor(pr, file) {

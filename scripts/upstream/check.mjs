@@ -121,11 +121,16 @@ export const RELEASE_WORKFLOWS = {
   },
 };
 
+// SidekickDB's self-hosted benchmark (scripts/bench/self-hosted). Upstream
+// has no file with this name. It gets no exception: every RISKY rule applies.
+export const BENCH_WORKFLOWS = ["sidekick-self-hosted-bench.yml"];
+
 export const KNOWN_WORKFLOWS = [
   "clojure.yml",
   "js.yml",
   "python.yml",
   ...DISPATCH_ONLY,
+  ...BENCH_WORKFLOWS,
   ...Object.keys(RELEASE_WORKFLOWS),
 ];
 

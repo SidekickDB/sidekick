@@ -1,0 +1,128 @@
+# SidekickDB: baseline measurement of the single-node self-hosted stack as
+# shipped in self-hosting/docker-compose.yml (scripts/bench/self-hosted).
+# Builds the server and dashboard images from this commit, then takes several
+# cold-start samples: start-up time, per-service and JVM memory, and a small
+# live-query workload. Results are uploaded as an artifact; baselines that are
+# kept are committed under scripts/bench/self-hosted/results/.
+#
+# Read-only: no secrets, no write permissions, nothing is pushed or published.
+# It runs on demand, and on pull requests that change the harness or this
+# file. A pull request that changes only results/ does not start it; on one
+# that also changes the harness, every push runs it, because GitHub matches
+# the paths against the whole pull request.
+name: Self-hosted benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      samples:
+        description: Cold-start samples (at least 3)
+        default: '5'
+        required: true
+      idle_seconds:
+        description: Seconds to wait after start-up before the idle snapshot
+        default: '120'
+        required: true
+  pull_request:
+    paths:
+      - 'scripts/bench/self-hosted/**'
+      - '!scripts/bench/self-hosted/results/**'
+      - '.github/workflows/sidekick-self-hosted-bench.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sidekick-self-hosted-bench-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bench:
+    name: Self-hosted benchmark
+    # A pinned image, so baselines from different runs are comparable.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      BENCH_RUNNER_LABEL: ubuntu-24.04
+      SAMPLES: ${{ inputs.samples || '5' }}
+      IDLE_SECONDS: ${{ inputs.idle_seconds || '120' }}
+      # The commit under test: the PR head, not GitHub's merge commit.
+      GITHUB_SHA_UNDER_TEST: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10.2.0'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Get pnpm cache directory path
+        id: pnpm-cache-dir-path
+        run: echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('client/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Build @sidekickdb/core for the workload client
+        working-directory: client
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
+        run: |
+          pnpm i --frozen-lockfile --prefer-offline
+          pnpm exec turbo run build --filter='@sidekickdb/core...' --no-update-notifier
+
+      # Does this Compose evaluate a nested ${A:-${B:?...}} when A is set?
+      # self-hosting/docker-compose.yml reads the storage keys that way. Shown
+      # next to the Compose version; it does not fail the job.
+      - name: Probe Compose nested-default handling
+        run: |
+          dir=$(mktemp -d)
+          printf 'services:\n  probe:\n    image: busybox\n    environment:\n      X: ${A:-${B:?need A or B}}\n' > "$dir/compose.yml"
+          echo "Compose: $(docker compose version --short)"
+          echo "--- A set, B unset (expect X: a)"
+          env -u B A=a docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
+          echo "--- A and B unset (expect an error naming 'need A or B')"
+          env -u A -u B docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
+          echo "--- A set to empty, B unset (expect the error)"
+          env -u B A= docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
+
+      - name: Run the benchmark
+        run: |
+          node scripts/bench/self-hosted/run.mjs \
+            --samples "$SAMPLES" \
+            --idle-seconds "$IDLE_SECONDS" \
+            --out "$RUNNER_TEMP/bench-out"
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/bench-out/summary.md" ]; then
+            cat "$RUNNER_TEMP/bench-out/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: self-hosted-bench-${{ env.GITHUB_SHA_UNDER_TEST }}
+          path: ${{ runner.temp }}/bench-out
+          retention-days: 30
+
+      - name: Remove containers and volumes
+        if: always()
+        run: |
+          docker ps -aq --filter label=com.docker.compose.project=sidekickbench | xargs -r docker rm -f
+          docker volume ls -q --filter label=com.docker.compose.project=sidekickbench | xargs -r docker volume rm
