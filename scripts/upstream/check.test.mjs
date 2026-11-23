@@ -575,3 +575,22 @@ test("the self-hosted benchmark workflow stays read-only", () => {
     r2.failures.join("\n"),
   );
 });
+
+test("the self-hosting compose check workflow stays read-only", () => {
+  const file = "sidekick-self-hosting-check.yml";
+  const r0 = withWorkflows();
+  assert.deepEqual(r0.failures, []);
+  assert.ok(
+    !r0.warnings.some((w) => w.includes(file)),
+    r0.warnings.join("\n"),
+  );
+  const r1 = withWorkflows((d) =>
+    edit(d, file, "  contents: read\n", "  contents: write\n"),
+  );
+  assert.ok(
+    r1.failures.some(
+      (f) => f.includes(file) && f.includes("write permission"),
+    ),
+    r1.failures.join("\n"),
+  );
+});

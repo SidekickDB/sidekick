@@ -125,12 +125,17 @@ export const RELEASE_WORKFLOWS = {
 // has no file with this name. It gets no exception: every RISKY rule applies.
 export const BENCH_WORKFLOWS = ["sidekick-self-hosted-bench.yml"];
 
+// SidekickDB's compose render check (scripts/self-hosting/render-check.mjs).
+// Upstream has no file with this name. No exception: every RISKY rule applies.
+export const SELF_HOSTING_CHECK_WORKFLOWS = ["sidekick-self-hosting-check.yml"];
+
 export const KNOWN_WORKFLOWS = [
   "clojure.yml",
   "js.yml",
   "python.yml",
   ...DISPATCH_ONLY,
   ...BENCH_WORKFLOWS,
+  ...SELF_HOSTING_CHECK_WORKFLOWS,
   ...Object.keys(RELEASE_WORKFLOWS),
 ];
 
