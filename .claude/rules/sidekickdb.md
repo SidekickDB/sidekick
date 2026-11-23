@@ -23,7 +23,8 @@ InstantDB rules file (`dev-llm-rules.md`, a generated `AGENTS.md`), these win.
 All work is a card in the organization project number 1 of `SidekickDB`
 (https://github.com/orgs/SidekickDB/projects/1). There is no other task list:
 not Markdown files, not TODO comments, not notes from earlier sessions. Use the
-`task` skill to read and update it.
+`task` skill to read and update it. Who does what, and in which order, is in
+`.claude/rules/lifecycle.md`.
 
 | Status | Meaning |
 |---|---|

@@ -48,7 +48,9 @@ clear it otherwise.
 
 ## Add a card
 
-New work is always a new **Backlog** card; the owner moves it to Ready.
+New work is always a new **Backlog** card; the owner moves it to Ready. For
+more than a quick note, hand the idea to the `planner` agent, which checks the
+facts and writes the card.
 
 ```sh
 gh project item-create 1 --owner SidekickDB --title "<title>" --body "<body>" --format json
