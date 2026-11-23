@@ -74,6 +74,8 @@ would not match the existing volumes.
   `MINIO_ROOT_PASSWORD` are no longer read, and an `.env` that only has them
   is refused with a message asking to rename them. See
   [Renaming the storage keys](#renaming-the-storage-keys).
+- The server now runs in the self-hosted runtime mode by default. See
+  [Runtime mode](#runtime-mode) for what changes and how to switch it off.
 - The server container now has a memory limit (`SERVER_MEMORY_LIMIT`, default
   `2g`) and the heap is 60% of it. Before, there was no limit and the heap
   could grow to a quarter of the host's memory. On a host with more than about
@@ -148,6 +150,39 @@ grow as large as the heap, so heap plus direct memory can in principle exceed
 the container limit, and the kernel then kills the container. If that happens,
 raise `SERVER_MEMORY_LIMIT`, or lower `-XX:MaxRAMPercentage` or add
 `-XX:MaxDirectMemorySize=...` in `JAVA_OPTS`.
+
+## Runtime mode
+
+The server runs in the **self-hosted** runtime mode, set by
+`SIDEKICK_RUNTIME_MODE` (or `INSTANT_RUNTIME_MODE`). The compose files and the
+server image default to `self-hosted`; `default` gives upstream's development
+behaviour, which a server started outside these files also gets. Any other
+value, or `self-hosted` together with `PRODUCTION=true` or `STAGING=true`,
+stops the server at startup with a message naming the variable.
+
+In the self-hosted mode:
+
+- Startup skips four Instant Cloud jobs: the `sunset` and `app-proxy` flag
+  listeners (Instant's wind-down and backend-migration tools), the
+  join-room analytics logger, and the Postgres hint-plan experiment.
+  `POST /dash/sunset/cancel_subscriptions` is refused.
+- nREPL (port 6005 inside the container, bound to `127.0.0.1`) does not start
+  unless `SIDEKICK_NREPL=true`.
+- Behaviour meant for developing the server is off: SSE requests and stream
+  reads are always served locally (in development about half go through
+  Hazelcast or gRPC on purpose), and responses and WebSocket `init-ok` carry no
+  server hostname and port.
+- OAuth cookies are marked `Secure` when `SIDEKICK_BACKEND_URL` is `https`. A
+  plain-`http` deployment such as `http://localhost:8888` keeps working.
+- **A startup error stops the server** (exit code 1) instead of leaving it
+  running half-initialised. `EXIT_ON_ERROR=false` keeps the old behaviour.
+  With a restart policy (`restart: always`, or a swarm service) this shows as
+  a server that restarts over and over: read the reason with
+  `docker compose logs server`, and look for `Error in startup` just before
+  each exit.
+
+To switch it off, set `SIDEKICK_RUNTIME_MODE=default` in `.env` (or pass
+`-e INSTANT_RUNTIME_MODE=default` to `docker run`) and recreate the server.
 
 ## Startup and DNS
 

@@ -202,7 +202,7 @@
           (response/set-cookie cookie-name
                                (format-cookie cookie)
                                {:http-only true
-                                :secure (not= :dev (config/get-env))
+                                :secure (config/secure-cookies?)
                                 :expires cookie-expires
                                 :path "/platform/oauth"
                                 ;; access cookie on redirect

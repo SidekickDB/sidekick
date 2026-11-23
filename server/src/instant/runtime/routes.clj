@@ -266,7 +266,7 @@
     (-> (response/found redirect-url)
         (response/set-cookie oauth-cookie-name
                              (format-cookie cookie-uuid)
-                             (let [secure? (not= :dev (config/get-env))]
+                             (let [secure? (config/secure-cookies?)]
                                (cond-> {:http-only true
                                         ;; Don't require https in dev
                                         :secure secure?

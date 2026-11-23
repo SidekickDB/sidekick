@@ -113,6 +113,9 @@ services:
       # upstream's native-memory bounds (cap on cached NIO buffers, periodic
       # return of freed native memory). Setting JAVA_OPTS replaces all of them.
       JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000}"
+      # SidekickDB runtime mode: "self-hosted" (default here) or "default";
+      # see README.md, "Runtime mode".
+      INSTANT_RUNTIME_MODE: ${SIDEKICK_RUNTIME_MODE:-${INSTANT_RUNTIME_MODE:-self-hosted}}
       WAL_HISTORY_STORAGE: pg
       DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env; see .env.example}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
       CONNECTION_POOL_SIZE: ${CONNECTION_POOL_SIZE:-20}

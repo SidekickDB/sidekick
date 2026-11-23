@@ -110,6 +110,15 @@ export const DIVERGENCES = {
       "in a way the harness depends on, keep upstream's change and adjust run.mjs or workload.mjs; " +
       "re-run the workflow and compare against the last kept result only on the same runner label.",
   },
+  "runtime-mode": {
+    title: "Self-hosted runtime mode (INSTANT_RUNTIME_MODE / SIDEKICK_RUNTIME_MODE)",
+    prs: [22],
+    resolve:
+      "Keep config.clj's runtime-mode helpers and their call sites: the skip check in core.clj's with-log-init, " +
+      "dev-only? instead of dev? in sse.clj, session.clj, app_stream.clj and wrap-dev-server-info, secure-cookies? " +
+      "at the three OAuth cookie sites, exit-on-startup-error? in -main. A new upstream startup step makes " +
+      "runtime_mode_test.clj fail: decide whether self-hosted skips it, then update the recorded count and hash.",
+  },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
@@ -141,6 +150,7 @@ const PR_CATEGORY = {
   19: "config-aliases",
   20: "bench",
   21: "selfhost",
+  22: "runtime-mode",
 };
 
 export function categoryFor(pr, file) {

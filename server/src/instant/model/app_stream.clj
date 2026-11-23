@@ -774,7 +774,7 @@
         use-local? (or (not channel)
                        (and (= machine-id config/machine-id)
                             ;; In dev, hit the grpc server half the time to exercise the route
-                            (or (not (config/dev?))
+                            (or (not (config/dev-only?))
                                 (= 0 (rand-int 2)))))
         machine-id-changed (promise)
         cleanup-cbs [(add-machine-id-change-listener (:id stream)

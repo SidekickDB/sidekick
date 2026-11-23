@@ -43,6 +43,11 @@ COPY --from=builder /app/target/instant-standalone.jar ./target/instant-standalo
 COPY --from=builder /app/resources/migrations ./resources/migrations
 RUN mkdir -p /app/resources/config
 
+# SidekickDB runtime mode (see self-hosting/README.md). The compose files set
+# it too; `docker run -e INSTANT_RUNTIME_MODE=default` restores upstream's
+# development behaviour.
+ENV INSTANT_RUNTIME_MODE=self-hosted
+
 # Startup script that bootstraps OSS config/migrations then starts the server
 COPY <<'EOF' /app/start.sh
 #!/bin/bash
