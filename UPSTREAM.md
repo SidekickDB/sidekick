@@ -559,7 +559,7 @@ the self-hosted mode skips it.
 a new startup step gets a skip decision and an updated count and hash in the
 test.
 
-### Removed: session-count WebSocket
+### Removed: session-count WebSocket (PR #29)
 
 `server/src/instant/session_counter.clj`, its start in `core.clj` and the route
 `GET /dash/session_counts` in `dash/routes.clj` are removed. SidekickDB has no

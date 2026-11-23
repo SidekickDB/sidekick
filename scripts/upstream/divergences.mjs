@@ -121,7 +121,7 @@ export const DIVERGENCES = {
   },
   "removed-session-counter": {
     title: "Session-count WebSocket (/dash/session_counts) and its reporter removed",
-    prs: [],
+    prs: [29],
     resolve:
       "Keep server/src/instant/session_counter.clj deleted, and the route and the start step in core.clj removed. " +
       "Take upstream's other changes in those files. server/test/instant/dash/removed_routes_test.clj must pass.",
@@ -161,6 +161,7 @@ const PR_CATEGORY = {
   23: "bench",
   24: "own-fixes",
   27: "ci-lockdown",
+  29: "removed-session-counter",
 };
 
 export function categoryFor(pr, file) {

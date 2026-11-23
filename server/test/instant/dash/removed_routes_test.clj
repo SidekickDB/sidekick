@@ -4,7 +4,7 @@
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.test :refer [deftest is testing]]
-   [instant.core :as core])
+   [instant.dash.routes :as dash-routes])
   (:import
    (java.security MessageDigest)))
 
@@ -20,10 +20,9 @@
 
 (deftest session-counts-route-is-gone
   (testing "GET /dash/session_counts matches no route"
-    (let [resp ((core/handler) {:request-method :get
-                                :uri "/dash/session_counts"
-                                :headers {}})]
-      (is (= 404 (:status resp)))))
+    (is (nil? (dash-routes/routes {:request-method :get
+                                   :uri "/dash/session_counts"
+                                   :headers {}}))))
   (testing "the session counter namespace is not on the classpath"
     (is (nil? (io/resource "instant/session_counter.clj")))))
 
