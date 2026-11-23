@@ -17,6 +17,17 @@ if (!e2eApiURI) {
 // gets resolver rules: every host name except localhost and the e2e host fails
 // to resolve. IP literals are not resolved and so are not covered.
 const e2eHost = e2eApiURI ? new URL(e2eApiURI).hostname : '';
+// Like the Node guard, never allow instantdb.com, even when named explicitly:
+// the browser would otherwise create apps on it unseen by that guard.
+const normalizedE2EHost = e2eHost.toLowerCase().replace(/\.$/, '');
+if (
+  normalizedE2EHost === 'instantdb.com' ||
+  normalizedE2EHost.endsWith('.instantdb.com')
+) {
+  throw new Error(
+    'SIDEKICK_E2E_API_URI must not point at instantdb.com; use a SidekickDB server.',
+  );
+}
 const hostResolverRules = [
   'MAP * ~NOTFOUND',
   'EXCLUDE localhost',
