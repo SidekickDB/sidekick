@@ -269,7 +269,23 @@ function remergeNormalized(root, file, stages, tmp, normalize = true) {
   return { status: 'conflict', hunks: r.status };
 }
 
-function resolveConflicts({ root, attribution, upstreamFiles }) {
+// True if upstream's version of `file` equals a version SidekickDB already
+// had since the last sync (compared after the rename). That happens when
+// upstream merges a PR SidekickDB cherry-picked and SidekickDB changed the
+// file again afterwards: upstream has only caught up, so ours is the result.
+function upstreamAlreadyInOurHistory(root, file, ours, base, normalize) {
+  const theirs = showBlob(`:3:${file}`, root);
+  if (theirs === null || isBinary(theirs)) return false;
+  const norm = (buf) => (normalize ? normalizeText(file, buf.toString('utf8')).text : buf.toString('utf8'));
+  const want = norm(theirs);
+  for (const c of lines(git(['rev-list', ours, '--not', base, '--', file], { cwd: root }))) {
+    const b = showBlob(`${c}:${file}`, root);
+    if (b !== null && !isBinary(b) && norm(b) === want) return true;
+  }
+  return false;
+}
+
+function resolveConflicts({ root, attribution, upstreamFiles, ours, base }) {
   const results = { resolved: [], keptDeleted: [], lockfiles: [], remaining: [] };
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'sidekick-sync-'));
   try {
@@ -307,6 +323,12 @@ function resolveConflicts({ root, attribution, upstreamFiles }) {
         continue;
       }
       const normalize = !isExcluded(file);
+      if (stages.has(2) && stages.has(3) && upstreamAlreadyInOurHistory(root, file, ours, base, normalize)) {
+        git(['checkout', '--ours', '--', file], { cwd: root });
+        git(['add', '--', file], { cwd: root });
+        results.resolved.push({ file, note: "upstream's version is an earlier SidekickDB version (cherry-pick); kept SidekickDB's" });
+        continue;
+      }
       const r = remergeNormalized(root, file, stages, tmp, normalize);
       if (r.status === 'resolved') results.resolved.push({ file, note: r.note });
       else {
@@ -473,7 +495,7 @@ function finish({ root, o, state, summary }) {
 function summarize(state, parts) {
   const s = [];
   if (parts.conf) {
-    s.push(`Conflicts auto-resolved after applying the rename to all sides: ${parts.conf.resolved.length}`);
+    s.push(`Conflicts resolved automatically: ${parts.conf.resolved.length}`);
     for (const r of parts.conf.resolved) s.push(`- ${r.file} (${r.note})`);
     if (parts.conf.keptDeleted.length) {
       s.push(`Kept deleted (removed on purpose by SidekickDB, changed upstream): ${parts.conf.keptDeleted.length}`);
@@ -542,8 +564,8 @@ function start(o, root) {
   const conflictsBefore = unmergedEntries(root).size;
   say(`git merge: ${conflictsBefore} conflicted path(s).`);
 
-  const conf = resolveConflicts({ root, attribution, upstreamFiles: upstreamFilesHelper(root, base, theirs) });
-  say(`Re-merged with the rename applied to all sides: ${conf.resolved.length} resolved.`);
+  const conf = resolveConflicts({ root, attribution, upstreamFiles: upstreamFilesHelper(root, base, theirs), ours, base });
+  say(`Resolved automatically: ${conf.resolved.length}.`);
   for (const r of conf.resolved) say(`- ${r.file} (${r.note})`);
   if (conf.keptDeleted.length) {
     say(`Kept deleted (SidekickDB removed them on purpose; upstream changed them): ${conf.keptDeleted.length}`);
