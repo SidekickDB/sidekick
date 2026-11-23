@@ -532,6 +532,12 @@ function lockfileNeeded(root, ours) {
   );
 }
 
+// Tree id of the index, or null while paths are still unmerged.
+function stagedTree(root) {
+  const r = gitTry(["write-tree"], { cwd: root });
+  return r.status === 0 ? r.stdout.trim() : null;
+}
+
 function workspaceManifestHash(root) {
   const files = lines(
     git(
@@ -667,6 +673,7 @@ function finish({ root, o, state, summary }) {
       .map((f) => f.match(/^([^\s:]+)[:\s]/)?.[1])
       .filter(Boolean);
     const leftForHand = [...new Set([...(state.leftForHand || []), ...files])];
+    state.stopTree = stagedTree(root);
     fs.writeFileSync(
       statePath(root),
       JSON.stringify({ ...state, leftForHand }, null, 2),
@@ -945,7 +952,10 @@ function afterMerge({ o, root, state, attribution, conf }) {
   fs.writeFileSync(statePath(root), JSON.stringify(next, null, 2));
   if (toolErrors.length) {
     if (o.reportFile) fs.writeFileSync(o.reportFile, report.join("\n") + "\n");
-    fs.writeFileSync(statePath(root), JSON.stringify({ ...next, lockHash: undefined }, null, 2));
+    fs.writeFileSync(
+      statePath(root),
+      JSON.stringify({ ...next, lockHash: undefined, stopTree: stagedTree(root) }, null, 2),
+    );
     return 2;
   }
   if (remaining.length) {
@@ -978,6 +988,12 @@ function cont(o, root) {
   }
   // Stage hand resolutions so the normalizer and checks see them.
   git(["add", "-u"], { cwd: root });
+  // Everything changed since the script last stopped was changed by hand.
+  if (state.stopTree) {
+    const byHand = lines(git(["diff", "--cached", "--name-only", state.stopTree], { cwd: root }));
+    state.leftForHand = [...new Set([...(state.leftForHand || []), ...byHand])];
+    delete state.stopTree;
+  }
   const attribution = buildAttribution(state.ours, state.theirs);
   return afterMerge({ o, root, state, attribution, conf: null });
 }
