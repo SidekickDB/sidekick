@@ -8,6 +8,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   checkWorkflows,
+  isFalse,
   compareVersionsKeys,
   scanAddedLines,
   versionsKeys,
@@ -321,4 +322,47 @@ test("an enabled step that calls an Instant host fails", () => {
     r.failures.some((f) => f.includes("contacts an Instant-owned host")),
     r.failures.join("\n"),
   );
+});
+
+test("isFalse accepts only conditions that are always false", () => {
+  for (const c of [
+    "false",
+    "(false)",
+    "false && (github.ref == 'refs/heads/main')",
+    "(false) && x",
+    "${{ false }}",
+    "${{ false && fromJSON(steps.detect_changes.outputs.result) }}",
+    "false && (a || b)",
+  ]) {
+    assert.equal(isFalse(c), true, c);
+  }
+  for (const c of [
+    "(false) || always()",
+    "${{ false }} || true",
+    "${{ false && x }} || true",
+    "false || x",
+    "false && x || y",
+    "(false && x) || y",
+    "${{ false || x }}",
+    "x && false",
+    "true",
+    null,
+  ]) {
+    assert.equal(isFalse(c), false, String(c));
+  }
+});
+
+test("a publish job re-enabled with `(false) ||` or `${{ false }} ||` fails", () => {
+  const before =
+    "    if: false && (github.ref == 'refs/heads/main' && needs.detect_changes.outputs.version_did_change == 'true')";
+  for (const after of [
+    "    if: (false) || always()",
+    "    if: ${{ false }} || true",
+  ]) {
+    const r = withWorkflows((d) => edit(d, "js.yml", before, after));
+    assert.ok(
+      r.failures.some((f) => f.includes('"publish-packages" must stay disabled')),
+      `${after}\n${r.failures.join("\n")}`,
+    );
+  }
 });

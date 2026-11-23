@@ -219,11 +219,78 @@ function parseSteps(jobLines) {
   return steps;
 }
 
-// `if: false`, `if: false && (...)`, `if: ${{ false && ... }}`. Not
-// `false || ...`, which can still be true.
-const isFalse = (cond) =>
-  cond !== null &&
-  /^(\$\{\{\s*)?\(?\s*false\s*(&&|\}\}|\)|$)/.test(cond.trim());
+// True only for a condition that is always false: `false`, `(false)`,
+// `false && (...)`, `(false) && ...`, or one `${{ ... }}` expression
+// wrapping the whole condition with that shape. Anything else counts as
+// possibly true: `false || ...`, `(false) || ...`, `false && x || y` (`&&`
+// binds tighter than `||`), and text outside `${{ }}` such as
+// `${{ false }} || true` (GitHub then evaluates a non-empty string, which is
+// truthy).
+export function isFalse(cond) {
+  if (cond === null || cond === undefined) return false;
+  let expr = cond.trim().replace(/\s+#.*$/, ""); // trailing YAML comment
+  if (expr.includes("${{")) {
+    const m = expr.match(/^\$\{\{([\s\S]*)\}\}$/);
+    if (!m || m[1].includes("}}") || m[1].includes("${{")) return false;
+    expr = m[1];
+  }
+  expr = stripParens(expr);
+  if (splitTopLevel(expr, "||").length > 1) return false;
+  const first = splitTopLevel(expr, "&&")[0];
+  return first !== undefined && stripParens(first) === "false";
+}
+
+// Split on an operator outside parentheses and single-quoted strings.
+function splitTopLevel(expr, op) {
+  const parts = [];
+  let depth = 0;
+  let quoted = false;
+  let start = 0;
+  for (let i = 0; i < expr.length; i++) {
+    const c = expr[i];
+    if (quoted) {
+      if (c === "'") quoted = false;
+    } else if (c === "'") quoted = true;
+    else if (c === "(") depth++;
+    else if (c === ")") depth--;
+    else if (depth === 0 && expr.startsWith(op, i)) {
+      parts.push(expr.slice(start, i));
+      start = i + op.length;
+      i += op.length - 1;
+    }
+  }
+  parts.push(expr.slice(start));
+  return parts;
+}
+
+// Remove parentheses that wrap the whole expression, repeatedly.
+function stripParens(expr) {
+  let e = expr.trim();
+  while (e.startsWith("(") && e.endsWith(")")) {
+    let depth = 0;
+    let quoted = false;
+    let wraps = true;
+    for (let i = 0; i < e.length; i++) {
+      const c = e[i];
+      if (quoted) {
+        if (c === "'") quoted = false;
+        continue;
+      }
+      if (c === "'") quoted = true;
+      else if (c === "(") depth++;
+      else if (c === ")") {
+        depth--;
+        if (depth === 0 && i < e.length - 1) {
+          wraps = false;
+          break;
+        }
+      }
+    }
+    if (!wraps) break;
+    e = e.slice(1, -1).trim();
+  }
+  return e;
+}
 
 /**
  * Jobs and steps that are disabled in the workflows at `ref` (the SidekickDB
