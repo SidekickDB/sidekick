@@ -1,7 +1,9 @@
 // Renders the self-hosting compose files with `docker compose config` (and
 // swarm.yml with `docker stack config`) for each way a user can fill in .env,
 // and checks that each one either renders with the right credentials or stops
-// with a message that names the variable to set. Client-side only: no
+// with a message that names the variable to set. It also checks that no file
+// publishes the Postgres port beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
+// asks for another address. Client-side only: no
 // containers, images or daemon are used.
 //
 //   node scripts/self-hosting/render-check.mjs \
@@ -468,6 +470,75 @@ for (const cmd of composes) {
     }
   }
 
+  // Postgres is not published beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
+  // says so. A port without host_ip is published on every interface.
+  {
+    const secrets = {
+      POSTGRES_PASSWORD: PG,
+      STORAGE_ACCESS_KEY: AK,
+      STORAGE_SECRET_KEY: SK,
+    };
+    for (const [file, name, values, want] of [
+      [
+        'docker-compose.yml',
+        'postgres port: POSTGRES_BIND_ADDRESS unset',
+        {},
+        '127.0.0.1',
+      ],
+      [
+        'docker-compose.yml',
+        'postgres port: POSTGRES_BIND_ADDRESS empty',
+        { POSTGRES_BIND_ADDRESS: '' },
+        '127.0.0.1',
+      ],
+      [
+        'docker-compose.yml',
+        'postgres port: POSTGRES_BIND_ADDRESS=0.0.0.0',
+        { POSTGRES_BIND_ADDRESS: '0.0.0.0' },
+        '0.0.0.0',
+      ],
+      ['docker-compose.with-caddy.yml', 'postgres port: none', {}, null],
+      ['docker-compose.local.yml', 'postgres port: 127.0.0.1', {}, '127.0.0.1'],
+    ]) {
+      const r = renderCompose(
+        cmd,
+        file,
+        envFile(`${file}-${name.replace(/\W+/g, '_')}`, {
+          ...secrets,
+          ...values,
+        }),
+      );
+      const problems = [];
+      if (!r.ok)
+        problems.push(`did not render: ${r.stderr.trim().split('\n').at(-1)}`);
+      else {
+        const ports = r.config.services?.postgres?.ports ?? [];
+        if (want === null) {
+          if (ports.length)
+            problems.push(
+              `postgres publishes ${JSON.stringify(ports)}, expected no port`,
+            );
+        } else if (!ports.length) {
+          problems.push(`postgres publishes no port, expected one on ${want}`);
+        } else {
+          for (const p of ports) {
+            if (p?.host_ip !== want)
+              problems.push(
+                `postgres port ${JSON.stringify(p)} is not bound to ${want}`,
+              );
+          }
+        }
+      }
+      record(
+        label,
+        file,
+        name,
+        problems,
+        r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+      );
+    }
+  }
+
   // Informational: the bare nested ":-" form. The compose files rely on it
   // for the SIDEKICK_* aliases, which the cases above assert. What Compose
   // 2.38 rejects is a required ":?" inside a default, which no file uses.
@@ -527,6 +598,26 @@ for (const cmd of composes) {
     p1,
     set.ok ? 'rendered' : set.stderr.trim(),
   );
+  // Swarm publishes on every node's interfaces and ignores a host IP, so the
+  // postgres service must publish nothing. The output is YAML with services
+  // indented two spaces and their keys four: take the lines from "  postgres:"
+  // to the next service or top-level key.
+  const p3 = [];
+  if (!set.ok)
+    p3.push(`did not render: ${set.stderr.trim().split('\n').at(-1)}`);
+  else {
+    const lines = set.stdout.split('\n');
+    const start = lines.indexOf('  postgres:');
+    if (start === -1) p3.push('output has no postgres service');
+    else {
+      const rest = lines.slice(start + 1);
+      const end = rest.findIndex((l) => /^ {0,2}\S/.test(l));
+      const block = end === -1 ? rest : rest.slice(0, end);
+      if (block.some((l) => /^ {4}ports:/.test(l)))
+        p3.push('postgres service publishes a port, expected none');
+    }
+  }
+  record('docker stack config', 'swarm.yml', 'postgres port: none', p3);
   const none = stack({ POSTGRES_PASSWORD: PG });
   const p2 = none.ok
     ? ['rendered without storage keys']
