@@ -3,8 +3,9 @@ services:
   postgres:
     # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
     image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
-    ports:
-      - "8890:5432"
+    # SidekickDB: Postgres is not published. Swarm publishes a port on every
+    # node's interfaces and ignores a host IP, and published ports bypass host
+    # firewalls such as ufw. See README.md to publish it anyway.
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the environment; see .env.example}
       POSTGRES_USER: ${POSTGRES_USER:-instant}

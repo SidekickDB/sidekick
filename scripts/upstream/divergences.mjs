@@ -50,8 +50,8 @@ export const DIVERGENCES = {
   },
   "upstream-fixes": {
     title:
-      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2) and their follow-ups",
-    prs: [3, 10],
+      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling) and their follow-ups",
+    prs: [3, 10, 32],
     resolve:
       "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
       "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
@@ -61,12 +61,14 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks",
-    prs: [4, 14, 21],
+    prs: [4, 14, 21, 31],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
       "are fine; run scripts/self-hosting/render-check.mjs), the createbuckets " +
-      'CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep "no default ' +
+      "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION, the healthchecks and the unpublished Postgres port " +
+      "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml). " +
+      'In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
   "own-fixes": {
@@ -168,6 +170,8 @@ const PR_CATEGORY = {
   27: "ci-lockdown",
   29: "removed-session-counter",
   30: "security-policy",
+  31: "selfhost",
+  32: "upstream-fixes",
 };
 
 export function categoryFor(pr, file) {
