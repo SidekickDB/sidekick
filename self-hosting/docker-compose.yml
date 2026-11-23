@@ -2,8 +2,11 @@ services:
   postgres:
     # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
     image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
+    # SidekickDB: published on 127.0.0.1 only, because Docker-published ports
+    # bypass host firewalls such as ufw. Set POSTGRES_BIND_ADDRESS to publish
+    # on another address; see README.md.
     ports:
-      - "8890:5432"
+      - "${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env; see .env.example}
       POSTGRES_USER: ${POSTGRES_USER:-instant}

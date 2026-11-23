@@ -81,6 +81,10 @@ would not match the existing volumes.
   could grow to a quarter of the host's memory. On a host with more than about
   5 GB of memory the new default is a smaller heap than you had: raise
   `SERVER_MEMORY_LIMIT` to keep it. See [Server memory](#server-memory).
+- Postgres is no longer reachable from other machines. `docker-compose.yml`
+  publishes port 8890 on `127.0.0.1` only, and `swarm.yml` does not publish it.
+  See [Postgres port](#postgres-port) if a tool on another machine connects to
+  it.
 
 ### Renaming the storage keys
 
@@ -127,6 +131,41 @@ on it at all. Each key is now read with a plain `${STORAGE_ACCESS_KEY:?...}`.
 and dashboard from source, binds every port to `127.0.0.1`, and falls back to
 the well-known credentials `pass` (Postgres) and `rustfsadmin` (storage) when
 `.env` does not set them. Do not use it for a deployment.
+
+## Postgres port
+
+Docker-published ports bypass host firewalls such as ufw, so a port published
+on all interfaces is open to the internet on a typical VPS. The server reaches
+Postgres over the Docker network and needs no published port.
+
+- `docker-compose.yml` publishes Postgres on `127.0.0.1:8890`, reachable from
+  the host only. To reach it from another machine, prefer an SSH tunnel
+  (`ssh -L 8890:127.0.0.1:8890 user@host`). To publish it on another address,
+  set `POSTGRES_BIND_ADDRESS` in `.env`, for example `0.0.0.0` for every
+  interface, and restrict the port in your provider's firewall.
+- `docker-compose.with-caddy.yml` does not publish Postgres.
+- `swarm.yml` does not publish Postgres, because swarm publishes on every
+  node's interfaces and ignores a host address. Use
+  `docker exec -it $(docker ps -q -f name=instant_postgres) psql -U instant`
+  on the node that runs it. To publish it anyway, deploy with an extra file
+  that publishes it on that node, and restrict the port in your provider's
+  firewall:
+
+  ```yaml
+  # swarm.postgres-port.yml
+  services:
+    postgres:
+      ports:
+        - target: 5432
+          published: 8890
+          mode: host
+  ```
+
+  ```sh
+  docker stack deploy -c swarm.yml -c swarm.postgres-port.yml instant
+  ```
+
+  `deploy-swarm.sh` deploys `swarm.yml` alone.
 
 ## Server memory
 
