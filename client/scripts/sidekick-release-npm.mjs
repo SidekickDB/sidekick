@@ -5,13 +5,21 @@
 //       Offline. Validates the version in packages/version/src/version.ts and
 //       prints the packages in publish order. Run by CI before publishing.
 //
-//   node scripts/sidekick-release-npm.mjs publish [--tag latest|next] [--dry-run]
-//       CI only (.github/workflows/sidekick-release-npm.yml). Sets every
-//       package.json to the release version, builds, packs each package with
-//       pnpm (which rewrites workspace:* ranges) and publishes the tarball with
-//       npm. Authentication is npm trusted publishing (GitHub OIDC): there is
-//       no npm token anywhere. Versions already on npm are skipped, so a failed
-//       run can be re-run.
+//   node scripts/sidekick-release-npm.mjs pack --out <dir>
+//       The release workflow's build job, which has no publish rights. Sets
+//       every package.json to the release version, builds, packs each package
+//       with pnpm (which rewrites workspace:* ranges) into <dir> and writes
+//       <dir>/manifest.json. Restores the package.json versions afterwards.
+//
+//   node scripts/sidekick-release-npm.mjs publish-tarballs --dir <dir> [--dry-run]
+//       The release workflow's publish job: no install, no build, only a
+//       sparse checkout of this script and the package manifests. Checks the
+//       artifact against the checkout (version, names, order, files, and the
+//       name and version inside every tarball), then publishes with npm under
+//       the `latest` dist-tag. Authentication is npm trusted publishing (GitHub
+//       OIDC): there is no npm token anywhere. Versions already on npm are
+//       skipped, so a failed run can be re-run. Real publishes only in
+//       GitHub Actions.
 //
 //   node scripts/sidekick-release-npm.mjs claim-names [--dry-run]
 //       Owner only, once, on their own machine while logged in to npm. Publishes
@@ -177,55 +185,110 @@ function plan() {
   return { version, pkgs };
 }
 
-function publish({ tag, dryRun }) {
-  if (!process.env.GITHUB_ACTIONS && !dryRun)
-    throw new Error(
-      "publish runs only in GitHub Actions (trusted publishing). Use --dry-run locally.",
-    );
-  if (!["latest", "next"].includes(tag))
-    throw new Error(`--tag must be latest or next, got ${tag}`);
+export const MANIFEST = "manifest.json";
+
+// Build job (no publish rights): stamp the version, build, pack every package
+// into `out` and write the manifest the publish job checks.
+function pack({ out }) {
+  if (!out) throw new Error("pack needs --out <dir>");
   const { version, pkgs } = plan();
-  const out = fs.mkdtempSync(path.join(os.tmpdir(), "sidekick-release-"));
+  fs.mkdirSync(out, { recursive: true });
+  if (fs.readdirSync(out).length) throw new Error(`${out} is not empty`);
   setVersions(pkgs, version);
   try {
     run("pnpm", ["run", "build-packages"]);
-    const published = [];
-    const skipped = [];
+    const packages = [];
     for (const p of pkgs) {
-      if (existsOnNpm(`${p.name}@${version}`)) {
-        console.log(`[skip] ${p.name}@${version} is already on npm`);
-        skipped.push(p.name);
-        continue;
-      }
-      const dest = fs.mkdtempSync(path.join(out, "pkg-"));
+      const dest = fs.mkdtempSync(path.join(os.tmpdir(), "sidekick-pack-"));
       run("pnpm", ["pack", "--pack-destination", dest], { cwd: p.dir });
       const tgz = fs.readdirSync(dest).filter((f) => f.endsWith(".tgz"));
       if (tgz.length !== 1)
         throw new Error(`expected one tarball for ${p.name}, found ${tgz}`);
-      const args = [
-        "publish",
-        path.join(dest, tgz[0]),
-        "--access",
-        "public",
-        "--tag",
-        tag,
-      ];
-      if (dryRun) args.push("--dry-run");
-      else args.push("--provenance");
-      console.log(`[publish] ${p.name}@${version} --tag ${tag}${dryRun ? " (dry run)" : ""}`);
-      run("npm", args, { cwd: out });
-      published.push(p.name);
+      fs.copyFileSync(path.join(dest, tgz[0]), path.join(out, tgz[0]));
+      packages.push({ name: p.name, file: tgz[0] });
+      console.log(`[pack] ${p.name}@${version} -> ${tgz[0]}`);
     }
-    console.log(
-      `\n${dryRun ? "would publish" : "published"} ${published.length}, skipped ${skipped.length} (already on npm)`,
+    fs.writeFileSync(
+      path.join(out, MANIFEST),
+      JSON.stringify({ version, packages }, null, 2) + "\n",
     );
-    if (!published.length)
-      throw new Error(
-        `every package is already on npm at ${version}; bump packages/version/src/version.ts to an unreleased version`,
-      );
   } finally {
     setVersions(pkgs, "0.0.0");
   }
+}
+
+function tarballManifest(tgz) {
+  const r = run("tar", ["-xzOf", tgz, "package/package.json"], {
+    capture: true,
+  });
+  return JSON.parse(r.stdout);
+}
+
+// Check the build job's output against this checkout. The artifact is data
+// only: the expected names, order and version come from the repository, and
+// every tarball must carry exactly that name and version.
+export function verifyArtifact(dir, { version, names }, readTarball) {
+  const m = JSON.parse(fs.readFileSync(path.join(dir, MANIFEST), "utf8"));
+  if (m.version !== version)
+    throw new Error(`artifact is for ${m.version}, this checkout releases ${version}`);
+  const got = (m.packages || []).map((p) => p.name);
+  if (JSON.stringify(got) !== JSON.stringify(names))
+    throw new Error(
+      `artifact packages differ from this checkout:\n  artifact: ${got.join(", ")}\n  expected: ${names.join(", ")}`,
+    );
+  const files = fs.readdirSync(dir).filter((f) => f !== MANIFEST).sort();
+  const listed = m.packages.map((p) => p.file).sort();
+  if (JSON.stringify(files) !== JSON.stringify(listed))
+    throw new Error(`artifact has unexpected files: ${files.join(", ")}`);
+  return m.packages.map((p) => {
+    if (!/^[\w.-]+\.tgz$/.test(p.file) || p.file.startsWith("."))
+      throw new Error(`bad tarball name ${JSON.stringify(p.file)}`);
+    const tgz = path.join(dir, p.file);
+    const pj = readTarball(tgz);
+    if (pj.name !== p.name || pj.version !== version)
+      throw new Error(
+        `${p.file} contains ${pj.name}@${pj.version}, expected ${p.name}@${version}`,
+      );
+    return { name: p.name, tgz };
+  });
+}
+
+// Publish job (id-token, no install, no build): publish the verified
+// tarballs in dependency order. Versions already on npm are skipped.
+function publishTarballs({ dir, dryRun }) {
+  if (!dir) throw new Error("publish-tarballs needs --dir <dir>");
+  if (!process.env.GITHUB_ACTIONS && !dryRun)
+    throw new Error(
+      "publish-tarballs runs only in GitHub Actions (trusted publishing). Use --dry-run locally.",
+    );
+  const { version, pkgs } = plan();
+  const items = verifyArtifact(
+    dir,
+    { version, names: pkgs.map((p) => p.name) },
+    tarballManifest,
+  );
+  const published = [];
+  let skipped = 0;
+  for (const { name, tgz } of items) {
+    if (existsOnNpm(`${name}@${version}`)) {
+      console.log(`[skip] ${name}@${version} is already on npm`);
+      skipped++;
+      continue;
+    }
+    const args = ["publish", tgz, "--access", "public", "--tag", "latest"];
+    if (dryRun) args.push("--dry-run");
+    else args.push("--provenance");
+    console.log(`[publish] ${name}@${version}${dryRun ? " (dry run)" : ""}`);
+    run("npm", args, { cwd: dir });
+    published.push(name);
+  }
+  console.log(
+    `\n${dryRun ? "would publish" : "published"} ${published.length}, skipped ${skipped} (already on npm)`,
+  );
+  if (!published.length)
+    throw new Error(
+      `every package is already on npm at ${version}; bump packages/version/src/version.ts to an unreleased version`,
+    );
 }
 
 function claimNames({ dryRun }) {
@@ -322,12 +385,13 @@ function main(argv) {
     return i >= 0 ? rest[i + 1] : d;
   };
   if (cmd === "plan") return plan();
-  if (cmd === "publish")
-    return publish({ tag: opt("--tag", "latest"), dryRun: flag("--dry-run") });
+  if (cmd === "pack") return pack({ out: opt("--out") });
+  if (cmd === "publish-tarballs")
+    return publishTarballs({ dir: opt("--dir"), dryRun: flag("--dry-run") });
   if (cmd === "claim-names") return claimNames({ dryRun: flag("--dry-run") });
   if (cmd === "trust") return trust({ dryRun: flag("--dry-run") });
   console.error(
-    "usage: sidekick-release-npm.mjs plan | publish [--tag latest|next] [--dry-run] | claim-names [--dry-run] | trust [--dry-run]",
+    "usage: sidekick-release-npm.mjs plan | pack --out <dir> | publish-tarballs --dir <dir> [--dry-run] | claim-names [--dry-run] | trust [--dry-run]",
   );
   process.exit(2);
 }

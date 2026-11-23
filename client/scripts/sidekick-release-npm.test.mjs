@@ -2,6 +2,7 @@
 //   node --test scripts/sidekick-release-npm.test.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -15,6 +16,8 @@ import {
   readVersion,
   RELEASE_ENVIRONMENT,
   RELEASE_WORKFLOW,
+  MANIFEST,
+  verifyArtifact,
 } from "./sidekick-release-npm.mjs";
 
 test("only plain vX.Y.Z versions parse", () => {
@@ -70,5 +73,63 @@ test("the trust settings match the release workflow", () => {
     "utf8",
   );
   assert.match(wf, new RegExp(`^    environment: ${RELEASE_ENVIRONMENT}$`, "m"));
-  assert.match(wf, /^      id-token: write$/m);
+  // Only the publish job, which installs and builds nothing, holds id-token.
+  const jobs = wf.split(/^  (?=[\w-]+:\s*$)/m).slice(1);
+  const withToken = jobs.filter((j) => /^      id-token: write$/m.test(j));
+  assert.equal(withToken.length, 1);
+  assert.match(withToken[0], /^publish:/);
+  assert.doesNotMatch(withToken[0], /\bpnpm\b|\bnpm (?:install|ci|i)\b(?! -g npm@\d+\.\d+\.\d+ --ignore-scripts\b)/);
+  assert.match(withToken[0], new RegExp(`^    environment: ${RELEASE_ENVIRONMENT}$`, "m"));
+});
+
+function artifact(files, manifest) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sk-artifact-"));
+  for (const f of files) fs.writeFileSync(path.join(dir, f), "");
+  fs.writeFileSync(path.join(dir, MANIFEST), JSON.stringify(manifest));
+  return dir;
+}
+
+test("the publish job accepts only the artifact this checkout expects", () => {
+  const expect = { version: "1.0.68", names: ["@sidekickdb/version", "@sidekickdb/core"] };
+  const files = ["sidekickdb-version-1.0.68.tgz", "sidekickdb-core-1.0.68.tgz"];
+  const good = {
+    version: "1.0.68",
+    packages: [
+      { name: "@sidekickdb/version", file: files[0] },
+      { name: "@sidekickdb/core", file: files[1] },
+    ],
+  };
+  const inside = (map) => (tgz) => map[path.basename(tgz)];
+  const ok = inside({
+    [files[0]]: { name: "@sidekickdb/version", version: "1.0.68" },
+    [files[1]]: { name: "@sidekickdb/core", version: "1.0.68" },
+  });
+  const items = verifyArtifact(artifact(files, good), expect, ok);
+  assert.deepEqual(items.map((i) => i.name), expect.names);
+
+  assert.throws(
+    () => verifyArtifact(artifact(files, { ...good, version: "1.0.67" }), expect, ok),
+    /artifact is for 1\.0\.67/,
+  );
+  assert.throws(
+    () => verifyArtifact(artifact(files, { ...good, packages: [...good.packages].reverse() }), expect, ok),
+    /artifact packages differ/,
+  );
+  assert.throws(
+    () => verifyArtifact(artifact([...files, "evil.tgz"], good), expect, ok),
+    /unexpected files/,
+  );
+  assert.throws(
+    () =>
+      verifyArtifact(artifact(files, good), expect, inside({
+        [files[0]]: { name: "@sidekickdb/version", version: "1.0.68" },
+        [files[1]]: { name: "@sidekickdb/admin", version: "1.0.68" },
+      })),
+    /contains @sidekickdb\/admin@1\.0\.68, expected @sidekickdb\/core@1\.0\.68/,
+  );
+  const dotfile = { ...good, packages: [good.packages[0], { name: "@sidekickdb/core", file: ".core.tgz" }] };
+  assert.throws(
+    () => verifyArtifact(artifact([files[0], ".core.tgz"], dotfile), expect, ok),
+    /bad tarball name/,
+  );
 });

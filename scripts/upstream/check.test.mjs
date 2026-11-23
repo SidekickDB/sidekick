@@ -440,7 +440,25 @@ test("release workflows keep their rights only while their shape holds", () => {
     withWorkflows((d) =>
       edit(d, NPM, GUARD, GUARD.replace("refs/heads/main'", "refs/heads/main' || true")),
     ),
-    'release job "publish" must be guarded',
+    'release job "build" must be guarded',
+  );
+  // The build job must never hold the publish credential.
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, NPM, "    permissions:\n      contents: read\n    steps:\n      - name: Checkout\n",
+        "    permissions:\n      contents: read\n      id-token: write\n    steps:\n      - name: Checkout\n"),
+    ),
+    'release job "build" must use `environment: npm-release`, found (none)',
+    'enabled job "build" id-token: write',
+  );
+  // Moving the environment off the publish job drops its rights.
+  failsWith(
+    withWorkflows((d) => {
+      edit(d, NPM, "    environment: npm-release\n", "");
+      edit(d, NPM, "    timeout-minutes: 45\n", "    timeout-minutes: 45\n    environment: npm-release\n");
+    }),
+    'release job "publish" must use `environment: npm-release`, found (none)',
+    'enabled job "publish" id-token: write',
   );
 });
 
@@ -454,11 +472,19 @@ test("a release workflow still may not use secrets or other write rights", () =>
   );
   failsWith(
     withWorkflows((d) => edit(d, NPM, "      contents: read\n", "      contents: write\n")),
+    'enabled job "build" asks for a write permission: contents: write',
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, NPM, "      contents: read\n      id-token: write\n", "      contents: write\n      id-token: write\n"),
+    ),
     'enabled job "publish" asks for a write permission: contents: write',
   );
   // An image push right is not a publish right in the npm workflow.
   failsWith(
-    withWorkflows((d) => edit(d, NPM, "      contents: read\n", "      contents: read\n      packages: write\n")),
+    withWorkflows((d) =>
+      edit(d, NPM, "      contents: read\n      id-token: write\n", "      contents: read\n      id-token: write\n      packages: write\n"),
+    ),
     'enabled job "publish" asks for a write permission: packages: write',
   );
 });
@@ -501,4 +527,21 @@ test("hasReleaseGuard needs both guards as top-level && terms", () => {
   assert.equal(hasReleaseGuard(`(${g}) || always()`), false);
   assert.equal(hasReleaseGuard(`\${{ ${g} }} || true`), false);
   assert.equal(hasReleaseGuard(null), false);
+});
+
+test("push: ${{ ... }} counts as an image push outside the release workflow", () => {
+  const r = withWorkflows((d) =>
+    fs.appendFileSync(
+      path.join(d, "python.yml"),
+      `
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/build-push-action@v6
+        with:
+          push: \${{ github.event_name == 'push' }}
+`,
+    ),
+  );
+  failsWith(r, 'enabled job "images" pushes images');
 });

@@ -483,8 +483,10 @@ then take upstream's version. Take upstream's new tests as they are.
   `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
   workflows (npm trusted publishing, GHCR images). `check.mjs` allows their
   rights only while they keep a `workflow_dispatch`-only trigger,
-  `permissions: {}`, the `SidekickDB/sidekick` + `main` guard on every job,
-  their environment and job-level permissions.
+  `permissions: {}`, the `SidekickDB/sidekick` + `main` guard and job-level
+  permissions on every job, and their environment on every job that holds a
+  right. The npm workflow builds in a job without publish rights and
+  publishes from a job that installs nothing.
 - `client/scripts/sidekick-release-npm.mjs` and its test; `RELEASING.md`.
 - `server/flags-config/package.json`: `"private": true`.
 - `client/packages/version/src/version.ts` stays upstream's: SidekickDB keeps

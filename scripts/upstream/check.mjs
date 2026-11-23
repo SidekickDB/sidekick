@@ -97,15 +97,18 @@ export const DISPATCH_ONLY = [
 // SidekickDB's own release workflows (RELEASING.md). Upstream has no files
 // with these names. Each may use the rights matched by `allow` (whole job
 // lines), and only while checkReleaseShape finds nothing: workflow_dispatch as
-// the only trigger, `permissions: {}` at workflow level, and on every job the
-// repository + main guard, the named environment and its own permissions.
-// Everything else in RISKY still fails in these files.
+// the only trigger, `permissions: {}` at workflow level, the repository + main
+// guard and job-level permissions on every job, and the named environment on
+// every job that has an allowed line. Everything else in RISKY still fails in
+// these files.
 export const RELEASE_WORKFLOWS = {
   "sidekick-release-npm.yml": {
     environment: "npm-release",
     allow: [
       /^\s+id-token:\s*write\s*$/,
       /^\s+node scripts\/sidekick-release-npm\.mjs "\$\{args\[@\]\}"\s*$/,
+      // The publish job's sparse checkout of the script.
+      /^\s+client\/scripts\/sidekick-release-npm\.mjs\s*$/,
     ],
   },
   "sidekick-release-images.yml": {
@@ -113,6 +116,7 @@ export const RELEASE_WORKFLOWS = {
     allow: [
       /^\s+packages:\s*write\s*$/,
       /^\s+uses:\s*docker\/login-action@[0-9a-f]{40}(\s+#.*)?$/,
+      /^\s+push:\s*\$\{\{\s*inputs\.push\s*\}\}\s*$/,
     ],
   },
 };
@@ -170,7 +174,10 @@ function checkReleaseShape(rel, spec, { jobs, triggers, top }) {
     const env = j.lines
       .map(({ text }) => text.match(/^    environment:\s*(.*?)\s*$/)?.[1])
       .find((x) => x !== undefined);
-    if (env !== spec.environment)
+    const holdsRights = j.lines.some(({ text }) =>
+      spec.allow.some((re) => re.test(text)),
+    );
+    if (holdsRights && env !== spec.environment)
       out.push(
         `${rel}:${j.start}: release job "${j.name}" must use \`environment: ${spec.environment}\`, found ${env ?? "(none)"}`,
       );
@@ -200,12 +207,15 @@ const RISKY = [
   ],
   [/flyctl/, "deploys to Fly"],
   [/\bvercel\b/i, "deploys to Vercel"],
-  [/docker push|push:\s*true|amazon-ecr|docker\/login-action/, "pushes images"],
+  [
+    /docker push|push:\s*(?:true|\$\{\{)|amazon-ecr|docker\/login-action/,
+    "pushes images",
+  ],
   [/aws-actions\/|elastic-beanstalk/, "uses AWS credentials or deploys"],
   [/gh-action-pypi-publish|twine upload/, "publishes to PyPI"],
   [
-    /sidekick-release-npm\.mjs(?!\s+plan\b)/,
-    "runs the SidekickDB npm release script (publish or claim-names)",
+    /sidekick-release-npm\.mjs(?!\s+(?:plan|pack)\b)/,
+    "runs the SidekickDB npm release script (publish-tarballs, claim-names or trust)",
   ],
   [/algolia/i, "writes to Algolia"],
   [/git push/, "pushes to a repository"],

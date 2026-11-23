@@ -10,6 +10,9 @@ name: Release Docker images (SidekickDB)
 # as one multi-arch tag. See RELEASING.md.
 #
 # Started by hand only, from main. push defaults to false (build only).
+# A push needs two approvals of the image-release environment: one for the
+# build matrix, one for the manifest job. The per-arch <sha>-amd64 and
+# <sha>-arm64 tags stay visible next to the multi-arch tags.
 #
 # scripts/upstream/check.mjs allows this file's push rights only while it
 # keeps a workflow_dispatch-only trigger, the repository + main guard on each
@@ -63,6 +66,16 @@ jobs:
           - arch: arm64
             runner: ubuntu-24.04-arm
     steps:
+      # Fail before building when the extra tag is malformed.
+      - name: Check version input
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$VERSION" ] && ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "version must look like v1.2.3, got $VERSION" >&2
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:

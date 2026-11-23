@@ -13,6 +13,17 @@ added: npm accepts a publish only from the release workflow, in the
 `npm-release` environment, of `SidekickDB/sidekick`. Upstream's own publish and
 deploy jobs stay disabled (see `UPSTREAM.md`, CI lockdown).
 
+The npm workflow has two jobs so that no dependency code ever runs next to the
+publish credential:
+
+- `build` (`contents: read` only): installs, builds and packs the packages
+  (`sidekick-release-npm.mjs pack`) and uploads the tarballs with a manifest.
+- `publish` (`id-token: write`, `npm-release` environment): no install and no
+  build. It checks out only the release script, the package manifests and
+  `version.ts`, checks the downloaded tarballs against them (version, names,
+  order, file list, and the name and version inside each tarball) and runs
+  `npm publish` (`sidekick-release-npm.mjs publish-tarballs`).
+
 ## One-time setup (repository owner)
 
 Do these once, in this order. Steps 2 and 3 run on your own machine, logged in
@@ -90,29 +101,30 @@ repository.
 1. Open a PR that changes `client/packages/version/src/version.ts` to the new
    version and merge it. All 18 packages are published with that version.
 2. Actions → **Release npm packages (SidekickDB)** → Run workflow, branch
-   `main`, `dry_run` checked (the default). Approve the `npm-release`
-   deployment. The run builds, packs and runs `npm publish --dry-run` for every
-   package; read the log.
+   `main`, `dry_run` checked (the default). The build job runs first; then
+   approve the `npm-release` deployment for the publish job, which runs
+   `npm publish --dry-run` for every package. Read the log.
 3. Run it again with `dry_run` unchecked.
 
 From the command line:
 
 ```sh
 gh workflow run sidekick-release-npm.yml -R SidekickDB/sidekick --ref main \
-  -f dist_tag=latest -f dry_run=false
+  -f dry_run=false
 ```
 
-`dist_tag` is `latest` or `next`. A version that is already on npm is skipped,
-so a run that failed halfway can be re-run as it is; a run in which every
-package is already published fails and asks for a version bump.
+Every release goes to the `latest` dist-tag. A version that is already on npm
+is skipped, so a run that failed halfway can be re-run as it is; a run in which
+every package is already published fails and asks for a version bump.
 
 ### Version rules
 
 - Plain `vX.Y.Z` only, no `-next.0` or other suffix, and above `v0.22.75`. The
   server decides which protocol features a client gets from the core package
   version it reports in the session's `versions` map
-  (`server/src/instant/reactive/session.clj`) and cannot parse suffixed versions, so such clients silently lose batched
-  messages, skip-attrs and presence patches. `scripts/sidekick-release-npm.mjs`
+  (`server/src/instant/reactive/session.clj`) and cannot parse suffixed
+  versions, so such clients silently lose batched messages, skip-attrs and
+  presence patches. `scripts/sidekick-release-npm.mjs`
   refuses other versions.
 - SidekickDB keeps upstream's numbering line (`version.ts` comes from upstream
   and moves with upstream syncs). If an upstream sync brings a version
@@ -127,7 +139,12 @@ Actions → **Release Docker images (SidekickDB)** → Run workflow, branch `mai
 - `push` checked: pushes `<sha>-amd64` / `<sha>-arm64`, then publishes
   multi-arch tags: `latest` and `<sha>` for server and dashboard (plus
   `version`, for example `v1.0.67`, when given), and
-  `postgresql-17-pg-hint-plan` and `<sha>` for postgresql.
+  `postgresql-17-pg-hint-plan` and `<sha>` for postgresql. The per-arch tags
+  stay in the public packages next to the multi-arch ones.
+
+A push needs two approvals of the `image-release` environment: one for the
+build matrix and one for the manifest job. A malformed `version` fails every
+build job before it builds anything.
 
 ```sh
 gh workflow run sidekick-release-images.yml -R SidekickDB/sidekick --ref main \
@@ -143,8 +160,10 @@ after the first image release is public.
 `node scripts/upstream/check.mjs` (run on every upstream sync) allows publish
 rights only in the two release workflows above, and only while each keeps:
 `workflow_dispatch` as its only trigger, `permissions: {}` at workflow level,
-and on every job `if: github.repository == 'SidekickDB/sidekick' && github.ref
-== 'refs/heads/main'`, its environment (`npm-release` / `image-release`) and
-job-level permissions. Even there, repository secrets and any other write
-permission still fail, and calling `sidekick-release-npm.mjs` with anything but
-`plan` from any other workflow fails.
+on every job `if: github.repository == 'SidekickDB/sidekick' && github.ref ==
+'refs/heads/main'` and job-level permissions, and on every job that holds a
+publish right its environment (`npm-release` / `image-release`). So the npm
+build job cannot gain `id-token: write` without the check failing. Even in these
+files, repository secrets and any other write permission still fail, and
+calling `sidekick-release-npm.mjs` with anything but `plan` or `pack` from any
+other workflow fails.
