@@ -50,8 +50,8 @@ export const DIVERGENCES = {
   },
   "upstream-fixes": {
     title:
-      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2) and their follow-ups",
-    prs: [3, 10],
+      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling) and their follow-ups",
+    prs: [3, 10, 32],
     resolve:
       "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
       "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
@@ -165,6 +165,7 @@ const PR_CATEGORY = {
   27: "ci-lockdown",
   29: "removed-session-counter",
   31: "selfhost",
+  32: "upstream-fixes",
 };
 
 export function categoryFor(pr, file) {
