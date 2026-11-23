@@ -1,0 +1,1765 @@
+{
+  "environment": {
+    "commit": "eb6dd47001b3259a5f582f46ad770f440ce26652",
+    "measured_at": "2026-11-23T20:49:04.720Z",
+    "runner": {
+      "github_runner": "GitHub Actions 1000000689",
+      "runner_os": "Linux",
+      "runner_arch": "X64",
+      "runner_environment": "github-hosted",
+      "image_os": "ubuntu24",
+      "image_version": "20261116.133.1",
+      "labels": "ubuntu-24.04",
+      "cpus": 4,
+      "cpu_model": "Intel(R) Xeon(R) 6975P-C",
+      "mem_total_mib": 15702,
+      "kernel": "7.0.0-1014-aws"
+    },
+    "docker": "28.0.4",
+    "compose": "2.38.2",
+    "node": "v24.22.3",
+    "github_run": "https://github.com/SidekickDB/sidekick/actions/runs/45263046836"
+  },
+  "config": {
+    "samples": 3,
+    "modes": [
+      "default",
+      "self-hosted"
+    ],
+    "idle_seconds": 120,
+    "settle_seconds": 30,
+    "subscribers": 5,
+    "writes": 100,
+    "interval_ms": 100,
+    "compose_files": [
+      "self-hosting/docker-compose.yml",
+      "scripts/bench/self-hosted/compose.bench.yml"
+    ]
+  },
+  "samples": [
+    {
+      "sample": 1,
+      "mode": "default",
+      "smoke": {
+        "mode": "default",
+        "ok": true,
+        "checks": {
+          "headers": {
+            "ok": true,
+            "ms": 4,
+            "dev_headers": true
+          },
+          "presence": {
+            "ok": true,
+            "ms": 68
+          },
+          "streams": {
+            "ok": true,
+            "ms": 254,
+            "bytes": 19
+          },
+          "sse": {
+            "ok": true,
+            "ms": 186,
+            "transport": "sse",
+            "visible_ms": [
+              50,
+              25,
+              23,
+              25,
+              29
+            ]
+          }
+        }
+      },
+      "cold_start": {
+        "up_returned_ms": 29238,
+        "server_http_ms": 27318,
+        "wal_ok_ms": 27320,
+        "server_healthy_ms": 28829,
+        "www_healthy_ms": 34608,
+        "bootstrap_jvm_ms": 4676,
+        "server_jvm_to_first_init_ms": 6654,
+        "init_steps_ms": 2207,
+        "container_to_initialized_ms": 13537,
+        "init_finish_ms": {
+          "uncaught-exception-handler": 0,
+          "shutdown-hook": 0,
+          "gauges": 3,
+          "jvm-metrics": 0,
+          "nrepl": 6,
+          "oauth": 3,
+          "jwt": 1,
+          "aurora": 114,
+          "tx-model": 23,
+          "system-catalog": 153,
+          "reactive-store": 8,
+          "grpc-server": 177,
+          "ephemeral": 1735,
+          "stripe": 0,
+          "session": 1,
+          "webhook-processor": 10,
+          "invalidator": 52,
+          "wal": 2,
+          "flags": 86,
+          "sunset": 0,
+          "app-proxy": 0,
+          "aggregator": 37,
+          "ephemeral-app": 1,
+          "session-counter": 3,
+          "join-room-logger": 1,
+          "indexing-jobs": 13,
+          "app-backup-jobs": 6,
+          "storage-sweeper": 1,
+          "hard-deletion-sweeper": 11,
+          "custodian": 14,
+          "rate-limit-sweeper": 21,
+          "wal-log-truncator": 2,
+          "history-truncator": 1,
+          "hint-testing": 0,
+          "admin-tx-queue": 0,
+          "web-server": 167,
+          "triples-size-updates": 0
+        },
+        "init_skipped": []
+      },
+      "idle": {
+        "services": {
+          "postgres": {
+            "mem_mib": 80.8,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 963.2,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.53,
+            "pids": 114
+          },
+          "storage": {
+            "mem_mib": 29.6,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 28
+          },
+          "www": {
+            "mem_mib": 159.9,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 7.91,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 952,
+          "rss_peak_mib": 977,
+          "swap_mib": 0,
+          "threads": 114,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 276,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 282879K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 198 eden (198M), 38 survivor (38M), 23 old (23M), 18 humongous (18M), 345 free (345M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "workload": {
+        "app_id": "006f65e1-1c71-49b4-ad4e-10f1de6c2eea",
+        "subscribers": 5,
+        "writes": 100,
+        "warmup_writes": 10,
+        "interval_ms": 100,
+        "missing_updates": 0,
+        "initial_subscribe_ms": 169,
+        "ack_ms": {
+          "count": 90,
+          "p50": 14.66,
+          "p95": 21.45,
+          "max": 29.46,
+          "min": 11.83
+        },
+        "visible_ms": {
+          "count": 450,
+          "p50": 30.62,
+          "p95": 42.61,
+          "max": 59.26,
+          "min": 23.47
+        },
+        "ack_ms_first_half": {
+          "count": 45,
+          "p50": 15.93,
+          "p95": 22.45,
+          "max": 29.46,
+          "min": 12.01
+        },
+        "ack_ms_second_half": {
+          "count": 45,
+          "p50": 13.34,
+          "p95": 18.37,
+          "max": 20.76,
+          "min": 11.83
+        },
+        "visible_ms_first_half": {
+          "count": 225,
+          "p50": 32.85,
+          "p95": 43.98,
+          "max": 51.22,
+          "min": 23.72
+        },
+        "visible_ms_second_half": {
+          "count": 225,
+          "p50": 28.77,
+          "p95": 39.73,
+          "max": 59.26,
+          "min": 23.47
+        },
+        "sequential_writes": 20,
+        "sequential_ack_ms": {
+          "count": 20,
+          "p50": 12.14,
+          "p95": 14.07,
+          "max": 16.6,
+          "min": 11.06
+        },
+        "sequential_visible_ms": {
+          "count": 100,
+          "p50": 30.93,
+          "p95": 44,
+          "max": 46.36,
+          "min": 25.08
+        },
+        "per_subscriber_visible_ms": [
+          {
+            "subscriber": 0,
+            "count": 90,
+            "p50": 30.29,
+            "p95": 42.48,
+            "max": 57.17,
+            "min": 23.86
+          },
+          {
+            "subscriber": 1,
+            "count": 90,
+            "p50": 31.25,
+            "p95": 42,
+            "max": 56.3,
+            "min": 24.77
+          },
+          {
+            "subscriber": 2,
+            "count": 90,
+            "p50": 30.93,
+            "p95": 43.41,
+            "max": 59.26,
+            "min": 23.76
+          },
+          {
+            "subscriber": 3,
+            "count": 90,
+            "p50": 30.04,
+            "p95": 41.7,
+            "max": 51.22,
+            "min": 23.47
+          },
+          {
+            "subscriber": 4,
+            "count": 90,
+            "p50": 30.78,
+            "p95": 42.59,
+            "max": 55.4,
+            "min": 24.15
+          }
+        ],
+        "total_ms": 13062
+      },
+      "after_workload": {
+        "services": {
+          "postgres": {
+            "mem_mib": 93.9,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 946.6,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 1.17,
+            "pids": 228
+          },
+          "storage": {
+            "mem_mib": 30.2,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 28
+          },
+          "www": {
+            "mem_mib": 159.6,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 933,
+          "rss_peak_mib": 1039,
+          "swap_mib": 0,
+          "threads": 228,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 540,
+          "heap_used_mib": 403,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 552960K, used 413138K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 293 eden (293M), 16 survivor (16M), 60 old (60M), 36 humongous (36M), 135 free (135M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "warm_restart_ms": 21741
+    },
+    {
+      "sample": 2,
+      "mode": "self-hosted",
+      "smoke": {
+        "mode": "self-hosted",
+        "ok": true,
+        "checks": {
+          "headers": {
+            "ok": true,
+            "ms": 3,
+            "dev_headers": false
+          },
+          "presence": {
+            "ok": true,
+            "ms": 67
+          },
+          "streams": {
+            "ok": true,
+            "ms": 107,
+            "bytes": 19
+          },
+          "sse": {
+            "ok": true,
+            "ms": 201,
+            "transport": "sse",
+            "visible_ms": [
+              46,
+              23,
+              25,
+              20,
+              29
+            ]
+          }
+        }
+      },
+      "cold_start": {
+        "up_returned_ms": 26043,
+        "server_http_ms": 24005,
+        "wal_ok_ms": 24006,
+        "server_healthy_ms": 25692,
+        "www_healthy_ms": 31448,
+        "bootstrap_jvm_ms": 4568,
+        "server_jvm_to_first_init_ms": 6651,
+        "init_steps_ms": 2270,
+        "container_to_initialized_ms": 13489,
+        "init_finish_ms": {
+          "uncaught-exception-handler": 0,
+          "shutdown-hook": 0,
+          "gauges": 3,
+          "jvm-metrics": 0,
+          "oauth": 2,
+          "jwt": 0,
+          "aurora": 159,
+          "tx-model": 36,
+          "system-catalog": 165,
+          "reactive-store": 11,
+          "grpc-server": 330,
+          "ephemeral": 1666,
+          "stripe": 0,
+          "session": 0,
+          "webhook-processor": 6,
+          "invalidator": 60,
+          "wal": 1,
+          "flags": 119,
+          "aggregator": 31,
+          "ephemeral-app": 2,
+          "session-counter": 1,
+          "indexing-jobs": 13,
+          "app-backup-jobs": 5,
+          "storage-sweeper": 6,
+          "hard-deletion-sweeper": 4,
+          "custodian": 3,
+          "rate-limit-sweeper": 3,
+          "wal-log-truncator": 3,
+          "history-truncator": 3,
+          "admin-tx-queue": 0,
+          "web-server": 99,
+          "triples-size-updates": 0
+        },
+        "init_skipped": [
+          "nrepl",
+          "sunset",
+          "app-proxy",
+          "join-room-logger",
+          "hint-testing"
+        ]
+      },
+      "idle": {
+        "services": {
+          "postgres": {
+            "mem_mib": 80.6,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 923.1,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.43,
+            "pids": 114
+          },
+          "storage": {
+            "mem_mib": 28.3,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 25
+          },
+          "www": {
+            "mem_mib": 159.3,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 948,
+          "rss_peak_mib": 982,
+          "swap_mib": 0,
+          "threads": 114,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 128,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 131544K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 43 eden (43M), 24 survivor (24M), 44 old (44M), 18 humongous (18M), 493 free (493M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "workload": {
+        "app_id": "928023ed-260a-439b-b315-12f25fb9c182",
+        "subscribers": 5,
+        "writes": 100,
+        "warmup_writes": 10,
+        "interval_ms": 100,
+        "missing_updates": 0,
+        "initial_subscribe_ms": 118,
+        "ack_ms": {
+          "count": 90,
+          "p50": 17.47,
+          "p95": 25.14,
+          "max": 40.33,
+          "min": 15.02
+        },
+        "visible_ms": {
+          "count": 450,
+          "p50": 34.32,
+          "p95": 49.15,
+          "max": 64.66,
+          "min": 27.71
+        },
+        "ack_ms_first_half": {
+          "count": 45,
+          "p50": 18.45,
+          "p95": 26.13,
+          "max": 40.33,
+          "min": 15.28
+        },
+        "ack_ms_second_half": {
+          "count": 45,
+          "p50": 16.48,
+          "p95": 22.29,
+          "max": 28.65,
+          "min": 15.02
+        },
+        "visible_ms_first_half": {
+          "count": 225,
+          "p50": 36.43,
+          "p95": 52.06,
+          "max": 64.66,
+          "min": 29.12
+        },
+        "visible_ms_second_half": {
+          "count": 225,
+          "p50": 32.7,
+          "p95": 45.66,
+          "max": 57.36,
+          "min": 27.71
+        },
+        "sequential_writes": 20,
+        "sequential_ack_ms": {
+          "count": 20,
+          "p50": 16.08,
+          "p95": 19.38,
+          "max": 33.31,
+          "min": 14.35
+        },
+        "sequential_visible_ms": {
+          "count": 100,
+          "p50": 35.49,
+          "p95": 48.29,
+          "max": 62.61,
+          "min": 28.82
+        },
+        "per_subscriber_visible_ms": [
+          {
+            "subscriber": 0,
+            "count": 90,
+            "p50": 34.3,
+            "p95": 48.1,
+            "max": 64.22,
+            "min": 27.87
+          },
+          {
+            "subscriber": 1,
+            "count": 90,
+            "p50": 34.46,
+            "p95": 48.08,
+            "max": 64.66,
+            "min": 27.93
+          },
+          {
+            "subscriber": 2,
+            "count": 90,
+            "p50": 34.63,
+            "p95": 49.36,
+            "max": 63.42,
+            "min": 28.39
+          },
+          {
+            "subscriber": 3,
+            "count": 90,
+            "p50": 33.8,
+            "p95": 47.5,
+            "max": 59.47,
+            "min": 27.71
+          },
+          {
+            "subscriber": 4,
+            "count": 90,
+            "p50": 34.84,
+            "p95": 48.12,
+            "max": 60.3,
+            "min": 28.8
+          }
+        ],
+        "total_ms": 13069
+      },
+      "after_workload": {
+        "services": {
+          "postgres": {
+            "mem_mib": 88.9,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 1001,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.55,
+            "pids": 229
+          },
+          "storage": {
+            "mem_mib": 28.6,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 25
+          },
+          "www": {
+            "mem_mib": 159.3,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.01,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 1025,
+          "rss_peak_mib": 1055,
+          "swap_mib": 0,
+          "threads": 229,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 371,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 379960K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 259 eden (259M), 18 survivor (18M), 59 old (59M), 36 humongous (36M), 250 free (250M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "warm_restart_ms": 22267
+    },
+    {
+      "sample": 3,
+      "mode": "default",
+      "smoke": {
+        "mode": "default",
+        "ok": true,
+        "checks": {
+          "headers": {
+            "ok": true,
+            "ms": 5,
+            "dev_headers": true
+          },
+          "presence": {
+            "ok": true,
+            "ms": 82
+          },
+          "streams": {
+            "ok": true,
+            "ms": 247,
+            "bytes": 19
+          },
+          "sse": {
+            "ok": true,
+            "ms": 219,
+            "transport": "sse",
+            "visible_ms": [
+              50,
+              35,
+              22,
+              25,
+              29
+            ]
+          }
+        }
+      },
+      "cold_start": {
+        "up_returned_ms": 26011,
+        "server_http_ms": 24036,
+        "wal_ok_ms": 24036,
+        "server_healthy_ms": 25903,
+        "www_healthy_ms": 31353,
+        "bootstrap_jvm_ms": 4601,
+        "server_jvm_to_first_init_ms": 6692,
+        "init_steps_ms": 2257,
+        "container_to_initialized_ms": 13550,
+        "init_finish_ms": {
+          "uncaught-exception-handler": 0,
+          "shutdown-hook": 0,
+          "gauges": 3,
+          "jvm-metrics": 0,
+          "nrepl": 6,
+          "oauth": 4,
+          "jwt": 3,
+          "aurora": 137,
+          "tx-model": 47,
+          "system-catalog": 186,
+          "reactive-store": 9,
+          "grpc-server": 292,
+          "ephemeral": 1652,
+          "stripe": 0,
+          "session": 0,
+          "webhook-processor": 5,
+          "invalidator": 40,
+          "wal": 1,
+          "flags": 73,
+          "sunset": 0,
+          "app-proxy": 0,
+          "aggregator": 43,
+          "ephemeral-app": 2,
+          "session-counter": 5,
+          "join-room-logger": 0,
+          "indexing-jobs": 5,
+          "app-backup-jobs": 11,
+          "storage-sweeper": 4,
+          "hard-deletion-sweeper": 2,
+          "custodian": 7,
+          "rate-limit-sweeper": 8,
+          "wal-log-truncator": 4,
+          "history-truncator": 1,
+          "hint-testing": 1,
+          "admin-tx-queue": 0,
+          "web-server": 158,
+          "triples-size-updates": 0
+        },
+        "init_skipped": []
+      },
+      "idle": {
+        "services": {
+          "postgres": {
+            "mem_mib": 81,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 925,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.61,
+            "pids": 116
+          },
+          "storage": {
+            "mem_mib": 28.3,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 22
+          },
+          "www": {
+            "mem_mib": 156.4,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 950,
+          "rss_peak_mib": 972,
+          "swap_mib": 0,
+          "threads": 116,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 110,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 112128K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 23 eden (23M), 25 survivor (25M), 44 old (44M), 18 humongous (18M), 512 free (512M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "workload": {
+        "app_id": "0a4996ad-3495-44d0-996b-5e5e364d8c22",
+        "subscribers": 5,
+        "writes": 100,
+        "warmup_writes": 10,
+        "interval_ms": 100,
+        "missing_updates": 0,
+        "initial_subscribe_ms": 139,
+        "ack_ms": {
+          "count": 90,
+          "p50": 15.11,
+          "p95": 19.59,
+          "max": 24.79,
+          "min": 11.36
+        },
+        "visible_ms": {
+          "count": 450,
+          "p50": 30.68,
+          "p95": 41.63,
+          "max": 56.9,
+          "min": 22.43
+        },
+        "ack_ms_first_half": {
+          "count": 45,
+          "p50": 15.89,
+          "p95": 21.84,
+          "max": 24.79,
+          "min": 12.11
+        },
+        "ack_ms_second_half": {
+          "count": 45,
+          "p50": 13.71,
+          "p95": 16.62,
+          "max": 19.2,
+          "min": 11.36
+        },
+        "visible_ms_first_half": {
+          "count": 225,
+          "p50": 32.7,
+          "p95": 43.25,
+          "max": 56.9,
+          "min": 24.58
+        },
+        "visible_ms_second_half": {
+          "count": 225,
+          "p50": 28.78,
+          "p95": 39.2,
+          "max": 42.98,
+          "min": 22.43
+        },
+        "sequential_writes": 20,
+        "sequential_ack_ms": {
+          "count": 20,
+          "p50": 12.51,
+          "p95": 14.42,
+          "max": 16.83,
+          "min": 10.68
+        },
+        "sequential_visible_ms": {
+          "count": 100,
+          "p50": 30.83,
+          "p95": 43.61,
+          "max": 46.64,
+          "min": 24.44
+        },
+        "per_subscriber_visible_ms": [
+          {
+            "subscriber": 0,
+            "count": 90,
+            "p50": 30.63,
+            "p95": 40.24,
+            "max": 56.9,
+            "min": 24.37
+          },
+          {
+            "subscriber": 1,
+            "count": 90,
+            "p50": 31.05,
+            "p95": 41.49,
+            "max": 53.42,
+            "min": 23.85
+          },
+          {
+            "subscriber": 2,
+            "count": 90,
+            "p50": 29.99,
+            "p95": 40.56,
+            "max": 52.64,
+            "min": 22.43
+          },
+          {
+            "subscriber": 3,
+            "count": 90,
+            "p50": 30.94,
+            "p95": 42.07,
+            "max": 51.43,
+            "min": 23.58
+          },
+          {
+            "subscriber": 4,
+            "count": 90,
+            "p50": 30.69,
+            "p95": 40.9,
+            "max": 54.85,
+            "min": 23.08
+          }
+        ],
+        "total_ms": 13044
+      },
+      "after_workload": {
+        "services": {
+          "postgres": {
+            "mem_mib": 89.5,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 1004,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.91,
+            "pids": 229
+          },
+          "storage": {
+            "mem_mib": 28.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 22
+          },
+          "www": {
+            "mem_mib": 156.2,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 1025,
+          "rss_peak_mib": 1047,
+          "swap_mib": 0,
+          "threads": 229,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 157,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 160509K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 46 eden (46M), 17 survivor (17M), 59 old (59M), 36 humongous (36M), 464 free (464M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "warm_restart_ms": 22038
+    },
+    {
+      "sample": 4,
+      "mode": "self-hosted",
+      "smoke": {
+        "mode": "self-hosted",
+        "ok": true,
+        "checks": {
+          "headers": {
+            "ok": true,
+            "ms": 7,
+            "dev_headers": false
+          },
+          "presence": {
+            "ok": true,
+            "ms": 75
+          },
+          "streams": {
+            "ok": true,
+            "ms": 127,
+            "bytes": 19
+          },
+          "sse": {
+            "ok": true,
+            "ms": 178,
+            "transport": "sse",
+            "visible_ms": [
+              54,
+              24,
+              21,
+              18,
+              15
+            ]
+          }
+        }
+      },
+      "cold_start": {
+        "up_returned_ms": 25981,
+        "server_http_ms": 24493,
+        "wal_ok_ms": 24493,
+        "server_healthy_ms": 25730,
+        "www_healthy_ms": 31173,
+        "bootstrap_jvm_ms": 4606,
+        "server_jvm_to_first_init_ms": 6976,
+        "init_steps_ms": 2348,
+        "container_to_initialized_ms": 13930,
+        "init_finish_ms": {
+          "uncaught-exception-handler": 0,
+          "shutdown-hook": 0,
+          "gauges": 4,
+          "jvm-metrics": 0,
+          "oauth": 4,
+          "jwt": 2,
+          "aurora": 192,
+          "tx-model": 31,
+          "system-catalog": 190,
+          "reactive-store": 8,
+          "grpc-server": 289,
+          "ephemeral": 1724,
+          "stripe": 0,
+          "session": 1,
+          "webhook-processor": 8,
+          "invalidator": 83,
+          "wal": 4,
+          "flags": 87,
+          "aggregator": 34,
+          "ephemeral-app": 1,
+          "session-counter": 1,
+          "indexing-jobs": 6,
+          "app-backup-jobs": 5,
+          "storage-sweeper": 8,
+          "hard-deletion-sweeper": 1,
+          "custodian": 6,
+          "rate-limit-sweeper": 2,
+          "wal-log-truncator": 1,
+          "history-truncator": 1,
+          "admin-tx-queue": 0,
+          "web-server": 104,
+          "triples-size-updates": 0
+        },
+        "init_skipped": [
+          "nrepl",
+          "sunset",
+          "app-proxy",
+          "join-room-logger",
+          "hint-testing"
+        ]
+      },
+      "idle": {
+        "services": {
+          "postgres": {
+            "mem_mib": 81,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 936.6,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.31,
+            "pids": 115
+          },
+          "storage": {
+            "mem_mib": 27.8,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.03,
+            "pids": 22
+          },
+          "www": {
+            "mem_mib": 157.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 962,
+          "rss_peak_mib": 1003,
+          "swap_mib": 0,
+          "threads": 115,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 112,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 114285K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 25 eden (25M), 25 survivor (25M), 45 old (45M), 18 humongous (18M), 509 free (509M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "workload": {
+        "app_id": "fbc3e39d-75d1-4392-8bec-f066e9cd6176",
+        "subscribers": 5,
+        "writes": 100,
+        "warmup_writes": 10,
+        "interval_ms": 100,
+        "missing_updates": 0,
+        "initial_subscribe_ms": 119,
+        "ack_ms": {
+          "count": 90,
+          "p50": 14.85,
+          "p95": 19.67,
+          "max": 22.39,
+          "min": 11.24
+        },
+        "visible_ms": {
+          "count": 450,
+          "p50": 30.67,
+          "p95": 45.15,
+          "max": 143.25,
+          "min": 22.94
+        },
+        "ack_ms_first_half": {
+          "count": 45,
+          "p50": 16.92,
+          "p95": 20.14,
+          "max": 22.39,
+          "min": 12.51
+        },
+        "ack_ms_second_half": {
+          "count": 45,
+          "p50": 13.36,
+          "p95": 16.37,
+          "max": 17.15,
+          "min": 11.24
+        },
+        "visible_ms_first_half": {
+          "count": 225,
+          "p50": 33.2,
+          "p95": 46.75,
+          "max": 61.58,
+          "min": 23.83
+        },
+        "visible_ms_second_half": {
+          "count": 225,
+          "p50": 28.44,
+          "p95": 41.92,
+          "max": 143.25,
+          "min": 22.94
+        },
+        "sequential_writes": 20,
+        "sequential_ack_ms": {
+          "count": 20,
+          "p50": 13.16,
+          "p95": 17.22,
+          "max": 26.75,
+          "min": 12.05
+        },
+        "sequential_visible_ms": {
+          "count": 100,
+          "p50": 31.92,
+          "p95": 43.12,
+          "max": 45.29,
+          "min": 25.52
+        },
+        "per_subscriber_visible_ms": [
+          {
+            "subscriber": 0,
+            "count": 90,
+            "p50": 30.79,
+            "p95": 44.34,
+            "max": 138.89,
+            "min": 23.3
+          },
+          {
+            "subscriber": 1,
+            "count": 90,
+            "p50": 30.83,
+            "p95": 43.8,
+            "max": 140.8,
+            "min": 22.94
+          },
+          {
+            "subscriber": 2,
+            "count": 90,
+            "p50": 30.55,
+            "p95": 44.79,
+            "max": 136.58,
+            "min": 23.94
+          },
+          {
+            "subscriber": 3,
+            "count": 90,
+            "p50": 30.61,
+            "p95": 45.9,
+            "max": 143.25,
+            "min": 23.04
+          },
+          {
+            "subscriber": 4,
+            "count": 90,
+            "p50": 30.92,
+            "p95": 45.38,
+            "max": 142.18,
+            "min": 23.83
+          }
+        ],
+        "total_ms": 12963
+      },
+      "after_workload": {
+        "services": {
+          "postgres": {
+            "mem_mib": 89.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 943.2,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.32,
+            "pids": 229
+          },
+          "storage": {
+            "mem_mib": 28.6,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.03,
+            "pids": 22
+          },
+          "www": {
+            "mem_mib": 157.8,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 964,
+          "rss_peak_mib": 1052,
+          "swap_mib": 0,
+          "threads": 229,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 567,
+          "heap_used_mib": 124,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 580608K, used 127095K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 14 eden (14M), 16 survivor (16M), 59 old (59M), 36 humongous (36M), 442 free (442M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "warm_restart_ms": 21771
+    },
+    {
+      "sample": 5,
+      "mode": "default",
+      "smoke": {
+        "mode": "default",
+        "ok": true,
+        "checks": {
+          "headers": {
+            "ok": true,
+            "ms": 6,
+            "dev_headers": true
+          },
+          "presence": {
+            "ok": true,
+            "ms": 66
+          },
+          "streams": {
+            "ok": true,
+            "ms": 221,
+            "bytes": 19
+          },
+          "sse": {
+            "ok": true,
+            "ms": 215,
+            "transport": "sse",
+            "visible_ms": [
+              55,
+              29,
+              26,
+              20,
+              28
+            ]
+          }
+        }
+      },
+      "cold_start": {
+        "up_returned_ms": 26006,
+        "server_http_ms": 23988,
+        "wal_ok_ms": 23987,
+        "server_healthy_ms": 25817,
+        "www_healthy_ms": 31198,
+        "bootstrap_jvm_ms": 4406,
+        "server_jvm_to_first_init_ms": 6792,
+        "init_steps_ms": 2293,
+        "container_to_initialized_ms": 13491,
+        "init_finish_ms": {
+          "uncaught-exception-handler": 0,
+          "shutdown-hook": 0,
+          "gauges": 3,
+          "jvm-metrics": 0,
+          "nrepl": 5,
+          "oauth": 2,
+          "jwt": 1,
+          "aurora": 138,
+          "tx-model": 24,
+          "system-catalog": 213,
+          "reactive-store": 13,
+          "grpc-server": 250,
+          "ephemeral": 1705,
+          "stripe": 0,
+          "session": 1,
+          "webhook-processor": 6,
+          "invalidator": 59,
+          "wal": 1,
+          "flags": 71,
+          "sunset": 0,
+          "app-proxy": 0,
+          "aggregator": 31,
+          "ephemeral-app": 4,
+          "session-counter": 3,
+          "join-room-logger": 0,
+          "indexing-jobs": 12,
+          "app-backup-jobs": 4,
+          "storage-sweeper": 2,
+          "hard-deletion-sweeper": 5,
+          "custodian": 4,
+          "rate-limit-sweeper": 13,
+          "wal-log-truncator": 2,
+          "history-truncator": 3,
+          "hint-testing": 0,
+          "admin-tx-queue": 0,
+          "web-server": 159,
+          "triples-size-updates": 2
+        },
+        "init_skipped": []
+      },
+      "idle": {
+        "services": {
+          "postgres": {
+            "mem_mib": 81.2,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 933.3,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.4,
+            "pids": 116
+          },
+          "storage": {
+            "mem_mib": 28.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.03,
+            "pids": 24
+          },
+          "www": {
+            "mem_mib": 160.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.01,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 959,
+          "rss_peak_mib": 994,
+          "swap_mib": 0,
+          "threads": 116,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 99,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 101515K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 13 eden (13M), 25 survivor (25M), 44 old (44M), 18 humongous (18M), 522 free (522M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "workload": {
+        "app_id": "01fbcca1-0823-4a72-b25b-7ac61170aea1",
+        "subscribers": 5,
+        "writes": 100,
+        "warmup_writes": 10,
+        "interval_ms": 100,
+        "missing_updates": 0,
+        "initial_subscribe_ms": 173,
+        "ack_ms": {
+          "count": 90,
+          "p50": 13.29,
+          "p95": 17.97,
+          "max": 35.84,
+          "min": 9.73
+        },
+        "visible_ms": {
+          "count": 450,
+          "p50": 28.9,
+          "p95": 39.29,
+          "max": 52.99,
+          "min": 21.09
+        },
+        "ack_ms_first_half": {
+          "count": 45,
+          "p50": 14.68,
+          "p95": 19.74,
+          "max": 35.84,
+          "min": 11.35
+        },
+        "ack_ms_second_half": {
+          "count": 45,
+          "p50": 12.06,
+          "p95": 14.77,
+          "max": 16.15,
+          "min": 9.73
+        },
+        "visible_ms_first_half": {
+          "count": 225,
+          "p50": 30.98,
+          "p95": 40.43,
+          "max": 52.99,
+          "min": 24.17
+        },
+        "visible_ms_second_half": {
+          "count": 225,
+          "p50": 26.63,
+          "p95": 34.59,
+          "max": 49.91,
+          "min": 21.09
+        },
+        "sequential_writes": 20,
+        "sequential_ack_ms": {
+          "count": 20,
+          "p50": 12.33,
+          "p95": 15.76,
+          "max": 16.21,
+          "min": 10.91
+        },
+        "sequential_visible_ms": {
+          "count": 100,
+          "p50": 29.84,
+          "p95": 44.63,
+          "max": 50.94,
+          "min": 24.5
+        },
+        "per_subscriber_visible_ms": [
+          {
+            "subscriber": 0,
+            "count": 90,
+            "p50": 27.75,
+            "p95": 36.45,
+            "max": 52.99,
+            "min": 22.29
+          },
+          {
+            "subscriber": 1,
+            "count": 90,
+            "p50": 29.11,
+            "p95": 38.2,
+            "max": 51.45,
+            "min": 21.79
+          },
+          {
+            "subscriber": 2,
+            "count": 90,
+            "p50": 28.18,
+            "p95": 38.91,
+            "max": 50.98,
+            "min": 21.09
+          },
+          {
+            "subscriber": 3,
+            "count": 90,
+            "p50": 28.99,
+            "p95": 40.2,
+            "max": 52.55,
+            "min": 21.67
+          },
+          {
+            "subscriber": 4,
+            "count": 90,
+            "p50": 29.2,
+            "p95": 39.89,
+            "max": 50.81,
+            "min": 22.05
+          }
+        ],
+        "total_ms": 13028
+      },
+      "after_workload": {
+        "services": {
+          "postgres": {
+            "mem_mib": 89.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 918.5,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.45,
+            "pids": 228
+          },
+          "storage": {
+            "mem_mib": 28.5,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 24
+          },
+          "www": {
+            "mem_mib": 160.2,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.01,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 940,
+          "rss_peak_mib": 1061,
+          "swap_mib": 0,
+          "threads": 228,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 540,
+          "heap_used_mib": 126,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 552960K, used 128921K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 16 eden (16M), 16 survivor (16M), 60 old (60M), 36 humongous (36M), 412 free (412M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "warm_restart_ms": 22014
+    },
+    {
+      "sample": 6,
+      "mode": "self-hosted",
+      "smoke": {
+        "mode": "self-hosted",
+        "ok": true,
+        "checks": {
+          "headers": {
+            "ok": true,
+            "ms": 4,
+            "dev_headers": false
+          },
+          "presence": {
+            "ok": true,
+            "ms": 83
+          },
+          "streams": {
+            "ok": true,
+            "ms": 98,
+            "bytes": 19
+          },
+          "sse": {
+            "ok": true,
+            "ms": 164,
+            "transport": "sse",
+            "visible_ms": [
+              35,
+              23,
+              18,
+              16,
+              25
+            ]
+          }
+        }
+      },
+      "cold_start": {
+        "up_returned_ms": 26022,
+        "server_http_ms": 23981,
+        "wal_ok_ms": 23981,
+        "server_healthy_ms": 25632,
+        "www_healthy_ms": 31412,
+        "bootstrap_jvm_ms": 4663,
+        "server_jvm_to_first_init_ms": 6706,
+        "init_steps_ms": 2145,
+        "container_to_initialized_ms": 13514,
+        "init_finish_ms": {
+          "uncaught-exception-handler": 0,
+          "shutdown-hook": 0,
+          "gauges": 3,
+          "jvm-metrics": 0,
+          "oauth": 3,
+          "jwt": 1,
+          "aurora": 116,
+          "tx-model": 21,
+          "system-catalog": 164,
+          "reactive-store": 13,
+          "grpc-server": 209,
+          "ephemeral": 1716,
+          "stripe": 0,
+          "session": 1,
+          "webhook-processor": 7,
+          "invalidator": 43,
+          "wal": 1,
+          "flags": 67,
+          "aggregator": 37,
+          "ephemeral-app": 4,
+          "session-counter": 1,
+          "indexing-jobs": 20,
+          "app-backup-jobs": 7,
+          "storage-sweeper": 4,
+          "hard-deletion-sweeper": 6,
+          "custodian": 8,
+          "rate-limit-sweeper": 3,
+          "wal-log-truncator": 5,
+          "history-truncator": 3,
+          "admin-tx-queue": 0,
+          "web-server": 156,
+          "triples-size-updates": 1
+        },
+        "init_skipped": [
+          "nrepl",
+          "sunset",
+          "app-proxy",
+          "join-room-logger",
+          "hint-testing"
+        ]
+      },
+      "idle": {
+        "services": {
+          "postgres": {
+            "mem_mib": 80.2,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 913.8,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 0.45,
+            "pids": 113
+          },
+          "storage": {
+            "mem_mib": 27.9,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.04,
+            "pids": 22
+          },
+          "www": {
+            "mem_mib": 154.6,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 938,
+          "rss_peak_mib": 966,
+          "swap_mib": 0,
+          "threads": 113,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 622,
+          "heap_used_mib": 273,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 636928K, used 279490K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 195 eden (195M), 39 survivor (39M), 22 old (22M), 18 humongous (18M), 348 free (348M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "workload": {
+        "app_id": "60eae78a-7d12-49cc-96c2-cd627187f793",
+        "subscribers": 5,
+        "writes": 100,
+        "warmup_writes": 10,
+        "interval_ms": 100,
+        "missing_updates": 0,
+        "initial_subscribe_ms": 123,
+        "ack_ms": {
+          "count": 90,
+          "p50": 16.77,
+          "p95": 22.37,
+          "max": 27.47,
+          "min": 12.93
+        },
+        "visible_ms": {
+          "count": 450,
+          "p50": 33.36,
+          "p95": 48.26,
+          "max": 61.49,
+          "min": 25.27
+        },
+        "ack_ms_first_half": {
+          "count": 45,
+          "p50": 17.81,
+          "p95": 25.04,
+          "max": 27.47,
+          "min": 14.17
+        },
+        "ack_ms_second_half": {
+          "count": 45,
+          "p50": 15.62,
+          "p95": 19.53,
+          "max": 22.32,
+          "min": 12.93
+        },
+        "visible_ms_first_half": {
+          "count": 225,
+          "p50": 36.58,
+          "p95": 51.37,
+          "max": 61.49,
+          "min": 28.38
+        },
+        "visible_ms_second_half": {
+          "count": 225,
+          "p50": 31.47,
+          "p95": 42.57,
+          "max": 54.36,
+          "min": 25.27
+        },
+        "sequential_writes": 20,
+        "sequential_ack_ms": {
+          "count": 20,
+          "p50": 13.67,
+          "p95": 15.67,
+          "max": 15.79,
+          "min": 12.74
+        },
+        "sequential_visible_ms": {
+          "count": 100,
+          "p50": 32.23,
+          "p95": 43.86,
+          "max": 46.73,
+          "min": 26.56
+        },
+        "per_subscriber_visible_ms": [
+          {
+            "subscriber": 0,
+            "count": 90,
+            "p50": 33.81,
+            "p95": 48.72,
+            "max": 57.49,
+            "min": 26.09
+          },
+          {
+            "subscriber": 1,
+            "count": 90,
+            "p50": 33.25,
+            "p95": 47.61,
+            "max": 54.16,
+            "min": 25.79
+          },
+          {
+            "subscriber": 2,
+            "count": 90,
+            "p50": 33.19,
+            "p95": 47.02,
+            "max": 60.49,
+            "min": 25.27
+          },
+          {
+            "subscriber": 3,
+            "count": 90,
+            "p50": 33.08,
+            "p95": 46.68,
+            "max": 61.49,
+            "min": 26.25
+          },
+          {
+            "subscriber": 4,
+            "count": 90,
+            "p50": 33.7,
+            "p95": 47.54,
+            "max": 59.86,
+            "min": 25.91
+          }
+        ],
+        "total_ms": 12999
+      },
+      "after_workload": {
+        "services": {
+          "postgres": {
+            "mem_mib": 89.1,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0.01,
+            "pids": 29
+          },
+          "server": {
+            "mem_mib": 895.9,
+            "mem_limit_mib": 2048,
+            "cpu_percent": 2.79,
+            "pids": 227
+          },
+          "storage": {
+            "mem_mib": 28.4,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 2.12,
+            "pids": 22
+          },
+          "www": {
+            "mem_mib": 154.7,
+            "mem_limit_mib": 15697.9,
+            "cpu_percent": 0,
+            "pids": 11
+          }
+        },
+        "server_jvm": {
+          "comm": "java",
+          "rss_mib": 918,
+          "rss_peak_mib": 1023,
+          "swap_mib": 0,
+          "threads": 227,
+          "heap_reserved_mib": 1230,
+          "heap_committed_mib": 538,
+          "heap_used_mib": 126,
+          "jcmd_ok": true,
+          "jcmd_error": null,
+          "heap_info_raw": "1:\ngarbage-first heap   total reserved 1259520K, committed 550912K, used 128547K [0x00000000b3200000, 0x0000000100000000)\n region size 1M, 15 eden (15M), 15 survivor (15M), 61 old (61M), 36 humongous (36M), 411 free (411M)\n",
+          "java_flags": "java -XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000 --add-modules java.se --add-exports java.base/jdk.internal.ref=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.nio.ch=ALL-UNNAMED --add-opens java.management/sun.management=ALL-UNNAMED --add-opens jdk.management/com.sun.management.internal=ALL-UNNAMED -Djava.awt.headless=true -server -cp resources:target/instant-standalone.jar instant.core "
+        }
+      },
+      "warm_restart_ms": 21738
+    }
+  ],
+  "env_file": {
+    "as_shipped_env_accepted": true
+  },
+  "builds": {
+    "server": {
+      "seconds": 230,
+      "image_id": "sha256:01713ee16dfb22179a420b7a1c6a78f1b58041813d1c5cc33d44df2f137eac2b"
+    },
+    "dashboard": {
+      "seconds": 206,
+      "image_id": "sha256:4c5ec8ba6fa263731c49c6f4803a1b67d096b6ed0de4ebc52c350a48adabdbfd"
+    }
+  },
+  "images": {
+    "ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan": {
+      "id": "sha256:994c1b0eeaa15da58b28b1479ce0aa03072b8127c681226c0c30bf64adb0e42a",
+      "size_mib": 459
+    },
+    "sidekick-bench/dashboard:local": {
+      "id": "sha256:4c5ec8ba6fa263731c49c6f4803a1b67d096b6ed0de4ebc52c350a48adabdbfd",
+      "size_mib": 552
+    },
+    "rustfs/rustfs:1.0.6": {
+      "id": "sha256:7cd1c573d76dd15e2cb1ff9855a1c10a3cd332591eb0f976dbc7a295aa4f1665",
+      "size_mib": 332
+    },
+    "rustfs/rc:v0.1.38": {
+      "id": "sha256:0d017107af1692ad00bfea8a5293c8083eb90cea525cd487f54826c557afe36f",
+      "size_mib": 51
+    },
+    "sidekick-bench/server:local": {
+      "id": "sha256:01713ee16dfb22179a420b7a1c6a78f1b58041813d1c5cc33d44df2f137eac2b",
+      "size_mib": 801
+    }
+  }
+}
