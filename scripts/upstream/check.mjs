@@ -52,8 +52,25 @@ export const DISABLED_JOBS = {
 // Steps inside enabled jobs that must stay disabled.
 export const DISABLED_STEPS = {
   "clojure.yml": [["detect_changes", "Fetch timings"]],
-  "js.yml": [["build", "Run tests"]],
 };
+
+// Steps that may run only behind the network guard (PR #9). Each must be
+// disabled, or keep exactly these env values and run command. The `test`
+// script in client/package.json must keep running through the guard.
+export const GUARDED_STEPS = {
+  "js.yml": [
+    {
+      job: "build",
+      step: "Run tests",
+      env: { SIDEKICK_E2E_API_URI: "", SIDEKICK_NETWORK_GUARD_ALLOW: "" },
+      run: /^pnpm run test(\s|$)/,
+    },
+  ],
+};
+export const GUARDED_SCRIPTS = [
+  { file: "client/package.json", script: "test", must: /with-network-guard\.mjs/ },
+  { file: "client/package.json", script: "bench", must: /with-network-guard\.mjs/ },
+];
 
 // Workflows whose only trigger may be workflow_dispatch.
 export const DISPATCH_ONLY = [
@@ -86,6 +103,7 @@ const RISKY = [
   [/gh-action-pypi-publish|twine upload/, "publishes to PyPI"],
   [/algolia/i, "writes to Algolia"],
   [/git push/, "pushes to a repository"],
+  [/secrets:\s*inherit/, "passes every secret to a reusable workflow (secrets: inherit)"],
   [/instantdb\.com|stopaio/, "contacts an Instant-owned host"],
 ];
 
@@ -93,6 +111,7 @@ function parseWorkflow(text) {
   const ls = text.split("\n");
   const jobs = [];
   const triggers = [];
+  const top = []; // workflow-level lines outside `on:` and `jobs:` (env, permissions, ...)
   let i = 0;
   let inOn = false;
   let inJobs = false;
@@ -116,8 +135,10 @@ function parseWorkflow(text) {
           );
       }
       job = null;
+      if (!inOn && !inJobs) top.push({ n: i + 1, text: l });
       continue;
     }
+    if (!inOn && !inJobs && l.trim()) top.push({ n: i + 1, text: l });
     if (inOn) {
       const m = l.match(/^  ([A-Za-z_]+):/);
       if (m) triggers.push(m[1]);
@@ -139,7 +160,7 @@ function parseWorkflow(text) {
     }
   }
   for (const j of jobs) j.steps = parseSteps(j.lines);
-  return { jobs, triggers };
+  return { jobs, triggers, top };
 }
 
 function parseSteps(jobLines) {
@@ -180,8 +201,11 @@ function parseSteps(jobLines) {
   return steps;
 }
 
+// `if: false`, `if: false && (...)`, `if: ${{ false && ... }}`. Not
+// `false || ...`, which can still be true.
 const isFalse = (cond) =>
-  cond !== null && /^(\$\{\{\s*)?\(?\s*false\b/.test(cond.trim());
+  cond !== null &&
+  /^(\$\{\{\s*)?\(?\s*false\s*(&&|\}\}|\)|$)/.test(cond.trim());
 
 /**
  * Jobs and steps that are disabled in the workflows at `ref` (the SidekickDB
@@ -234,9 +258,39 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
   }
   for (const f of files) {
     const rel = `.github/workflows/${f}`;
-    const { jobs, triggers } = parseWorkflow(
+    const { jobs, triggers, top } = parseWorkflow(
       fs.readFileSync(path.join(dir, f), "utf8"),
     );
+    // Workflow-level env/permissions apply to every job.
+    if (jobs.some((j) => !isFalse(j.if))) {
+      for (const { n, text } of top) {
+        if (/^\s*#/.test(text)) continue;
+        const code = text.replace(/\s#.*$/, "");
+        for (const [re, why] of RISKY) {
+          if (re.test(code))
+            failures.push(`${rel}:${n}: workflow-level setting ${why}, which every enabled job inherits: ${text.trim().slice(0, 140)}`);
+        }
+      }
+    }
+    for (const g of GUARDED_STEPS[f] || []) {
+      const j = jobs.find((x) => x.name === g.job);
+      const st = j?.steps.find((x) => x.name === g.step);
+      if (!st) {
+        warnings.push(`${rel}: expected guarded step "${g.step}" in job "${g.job}" not found`);
+        continue;
+      }
+      if (isFalse(st.if) || isFalse(j.if)) continue;
+      const body = st.lines.map((l) => l.text).join("\n");
+      for (const [k, v] of Object.entries(g.env)) {
+        const m = body.match(new RegExp(`^\\s*${k}:\\s*(.*?)\\s*$`, "m"));
+        const val = m ? m[1].replace(/^(['"])(.*)\1$/, "$2") : null;
+        if (val !== v)
+          failures.push(`${rel}: step "${g.step}" must set ${k}: '${v}' (network guard, PR #9), found ${m ? m[1] : "(unset)"}`);
+      }
+      const run = body.match(/^\s*run:\s*(.*)$/m)?.[1]?.trim() ?? "";
+      if (!g.run.test(run))
+        failures.push(`${rel}: step "${g.step}" must run \`pnpm run test\` (which preloads the network guard), found run: ${run || "(none)"}`);
+    }
     if (!KNOWN_WORKFLOWS.includes(f))
       warnings.push(`${rel}: new workflow file, review it by hand`);
     for (const t of triggers) {
@@ -284,6 +338,26 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
     }
     for (const j of jobs) {
       if (isFalse(j.if)) continue;
+      // Local composite actions used by an enabled step run with its rights.
+      for (const st of j.steps.filter((x) => !isFalse(x.if))) {
+        for (const { text } of st.lines) {
+          const u = text.match(/uses:\s*\.\/(\.github\/actions\/[^\s@#]+)/);
+          if (!u) continue;
+          const adir = path.join(root, u[1]);
+          const afile = ["action.yml", "action.yaml"].map((x) => path.join(adir, x)).find((x) => fs.existsSync(x));
+          if (!afile) {
+            warnings.push(`${rel}: job "${j.name}" uses ${u[1]}, which has no action.yml`);
+            continue;
+          }
+          fs.readFileSync(afile, "utf8").split("\n").forEach((at, k) => {
+            if (/^\s*#/.test(at)) return;
+            for (const [re, why] of RISKY) {
+              if (re.test(at.replace(/\s#.*$/, "")))
+                failures.push(`${path.relative(root, afile)}:${k + 1}: action used by enabled job "${j.name}" (${rel}) ${why}: ${at.trim().slice(0, 140)}`);
+            }
+          });
+        }
+      }
       const disabledStepLines = new Set(
         j.steps
           .filter((s) => isFalse(s.if))
@@ -302,6 +376,19 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
         }
       }
     }
+  }
+  for (const g of GUARDED_SCRIPTS) {
+    const p = path.join(root, g.file);
+    if (!fs.existsSync(p)) continue;
+    let cmd;
+    try {
+      cmd = JSON.parse(fs.readFileSync(p, "utf8")).scripts?.[g.script];
+    } catch {
+      warnings.push(`${g.file}: not valid JSON`);
+      continue;
+    }
+    if (cmd !== undefined && !g.must.test(cmd))
+      failures.push(`${g.file}: script "${g.script}" must run through scripts/with-network-guard.mjs (PR #9), found: ${cmd}`);
   }
   return { failures, warnings };
 }
@@ -342,12 +429,19 @@ function classify(file) {
   return "runtime";
 }
 
-export function checkInstantHosts(base, root) {
-  const out = { runtime: [], build: [], "docs-tests": [] };
-  const diff = git(["diff", "--no-color", "--no-ext-diff", "-U0", base, "--"], {
-    cwd: root,
-    raw: true,
-  });
+// SDK, CLI and MCP sources (not tests). Since PR #11 they have no default
+// server; an Instant host added here fails the checks.
+const SDK_SOURCE = /^client\/packages\/(?!python\/)[^/]+\/(src|bin)\//;
+
+/**
+ * Classify the added lines of a unified diff (git diff -U0).
+ * Hosts: lines naming an Instant-owned host, by file class. Emails: lines
+ * with an Instant-domain email address outside docs and tests (sender or
+ * contact defaults; PR #4 removed several). In docs and tests, emails are
+ * listed with the hosts.
+ */
+export function scanAddedLines(diff) {
+  const out = { runtime: [], build: [], "docs-tests": [], emails: [], sdk: [] };
   let file = null;
   let ln = 0;
   for (const l of diff.split("\n")) {
@@ -363,23 +457,79 @@ export function checkInstantHosts(base, root) {
     if (!file) continue;
     if (l.startsWith("+")) {
       const text = l.slice(1);
-      // A comment cannot contact anything.
-      if (/^\s*(#|\/\/|;|\*|\/\*|<!--)/.test(text)) {
-        ln++;
-        continue;
-      }
-      const withoutEmails = text.replace(EMAIL_RE, "");
-      if (
-        HOST_RE.test(withoutEmails) &&
-        !file.startsWith("scripts/upstream/") &&
-        file !== "UPSTREAM.md"
-      ) {
-        out[classify(file)].push(`${file}:${ln}: ${text.trim().slice(0, 160)}`);
-      }
+      const here = `${file}:${ln}: ${text.trim().slice(0, 160)}`;
       ln++;
+      if (file.startsWith("scripts/upstream/") || file === "UPSTREAM.md") continue;
+      // A comment cannot contact anything or set a default.
+      if (/^\s*(#|\/\/|;|\*|\/\*|<!--)/.test(text)) continue;
+      const cls = classify(file);
+      const hasEmail = new RegExp(EMAIL_RE.source, "i").test(text);
+      const hasHost = HOST_RE.test(text.replace(EMAIL_RE, ""));
+      if (hasEmail && cls !== "docs-tests") out.emails.push(here);
+      if (hasHost || (hasEmail && cls === "docs-tests")) out[cls].push(here);
+      if (hasHost && SDK_SOURCE.test(file) && cls !== "docs-tests") out.sdk.push(here);
     } else if (!l.startsWith("-")) ln++;
   }
   return out;
+}
+
+export function checkInstantHosts(base, root) {
+  const diff = git(["diff", "--no-color", "--no-ext-diff", "-U0", base, "--"], {
+    cwd: root,
+    raw: true,
+  });
+  return scanAddedLines(diff);
+}
+
+// ---------------------------------------------------------------------------
+// Session `versions` keys ('@instantdb/<pkg>': version) are part of the wire
+// protocol: the server reads them. The rename must never touch them.
+
+const VERSIONS_KEY_RE = /(['"])@(instantdb|sidekickdb)\/([a-z0-9-]+)\1\s*:\s*[^,}\n]*version/gi;
+const VERSIONS_SCOPE = /^client\/packages\/(?!python\/)[^/]+\/src\/.*\.(?:[cm]?[jt]sx?|svelte|vue)$/;
+
+export function versionsKeys(texts) {
+  const keys = new Set();
+  for (const [file, text] of texts) {
+    if (!VERSIONS_SCOPE.test(file)) continue;
+    for (const m of text.matchAll(VERSIONS_KEY_RE)) keys.add(`${file} @${m[2]}/${m[3]}`);
+  }
+  return keys;
+}
+
+function filesAt(ref, root) {
+  const names = lines(
+    git(["ls-tree", "-r", "--name-only", "-z", ref, "--", "client/packages"], { cwd: root }).replace(/\0/g, "\n"),
+  ).filter((f) => VERSIONS_SCOPE.test(f));
+  return names.map((f) => [f, git(["show", `${ref}:${f}`], { cwd: root, raw: true })]);
+}
+
+function filesInTree(root) {
+  const names = lines(
+    git(["ls-files", "-z", "--", "client/packages"], { cwd: root }).replace(/\0/g, "\n"),
+  ).filter((f) => VERSIONS_SCOPE.test(f));
+  const out = [];
+  for (const f of names) {
+    try {
+      out.push([f, fs.readFileSync(path.join(root, f), "utf8")]);
+    } catch {
+      // deleted in the working tree
+    }
+  }
+  return out;
+}
+
+export function compareVersionsKeys(before, after) {
+  const failures = [];
+  const info = [];
+  for (const k of after) {
+    if (k.includes(" @sidekickdb/")) failures.push(`${k.replace(" ", ": ")} is a session versions key under the new name; it must stay '@instantdb/...' (wire protocol)`);
+  }
+  for (const k of before) {
+    if (!after.has(k) && k.includes(" @instantdb/")) failures.push(`${k.replace(" ", ": ")} versions key is gone; if upstream removed it on purpose, say so in the sync PR`);
+  }
+  for (const k of after) if (!before.has(k) && k.includes(" @instantdb/")) info.push(`new versions key ${k.replace(" ", ": ")}`);
+  return { failures, info };
 }
 
 // ---------------------------------------------------------------------------
@@ -435,7 +585,7 @@ export function defaultBase(root) {
   return "origin/main";
 }
 
-export function runChecks({ root, base, allowLeftovers = false }) {
+export function runChecks({ root, base, allowLeftovers = false, acceptHosts = false }) {
   const failures = [];
   const warnings = [];
   const review = {};
@@ -475,8 +625,17 @@ export function runChecks({ root, base, allowLeftovers = false }) {
     );
   }
 
+  const vk = compareVersionsKeys(versionsKeys(filesAt(base, root)), versionsKeys(filesInTree(root)));
+  failures.push(...vk.failures);
+  warnings.push(...vk.info);
+
   const hosts = checkInstantHosts(base, root);
   review.hosts = hosts;
+  for (const l of hosts.sdk) {
+    (acceptHosts ? warnings : failures).push(
+      `${l}\n      -> Instant host in SDK/CLI/MCP source: the packages have no default server (PR #11). If it is only a link for people, re-run with --accept-hosts`,
+    );
+  }
   return { base, files: files.length, failures, warnings, review };
 }
 
@@ -498,7 +657,7 @@ export function printChecks(r, log = console.log) {
     "docs-tests":
       "docs, tests, examples (usually fine; check links that users follow)",
   };
-  const any = Object.values(h).some((x) => x.length);
+  const any = Object.keys(labels).some((k) => h[k].length);
   log(`\nAdded lines mentioning Instant-owned hosts: ${any ? "" : "none."}`);
   for (const k of Object.keys(labels)) {
     if (!h[k].length) continue;
@@ -506,6 +665,11 @@ export function printChecks(r, log = console.log) {
     for (const l of h[k].slice(0, 50)) log(`    ${l}`);
     if (h[k].length > 50) log(`    ... ${h[k].length - 50} more`);
   }
+  log(
+    `\nAdded Instant-domain email addresses outside docs and tests (possible sender or contact defaults; PR #4 removed these): ${h.emails.length ? h.emails.length : "none."}`,
+  );
+  for (const l of h.emails.slice(0, 50)) log(`    ${l}`);
+  if (h.emails.length > 50) log(`    ... ${h.emails.length - 50} more`);
   log(r.failures.length ? "\nResult: FAIL" : "\nResult: OK");
 }
 
@@ -514,12 +678,14 @@ function main() {
   const root = repoRoot();
   let base = null;
   let allowLeftovers = false;
+  let acceptHosts = false;
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--base") base = argv[++i];
     else if (argv[i] === "--allow-leftovers") allowLeftovers = true;
+    else if (argv[i] === "--accept-hosts") acceptHosts = true;
     else if (argv[i] === "-h" || argv[i] === "--help") {
       console.log(
-        "usage: node scripts/upstream/check.mjs [--base <ref>] [--allow-leftovers]",
+        "usage: node scripts/upstream/check.mjs [--base <ref>] [--allow-leftovers] [--accept-hosts]",
       );
       return;
     } else throw new Error(`unknown option ${argv[i]}`);
@@ -528,6 +694,7 @@ function main() {
     root,
     base: base || defaultBase(root),
     allowLeftovers,
+    acceptHosts,
   });
   printChecks(r);
   if (r.failures.length) process.exitCode = 1;

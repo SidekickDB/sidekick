@@ -39,6 +39,8 @@
 //                      node_modules; re-resolves unrelated versions).
 //   --no-prettier      Do not run prettier on files the normalizer changed.
 //   --allow-leftovers  Do not block the commit on rename leftovers.
+//   --accept-hosts     Do not block on Instant hosts added to SDK/CLI/MCP
+//                      source (after a person confirmed they are only links).
 //   --report-file <f>  Also write the report (Markdown) to a file.
 //
 // Nothing here pushes. Push the branch and open the PR yourself.
@@ -99,6 +101,7 @@ function parseArgs(argv) {
     else if (a === "--lockfile-only") o.lockfileOnly = true;
     else if (a === "--no-prettier") o.prettier = false;
     else if (a === "--allow-leftovers") o.allowLeftovers = true;
+    else if (a === "--accept-hosts") o.acceptHosts = true;
     else if (a === "--report-file") o.reportFile = argv[++i];
     else if (a === "-h" || a === "--help") {
       const src = fs.readFileSync(new URL(import.meta.url), "utf8");
@@ -310,7 +313,12 @@ function normalizedStage(root, stage, file, normalize) {
   const buf = showBlob(`:${stage}:${file}`, root);
   if (buf === null) return null;
   if (isBinary(buf)) return { binary: true, buf };
-  const text = buf.toString("utf8");
+  let text;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true }).decode(buf);
+  } catch {
+    return { binary: true, buf }; // not UTF-8: leave it to git's result
+  }
   return {
     binary: false,
     text: normalize ? normalizeText(file, text).text : text,
@@ -649,6 +657,7 @@ function finish({ root, o, state, summary }) {
     root,
     base: state.ours,
     allowLeftovers: o.allowLeftovers,
+    acceptHosts: o.acceptHosts,
   });
   say("");
   say("## Post-sync checks");
@@ -862,20 +871,33 @@ function afterMerge({ o, root, state, attribution, conf }) {
   const norm = normalizeAndStage({ root, files });
   printReport(norm.result, { verbose: true, out: say });
 
-  const lock = maybeRegenerateLockfile({ root, ours: state.ours, o, state });
+  // pnpm and prettier can fail (network, a broken package.json). The merge
+  // stays in progress; still print what is left, then say how to recover.
+  const toolErrors = [];
+  let lock;
+  try {
+    lock = maybeRegenerateLockfile({ root, ours: state.ours, o, state });
+  } catch (e) {
+    lock = "FAILED";
+    toolErrors.push(`pnpm: ${e.message.split("\n")[0]}`);
+  }
   say(`client/pnpm-lock.yaml: ${lock}.`);
 
   // Lines the rename made longer may need rewrapping (PR #7 had two).
   const normalized = norm.result.changed.map((c) => c.file);
   if (o.prettier && normalized.length) {
-    const p = runPrettier(root, normalized);
-    if (p.ran) {
-      git(["add", "--", ...normalized], { cwd: root });
-      say(`Prettier checked ${p.files.length} normalized file(s).`);
-    } else if (p.missing) {
-      say(
-        "Prettier is not installed (client/node_modules); run `pnpm format` in client/ before pushing.",
-      );
+    try {
+      const p = runPrettier(root, normalized);
+      if (p.ran) {
+        git(["add", "--", ...normalized], { cwd: root });
+        say(`Prettier checked ${p.files.length} normalized file(s).`);
+      } else if (p.missing) {
+        say(
+          "Prettier is not installed (client/node_modules); run `pnpm format` in client/ before pushing.",
+        );
+      }
+    } catch (e) {
+      toolErrors.push(`prettier: ${e.message.split("\n")[0]}`);
     }
   }
 
@@ -885,10 +907,18 @@ function afterMerge({ o, root, state, attribution, conf }) {
       (conf?.remaining || []).find((r) => r.file === file)?.kind || "content",
   }));
   printRemaining(remaining, attribution);
+  if (toolErrors.length) {
+    say("");
+    say("## Tool failures (the merge is still in progress)");
+    for (const t of toolErrors) say(`- ${t}`);
+    say(
+      "Fix the cause, then run `node scripts/upstream/sync.mjs --continue`; it retries pnpm and prettier. To give up: `git merge --abort`.",
+    );
+  }
   const continued = !conf;
   const summary = [
     ...(state.summary || []),
-    ...summarize(state, { conf, norm, lock, continued }),
+    ...summarize(state, { conf, norm, lock: lock === "FAILED" ? null : lock, continued }),
   ];
   // Files a person resolves by hand: those left unmerged, plus files the
   // checks rejected. Once --continue runs, they count as resolved.
@@ -913,6 +943,11 @@ function afterMerge({ o, root, state, attribution, conf }) {
   };
   if (o.reportFile) fs.writeFileSync(o.reportFile, report.join("\n") + "\n");
   fs.writeFileSync(statePath(root), JSON.stringify(next, null, 2));
+  if (toolErrors.length) {
+    if (o.reportFile) fs.writeFileSync(o.reportFile, report.join("\n") + "\n");
+    fs.writeFileSync(statePath(root), JSON.stringify({ ...next, lockHash: undefined }, null, 2));
+    return 2;
+  }
   if (remaining.length) {
     say("");
     say(

@@ -6,7 +6,12 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { checkWorkflows } from "./check.mjs";
+import {
+  checkWorkflows,
+  compareVersionsKeys,
+  scanAddedLines,
+  versionsKeys,
+} from "./check.mjs";
 
 const repo = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -14,13 +19,14 @@ const repo = path.resolve(
 );
 const realDir = path.join(repo, ".github/workflows");
 
-function withWorkflows(mutate) {
+function withWorkflows(mutate, mutateRoot) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-check-"));
   const dir = path.join(root, ".github/workflows");
   fs.mkdirSync(dir, { recursive: true });
   for (const f of fs.readdirSync(realDir))
     fs.copyFileSync(path.join(realDir, f), path.join(dir, f));
   mutate?.(dir);
+  mutateRoot?.(root);
   try {
     return checkWorkflows(root);
   } finally {
@@ -55,19 +61,97 @@ test("re-enabling a disabled publish job fails", () => {
   );
 });
 
-test('re-enabling the JS "Run tests" step fails', () => {
-  const r = withWorkflows((d) =>
-    edit(
-      d,
-      "js.yml",
-      "        # api.instantdb.com. Re-enable once tests target a SidekickDB-owned backend.\n        if: false\n",
-      "        # api.instantdb.com. Re-enable once tests target a SidekickDB-owned backend.\n",
-    ),
+test('"Run tests" without the network-guard env or command fails', () => {
+  const r1 = withWorkflows((d) =>
+    edit(d, "js.yml", "          SIDEKICK_E2E_API_URI: ''\n", "          SIDEKICK_E2E_API_URI: https://api.instantdb.com\n"),
   );
-  assert.ok(
-    r.failures.some((f) => f.includes('step "Run tests"')),
-    r.failures.join("\n"),
+  assert.ok(r1.failures.some((f) => f.includes("SIDEKICK_E2E_API_URI")), r1.failures.join("\n"));
+  const r2 = withWorkflows((d) =>
+    edit(d, "js.yml", "          SIDEKICK_NETWORK_GUARD_ALLOW: ''\n", ""),
   );
+  assert.ok(r2.failures.some((f) => f.includes("SIDEKICK_NETWORK_GUARD_ALLOW")), r2.failures.join("\n"));
+  const r3 = withWorkflows((d) =>
+    edit(d, "js.yml", "        run: pnpm run test --continue\n", "        run: pnpm exec turbo run test:ci\n"),
+  );
+  assert.ok(r3.failures.some((f) => f.includes("must run `pnpm run test`")), r3.failures.join("\n"));
+});
+
+test("client test script must keep the network guard", () => {
+  const r = withWorkflows(null, (root) => {
+    fs.mkdirSync(path.join(root, "client"));
+    fs.writeFileSync(
+      path.join(root, "client/package.json"),
+      JSON.stringify({ scripts: { test: "turbo run test:ci", bench: "node scripts/with-network-guard.mjs turbo run bench:ci" } }),
+    );
+  });
+  assert.ok(r.failures.some((f) => f.includes('script "test"')), r.failures.join("\n"));
+  assert.ok(!r.failures.some((f) => f.includes('script "bench"')));
+});
+
+test("workflow-level secrets, secrets: inherit and `false ||` are caught", () => {
+  const a = withWorkflows((d) =>
+    edit(d, "python.yml", "jobs:\n", "env:\n  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}\n\njobs:\n"),
+  );
+  assert.ok(a.failures.some((f) => f.includes("workflow-level setting uses a repository secret")), a.failures.join("\n"));
+  const b = withWorkflows((d) =>
+    fs.appendFileSync(path.join(d, "js.yml"), "\n  call-release:\n    uses: ./.github/workflows/release.yml\n    secrets: inherit\n"),
+  );
+  assert.ok(b.failures.some((f) => f.includes("secrets: inherit")), b.failures.join("\n"));
+  const c = withWorkflows((d) =>
+    edit(d, "js.yml", "    if: false && (github.ref == 'refs/heads/main' && needs.detect_changes.outputs.version_did_change == 'true')", "    if: false || (github.ref == 'refs/heads/main' && needs.detect_changes.outputs.version_did_change == 'true')"),
+  );
+  assert.ok(c.failures.some((f) => f.includes('"publish-packages" must stay disabled')), c.failures.join("\n"));
+});
+
+test("a local action used by an enabled job is scanned", () => {
+  const r = withWorkflows(
+    (d) => edit(d, "js.yml", "      - name: Build sandbox\n", "      - name: Release\n        uses: ./.github/actions/release\n\n      - name: Build sandbox\n"),
+    (root) => {
+      fs.mkdirSync(path.join(root, ".github/actions/release"), { recursive: true });
+      fs.writeFileSync(
+        path.join(root, ".github/actions/release/action.yml"),
+        "runs:\n  using: composite\n  steps:\n    - run: npm publish\n      shell: bash\n",
+      );
+    },
+  );
+  assert.ok(r.failures.some((f) => f.includes("action used by enabled job") && f.includes("publishes packages")), r.failures.join("\n"));
+});
+
+test("added lines: hosts by class, Instant emails outside docs and tests, SDK hosts", () => {
+  const diff = [
+    "+++ b/server/src/instant/postmark.clj",
+    "@@ -1,0 +10,2 @@",
+    '+(def default-from "teams@pm.instantdb.com")',
+    "+(def x 1)",
+    "+++ b/client/packages/core/src/endpoints.ts",
+    "@@ -1,0 +5,1 @@",
+    "+const apiURI = 'https://api.instantdb.com';",
+    "+++ b/client/packages/core/__tests__/src/a.test.ts",
+    "@@ -1,0 +1,1 @@",
+    "+lookup('email', 'stopa@instantdb.com')",
+    "+++ b/client/www/app/docs/a/page.md",
+    "@@ -1,0 +1,1 @@",
+    "+See https://www.instantdb.com/docs",
+  ].join("\n");
+  const r = scanAddedLines(diff);
+  assert.deepEqual(r.emails, ['server/src/instant/postmark.clj:10: (def default-from "teams@pm.instantdb.com")']);
+  assert.equal(r.runtime.length, 1);
+  assert.match(r.sdk[0], /endpoints\.ts:5/);
+  assert.equal(r["docs-tests"].length, 2);
+});
+
+test("versions keys: a renamed or removed key fails, a new one is reported", () => {
+  const before = versionsKeys([["client/packages/react/src/init.ts", "  '@instantdb/react': version,\n"]]);
+  const renamed = versionsKeys([["client/packages/react/src/init.ts", "  '@sidekickdb/react': version,\n"]]);
+  const r = compareVersionsKeys(before, renamed);
+  assert.equal(r.failures.length, 2);
+  const grown = versionsKeys([
+    ["client/packages/react/src/init.ts", "  '@instantdb/react': version,\n"],
+    ["client/packages/newfw/src/a.ts", "  '@instantdb/newfw': pkg.version,\n"],
+  ]);
+  const g = compareVersionsKeys(before, grown);
+  assert.deepEqual(g.failures, []);
+  assert.equal(g.info.length, 1);
 });
 
 test("a new enabled job that publishes fails; gated it passes", () => {
