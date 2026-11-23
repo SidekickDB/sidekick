@@ -20,8 +20,9 @@
 //      Files SidekickDB deleted on purpose stay deleted. client/pnpm-lock.yaml
 //      is regenerated, never merged by hand.
 //   6. Run the rename normalizer on every file upstream changed.
-//   7. Regenerate client/pnpm-lock.yaml with pnpm if a workspace
-//      package.json or the lockfile changed.
+//   7. Regenerate client/pnpm-lock.yaml with `pnpm install --ignore-scripts`
+//      (starting from SidekickDB's lockfile) if a workspace package.json or
+//      the lockfile changed.
 //   8. List remaining conflicts grouped by the divergence that causes them,
 //      with how to resolve each.
 //   9. If nothing is left: run scripts/upstream/check.mjs and commit the
@@ -34,6 +35,8 @@
 //   --no-fetch         Do not fetch (use the refs as they are).
 //   --no-commit        Stop before committing even if everything resolved.
 //   --no-lockfile      Do not run pnpm (report that the lockfile is stale).
+//   --lockfile-only    Regenerate with `pnpm install --lockfile-only` (no
+//                      node_modules; re-resolves unrelated versions).
 //   --no-prettier      Do not run prettier on files the normalizer changed.
 //   --allow-leftovers  Do not block the commit on rename leftovers.
 //   --report-file <f>  Also write the report (Markdown) to a file.
@@ -76,6 +79,7 @@ function parseArgs(argv) {
     else if (a === '--no-fetch') o.fetch = false;
     else if (a === '--no-commit') o.commit = false;
     else if (a === '--no-lockfile') o.lockfile = false;
+    else if (a === '--lockfile-only') o.lockfileOnly = true;
     else if (a === '--no-prettier') o.prettier = false;
     else if (a === '--allow-leftovers') o.allowLeftovers = true;
     else if (a === '--report-file') o.reportFile = argv[++i];
@@ -314,15 +318,13 @@ function runPrettier(root, files) {
   return { ran: true, files: targets };
 }
 
-function normalizeAndStage({ root, files, o }) {
+function normalizeAndStage({ root, files }) {
   const unmerged = unmergedEntries(root);
   const todo = files.filter((f) => !unmerged.has(f) && !isExcluded(f));
   const result = normalizeFiles(todo, { root });
   const changed = result.changed.map((c) => c.file);
-  let prettier = { ran: false, files: [] };
-  if (o.prettier && changed.length) prettier = runPrettier(root, changed);
   if (changed.length) git(['add', '--', ...changed], { cwd: root });
-  return { result, prettier };
+  return { result };
 }
 
 function lockfileNeeded(root, ours) {
@@ -334,13 +336,13 @@ function maybeRegenerateLockfile({ root, ours, o }) {
   if (!lockfileNeeded(root, ours)) return 'not needed';
   const unmerged = [...unmergedEntries(root).keys()];
   if (unmerged.some((f) => isWorkspacePackageJson(f))) return 'deferred: a workspace package.json is still conflicted';
-  if (!o.lockfile) return 'needed but skipped (--no-lockfile); run `pnpm install --lockfile-only` in client/';
+  if (!o.lockfile) return 'needed but skipped (--no-lockfile); run `pnpm install --ignore-scripts` in client/';
   // Start from SidekickDB's lockfile; pnpm brings it in line with the merged
   // package.json files.
   if (gitTry(['diff', '--quiet', ours, '--', WORKSPACE_LOCKFILE], { cwd: root }).status !== 0) {
     git(['checkout', ours, '--', WORKSPACE_LOCKFILE], { cwd: root });
   }
-  regenerateLockfile(root);
+  regenerateLockfile(root, { mode: o.lockfileOnly ? 'lockfile-only' : 'install', log: say });
   git(['add', '--', WORKSPACE_LOCKFILE], { cwd: root });
   return 'regenerated';
 }
@@ -511,13 +513,23 @@ function afterMerge({ o, root, state, attribution, conf }) {
   say('');
   say('## Rename normalizer (files upstream changed)');
   const files = [...new Set([...state.upstreamFiles, ...lines(git(['diff', '--name-only', '--no-renames', state.ours, '--'], { cwd: root }))])];
-  const norm = normalizeAndStage({ root, files, o });
+  const norm = normalizeAndStage({ root, files });
   printReport(norm.result, { verbose: true, out: say });
-  if (norm.prettier.ran) say(`Prettier rewrapped ${norm.prettier.files.length} normalized file(s).`);
-  else if (norm.prettier.missing) say(`Prettier not installed (client/node_modules); run \`pnpm format\` in client/ before pushing.`);
 
   const lock = maybeRegenerateLockfile({ root, ours: state.ours, o });
   say(`client/pnpm-lock.yaml: ${lock}.`);
+
+  // Lines the rename made longer may need rewrapping (PR #7 had two).
+  const normalized = norm.result.changed.map((c) => c.file);
+  if (o.prettier && normalized.length) {
+    const p = runPrettier(root, normalized);
+    if (p.ran) {
+      git(['add', '--', ...normalized], { cwd: root });
+      say(`Prettier checked ${p.files.length} normalized file(s).`);
+    } else if (p.missing) {
+      say('Prettier is not installed (client/node_modules); run `pnpm format` in client/ before pushing.');
+    }
+  }
 
   const remaining = [...unmergedEntries(root).keys()].map((file) => ({
     file,

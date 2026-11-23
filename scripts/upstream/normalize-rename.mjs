@@ -10,9 +10,11 @@
 //
 // Options:
 //   --check            Do not write. Exit 1 if any file would change.
-//   --lockfile MODE    auto (default): run `pnpm install --lockfile-only` in
-//                      client/ when a workspace package.json changed.
-//                      always | never.
+//   --lockfile MODE    auto (default): regenerate client/pnpm-lock.yaml with
+//                      `pnpm install --ignore-scripts` when a workspace
+//                      package.json changed. always | never.
+//   --lockfile-only    Use `pnpm install --lockfile-only` instead (no
+//                      node_modules, but re-resolves unrelated versions).
 //   --strict           Exit 2 if leftovers (old names that need a person to
 //                      decide) are found.
 //   --no-leftovers     Do not report leftovers.
@@ -24,6 +26,7 @@
 // essays and archived emails, LICENSE, ...) are never read or written.
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { git, lines, repoRoot, run } from './git.mjs';
 import {
@@ -56,6 +59,7 @@ function parseArgs(argv) {
     else if (a === '--path') o.path = argv[++i];
     else if (a === '--check') o.check = true;
     else if (a === '--lockfile') o.lockfile = argv[++i];
+    else if (a === '--lockfile-only') o.lockfileOnly = true;
     else if (a === '--strict') o.strict = true;
     else if (a === '--no-leftovers') o.leftovers = false;
     else if (a === '--verbose' || a === '-v') o.verbose = true;
@@ -139,21 +143,40 @@ export function normalizeFiles(files, { root, check = false, leftovers = true } 
   return result;
 }
 
-/** Regenerate client/pnpm-lock.yaml through pnpm (never by editing it). */
-export function regenerateLockfile(root, { quiet = false } = {}) {
+/**
+ * Regenerate client/pnpm-lock.yaml through pnpm (never by editing it).
+ *
+ * mode 'install' (default) runs a full `pnpm install --ignore-scripts`.
+ * It keeps every existing resolution and only adds or removes what the
+ * package.json files changed. `--lockfile-only` re-resolves peer and
+ * transitive versions from registry metadata and rewrote hundreds of
+ * unrelated lines when tried on this repository, so it is opt-in.
+ * No lifecycle scripts run in either mode. pnpm switches to the version
+ * pinned in client/package.json ("packageManager").
+ */
+export function regenerateLockfile(root, { mode = 'install', log = console.log } = {}) {
   const client = path.join(root, 'client');
-  if (!quiet) console.log('Regenerating client/pnpm-lock.yaml with pnpm install --lockfile-only');
-  // pnpm switches to the version pinned in client/package.json
-  // ("packageManager") by itself. --ignore-scripts: no lifecycle scripts run.
-  run('pnpm', ['install', '--lockfile-only', '--ignore-scripts', '--prefer-offline'], {
+  const args =
+    mode === 'lockfile-only'
+      ? ['install', '--lockfile-only', '--ignore-scripts', '--prefer-offline']
+      : ['install', '--ignore-scripts', '--prefer-offline', '--config.confirmModulesPurge=false'];
+  log(`Regenerating client/pnpm-lock.yaml: pnpm ${args.join(' ')} (in client/)`);
+  const logFile = path.join(os.tmpdir(), `sidekick-pnpm-${process.pid}.log`);
+  const r = run('pnpm', args, {
     cwd: client,
-    stdio: ['ignore', quiet ? 'pipe' : 'inherit', 'inherit'],
+    allowFail: true,
     env: {
       TURBO_TELEMETRY_DISABLED: '1',
       NEXT_TELEMETRY_DISABLED: '1',
       npm_config_update_notifier: 'false',
     },
   });
+  fs.writeFileSync(logFile, `${r.stdout || ''}${r.stderr || ''}`);
+  if (r.status !== 0) {
+    throw new Error(`pnpm failed (exit ${r.status}); full output in ${logFile}`);
+  }
+  const done = (r.stdout || '').split('\n').filter((l) => /^Done in|packages are hard linked|^Lockfile is up to date/.test(l));
+  log(`pnpm finished${done.length ? ` (${done.join('; ')})` : ''}; output in ${logFile}`);
 }
 
 export function printReport(result, { verbose = false, check = false, out = console.log } = {}) {
@@ -206,7 +229,7 @@ function main() {
   if (o.check) {
     if (pkgChanged) console.log('A workspace package.json would change: the lockfile would be regenerated.');
   } else if (o.lockfile === 'always' || (o.lockfile === 'auto' && pkgChanged)) {
-    regenerateLockfile(root);
+    regenerateLockfile(root, { mode: o.lockfileOnly ? 'lockfile-only' : 'install' });
   }
   if (o.json) {
     fs.writeFileSync(o.json, JSON.stringify({ files: files.length, ...result }, null, 2));
