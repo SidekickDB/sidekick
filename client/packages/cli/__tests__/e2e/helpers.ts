@@ -7,7 +7,16 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI_BIN = join(__dirname, '../../dist/index.js');
 
-const apiUrl = process.env.INSTANT_CLI_API_URI || 'https://api.instantdb.com';
+// SidekickDB: networked suite. It runs only against the backend named by
+// SIDEKICK_E2E_API_URI and is skipped when that is unset; there is no default.
+export const apiUrl = process.env.SIDEKICK_E2E_API_URI
+  ? new URL(process.env.SIDEKICK_E2E_API_URI).href.replace(/\/+$/, '')
+  : undefined;
+if (!apiUrl) {
+  console.warn(
+    '[sidekick] Skipping CLI e2e: set SIDEKICK_E2E_API_URI to a SidekickDB server URL to run it.',
+  );
+}
 
 // Temp directory used to sandbox CLI config (auth tokens, etc.)
 // so tests never read or mutate the real user config on disk.
@@ -33,7 +42,7 @@ export function runCli(
       {
         env: {
           ...process.env,
-          INSTANT_CLI_API_URI: apiUrl,
+          INSTANT_CLI_API_URI: apiUrl ?? '',
           DOTENV_CONFIG_PATH: '/dev/null',
           INSTANT_CLI_AUTH_TOKEN: '',
           HOME: sandboxHome,

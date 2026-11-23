@@ -1,4 +1,4 @@
-import { Effect } from 'effect';
+import { Effect, Option } from 'effect';
 import { potentialEnvs } from '../context/currentApp.ts';
 import type { CurrentAppInfo } from '../context/currentApp.ts';
 import { ProjectInfo, ProjectInfoError } from '../context/projectInfo.ts';
@@ -6,7 +6,7 @@ import { readPackage } from 'pkg-types';
 import { GlobalOpts } from '../context/globalOpts.ts';
 import { FileSystem, Path } from '@effect/platform';
 import chalk from 'chalk';
-import { getDashUrl } from './http.ts';
+import { getOptionalDashUrl } from './config.ts';
 import { promptOk } from './ui.ts';
 import { link } from '../logging.ts';
 import boxen from 'boxen';
@@ -20,7 +20,9 @@ export const handleEnv = Effect.fn(function* (app: CurrentAppInfo) {
   const fs = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
   const hasEnvFile = yield* fs.exists(path.join(pkgDir, envFile));
-  const dashOrigin = yield* getDashUrl;
+  // The dashboard link is informational only; omit it when no dashboard URL
+  // is configured.
+  const dashOrigin = Option.getOrNull(yield* getOptionalDashUrl);
   if (hasEnvFile) {
     return printDotEnvInfo(envType, app.appId, dashOrigin);
   }
@@ -98,7 +100,7 @@ const detectEnvType = Effect.gen(function* () {
 function printDotEnvInfo(
   envType: keyof typeof potentialEnvs,
   appId: string,
-  dashOrigin: string,
+  dashOrigin: string | null,
 ) {
   console.log(`\nPicked app ${chalk.green(appId)}!\n`);
   console.log(
@@ -112,9 +114,11 @@ function printDotEnvInfo(
   otherEnvs.sort();
   const otherEnvStr = otherEnvs.map((x) => '  ' + chalk.green(x)).join('\n');
   console.log(`Alternative names: \n${otherEnvStr} \n`);
-  console.log(
-    `${link(appDashUrl(appId, dashOrigin))}: ${appDashUrl(appId, dashOrigin)}\n`,
-  );
+  if (dashOrigin) {
+    console.log(
+      `${link(appDashUrl(appId, dashOrigin))}: ${appDashUrl(appId, dashOrigin)}\n`,
+    );
+  }
 }
 
 function appDashUrl(id: string, instantOrigin: string) {

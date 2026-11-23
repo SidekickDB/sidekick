@@ -1,4 +1,4 @@
-import { Config, init, InstantError } from '@sidekickdb/admin';
+import { Config, init, InstantError, requireApiURI } from '@sidekickdb/admin';
 
 export interface CreateResumableStreamContextOptions {
   /**
@@ -18,7 +18,8 @@ export interface CreateResumableStreamContextOptions {
    */
   adminToken?: string;
   /**
-   * Optional apiURI for the instantdb server.
+   * URL of your SidekickDB server. Falls back to the INSTANT_API_URI
+   * environment variable; one of the two is required.
    */
   apiURI?: string;
   /**
@@ -117,13 +118,12 @@ export function createResumableStreamContext(
     );
   }
 
-  const config: Config = { appId, adminToken };
+  const apiURI = requireApiURI(options.apiURI || process.env.INSTANT_API_URI, {
+    target: 'createResumableStreamContext()',
+    envVar: 'INSTANT_API_URI',
+  });
 
-  const apiURI = options.apiURI || process.env.INSTANT_API_URI;
-
-  if (apiURI) {
-    config.apiURI = apiURI;
-  }
+  const config: Config = { appId, adminToken, apiURI };
 
   if (options.verbose) {
     config.verbose = options.verbose;

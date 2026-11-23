@@ -45,8 +45,8 @@ export type DevtoolConfig = {
   allowedHosts?: string[];
 
   /**
-   * Dashboard URI used to render the devtool
-   * @default 'https://instantdb.com'
+   * Dashboard URI used to render the devtool. There is no default: the
+   * devtool is only shown when this is set.
    */
   dashURI?: string;
 };

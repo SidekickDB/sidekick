@@ -105,6 +105,7 @@ const run = (effect: any, opts: { yes: boolean }) =>
   );
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   logs = [];
   state.manager = buildManager([]);
   state.downloadResult = { entities: 3, files: 2, zipBytes: 1234 };

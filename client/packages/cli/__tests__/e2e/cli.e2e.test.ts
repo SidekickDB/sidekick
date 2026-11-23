@@ -8,6 +8,7 @@ import {
   createTempApp,
   adminTransact,
   createAppUser,
+  apiUrl,
 } from './helpers.ts';
 
 const SCHEMA_FILE = `
@@ -39,7 +40,8 @@ const PERMS_FILE = `export default {
 };
 `;
 
-describe.concurrent('CLI e2e', { timeout: 30_000 }, () => {
+// SidekickDB: skipped unless SIDEKICK_E2E_API_URI is set (see helpers.ts).
+describe.skipIf(!apiUrl).concurrent('CLI e2e', { timeout: 30_000 }, () => {
   describe('init-without-files', () => {
     it('creates a temp app and outputs JSON', async () => {
       const result = await runCli([

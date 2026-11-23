@@ -34,6 +34,7 @@ import { init, id } from '@sidekickdb/vue';
 
 const db = init({
   appId: import.meta.env.VITE_INSTANT_APP_ID,
+  apiURI: import.meta.env.VITE_INSTANT_API_URI,
 });
 
 // 1. Read
