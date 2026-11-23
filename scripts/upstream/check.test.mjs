@@ -8,6 +8,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   checkWorkflows,
+  hasReleaseGuard,
   isFalse,
   compareVersionsKeys,
   scanAddedLines,
@@ -395,4 +396,109 @@ test("any write permission or write-all in an enabled job or at workflow level f
     ),
   );
   assert.ok(quoted.failures.some((f) => f.includes('"q" asks for a write permission')), quoted.failures.join("\n"));
+});
+
+// SidekickDB release workflows (RELEASING.md).
+const NPM = "sidekick-release-npm.yml";
+const IMAGES = "sidekick-release-images.yml";
+const GUARD =
+  "    if: github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main'\n";
+
+function failsWith(r, ...needles) {
+  for (const n of needles)
+    assert.ok(
+      r.failures.some((f) => f.includes(n)),
+      `expected a failure containing ${JSON.stringify(n)}, got:\n${r.failures.join("\n")}`,
+    );
+}
+
+test("release workflows keep their rights only while their shape holds", () => {
+  failsWith(
+    withWorkflows((d) => edit(d, NPM, "    environment: npm-release\n", "")),
+    'must use `environment: npm-release`',
+    "id-token: write (OIDC publishing/deploys)",
+    "runs the SidekickDB npm release script",
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, NPM, "on:\n  workflow_dispatch:\n", "on:\n  push:\n  workflow_dispatch:\n"),
+    ),
+    "workflow_dispatch only, found: push, workflow_dispatch",
+  );
+  failsWith(
+    withWorkflows((d) => edit(d, IMAGES, "permissions: {}\n", "")),
+    "must set `permissions: {}`",
+    'enabled job "build" pushes images',
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, IMAGES, "    environment: image-release\n", "    environment: npm-release\n"),
+    ),
+    "must use `environment: image-release`, found npm-release",
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, NPM, GUARD, GUARD.replace("refs/heads/main'", "refs/heads/main' || true")),
+    ),
+    'release job "publish" must be guarded',
+  );
+});
+
+test("a release workflow still may not use secrets or other write rights", () => {
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, NPM, "          DRY_RUN: ${{ inputs.dry_run }}\n",
+        "          DRY_RUN: ${{ inputs.dry_run }}\n          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}\n"),
+    ),
+    'enabled job "publish" uses a repository secret',
+  );
+  failsWith(
+    withWorkflows((d) => edit(d, NPM, "      contents: read\n", "      contents: write\n")),
+    'enabled job "publish" asks for a write permission: contents: write',
+  );
+  // An image push right is not a publish right in the npm workflow.
+  failsWith(
+    withWorkflows((d) => edit(d, NPM, "      contents: read\n", "      contents: read\n      packages: write\n")),
+    'enabled job "publish" asks for a write permission: packages: write',
+  );
+});
+
+test("the npm release script may run only from its release workflow", () => {
+  const r = withWorkflows((d) =>
+    fs.appendFileSync(
+      path.join(d, "python.yml"),
+      `
+  sneaky:
+    runs-on: ubuntu-latest
+    steps:
+      - run: node scripts/sidekick-release-npm.mjs publish --tag latest
+`,
+    ),
+  );
+  failsWith(r, 'enabled job "sneaky" runs the SidekickDB npm release script');
+  const plan = withWorkflows((d) =>
+    fs.appendFileSync(
+      path.join(d, "python.yml"),
+      `
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - run: node scripts/sidekick-release-npm.mjs plan
+`,
+    ),
+  );
+  assert.deepEqual(plan.failures, []);
+});
+
+test("hasReleaseGuard needs both guards as top-level && terms", () => {
+  const g = "github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main'";
+  assert.equal(hasReleaseGuard(g), true);
+  assert.equal(hasReleaseGuard(`\${{ ${g} }}`), true);
+  assert.equal(hasReleaseGuard(`(${g}) && inputs.push`), true);
+  assert.equal(hasReleaseGuard(`${g} && inputs.push`), true);
+  assert.equal(hasReleaseGuard("github.repository == 'SidekickDB/sidekick'"), false);
+  assert.equal(hasReleaseGuard(`${g} || true`), false);
+  assert.equal(hasReleaseGuard(`(${g}) || always()`), false);
+  assert.equal(hasReleaseGuard(`\${{ ${g} }} || true`), false);
+  assert.equal(hasReleaseGuard(null), false);
 });

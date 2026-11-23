@@ -1,6 +1,7 @@
 {
   "name": "flags-config",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "login": "instant-cli login",
     "pull": "instant-cli pull",

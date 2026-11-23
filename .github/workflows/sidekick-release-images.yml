@@ -1,0 +1,150 @@
+name: Release Docker images (SidekickDB)
+
+# SidekickDB: builds the self-hosting images and, when `push` is set, publishes
+# them to GitHub Container Registry under ghcr.io/sidekickdb/ with the
+# workflow's GITHUB_TOKEN (no other credential):
+#   ghcr.io/sidekickdb/server      server/Dockerfile.self-hosted
+#   ghcr.io/sidekickdb/dashboard   client/Dockerfile.www
+#   ghcr.io/sidekickdb/postgresql  server/dev-postgres/Dockerfile
+# Each image is built natively for linux/amd64 and linux/arm64 and published
+# as one multi-arch tag. See RELEASING.md.
+#
+# Started by hand only, from main. push defaults to false (build only).
+#
+# scripts/upstream/check.mjs allows this file's push rights only while it
+# keeps a workflow_dispatch-only trigger, the repository + main guard on each
+# job, the `image-release` environment and job-level permissions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      push:
+        description: Push the images to ghcr.io/sidekickdb (otherwise build only)
+        type: boolean
+        default: false
+      version:
+        description: Extra tag for server and dashboard, e.g. v1.0.67 (optional)
+        type: string
+        default: ''
+
+permissions: {}
+
+concurrency:
+  group: sidekick-release-images
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.image }} (${{ matrix.arch }})
+    if: github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    environment: image-release
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [server, dashboard, postgresql]
+        arch: [amd64, arm64]
+        include:
+          - image: server
+            context: ./server
+            file: ./server/Dockerfile.self-hosted
+          - image: dashboard
+            context: ./client
+            file: ./client/Dockerfile.www
+          - image: postgresql
+            context: ./server/dev-postgres
+            file: ./server/dev-postgres/Dockerfile
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to GHCR
+        if: inputs.push
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          platforms: linux/${{ matrix.arch }}
+          push: ${{ inputs.push }}
+          provenance: false
+          labels: |
+            org.opencontainers.image.source=https://github.com/SidekickDB/sidekick
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=Apache-2.0
+          tags: ghcr.io/sidekickdb/${{ matrix.image }}:${{ github.sha }}-${{ matrix.arch }}
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }},mode=max
+
+  manifest:
+    name: Publish ${{ matrix.image }}
+    needs: build
+    if: github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main' && inputs.push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: image-release
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: server
+            tag: latest
+            versioned: true
+          - image: dashboard
+            tag: latest
+            versioned: true
+          - image: postgresql
+            tag: postgresql-17-pg-hint-plan
+            versioned: false
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish multi-arch tags
+        env:
+          IMAGE: ghcr.io/sidekickdb/${{ matrix.image }}
+          TAG: ${{ matrix.tag }}
+          VERSIONED: ${{ matrix.versioned }}
+          VERSION: ${{ inputs.version }}
+          SHA: ${{ github.sha }}
+        run: |
+          tags=(-t "$IMAGE:$TAG" -t "$IMAGE:$SHA")
+          if [ "$VERSIONED" = "true" ] && [ -n "$VERSION" ]; then
+            if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "version must look like v1.2.3, got $VERSION" >&2
+              exit 1
+            fi
+            tags+=(-t "$IMAGE:$VERSION")
+          fi
+          docker buildx imagetools create "${tags[@]}" \
+            "$IMAGE:$SHA-amd64" "$IMAGE:$SHA-arm64"
+          docker buildx imagetools inspect "$IMAGE:$TAG"

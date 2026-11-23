@@ -1,0 +1,93 @@
+name: Release npm packages (SidekickDB)
+
+# SidekickDB: publishes the @sidekickdb/* packages and create-sidekick-app
+# with npm trusted publishing (GitHub OIDC). There is no npm token: npm only
+# accepts the publish because each package on npmjs.com names this repository,
+# this workflow file and the `npm-release` environment as its trusted
+# publisher. See RELEASING.md.
+#
+# Started by hand only, from main. The version comes from
+# client/packages/version/src/version.ts. dry_run defaults to true.
+#
+# scripts/upstream/check.mjs allows this file's publish rights only while it
+# keeps a workflow_dispatch-only trigger, the repository + main guard on the
+# job, the `npm-release` environment and job-level permissions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: npm dist-tag for this release
+        type: choice
+        options:
+          - latest
+          - next
+        default: latest
+      dry_run:
+        description: Pack and run `npm publish --dry-run` only
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: sidekick-release-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm
+    if: github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: '10.2.0'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: Update npm
+        run: npm install -g npm@^11.5.1 && npm --version
+
+      - name: Install dependencies
+        working-directory: client
+        run: pnpm i --frozen-lockfile
+
+      - name: Check version and package list
+        working-directory: client
+        run: |
+          node --test scripts/sidekick-release-npm.test.mjs
+          node scripts/sidekick-release-npm.mjs plan
+
+      - name: Build and publish
+        working-directory: client
+        env:
+          DIST_TAG: ${{ inputs.dist_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          TURBO_TELEMETRY_DISABLED: '1'
+        run: |
+          args=(publish --tag "$DIST_TAG")
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          node scripts/sidekick-release-npm.mjs "${args[@]}"
+
+      - name: Upload npm logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-logs
+          path: /home/runner/.npm/_logs/
