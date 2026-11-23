@@ -422,7 +422,6 @@ function serverProcess() {
   const h = heap.stdout;
   const k2m = (x) => (x === undefined ? null : Math.round(Number(x) / 1024));
   const g1 = h.match(/total reserved (\d+)K, committed (\d+)K, used (\d+)K/);
-  const meta = h.match(/Metaspace\s+used\s+(\d+)K,\s+committed\s+(\d+)K/);
   const cmd = exec('cat', '/proc/1/cmdline').stdout.split('\0').join(' ');
   return {
     comm: exec('cat', '/proc/1/comm').stdout.trim(),
@@ -433,8 +432,6 @@ function serverProcess() {
     heap_reserved_mib: k2m(g1?.[1]),
     heap_committed_mib: k2m(g1?.[2]),
     heap_used_mib: k2m(g1?.[3]),
-    metaspace_used_mib: k2m(meta?.[1]),
-    metaspace_committed_mib: k2m(meta?.[2]),
     jcmd_ok: heap.ok && !!g1,
     jcmd_error: heap.ok ? null : heap.stderr.trim().slice(0, 300),
     heap_info_raw: h.slice(0, 1500),

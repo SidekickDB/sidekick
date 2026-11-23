@@ -129,10 +129,6 @@ export function summarize(results) {
           'Server JVM heap max (reserved)',
           pick(`${key}.server_jvm.heap_reserved_mib`),
         ),
-        row(
-          'Server JVM metaspace used',
-          pick(`${key}.server_jvm.metaspace_used_mib`),
-        ),
         row('Server JVM threads', pick(`${key}.server_jvm.threads`)),
         row('Server container PIDs', pick(`${key}.services.server.pids`)),
       ]),

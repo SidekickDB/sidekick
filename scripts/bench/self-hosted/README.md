@@ -48,7 +48,8 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
    - waits `--idle-seconds` (default 120), then records per-service memory
      (`docker stats`, median of 3 readings 2 s apart), and for the server JVM
      (PID 1 in its container) RSS, peak RSS, swap and threads from
-     `/proc/1/status`, and heap and metaspace from `jcmd 1 GC.heap_info`;
+     `/proc/1/status`, and heap reserved, committed and used from
+     `jcmd 1 GC.heap_info` (its raw output is kept in `results.json`);
    - runs `workload.mjs`: an ephemeral app, 5 subscriber sessions and 1
      writer session with `@sidekickdb/core` over WebSocket, 100 writes 100 ms
      apart; per write and subscriber, the time from `transact()` to the first
@@ -68,15 +69,18 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
   pagination, presence, streams, files, backups, sync tables, webhooks,
   offline clients or SSE. Only WebSocket live queries and single writes.
 - PostgreSQL internals (WAL bytes, slot lag, query plans, walsender memory),
-  GC pauses, native memory breakdown (NMT is off), CPU time, disk I/O.
+  GC pauses, metaspace (JDK 26's `GC.heap_info` no longer prints it), native
+  memory breakdown (NMT is off), CPU time, disk I/O.
 - Client main-thread cost or bundle size.
 - Multi-node behaviour.
 - `docker-compose.with-caddy.yml`, `swarm.yml` or external S3/Postgres.
 - The time to pull base images and the image build times are recorded once
   per run and only for information: they depend on network and cache.
 
-GitHub-hosted runners are shared VMs. Compare runs on the same runner label
-and look at the spread, not single values.
+GitHub-hosted runners are shared VMs, and one label can land on different
+CPU models: two runs of `ubuntu-24.04` an hour apart got an AMD EPYC 7763 and
+an EPYC 9V45. Every result records the CPU model. Compare runs on the same
+label and CPU model, and look at the spread, not single values.
 
 ## Results
 
