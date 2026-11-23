@@ -68,6 +68,13 @@ export function summarize(results) {
     '',
   ];
 
+  if (results.env_file && !results.env_file.as_shipped_env_accepted) {
+    lines.push(
+      `**Deviation:** Compose ${env.compose} rejected the env file written from \`self-hosting/.env.example\` (${results.env_file.as_shipped_env_error}). The run set ${results.env_file.workaround}.`,
+      '',
+    );
+  }
+
   if (results.builds) {
     lines.push(
       `Image builds (cold, informational, one each): server ${results.builds.server.seconds} s, dashboard ${results.builds.dashboard.seconds} s.`,

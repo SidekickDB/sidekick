@@ -32,7 +32,12 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
    (`client/Dockerfile.www`) images from the checked-out commit, once.
 2. Writes an env file from `self-hosting/.env.example` with generated secrets
    and the two local image tags. It lives in a temp directory and is deleted
-   at the end.
+   at the end. It then checks the file with `docker compose config`. If Compose
+   rejects it, the run also sets `MINIO_ROOT_USER`/`MINIO_ROOT_PASSWORD` to
+   the same values and records that deviation in the results (seen with
+   Compose 2.38.2, which evaluated the inner `:?` of
+   `${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}` although
+   `STORAGE_ACCESS_KEY` was set).
 3. Uses `self-hosting/docker-compose.yml` unchanged, plus `compose.bench.yml`,
    which only publishes the server on `127.0.0.1:8888`.
 4. Per sample (at least 3, default 5):

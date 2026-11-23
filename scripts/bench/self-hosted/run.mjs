@@ -201,16 +201,21 @@ function imageInfo() {
 function writeEnvFile() {
   const random = (bytes) =>
     run('openssl', ['rand', '-hex', String(bytes)]).trim();
+  const secrets = {};
   const lines = fs
     .readFileSync(path.join(root, 'self-hosting/.env.example'), 'utf8')
     .split('\n')
     .map((line) => {
-      if (/^POSTGRES_PASSWORD=/.test(line))
-        return `POSTGRES_PASSWORD=${random(32)}`;
-      if (/^STORAGE_ACCESS_KEY=/.test(line))
-        return `STORAGE_ACCESS_KEY=${random(16)}`;
-      if (/^STORAGE_SECRET_KEY=/.test(line))
-        return `STORAGE_SECRET_KEY=${random(32)}`;
+      for (const [name, bytes] of [
+        ['POSTGRES_PASSWORD', 32],
+        ['STORAGE_ACCESS_KEY', 16],
+        ['STORAGE_SECRET_KEY', 32],
+      ]) {
+        if (line.startsWith(`${name}=`)) {
+          secrets[name] = random(bytes);
+          return `${name}=${secrets[name]}`;
+        }
+      }
       return line;
     });
   lines.push(
@@ -218,6 +223,32 @@ function writeEnvFile() {
     `DASHBOARD_IMAGE=${dashboardImage}`,
   );
   fs.writeFileSync(envFile, lines.join('\n') + '\n', { mode: 0o600 });
+
+  // The env file as a user would write it from .env.example. Some Compose
+  // versions reject it: the compose files read the storage keys as
+  // ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}, and if Compose evaluates
+  // the inner :? even when STORAGE_ACCESS_KEY is set, it stops with
+  // "required variable MINIO_ROOT_USER is missing a value". Record that, and
+  // then also set the old names to the same values so the run can go on.
+  const check = tryDc('config', '--quiet');
+  if (check.ok) return { as_shipped_env_accepted: true };
+  fs.appendFileSync(
+    envFile,
+    `MINIO_ROOT_USER=${secrets.STORAGE_ACCESS_KEY}\n` +
+      `MINIO_ROOT_PASSWORD=${secrets.STORAGE_SECRET_KEY}\n`,
+  );
+  const retry = tryDc('config', '--quiet');
+  if (!retry.ok) {
+    throw new Error(`compose config failed: ${retry.stderr.trim()}`);
+  }
+  log(
+    'compose rejected the env file written from .env.example; set MINIO_ROOT_USER/MINIO_ROOT_PASSWORD too',
+  );
+  return {
+    as_shipped_env_accepted: false,
+    as_shipped_env_error: check.stderr.trim().slice(0, 500),
+    workaround: 'MINIO_ROOT_USER and MINIO_ROOT_PASSWORD set to the STORAGE_* values',
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -480,7 +511,7 @@ const config = {
 const results = { environment: environment(), config, samples: [] };
 log('environment', JSON.stringify(results.environment));
 
-writeEnvFile();
+results.env_file = writeEnvFile();
 if (!args['skip-build']) results.builds = buildImages();
 log('pulling images');
 dc('pull', '--ignore-buildable', '--ignore-pull-failures', '--quiet');
