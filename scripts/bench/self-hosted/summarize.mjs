@@ -66,6 +66,7 @@ export function summarize(results) {
         ? ` (failed: ${failed.map((s) => `#${s.sample}: ${s.error.slice(0, 120)}`).join('; ')})`
         : ''),
     `- **Config:** idle ${results.config.idle_seconds} s before the idle snapshot; workload ${results.config.subscribers} subscribers, ${results.config.writes} writes every ${results.config.interval_ms} ms; snapshot ${results.config.settle_seconds} s after the workload`,
+    ...(ok.some((s) => s.smoke) ? [`- **Smoke:** ${smokeStatus(ok)}`] : []),
     '',
   ];
 
@@ -192,6 +193,10 @@ export function summarize(results) {
       '',
     );
   }
+  const modeLabel = (results.config.modes ?? []).length === 1
+    ? `\`${results.config.modes[0]}\``
+    : 'Samples';
+  lines.push(...smokeSection([[modeLabel, ok]]));
   return lines.join('\n');
 }
 
@@ -211,7 +216,7 @@ function cell(r, unit) {
 
 function verdict(ranges, names, unit) {
   if (ranges.some((r) => !r)) return 'n/a';
-  if (ranges.length !== 2) return '';
+  if (ranges.length !== 2) return 'not compared (overlap rule needs two modes)';
   const [a, b] = ranges;
   if (a.max < b.min || b.max < a.min) {
     const lower = a.med < b.med ? names[0] : names[1];
@@ -254,8 +259,9 @@ export function summarizeModes(results) {
     `- **Docker:** ${env.docker}, Compose ${env.compose}; Node ${env.node}`,
     `- **Modes:** ${modes.map((m) => `\`${m}\` ${byMode[m].length} samples`).join(', ')}, alternating in one job on the same images (${results.samples.length} samples in total${failed.length ? `; failed: ${failed.map((f) => `#${f.sample} ${f.mode}: ${f.error.slice(0, 100)}`).join('; ')}` : ''})`,
     `- **Config:** idle ${results.config.idle_seconds} s before the idle snapshot; workload ${results.config.subscribers} subscribers, ${results.config.writes} writes every ${results.config.interval_ms} ms; snapshot ${results.config.settle_seconds} s after the workload`,
+    ...(ok.some((s) => s.smoke) ? [`- **Smoke:** ${smokeStatus(ok)}`] : []),
     '',
-    '**Rule:** values are median (min to max) over the samples of each mode. A difference counts as an effect only when the two ranges do not overlap; otherwise it is reported as no measurable difference.',
+    '**Rule:** values are median (min to max) over the samples of each mode. A difference counts as an effect only when the two ranges do not overlap; otherwise it is reported as no measurable difference. Only the modes within this run are comparable with each other: other runs, including the kept baselines, may have run on different hardware (see the CPU above).',
     '',
   ];
   if (results.env_file && !results.env_file.as_shipped_env_accepted) {
@@ -369,42 +375,83 @@ export function summarizeModes(results) {
     '',
   );
 
-  // Smoke checks.
+  lines.push(...smokeSection(modes.map((m) => [`\`${m}\``, byMode[m]])));
+  return lines.join('\n');
+}
+
+// One line: which samples' smoke runs failed, and how. Used in the header
+// and in the smoke section.
+export function smokeStatus(samples) {
+  const failures = samples
+    .filter((s) => !s.smoke?.ok)
+    .map((s) => {
+      const failed = Object.entries(s.smoke?.checks ?? {})
+        .filter(([, r]) => !r?.ok)
+        .map(([c]) => c);
+      const what = !s.smoke
+        ? 'no smoke result'
+        : !s.smoke.checks
+          ? 'smoke.mjs did not complete'
+          : failed.join(', ') || 'failed';
+      return `#${s.sample}${s.mode ? ` ${s.mode}` : ''}: ${what}`;
+    });
+  return failures.length
+    ? `**Smoke FAILED** in ${failures.length} of ${samples.length} samples: ${failures.join('; ')}.`
+    : `Smoke passed in all ${samples.length} samples.`;
+}
+
+// Smoke checks, one column per group of samples ([label, samples]). Every
+// sample that ran counts in the denominator: a sample whose smoke.mjs did not
+// complete (no `checks`), or that lacks a check, counts as a failure of that
+// check, so the table never reads "all passed" for a run that failed.
+export function smokeSection(groups) {
+  const all = groups.flatMap(([, samples]) => samples);
+  if (!all.some((s) => s.smoke)) return [];
   const checks = [
-    ...new Set(ok.flatMap((s) => Object.keys(s.smoke?.checks ?? {}))),
+    ...new Set(all.flatMap((s) => Object.keys(s.smoke?.checks ?? {}))),
   ];
-  lines.push(
+  const short = (e) => String(e).replace(/\s+/g, ' ').trim().slice(0, 80);
+  const completedCell = (samples) => {
+    const done = samples.filter((s) => s.smoke?.checks).length;
+    const err = samples.find((s) => !s.smoke?.checks)?.smoke?.error;
+    return `${done} of ${samples.length} completed${err ? ` (${short(err)})` : ''}`;
+  };
+  const checkCell = (samples, c) => {
+    const rs = samples.map((s) => s.smoke?.checks?.[c]);
+    const pass = rs.filter((r) => r?.ok).length;
+    const notRun = rs.filter((r) => !r).length;
+    const err = rs.find((r) => r && !r.ok)?.error;
+    return (
+      `${pass} of ${samples.length} passed` +
+      (notRun ? `, ${notRun} did not run` : '') +
+      (err ? ` (${short(err)})` : '')
+    );
+  };
+  const lines = [
     '### Smoke checks',
     '',
-    `| Check | ${modes.map((m) => `\`${m}\``).join(' | ')} |`,
-    `|---|${modes.map(() => '---').join('|')}|`,
+    smokeStatus(all),
+    '',
+    `| Check | ${groups.map(([label]) => label).join(' | ')} |`,
+    `|---|${groups.map(() => '---').join('|')}|`,
+    `| smoke.mjs completed | ${groups.map(([, s]) => completedCell(s)).join(' | ')} |`,
     ...checks.map(
-      (c) =>
-        `| ${c} | ${modes
-          .map((m) => {
-            const rs = byMode[m]
-              .map((s) => s.smoke?.checks?.[c])
-              .filter(Boolean);
-            const pass = rs.filter((r) => r.ok).length;
-            const err = rs.find((r) => !r.ok)?.error;
-            return `${pass} of ${rs.length} passed${err ? ` (${err.slice(0, 80)})` : ''}`;
-          })
-          .join(' | ')} |`,
+      (c) => `| ${c} | ${groups.map(([, s]) => checkCell(s, c)).join(' | ')} |`,
     ),
     '',
     'headers: `X-Instant-Server-Hostname` on `GET /` is expected in `default` and absent in `self-hosted`. presence: two sessions see each other in a room. streams: one session writes, a second reads the same bytes back. sse: a session whose WebSocket cannot connect falls back to SSE and receives 5 writes made over WebSocket.',
     '',
-  );
-  const sse = modes.map((m) =>
-    rangeOf(byMode[m].flatMap((s) => s.smoke?.checks?.sse?.visible_ms ?? [])),
+  ];
+  const sse = groups.map(([, samples]) =>
+    rangeOf(samples.flatMap((s) => s.smoke?.checks?.sse?.visible_ms ?? [])),
   );
   if (sse.some(Boolean)) {
     lines.push(
-      `SSE client-visible update, all writes pooled (ms): ${modes.map((m, i) => `\`${m}\` ${cell(sse[i])}`).join(', ')}.`,
+      `SSE client-visible update, all writes pooled (ms): ${groups.map(([label], i) => `${label} ${cell(sse[i])}`).join(', ')}.`,
       '',
     );
   }
-  return lines.join('\n');
+  return lines;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

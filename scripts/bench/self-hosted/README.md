@@ -79,7 +79,11 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
 5. Writes `results.json` (every sample, environment, image sizes, build
    times) and `summary.md` (median, min, max and count per metric; with
    several modes, side by side, and a difference counts only when the ranges
-   do not overlap).
+   do not overlap). The smoke table counts every sample: one whose
+   `smoke.mjs` did not complete, or that lacks a check, counts as a failure
+   of that check, and the header names every failed sample.
+   `summarize.test.mjs` checks this on synthetic results; the workflow runs
+   it before the benchmark.
 
 ## What it does not measure
 

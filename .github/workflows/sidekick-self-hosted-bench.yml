@@ -70,6 +70,10 @@ jobs:
           node-version: 24
           package-manager-cache: false
 
+      # Synthetic results only, a second; fails before the long run starts.
+      - name: Test the summary on synthetic results
+        run: node --test scripts/bench/self-hosted/summarize.test.mjs
+
       - name: Get pnpm cache directory path
         id: pnpm-cache-dir-path
         run: echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
