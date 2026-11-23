@@ -115,9 +115,9 @@
 ;; names, so a step that upstream adds or removes fails this test and gets a
 ;; decision: add it to core/self-hosted-skipped-init-steps or not, then
 ;; update the two values below.
-(def reviewed-step-count 43)
+(def reviewed-step-count 42)
 (def reviewed-steps-sha256
-  "ef738df6bee6c66e8965f747e0caa3c886617998324c028fa4ec5dee9e274529")
+  "3da832694f2a985a3cd344711068ba91b4097251d0ed3d65fef7e2bdaaaf5a39")
 
 (defn- sha256 [^String s]
   (let [digest (.digest (MessageDigest/getInstance "SHA-256") (.getBytes s "UTF-8"))]

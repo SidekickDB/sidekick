@@ -69,7 +69,6 @@
              :refer [check-send-rate-limit!
                      check-verify-rate-limit!
                      check-custom-sender-rate-limit!]]
-            [instant.session-counter :as session-counter]
             [instant.storage.coordinator :as storage-coordinator]
             [instant.storage.s3 :as storage-s3]
             [instant.util.s3 :as s3-util]
@@ -1213,9 +1212,6 @@
                   :self-hosted-plan-enabled (config/default-paid-app?)
                   :total-app-bytes total-app-bytes
                   :total-storage-bytes total-storage-bytes})))
-
-(defn session-counts-get [_req]
-  (session-counter/undertow-config))
 
 ;; ----
 ;; Orgs
@@ -2800,8 +2796,7 @@
 
   (GET "/dash/cli/version" [] (response/ok {:min-version cli-min-version}))
 
-  (GET "/dash/session_counts" [] session-counts-get)
-
+  ;; SidekickDB: GET /dash/session_counts is removed, see UPSTREAM.md.
   (POST "/dash/apps/:app_id/checkout_session" [] checkout-session-post)
   (POST "/dash/apps/:app_id/portal_session" [] create-portal)
   (POST "/dash/apps/:app_id/self_hosted_subscription" [] activate-self-hosted-app-subscription-post)

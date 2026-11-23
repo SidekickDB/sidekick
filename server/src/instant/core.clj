@@ -53,7 +53,6 @@
    [instant.scripts.daily-metrics :as daily-metrics]
    [instant.scripts.welcome-email :as welcome-email]
    [instant.join-room-logger :as join-room-logger]
-   [instant.session-counter :as session-counter]
    [instant.storage.routes :as storage-routes]
    [instant.stripe :as stripe]
    [instant.stripe-webhook :as stripe-webhook]
@@ -511,8 +510,7 @@
         (agg/start-global))
       (with-log-init :ephemeral-app
         (ephemeral-app/start))
-      (with-log-init :session-counter
-        (session-counter/start))
+      ;; SidekickDB: the session-counter step is removed, see UPSTREAM.md.
       (with-log-init :join-room-logger
         (join-room-logger/start))
       (with-log-init :indexing-jobs
