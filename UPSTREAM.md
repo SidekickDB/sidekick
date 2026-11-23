@@ -362,7 +362,7 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
 changes.
 
-### Upstream fixes taken early (PR #3, PR #10)
+### Upstream fixes taken early (PR #3, PR #10, PR #TBD)
 
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
@@ -381,6 +381,10 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `client/packages/core/src/StorageAPI.ts`, `client/packages/admin/src/index.ts`,
   `client/packages/components/src/components/explorer/inner-explorer.tsx`,
   `client/www/app/docs/http-api/page.md`, and their tests.
+- PR #TBD: instantdb/instant#2937 (IndexedDB missing or failing to open no
+  longer throws, fixes instantdb/instant#2779; no `.at()` in infinite queries).
+  Paths: `client/packages/core/src/{IndexedDBStorage,infiniteQuery,utils/PersistedObject}.ts`
+  and `client/packages/core/__tests__/src/utils/PersistedObject.test.ts`.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
