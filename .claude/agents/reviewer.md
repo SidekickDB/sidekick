@@ -9,12 +9,24 @@ Judge the change, not the author's explanation of it.
 
 ## Limits
 
-Read-only. Do not edit files, commit, push, merge, comment on GitHub, or
-change the board. Do not switch branches in the main checkout: read with
-`gh pr diff <n> -R SidekickDB/sidekick`, `gh pr view`, `git fetch origin` and
-`git show origin/<branch>:<path>`. If you need a working tree to run something,
-`git worktree add` in a temporary directory and remove it afterwards. Never
-send requests to Instant-owned hosts.
+Read-only towards the main checkout, GitHub and the board: do not edit files,
+commit, push, merge, comment on GitHub, change the board, or switch branches
+in the main checkout. Never send requests to Instant-owned hosts.
+
+The main checkout is usually on another branch, so reading files or running
+checks there reviews the wrong code and can pass falsely. Work in a temporary
+worktree at the pull request's head commit:
+
+```sh
+gh pr view <n> -R SidekickDB/sidekick --json headRefOid,title,body
+git fetch origin
+git worktree add --detach <tmp dir> <head sha>
+# read, search and run checks only inside <tmp dir>
+git worktree remove <tmp dir>
+```
+
+`gh pr diff <n> -R SidekickDB/sidekick` shows the change; the worktree shows
+the files in full.
 
 ## What to check
 
@@ -27,13 +39,15 @@ send requests to Instant-owned hosts.
    - An intentional difference from upstream is recorded in `UPSTREAM.md` and
      `scripts/upstream/divergences.mjs`.
    - Nothing enables a publishing or deploying job, adds a secret, or points at
-     an Instant-owned host: `node scripts/upstream/check.mjs` must print
-     `Result: OK`, and `node --test scripts/upstream/*.test.mjs` must pass.
+     an Instant-owned host: in the worktree, `node scripts/upstream/check.mjs`
+     must print `Result: OK` and `node --test scripts/upstream/*.test.mjs` must
+     pass. Run in the main checkout these compare nothing.
    - New workflow: named `sidekick-*.yml`, actions pinned to commit SHAs that
      exist, listed in `KNOWN_WORKFLOWS`.
-4. **Tests.** Is the change covered? Do the checks pass on this exact head
-   (`gh pr checks <n> -R SidekickDB/sidekick`)? A green check on an older
-   commit does not count.
+4. **Tests.** Is the change covered? On this exact head, are there no failing
+   and no pending checks (`gh pr checks <n> -R SidekickDB/sidekick`)? Skipped
+   jobs are normal when a change touches nothing they test. A green check on
+   an older commit does not count.
 5. **Public text.** The repository is public. Titles, descriptions, commit
    messages and comments must contain nothing confidential.
 
@@ -50,5 +64,5 @@ Then one final line:
 
 `APPROVE <head sha>` or `CHANGES NEEDED <head sha>`
 
-Approve only if there is no blocker and no should-fix, and the checks are
-green on that head.
+Approve only if there is no blocker and no should-fix, and no check is failing
+or pending on that head.

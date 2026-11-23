@@ -36,14 +36,16 @@ node scripts/upstream/check.mjs          # no publishing job enabled, no Instant
 node --test scripts/upstream/*.test.mjs  # if scripts/upstream changed
 ```
 
-For client changes, after `pnpm install` in `client/`:
+For client changes:
 
 ```sh
-(cd client/packages/<pkg> && pnpm exec tsc --noEmit)   # or client/www; types of the package you changed
+(cd client && pnpm install && pnpm build-packages)     # packages read each other's types from dist/
+(cd client/packages/<pkg> && pnpm exec tsc --noEmit)   # or the package's own `check` / `typecheck` script
 (cd client && pnpm run check-format)
 ```
 
-Do not run `pnpm build` in `client/` to check your work.
+`pnpm build-packages` is fine. Do not run the full `pnpm build`: it also builds
+the dashboard and disturbs a running dev server.
 
 Server (Clojure) tests run in CI only. Compose files are rendered in CI too
 (`sidekick-self-hosting-check.yml`); Compose versions differ, so do not trust a
@@ -79,4 +81,5 @@ gh pr merge <n> -R SidekickDB/sidekick --merge
 ```
 
 Never `--squash` or `--rebase`: upstream history and authorship are kept
-intact. The branch is deleted automatically. Move the card to Done.
+intact. The branch is deleted automatically. Check the card's "Done when" on
+`main`; when it is true, move the card to Done.

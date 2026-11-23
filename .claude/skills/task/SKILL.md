@@ -35,7 +35,7 @@ gh project item-edit --id <PVTI_…> --project-id <project id> \
 - Start: `In progress`.
 - Pull request open: stay `In progress`, add a `PR: <link>` line as the very
   first line of the body (above `Blocked by:` if there is one).
-- Merged: `Done`.
+- Merged and the card's "Done when" checked to be true: `Done`.
 
 ## Edit a card's text
 
@@ -48,7 +48,8 @@ clear it otherwise.
 
 ## Add a card
 
-New work is always a new **Backlog** card; the owner moves it to Ready. For
+New work is always a new **Backlog** card (or **Owner**, when only the owner
+can decide or do it); the owner moves it to Ready. For
 more than a quick note, hand the idea to the `planner` agent, which checks the
 facts and writes the card.
 
@@ -80,6 +81,18 @@ Optional: risks, size, links.
 
 Do not point at local files, chat logs or other documents instead of writing
 the facts down. Check the facts in the code before writing them.
+
+## Archive a card
+
+Archiving is the owner's decision, except for a duplicate you have merged into
+another card. Write the reason as the first line of the body
+(`Archived: <reason>`), then:
+
+```sh
+gh project item-archive 1 --owner SidekickDB --id <PVTI_…>
+```
+
+Archived cards can be restored; nothing is deleted.
 
 ## Never
 
