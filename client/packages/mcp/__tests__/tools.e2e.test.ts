@@ -1,6 +1,7 @@
 import { describe, it as baseIt, expect } from 'vitest';
 import { randomUUID } from 'crypto';
 import { PlatformApi } from '@sidekickdb/platform';
+import { handleQuery, handleTransact, setApiURL } from '../src/tools.ts';
 
 // SidekickDB: networked suite. It runs only against the backend named by
 // SIDEKICK_E2E_API_URI and is skipped when that is unset; there is no default.
@@ -12,11 +13,10 @@ if (!API_URL) {
     '[sidekick] Skipping MCP tools e2e: set SIDEKICK_E2E_API_URI to a SidekickDB server URL to run it.',
   );
 } else {
-  // src/tools.ts reads INSTANT_API_URL when it is loaded, so set it first.
-  process.env.INSTANT_API_URL = API_URL;
+  // Takes precedence over INSTANT_API_URL, so only this backend is used.
+  setApiURL(API_URL);
 }
 const it = (API_URL ? baseIt : baseIt.skip) as typeof baseIt;
-const { handleQuery, handleTransact } = await import('../src/tools.ts');
 
 async function createTempApp(): Promise<{
   appId: string;
