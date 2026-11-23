@@ -33,3 +33,7 @@ list as supported. Fixes are made on `main` only.
 This policy covers the code in this repository. SidekickDB is an independent
 continuation of InstantDB. This policy is not a channel for reporting issues in
 Instant's own hosted service or in its repository.
+
+Reports about code inherited from InstantDB are welcome here, including when
+the bug also affects InstantDB; SidekickDB decides how and when InstantDB is
+told.
