@@ -229,7 +229,9 @@
          :instaql-topic? (boolean iq-topic)})
       (catch Throwable e
         ;; A query that was only interrupted isn't broken. Callers that can
-        ;; retry it (refresh) pass :on-cancelled to keep the subscription.
+        ;; retry it (refresh) pass :on-cancelled and decide what happens to
+        ;; the subscription: refresh keeps it, up to a limit of timeouts in a
+        ;; row.
         (if-let [on-cancelled (and (cancellation? e)
                                    (:on-cancelled base-ctx))]
           (on-cancelled instaql-query)

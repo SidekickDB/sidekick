@@ -546,38 +546,70 @@
 (comment
   (test/run-tests *ns*))
 
-(deftest mark-instaql-queries-undelivered!
-  (let [store   (rs/init)
-        app-id  (random-uuid)
-        sess-id (random-uuid)
-        q       {:movie {}}
-        other-q {:actor {}}
-        lookup  [:instaql-query/session-id+query [sess-id q]]
-        query   #(d/entity @(rs/app-conn store app-id) lookup)
-        record! (fn [v result-hash]
-                  (rs/add-instaql-query! store {:app-id app-id
-                                                :session-id sess-id
-                                                :instaql-query q
-                                                :v v}
-                                         result-hash))]
-    (rs/bump-instaql-version! store app-id sess-id q :join-rows)
-    (is (:result-changed? (record! 1 42)))
-    (is (false? (:instaql-query/stale? (query))))
-
-    (rs/mark-instaql-queries-undelivered! store app-id sess-id [q other-q])
-
-    (testing "the query is stale again and has no recorded result"
-      (is (true? (:instaql-query/stale? (query))))
-      (is (nil? (:instaql-query/hash (query))))
-      (is (= [q] (map :instaql-query/query
-                      (rs/get-stale-instaql-queries store app-id sess-id)))))
-
-    (testing "the same result counts as changed on the next recompute"
+(deftest mark-refresh-failed!
+  (let [store    (rs/init)
+        app-id   (random-uuid)
+        sess-id  (random-uuid)
+        slow-q   {:movie {}}
+        fast-q   {:actor {}}
+        gone-q   {:director {}}
+        query    (fn [q]
+                   (d/entity @(rs/app-conn store app-id)
+                             [:instaql-query/session-id+query [sess-id q]]))
+        timeouts #(:instaql-query/refresh-timeouts (query %))
+        record!  (fn [q v result-hash]
+                   (rs/add-instaql-query! store {:app-id app-id
+                                                 :session-id sess-id
+                                                 :instaql-query q
+                                                 :v v}
+                                          result-hash))
+        failed!  (fn [queries limit]
+                   (rs/mark-refresh-failed! store app-id sess-id queries limit))]
+    (doseq [q [slow-q fast-q]]
       (rs/bump-instaql-version! store app-id sess-id q :join-rows)
-      (is (:result-changed? (record! 2 42))))
+      (record! q 1 42))
 
-    (testing "queries that are gone are ignored"
-      (is (nil? (rs/mark-instaql-queries-undelivered! store app-id sess-id [])))
-      (rs/remove-query! store app-id sess-id q)
-      (rs/mark-instaql-queries-undelivered! store app-id sess-id [q])
-      (is (nil? (query))))))
+    (testing "nothing to mark"
+      (is (= {:removed []} (failed! {} 3)))
+      (is (= {:removed []} (failed! {:recomputed [] :timed-out []} 3))))
+
+    (testing "a first timeout keeps the query, undelivered, and counts it"
+      (is (= {:removed []} (failed! {:recomputed [fast-q] :timed-out [slow-q gone-q]} 3)))
+      (is (= 1 (timeouts slow-q)))
+      (is (nil? (timeouts fast-q)))
+      (doseq [q [slow-q fast-q]]
+        (is (true? (:instaql-query/stale? (query q))))
+        (is (nil? (:instaql-query/hash (query q)))))
+      (is (nil? (query gone-q))))
+
+    (testing "only undelivered queries are stale"
+      (is (= #{slow-q fast-q}
+             (set (map :instaql-query/query
+                       (rs/get-stale-instaql-queries store app-id sess-id))))))
+
+    (testing "the same result counts as changed on the next recompute, and
+              recording it clears the count"
+      (failed! {:timed-out [fast-q]} 3)
+      (is (= 1 (timeouts fast-q)))
+      (rs/bump-instaql-version! store app-id sess-id fast-q :join-rows)
+      (is (:result-changed? (record! fast-q 2 42)))
+      (is (false? (:instaql-query/stale? (query fast-q))))
+      (is (nil? (timeouts fast-q))))
+
+    (testing "the query is removed when it reaches the limit"
+      (is (= {:removed []} (failed! {:timed-out [slow-q]} 3)))
+      (is (= 2 (timeouts slow-q)))
+      (is (= {:removed [slow-q]} (failed! {:recomputed [fast-q] :timed-out [slow-q]} 3)))
+      (is (nil? (query slow-q)))
+      (is (some? (query fast-q)))
+      (is (true? (:instaql-query/stale? (query fast-q)))))
+
+    (testing "a removed query is not reported again"
+      (is (= {:removed []} (failed! {:timed-out [slow-q]} 3))))
+
+    (testing "no limit never removes"
+      (dotimes [_ 5]
+        (is (= {:removed []} (failed! {:timed-out [fast-q]} nil))))
+      (is (= 5 (timeouts fast-q)))
+      (is (some? (query fast-q))))))
+

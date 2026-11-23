@@ -1888,6 +1888,20 @@
                   (pred ret) ret
                   :else (recur))))))))
 
+(defn- read-msgs-until
+  "Reads messages until `done?` is true for the messages read so far, or until
+   `timeout-ms` has passed. Returns the messages read."
+  [socket done? timeout-ms]
+  (let [deadline (+ (System/currentTimeMillis) timeout-ms)]
+    (loop [msgs []]
+      (let [remaining (- deadline (System/currentTimeMillis))]
+        (if (or (done? msgs) (not (pos? remaining)))
+          msgs
+          (let [ret (ua/<!!-timeout (:ws-conn socket) remaining)]
+            (if (= :timeout ret)
+              msgs
+              (recur (conj msgs ret)))))))))
+
 (deftest timed-out-refresh-keeps-subscriptions-and-redelivers
   ;; instantdb/instant#2932: a refresh that hits the receive timeout used to
   ;; remove every query whose recompute it interrupted, and to count queries
@@ -1937,15 +1951,18 @@
             (is (= :refresh (-> err :original-event :op))))
 
           (testing "the refresh is retried and delivers both queries, with the write"
-            (let [refresh-ok (read-msg-until socket
-                                             #(and (= :refresh-ok (:op %))
-                                                   (seq (:computations %)))
-                                             10000)
-                  computations (into {}
-                                     (map (juxt :instaql-query identity))
-                                     (:computations refresh-ok))]
-              (is (some? refresh-ok) "no refresh-ok after the timed-out refresh")
-              (is (= #{q-slow q-fast} (set (keys computations))))
+            (let [delivered (fn [msgs]
+                              (into {}
+                                    (comp (filter #(= :refresh-ok (:op %)))
+                                          (mapcat :computations)
+                                          (map (juxt :instaql-query identity)))
+                                    msgs))
+                  msgs (read-msgs-until socket
+                                        #(= #{q-slow q-fast} (set (keys (delivered %))))
+                                        10000)
+                  computations (delivered msgs)]
+              (is (= #{q-slow q-fast} (set (keys computations)))
+                  "the timed-out refresh was not redelivered")
               (is (some #(= title (nth % 2))
                         (-> (get computations q-slow)
                             :instaql-result first :data :datalog-result :join-rows first)))))
@@ -1972,3 +1989,109 @@
                                              (some (comp #{q-slow} :instaql-query)
                                                    (:computations %)))
                                        5000)))))))))
+
+(deftest query-that-always-times-out-is-unsubscribed-and-the-rest-refresh
+  ;; Keeping a query whose refresh timed out must not let one query that can
+  ;; never finish in time fail every refresh of its session: the session's
+  ;; other queries would never be delivered again.
+  (with-session
+    (fn [store {:keys [socket movies-app-id movies-resolver]}]
+      (let [sess-id (:id socket)
+            ;; q-fast lists the movies of 1987, so it changes with every
+            ;; RoboCop title below.
+            q-slow (:kw-q query-robocop)
+            q-fast (:kw-q query-1987)
+            eid (resolvers/->uuid movies-resolver "eid-robocop")
+            write-title! (fn [title]
+                           (tx/transact! (aurora/conn-pool :write)
+                                         (attr-model/get-by-app-id movies-app-id)
+                                         movies-app-id
+                                         [[:add-triple eid
+                                           (resolvers/->uuid movies-resolver :movie/title)
+                                           title]])
+                           (rs/mark-stale-topics! store movies-app-id 0
+                                                  (instant.isn/test-isn 0)
+                                                  [(d/pat->coarse-topic [:ea eid])]
+                                                  {}))
+            query-exists? (fn [q]
+                            (some? (ds/entid @(rs/app-conn store movies-app-id)
+                                             [:instaql-query/session-id+query [sess-id q]])))
+            stale-queries #(set (map :instaql-query/query
+                                     (rs/get-stale-instaql-queries store movies-app-id sess-id)))
+            unsubscribed-error? (fn [msg]
+                                  (and (= :error (:op msg))
+                                       (= :add-query (-> msg :original-event :op))
+                                       (= q-slow (-> msg :original-event :q))))
+            refresh-error? (fn [msg]
+                             (and (= :error (:op msg))
+                                  (= :refresh (-> msg :original-event :op))))
+            refresh-ok-with (fn [q]
+                              (fn [msg]
+                                (and (= :refresh-ok (:op msg))
+                                     (some (comp #{q} :instaql-query)
+                                           (:computations msg)))))
+            permissioned-query iq/permissioned-query]
+        (blocking-send-msg :init-ok socket {:op :init :app-id movies-app-id})
+        (blocking-send-msg :add-query-ok socket {:op :add-query :q q-slow})
+        (blocking-send-msg :add-query-ok socket {:op :add-query :q q-fast})
+        (with-redefs [flags/throttle-refresh? (constantly false)
+                      flags/handle-receive-timeout (constantly 300)
+                      ;; More retries than the limit needs, so that the test
+                      ;; doesn't depend on the last retry.
+                      session/refresh-retry-delays-ms (constantly [50 50 50 50 50 50])
+                      session/refresh-timeout-limit (constantly 3)
+                      ;; Every refresh of q-slow blocks until the receive
+                      ;; handler times out and interrupts it.
+                      iq/permissioned-query
+                      (fn [ctx q]
+                        (when (= q-slow (:instaql-query ctx))
+                          (Thread/sleep 10000))
+                        (permissioned-query ctx q))]
+          (write-title! "RoboCop (1987)")
+          (is (= #{q-slow q-fast} (stale-queries)))
+
+          (send-msg socket {:op :refresh :session-id sess-id})
+          (let [msgs (read-msgs-until socket
+                                      #(and (some unsubscribed-error? %)
+                                            (some (refresh-ok-with q-fast) %)
+                                            (<= 3 (count (filter refresh-error? %))))
+                                      20000)]
+            (testing "the client is told that the slow query is unsubscribed"
+              (let [err (first (filter unsubscribed-error? msgs))]
+                (is (some? err) "no error for the slow query")
+                (is (= :operation-timed-out (:type err)))
+                (is (= "refresh-timeout" (-> err :hint :reason)))))
+            (testing "but only after the limit of timed-out refreshes"
+              (is (<= 3 (count (filter refresh-error? msgs)))))
+            (testing "the other query is delivered, with the write"
+              (let [refresh-ok (first (filter (refresh-ok-with q-fast) msgs))
+                    computation (first (filter (comp #{q-fast} :instaql-query)
+                                               (:computations refresh-ok)))]
+                (is (some? refresh-ok) "no refresh-ok for the other query")
+                (is (some #(= "RoboCop (1987)" (nth % 2))
+                          (-> computation
+                              :instaql-result first :data :datalog-result :join-rows first)))))
+            (testing "the slow query was never delivered"
+              (is (not-any? (refresh-ok-with q-slow) msgs))))
+
+          (testing "only the slow query was removed, and nothing is left stale"
+            (is (not (query-exists? q-slow)))
+            (is (query-exists? q-fast))
+            (test-util/wait-for #(empty? (stale-queries)) 2000))
+
+          (testing "later writes still reach the other query"
+            (write-title! "RoboCop (again)")
+            (send-msg socket {:op :refresh :session-id sess-id})
+            (let [msgs (read-msgs-until socket
+                                        #(some (refresh-ok-with q-fast) %)
+                                        5000)
+                  computation (->> msgs
+                                   (filter (refresh-ok-with q-fast))
+                                   first
+                                   :computations
+                                   (filter (comp #{q-fast} :instaql-query))
+                                   first)]
+              (is (some #(= "RoboCop (again)" (nth % 2))
+                        (-> computation
+                            :instaql-result first :data :datalog-result :join-rows first)))
+              (is (query-exists? q-fast)))))))))

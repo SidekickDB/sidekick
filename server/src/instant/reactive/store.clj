@@ -90,6 +90,9 @@
    :instaql-query/stale? {:db/type :db.type/boolean}
    :instaql-query/version {:db/type :db.type/integer}
    :instaql-query/hash {:db/type :db.type/number}
+   ;; How many refreshes in a row were cancelled (receive timeout) while this
+   ;; query was still computing. Cleared when a result is recorded.
+   :instaql-query/refresh-timeouts {:db/type :db.type/integer}
    ;; This would be easier if we had a store per app
    :instaql-query/session-id+query
    {:db/tupleAttrs [:instaql-query/session-id :instaql-query/query]
@@ -641,27 +644,62 @@
              (app-conn store app-id)
              [[:db.fn/call remove-subscriptions-tx-data sess-id q]]))
 
-(defn- mark-instaql-queries-undelivered-tx-data
-  "Should be used in a db.fn/call. Returns transactions.
-   Marks the queries stale and forgets their result hash, so the next refresh
-   recomputes them and sends the result even if it matches the last one we
+(defn- undelivered-tx-data
+  "Marks the query stale and forgets its result hash, so the next refresh
+   recomputes it and sends the result even if it matches the last one we
    computed (which may never have reached the client)."
-  [db session-id instaql-queries]
-  (for [q instaql-queries
-        :let [eid (d/entid db [:instaql-query/session-id+query [session-id q]])]
-        :when eid
-        tx [[:db/add eid :instaql-query/stale? true]
-            [:db.fn/retractAttribute eid :instaql-query/hash]]]
-    tx))
+  [eid]
+  [[:db/add eid :instaql-query/stale? true]
+   [:db.fn/retractAttribute eid :instaql-query/hash]])
 
-(defn mark-instaql-queries-undelivered!
+(defn- refresh-failed-tx-data
+  "Should be used in a db.fn/call. Returns transactions.
+   `recomputed` queries finished inside a refresh that failed before it sent
+   their results: they are marked undelivered. `timed-out` queries were still
+   computing when the refresh was cancelled: they are marked undelivered too,
+   and their count of timed-out refreshes in a row goes up. A query whose count
+   reaches `timeout-limit` is removed with its subscriptions, so that one query
+   that can never finish in time stops failing every refresh of its session."
+  [db session-id recomputed timed-out timeout-limit]
+  (let [entid (fn [q]
+                (d/entid db [:instaql-query/session-id+query [session-id q]]))
+        timed-out (set timed-out)]
+    (concat
+     (for [q (distinct recomputed)
+           :when (not (contains? timed-out q))
+           :let [eid (entid q)]
+           :when eid
+           tx (undelivered-tx-data eid)]
+       tx)
+     (mapcat (fn [q]
+               (when-let [eid (entid q)]
+                 (let [timeouts (inc (or (:instaql-query/refresh-timeouts (d/entity db eid))
+                                         0))]
+                   (if (and timeout-limit (>= timeouts timeout-limit))
+                     (remove-subscriptions-tx-data db session-id q)
+                     (conj (undelivered-tx-data eid)
+                           [:db/add eid :instaql-query/refresh-timeouts timeouts])))))
+             timed-out))))
+
+(defn mark-refresh-failed!
   "Used when a refresh fails or is cancelled after it may have recomputed
-   these queries, but before it sent their results."
-  [store app-id sess-id instaql-queries]
-  (when (seq instaql-queries)
-    (transact! "store/mark-instaql-queries-undelivered!"
-               (app-conn store app-id)
-               [[:db.fn/call mark-instaql-queries-undelivered-tx-data sess-id instaql-queries]])))
+   queries, but before it sent their results (see refresh-failed-tx-data).
+   Returns {:removed [q ...]}: the timed-out queries that reached
+   `timeout-limit` and are no longer subscribed. A nil `timeout-limit` never
+   removes."
+  [store app-id sess-id {:keys [recomputed timed-out]} timeout-limit]
+  (if (or (seq recomputed) (seq timed-out))
+    (let [report (transact! "store/mark-refresh-failed!"
+                            (app-conn store app-id)
+                            [[:db.fn/call refresh-failed-tx-data
+                              sess-id recomputed timed-out timeout-limit]])
+          exists? (fn [db q]
+                    (some? (d/entid db [:instaql-query/session-id+query [sess-id q]])))]
+      {:removed (filterv (fn [q]
+                           (and (exists? (:db-before report) q)
+                                (not (exists? (:db-after report) q))))
+                         (distinct timed-out))})
+    {:removed []}))
 
 ;; --------------
 ;; adding queries
@@ -684,7 +722,9 @@
    Sets the hash for the query result."
   [db lookup-ref result-hash]
   (if-some [e (d/entid db lookup-ref)]
-    [[:db/add e :instaql-query/hash result-hash]]
+    [[:db/add e :instaql-query/hash result-hash]
+     ;; The query finished, so it is not timing out refresh after refresh.
+     [:db.fn/retractAttribute e :instaql-query/refresh-timeouts]]
     []))
 
 (defn add-instaql-query! [store {:keys [app-id session-id instaql-query v] :as _ctx} result-hash]
