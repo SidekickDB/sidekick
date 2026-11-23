@@ -1664,7 +1664,14 @@
   event2)
 
 (defmethod combine [:refresh-presence :refresh-presence] [_ctx event1 event2]
-  (update event2 :edits #(into (vec (:edits event1)) %)))
+  ;; A refresh with :edits nil is a full snapshot (sent to a session that just
+  ;; joined); one with :edits is a patch. Two patches combine into one patch.
+  ;; If either is a snapshot, send a snapshot of the latest room data: the
+  ;; patch alone would drop the snapshot, and the session would never learn
+  ;; about the peers that were already in the room.
+  (if (and (some? (:edits event1)) (some? (:edits event2)))
+    (update event2 :edits #(into (vec (:edits event1)) %))
+    (assoc event2 :edits nil)))
 
 (defmethod combine [:set-presence :set-presence] [_ctx _event1 event2]
   event2)

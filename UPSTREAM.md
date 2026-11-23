@@ -547,7 +547,7 @@ the self-hosted mode skips it.
 a new startup step gets a skip decision and an updated count and hash in the
 test.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16, PR #24)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -557,6 +557,11 @@ test.
 - PR #16: `server/src/instant/db/attr_sketch.clj` loads attr sketches on its
   own virtual-thread executor instead of `ForkJoinPool.commonPool()`, with
   `server/test/instant/db/attr_sketch_lookup_test.clj`.
+- PR #24: `combine` for `:refresh-presence` in
+  `server/src/instant/reactive/session.clj` keeps a full snapshot when one of
+  the two queued refreshes is a snapshot; it used to send only the patch, so
+  a session that had just joined could miss the peers already in the room.
+  Test `combine-refresh-presence` in `session_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are.
