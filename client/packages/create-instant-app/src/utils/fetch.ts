@@ -4,7 +4,8 @@ import { version } from '@sidekickdb/version';
 const dev = Boolean(process.env.INSTANT_CLI_DEV);
 
 // There is no default server or dashboard: both come from the environment
-// (or INSTANT_CLI_DEV for local development).
+// (or INSTANT_CLI_DEV for local development). Each variable can also be set
+// under its SIDEKICK_ name: see ../envAliases.ts.
 export const instantDashOrigin: string | null =
   process.env.INSTANT_CLI_DASH_URI || (dev ? 'http://localhost:3000' : null);
 
@@ -12,15 +13,15 @@ export const instantBackendOrigin: string | null =
   process.env.INSTANT_CLI_API_URI || (dev ? 'http://localhost:8888' : null);
 
 export const missingBackendOriginMessage =
-  'No SidekickDB server URL configured. Set the INSTANT_CLI_API_URI ' +
-  'environment variable, for example ' +
-  'INSTANT_CLI_API_URI=https://sidekick.example.com. ' +
+  'No SidekickDB server URL configured. Set the SIDEKICK_CLI_API_URI ' +
+  'environment variable (or its older name, INSTANT_CLI_API_URI), for example ' +
+  'SIDEKICK_CLI_API_URI=https://sidekick.example.com. ' +
   'SidekickDB has no default server.';
 
 export const missingDashOriginMessage =
-  'No SidekickDB dashboard URL configured. Set the INSTANT_CLI_DASH_URI ' +
-  'environment variable, for example ' +
-  'INSTANT_CLI_DASH_URI=https://dash.sidekick.example.com. ' +
+  'No SidekickDB dashboard URL configured. Set the SIDEKICK_CLI_DASH_URI ' +
+  'environment variable (or its older name, INSTANT_CLI_DASH_URI), for example ' +
+  'SIDEKICK_CLI_DASH_URI=https://dash.sidekick.example.com. ' +
   'SidekickDB has no default dashboard.';
 
 export function requireBackendOrigin(): string {

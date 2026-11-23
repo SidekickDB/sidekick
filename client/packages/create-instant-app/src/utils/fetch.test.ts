@@ -46,10 +46,10 @@ describe('Instant origins', () => {
     expect(instantBackendOrigin).toBeNull();
     expect(instantDashOrigin).toBeNull();
     expect(() => requireBackendOrigin()).toThrow(
-      'No SidekickDB server URL configured. Set the INSTANT_CLI_API_URI environment variable',
+      'No SidekickDB server URL configured. Set the SIDEKICK_CLI_API_URI environment variable',
     );
     expect(() => requireDashOrigin()).toThrow(
-      'No SidekickDB dashboard URL configured. Set the INSTANT_CLI_DASH_URI environment variable',
+      'No SidekickDB dashboard URL configured. Set the SIDEKICK_CLI_DASH_URI environment variable',
     );
   });
 });

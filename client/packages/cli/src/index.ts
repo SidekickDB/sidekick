@@ -69,7 +69,17 @@ program
     }),
   )
   .addHelpOption(globalOption('-h --help', 'Print the help text for a command'))
-  .usage(`<command> ${chalk.dim('[options] [args]')}`);
+  .usage(`<command> ${chalk.dim('[options] [args]')}`)
+  .addHelpText(
+    'after',
+    `
+Names:
+  Every INSTANT_* environment variable can also be set as SIDEKICK_*, for
+  example SIDEKICK_CLI_API_URI or NEXT_PUBLIC_SIDEKICK_APP_ID, and the
+  instant.config, instant.schema, instant.perms and instant.email files can be
+  named sidekick.* instead. The SIDEKICK name wins when both exist.
+`,
+  );
 
 // Command List
 export const initDef = program

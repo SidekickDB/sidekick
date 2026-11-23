@@ -1,6 +1,7 @@
 (ns instant.config-edn-test
   (:require [instant.config-edn :as config-edn]
             [instant.util.crypt :as crypt-util]
+            [instant.util.env :as env]
             [instant.util.json :refer [<-json]]
             [clojure.test :refer [deftest testing is]]
             [clojure.walk :as w]))
@@ -79,3 +80,12 @@
     ;; resources/config/staging.edn
     (is (config-edn/valid-config? true (config-edn/read-config :staging)))
     (check-data-encrypted-with-correct-key (config-edn/read-config :staging))))
+
+(deftest env-overrides-accept-sidekick-names
+  (testing "the INSTANT_CONFIG_ name still works"
+    (with-redefs [env/getenv (partial env/lookup {"INSTANT_CONFIG_S3_ENDPOINT" "http://old:9000"})]
+      (is (= "http://old:9000" (:s3-endpoint (config-edn/env-overrides identity))))))
+  (testing "the SIDEKICK_CONFIG_ name wins"
+    (with-redefs [env/getenv (partial env/lookup {"INSTANT_CONFIG_S3_ENDPOINT" "http://old:9000"
+                                                   "SIDEKICK_CONFIG_S3_ENDPOINT" "http://new:9000"})]
+      (is (= "http://new:9000" (:s3-endpoint (config-edn/env-overrides identity)))))))

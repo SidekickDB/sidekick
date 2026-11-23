@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Must stay the first import: see envAliases.ts.
+import './envAliases.js';
 import { runCli } from './cli.js';
 import path from 'path';
 import fs from 'fs-extra';

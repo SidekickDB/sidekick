@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]
             [instant.config :as config]
-            [instant.util.crypt :as crypt-util]))
+            [instant.util.crypt :as crypt-util]
+            [instant.util.env :as env]))
 
 (deftest google-oauth-client-test
   (let [config-client {:client-id "config-client-id"
@@ -32,6 +33,23 @@
   (is (nil? (config/non-blank-env "SIDEKICK_CONFIG_TEST_UNSET_VARIABLE")))
   (is (= (System/getenv "PATH") (config/non-blank-env "PATH"))))
 
+(deftest sidekick-env-names-test
+  (let [vars {"SIDEKICK_EMAIL_REPLY_TO" "new@example.com"
+              "INSTANT_EMAIL_REPLY_TO" "old@example.com"
+              "INSTANT_EMAIL_PROVIDER" "Resend"
+              "SIDEKICK_DNS_OVER_HTTPS_URLS" "system"
+              "SIDEKICK_APP_EMAIL_SENDER_NAME" "  "
+              "INSTANT_APP_EMAIL_SENDER_NAME" "Old name"}]
+    (with-redefs [env/getenv (partial env/lookup vars)]
+      (testing "the SIDEKICK_ name wins"
+        (is (= "new@example.com" (config/email-reply-to))))
+      (testing "the INSTANT_ name still works"
+        (is (= :resend (config/email-provider))))
+      (testing "a variable set only under its SIDEKICK_ name"
+        (is (= [] (config/dns-over-https-urls))))
+      (testing "a blank SIDEKICK_ value falls back to the INSTANT_ one"
+        (is (= "Old name" (:name (config/app-email-sender))))))))
+
 (deftest no-instant-aws-account-fallbacks-test
   (testing "config has no resources in Instant's AWS account as defaults"
     (is (not (re-find #"597134865416"
@@ -54,13 +72,13 @@
                       (slurp (io/resource "instant/config.clj"))))))
 
   (testing "senders and reply-to are unset unless configured"
-    (when-not (System/getenv "INSTANT_EMAIL_REPLY_TO")
+    (when-not (env/getenv "INSTANT_EMAIL_REPLY_TO")
       (is (nil? (config/email-reply-to))))
-    (when-not (System/getenv "INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL")
+    (when-not (env/getenv "INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL")
       (is (nil? (:email (config/dashboard-email-sender)))))
-    (when-not (System/getenv "INSTANT_APP_EMAIL_SENDER_EMAIL")
+    (when-not (env/getenv "INSTANT_APP_EMAIL_SENDER_EMAIL")
       (is (nil? (:email (config/app-email-sender)))))
-    (when-not (System/getenv "INSTANT_TEAM_EMAIL_SENDER_EMAIL")
+    (when-not (env/getenv "INSTANT_TEAM_EMAIL_SENDER_EMAIL")
       (is (nil? (:email (config/team-email-sender)))))))
 
 (deftest missing-email-sender-env-vars-test
@@ -98,7 +116,7 @@
     (with-redefs [config/email-send-enabled? (constantly true)
                   config/missing-email-sender-env-vars
                   (constantly ["INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL"])]
-      (is (some #(re-find #"INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL is not set" %)
+      (is (some #(re-find #"SIDEKICK_DASHBOARD_EMAIL_SENDER_EMAIL \(or INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL\) is not set" %)
                 (config/startup-warnings))))))
 
 (deftest dashboard-google-oauth-configured-test

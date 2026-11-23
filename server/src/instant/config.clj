@@ -5,6 +5,7 @@
             [instant.util.crypt :as crypt-util]
             [instant.util.aws :as aws-util]
             [instant.util.email :as email]
+            [instant.util.env :as env]
             [instant.aurora-config :as aurora-config]
             [lambdaisland.uri :as uri]
             [lambdaisland.uri.normalize :as normalize])
@@ -30,7 +31,7 @@
    Compose files pass unset variables through as empty strings, so empty must
    mean unset."
   [var-name]
-  (some-> (System/getenv var-name) string/trim not-empty))
+  (some-> (env/getenv var-name) string/trim not-empty))
 
 (def staging-env (System/getenv "STAGING"))
 (def prod-env (System/getenv "PRODUCTION"))
@@ -68,12 +69,13 @@
    normalized. nil when unset (or blank), e.g. on the hosted deployment.
    Throws when set to something that isn't a valid email."
   []
-  (when-let [value (some-> (System/getenv "INSTANT_SUPERUSER_EMAIL")
+  (when-let [value (some-> (env/getenv "INSTANT_SUPERUSER_EMAIL")
                            string/trim
                            not-empty)]
     (or (email/coerce value)
         (throw (ex-info
-                "INSTANT_SUPERUSER_EMAIL must be a valid email address."
+                (str (env/describe "INSTANT_SUPERUSER_EMAIL")
+                     " must be a valid email address.")
                 {:value value})))))
 
 (defonce instance-id
@@ -181,7 +183,7 @@
    (INSTANT_EMAIL_PROVIDER = \"postmark\" | \"sendgrid\" | \"resend\"). Wins over token
    auto-detection when set. nil when unset."
   []
-  (some-> (System/getenv "INSTANT_EMAIL_PROVIDER")
+  (some-> (env/getenv "INSTANT_EMAIL_PROVIDER")
           string/trim
           string/lower-case
           not-empty
@@ -236,7 +238,7 @@
   "1235713531018612896")
 
 (def instant-on-instant-app-id
-  (when-let [app-id (System/getenv "INSTANT_ON_INSTANT_APP_ID")]
+  (when-let [app-id (env/getenv "INSTANT_ON_INSTANT_APP_ID")]
     (parse-uuid app-id)))
 
 (def webhook-signing-key* (delay (-> @config-map
@@ -314,7 +316,7 @@
 (defn dashboard-origin
   ([] (dashboard-origin {:env (get-env)}))
   ([{:keys [env]}]
-   (or (System/getenv "INSTANT_DASHBOARD_URL")
+   (or (env/getenv "INSTANT_DASHBOARD_URL")
        (case env
          :prod "https://www.instantdb.com"
          :staging "https://staging.instantdb.com"
@@ -393,16 +395,17 @@
 (defn get-google-oauth-client
   ([]
    (get-google-oauth-client
-    (System/getenv "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID")
-    (System/getenv "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET")))
+    (env/getenv "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID")
+    (env/getenv "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET")))
   ([client-id client-secret]
    (cond
      (every? string/blank? [client-id client-secret])
      (-> @config-map :google-oauth-client)
 
      (some string/blank? [client-id client-secret])
-     (throw (ex-info (str "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID and "
-                          "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET must be set together")
+     (throw (ex-info (str (env/describe "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID") " and "
+                          (env/describe "INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET")
+                          " must be set together")
                      {}))
 
      :else
@@ -437,14 +440,15 @@
                             (remove string/blank?)
                             vec)]
               (when (empty? urls)
-                (throw (ex-info (str "INSTANT_DNS_OVER_HTTPS_URLS has no DNS-over-HTTPS URL in it: "
+                (throw (ex-info (str (env/describe "INSTANT_DNS_OVER_HTTPS_URLS")
+                                     " has no DNS-over-HTTPS URL in it: "
                                      (pr-str value)
                                      ". Use a comma-separated list of URLs, or \"system\".")
                                 {:value value})))
               urls))))
 
 (defn dns-over-https-urls []
-  (parse-dns-over-https-urls (System/getenv "INSTANT_DNS_OVER_HTTPS_URLS")))
+  (parse-dns-over-https-urls (env/getenv "INSTANT_DNS_OVER_HTTPS_URLS")))
 
 (defn shared-oauth-clients []
   (-> @config-map :shared-oauth-clients))
@@ -490,7 +494,7 @@
 
     (seq (missing-email-sender-env-vars))
     (conj (str "An email provider is configured, but "
-               (string/join ", " (missing-email-sender-env-vars))
+               (string/join ", " (map env/describe (missing-email-sender-env-vars)))
                " is not set. Emails from that sender will fail until it is set."))))
 
 (def wal-history-prefix
@@ -537,7 +541,7 @@
         8887)))
 
 (def server-origin
-  (or (System/getenv "INSTANT_BACKEND_URL")
+  (or (env/getenv "INSTANT_BACKEND_URL")
       (case (get-env)
         :prod "https://api.instantdb.com"
         :staging "https://api-staging.instantdb.com"
