@@ -314,7 +314,12 @@ fs.writeFileSync(
 );
 const logs = tryDc("logs", "--timestamps", "--no-color");
 fs.writeFileSync(path.join(out, "logs.txt"), logs.stdout + logs.stderr);
-if (failed) printLogTails(ns);
+if (failed) {
+  try {
+    ns = nodes();
+  } catch {}
+  printLogTails(ns);
+}
 tryDc("down", "-v", "--remove-orphans");
 fs.rmSync(tmp, { recursive: true, force: true });
 log(`wrote ${out}/result.json and ${out}/logs.txt`);

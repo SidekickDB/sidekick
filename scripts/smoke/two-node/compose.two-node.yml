@@ -8,7 +8,7 @@ services:
     deploy:
       replicas: 2
     # One loopback port per node, so the smoke test can pick the node each
-    # client talks to. `docker compose port --index` says which is which.
+    # client talks to. run.mjs reads which port each container got.
     ports:
       - "127.0.0.1:8881-8882:8888"
     environment:

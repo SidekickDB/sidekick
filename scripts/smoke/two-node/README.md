@@ -7,11 +7,17 @@ cluster:
 - **write-a-to-b**: a client on node B subscribes to a query, a client on
   node A writes, and B sees the write. A subscriber on A watches the same
   query, so a failure shows whether the write reached its own node.
-- **write-b-to-a**: the same in the other direction. Only one node reads the
-  Postgres WAL and forwards changes to the others over gRPC (port 5801), so
-  one of the two directions crosses nodes whichever node holds the slot.
+- **write-b-to-a**: the same in the other direction.
 - **presence**: a client on A and a client on B join one room and each sees
   the other (Hazelcast's shared rooms map, port 5701).
+
+Only presence needs the nodes to form a cluster. Each node invalidates its
+live queries from its own Postgres replication slot
+(`invalidator_<process-id>`), so the write checks pass even when the nodes do
+not find each other: with `SWARM_SERVICE_NAME` removed, both write checks
+passed and presence failed. The singleton invalidator, which holds one shared
+slot and forwards WAL records to the other nodes over gRPC (port 5801), has
+no effect a client can see, so this test does not check it.
 
 It runs on GitHub Actions in `.github/workflows/sidekick-two-node-smoke.yml`.
 
@@ -60,9 +66,8 @@ file publishes Postgres on `127.0.0.1:8890`; those ports must be free.
   file is not used;
 - one loopback port per node, so each client talks to one node.
 
-So the test runs the same code path for discovery, membership, presence and
-WAL forwarding as a swarm deployment: the same server image, environment,
-startup script and ports.
+So discovery, membership and presence run the same code path as in a swarm
+deployment: the same server image, environment, startup script and ports.
 
 ## What is not the same as `swarm.yml`
 
@@ -80,5 +85,5 @@ startup script and ports.
   restarts node A, once, with `docker restart` (same address).
 - Two nodes only, one Postgres, one runner. It says nothing about load,
   failover of Postgres or more than two nodes.
-- Not covered: streams, SSE, files, the dashboard, rate limits shared across
-  nodes.
+- Not covered: the gRPC forwarding of the singleton invalidator (see above),
+  streams, SSE, files, the dashboard, rate limits shared across nodes.

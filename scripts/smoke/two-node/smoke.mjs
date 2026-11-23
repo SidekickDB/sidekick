@@ -9,11 +9,13 @@
 // - write-a-to-b: a session on B subscribes to a query, a session on A
 //   writes, and B must see the write. A subscriber on A watches the same
 //   query, so a failure says whether the write reached its own node;
-// - write-b-to-a: the same in the other direction. Only one node reads the
-//   WAL and forwards changes to the other over gRPC, so one of the two
-//   directions always crosses nodes, whichever node holds the slot;
+// - write-b-to-a: the same in the other direction. Each node invalidates its
+//   queries from its own replication slot (invalidator_<process-id>), so the
+//   write checks pass whether or not the nodes form a cluster: they show that
+//   both nodes see writes made through the other, not that the nodes talk;
 // - presence: a session on A and a session on B join one room, and each must
-//   see the other (Hazelcast's shared rooms map).
+//   see the other. This goes through Hazelcast's shared rooms map and fails
+//   when the nodes do not form a cluster.
 //
 // Prints one JSON object. Exits 1 if any check fails.
 
