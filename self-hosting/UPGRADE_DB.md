@@ -31,10 +31,13 @@ Do this **before** pulling the PostgreSQL 17 image. Check out the previous
 revision if you have already pulled it, so the `postgres` service is still
 `postgresql-16-...`, then:
 
+<!-- SidekickDB: pg_dump reads the user and database from the container, as steps 3 and 4 do. -->
+
 ```bash
 docker compose up -d postgres
 # wait until it reports healthy
-docker compose exec -T postgres pg_dump -U instant -Fc instant > instant-pg16.dump
+docker compose exec -T postgres sh -c \
+  'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > instant-pg16.dump
 ```
 
 Keep `instant-pg16.dump` somewhere safe.
