@@ -164,6 +164,23 @@
                                                  {:exceptionDate {:$lte :string}}]}]}}
                           :area {} :activityType {} :parent {} :eventLinks {}}}))))
 
+(def ^:dynamic *handler-cancelled*
+  "Bound by the receive handler to an atom that it sets to true right before
+  it cancels the handler (e.g. on a receive timeout). Errors thrown after that
+  come from the cancellation, not from the query."
+  nil)
+
+(defn cancellation?
+  "True if `e` comes from cancelling the handler rather than from the query
+  itself."
+  [^Throwable e]
+  (boolean
+   (or (some-> *handler-cancelled* deref)
+       (.isInterrupted (Thread/currentThread))
+       (some #(or (instance? InterruptedException %)
+                  (instance? java.util.concurrent.CancellationException %))
+             (take-while some? (iterate ex-cause e))))))
+
 (defn instaql-query-reactive!
   "Returns the result of an instaql query while producing book-keeping side
   effects in the store. Refreshes with :skip-unchanged-result? can omit unchanged
@@ -211,7 +228,14 @@
          :result-changed? result-changed?
          :instaql-topic? (boolean iq-topic)})
       (catch Throwable e
-        (rs/remove-query! store app-id session-id instaql-query)
+        ;; A query that was only interrupted isn't broken. Callers that can
+        ;; retry it (refresh) pass :on-cancelled and decide what happens to
+        ;; the subscription: refresh keeps it, up to a limit of timeouts in a
+        ;; row.
+        (if-let [on-cancelled (and (cancellation? e)
+                                   (:on-cancelled base-ctx))]
+          (on-cancelled instaql-query)
+          (rs/remove-query! store app-id session-id instaql-query))
         (throw e)))))
 
 (comment

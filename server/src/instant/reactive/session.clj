@@ -440,7 +440,8 @@
                                              :client-event-id client-event-id})))
 
 (defn- recompute-instaql-query!
-  [{:keys [store current-user app-id sess-id attrs table-info admin?]}
+  [{:keys [store current-user app-id sess-id attrs table-info admin?
+           on-cancelled on-recomputed]}
    {:keys [instaql-query/query instaql-query/return-type
            instaql-query/forms-hash]}]
   (let [ctx {:db {:conn-pool (aurora/conn-pool (db-read-level app-id))}
@@ -451,11 +452,14 @@
              ;; Will only be present for byop apps
              :table-info table-info
              :current-user current-user
-             :admin? admin?}
+             :admin? admin?
+             :on-cancelled on-cancelled}
         start-ms (System/currentTimeMillis)
         {:keys [session/inference?]} (rs/session store sess-id)
         {:keys [instaql-result result-meta result-changed? instaql-topic?]}
         (rq/instaql-query-reactive! store ctx query return-type inference?)
+        _ (when on-recomputed
+            (on-recomputed query))
         end-ms (System/currentTimeMillis)]
     {:instaql-query query
      :instaql-query-hash forms-hash
@@ -464,6 +468,113 @@
      :result-changed? result-changed?
      :duration-ms (- end-ms start-ms)
      :instaql-topic? instaql-topic?}))
+
+(def ^:private default-refresh-retry-delays-ms [500 1000 2000])
+
+(defn refresh-retry-delays-ms
+  "How long to wait before each retry of a refresh that failed or timed out.
+   The :refresh-retry-delays-ms flag overrides it; an empty list turns the
+   retries off. A value that isn't a list of non-negative numbers is ignored."
+  []
+  (let [delays (flags/flag :refresh-retry-delays-ms default-refresh-retry-delays-ms)]
+    (if (and (sequential? delays)
+             (every? #(and (number? %) (not (neg? %))) delays))
+      (vec delays)
+      default-refresh-retry-delays-ms)))
+
+(def ^:private default-refresh-timeout-limit 3)
+
+(defn refresh-timeout-limit
+  "How many refreshes in a row the receive timeout may cancel while the same
+   query is still computing, before that query is unsubscribed. The
+   :refresh-timeout-limit flag overrides it."
+  []
+  (let [limit (flags/flag :refresh-timeout-limit default-refresh-timeout-limit)]
+    (if (pos-int? limit)
+      limit
+      default-refresh-timeout-limit)))
+
+(defn- send-refresh-timeout-error!
+  "Tells the client that `q` is no longer subscribed, because it timed out
+   `timeout-limit` refreshes in a row. The error has the shape of a failed
+   add-query: clients pass that one to the query's subscribers, while they
+   only log an error for a refresh."
+  [store app-id sess-id q timeout-limit]
+  (tracer/record-info! {:name "handle-refresh/query-removed-after-timeouts"
+                        :attributes {:app-id app-id
+                                     :session-id sess-id
+                                     :instaql-query q
+                                     :timeout-limit timeout-limit}})
+  (try
+    (rs/send-event! store app-id sess-id
+                    {:op :error
+                     :status 500
+                     :type :operation-timed-out
+                     :message (str "This query timed out " timeout-limit
+                                   " times in a row while refreshing and was"
+                                   " unsubscribed. Reconnect to subscribe again.")
+                     :hint {:reason "refresh-timeout"
+                            :timeouts timeout-limit}
+                     :original-event {:op :add-query
+                                      :q q}})
+    (catch Exception e
+      ;; The session may be gone. Nothing else to tell it.
+      (tracer/record-exception-span! e {:name "handle-refresh/send-timeout-error-failed"
+                                        :escaping? false}))))
+
+(defn- handle-failed-refresh!
+  "Called when a refresh failed or was cancelled after it may have recomputed
+   queries but before it sent their results (instantdb/instant#2932).
+   `queries` is {:recomputed [q ...] :timed-out [q ...]}: the ones that
+   finished, and the ones the cancellation interrupted.
+
+   Marks them all stale with no recorded result, so the next refresh sends
+   them, and schedules that refresh, once per entry of the retry delays, in a
+   row. A query that times out refresh-timeout-limit refreshes in a row is
+   unsubscribed instead, the client is told, and the session's other queries
+   are refreshed right away: one query that can never finish in time must not
+   keep every query of its session from being delivered.
+
+   Runs detached: the cancelled handler's thread is interrupted, and the
+   refresh must not start before the queries are marked. `retry-pending?` is
+   shared by the calls for one refresh, so that queries that end late don't
+   each schedule a refresh of their own."
+  [store app-id sess-id {:keys [retry retry-pending?]} queries]
+  (binding [ua/*child-vfutures* nil]
+    (ua/vfut-bg
+     (let [timeout-limit (refresh-timeout-limit)
+           {:keys [removed]} (rs/mark-refresh-failed! store app-id sess-id queries timeout-limit)
+           removed? (boolean (seq removed))
+           delay-ms (if removed?
+                      0
+                      (nth (refresh-retry-delays-ms) retry nil))]
+       (doseq [q removed]
+         (send-refresh-timeout-error! store app-id sess-id q timeout-limit))
+       (cond
+         (nil? delay-ms)
+         (tracer/record-info! {:name "handle-refresh/retries-exhausted"
+                               :attributes {:app-id app-id
+                                            :session-id sess-id
+                                            :retry retry}})
+
+         ;; Only one call per refresh schedules it. A call that finds the flag
+         ;; taken is covered: the holder puts its event after it clears the
+         ;; flag, so after this call's queries were marked.
+         (compare-and-set! retry-pending? false true)
+         (do
+           (try
+             ;; Jitter, so sessions that failed together don't retry together.
+             (Thread/sleep (long (+ delay-ms (rand-int (inc (quot (long delay-ms) 4))))))
+             (finally
+               (reset! retry-pending? false)))
+           (when-let [receive-q (-> (rs/session store sess-id) :session/socket :receive-q)]
+             (receive-queue/put! receive-q {:op :refresh
+                                            :session-id sess-id
+                                            ;; Removing the query that timed out
+                                            ;; doesn't use up a retry.
+                                            :refresh-retry (if removed?
+                                                             retry
+                                                             (inc retry))}))))))))
 
 (defn- handle-refresh! [store sess-id event debug-info]
   (e2e-tracer/invalidator-tracking-step! {:tx-id (:tx-id event)
@@ -476,69 +587,94 @@
         admin? (-> auth :admin?)
         {:keys [attrs table-info]} (get-attrs (:app auth))
         stale-queries (rs/get-stale-instaql-queries store app-id sess-id)
+        ;; If the refresh fails or is cancelled, every query it recomputed or
+        ;; interrupted may have a result the client never got. The refresh
+        ;; handles the ones registered when it fails; recomputes that end
+        ;; after that see :failed? and handle themselves.
+        refresh-state (atom {:failed? false :recomputed [] :timed-out []})
+        failed-refresh! (partial handle-failed-refresh!
+                                 store app-id sess-id
+                                 {:retry (let [retry (:refresh-retry event)]
+                                           (if (nat-int? retry) retry 0))
+                                  :retry-pending? (atom false)})
+        register! (fn [kind q]
+                    (when (:failed? (swap! refresh-state update kind conj q))
+                      (failed-refresh! {kind [q]})))
         opts {:store store
               :app-id app-id
               :current-user current-user
               :sess-id sess-id
               :attrs attrs
               :table-info table-info
-              :admin? admin?}
+              :admin? admin?
+              :on-cancelled (partial register! :timed-out)
+              :on-recomputed (partial register! :recomputed)}
+        refresh-failed! (fn []
+                          (let [[before after] (swap-vals! refresh-state assoc :failed? true)]
+                            (when-not (:failed? before)
+                              (failed-refresh! (select-keys after [:recomputed :timed-out])))))
         processed-tx-id (rs/get-processed-tx-id store app-id)
         processed-isn (rs/get-processed-isn store app-id)
         _ (reset! debug-info {:processed-tx-id processed-tx-id
                               :processed-isn processed-isn
-                              :instaql-queries (map :instaql-query/query stale-queries)})
-        recompute-results (->> stale-queries
-                               (ua/pmap (partial recompute-instaql-query! opts)))
-        {computations true spam false} (group-by :result-changed? recompute-results)
-        num-spam (count spam)
-        num-computations (count computations)
-        num-recomputations (count recompute-results)
-        tracer-attrs {:num-recomputations num-recomputations
-                      :num-spam num-spam
-                      :num-computations num-computations
-                      :dropped-spam? true
-                      :tx-latency-ms (e2e-tracer/tx-latency-ms (:tx-created-at event))}
-        {prev-attrs-hash :session/attrs-hash
-         features :session/features} (rs/session store sess-id)
-        can-skip-attrs? (supports-skip-attrs? features)
-        attrs-hash      (hash attrs)
-        attrs-changed?  (not= prev-attrs-hash attrs-hash)]
-    (doseq [{:keys [instaql-query instaql-query-hash duration-ms instaql-topic?]} spam]
-      (tracer/record-info! {:name "handle-refresh/spam"
-                            :attributes {:app-id app-id
-                                         :wal-log-enabled (flags/enable-wal-entity-log? app-id)
-                                         :instaql-query instaql-query
-                                         :instaql-query-hash instaql-query-hash
-                                         :instaql-query-normalized (instaql-util/normalized-forms instaql-query)
-                                         :duration-ms duration-ms
-                                         :instaql-topic? instaql-topic?}}))
+                              :instaql-queries (map :instaql-query/query stale-queries)})]
+    ;; One try around everything up to the send: an interrupt can land between
+    ;; the recomputes and the send too.
+    (try
+      (let [recompute-results (->> stale-queries
+                                   (ua/pmap (partial recompute-instaql-query! opts)))
+            {computations true spam false} (group-by :result-changed? recompute-results)
+            num-spam (count spam)
+            num-computations (count computations)
+            num-recomputations (count recompute-results)
+            tracer-attrs {:num-recomputations num-recomputations
+                          :num-spam num-spam
+                          :num-computations num-computations
+                          :dropped-spam? true
+                          :tx-latency-ms (e2e-tracer/tx-latency-ms (:tx-created-at event))}
+            {prev-attrs-hash :session/attrs-hash
+             features :session/features} (rs/session store sess-id)
+            can-skip-attrs? (supports-skip-attrs? features)
+            attrs-hash      (hash attrs)
+            attrs-changed?  (not= prev-attrs-hash attrs-hash)]
+        (doseq [{:keys [instaql-query instaql-query-hash duration-ms instaql-topic?]} spam]
+          (tracer/record-info! {:name "handle-refresh/spam"
+                                :attributes {:app-id app-id
+                                             :wal-log-enabled (flags/enable-wal-entity-log? app-id)
+                                             :instaql-query instaql-query
+                                             :instaql-query-hash instaql-query-hash
+                                             :instaql-query-normalized (instaql-util/normalized-forms instaql-query)
+                                             :duration-ms duration-ms
+                                             :instaql-topic? instaql-topic?}}))
 
-    (when (and can-skip-attrs? attrs-changed?)
-      (rs/assoc-session! store sess-id :session/attrs-hash attrs-hash))
-    (e2e-tracer/invalidator-tracking-step! {:tx-id (:tx-id event)
-                                            :tx-created-at (:tx-created-at event)
-                                            :name "finish-refresh-queries"
-                                            :attributes (assoc tracer-attrs
-                                                               :session-id sess-id)})
-    (if (or (seq computations) attrs-changed?)
-      (tracer/with-span! {:name "handle-refresh/send-event!"
-                          :attributes tracer-attrs}
-        (rs/send-event! store app-id sess-id (with-meta
-                                               (cond->
-                                                   {:op :refresh-ok
-                                                    :processed-tx-id processed-tx-id
-                                                    :processed-isn processed-isn
-                                                    :computations (vec computations)}
-                                                 (or (not can-skip-attrs?) attrs-changed?)
-                                                 (assoc :attrs attrs))
-                                               {:tx-id (:tx-id event)
+        (when (and can-skip-attrs? attrs-changed?)
+          (rs/assoc-session! store sess-id :session/attrs-hash attrs-hash))
+        (e2e-tracer/invalidator-tracking-step! {:tx-id (:tx-id event)
                                                 :tx-created-at (:tx-created-at event)
-                                                :session-id sess-id})))
-      (when (flags/throttle-refresh? app-id)
-        (let [throttle-ms (flags/refresh-throttle-ms)]
-          (tracer/add-data! {:attributes {:throttle-ms throttle-ms}})
-          (grouped-queue/return-throttle throttle-ms))))))
+                                                :name "finish-refresh-queries"
+                                                :attributes (assoc tracer-attrs
+                                                                   :session-id sess-id)})
+        (if (or (seq computations) attrs-changed?)
+          (tracer/with-span! {:name "handle-refresh/send-event!"
+                              :attributes tracer-attrs}
+            (rs/send-event! store app-id sess-id (with-meta
+                                                   (cond->
+                                                       {:op :refresh-ok
+                                                        :processed-tx-id processed-tx-id
+                                                        :processed-isn processed-isn
+                                                        :computations (vec computations)}
+                                                     (or (not can-skip-attrs?) attrs-changed?)
+                                                     (assoc :attrs attrs))
+                                                   {:tx-id (:tx-id event)
+                                                    :tx-created-at (:tx-created-at event)
+                                                    :session-id sess-id})))
+          (when (flags/throttle-refresh? app-id)
+            (let [throttle-ms (flags/refresh-throttle-ms)]
+              (tracer/add-data! {:attributes {:throttle-ms throttle-ms}})
+              (grouped-queue/return-throttle throttle-ms)))))
+      (catch Throwable e
+        (refresh-failed!)
+        (throw e)))))
 
 ;; -----
 ;; transact
@@ -1148,7 +1284,9 @@
               timeout-ms (or (when app-id
                                (flags/handle-receive-timeout app-id))
                              handle-receive-timeout-ms)
-              event-fut (binding [sql/*in-progress-stmts* in-progress-stmts]
+              cancelled (atom false)
+              event-fut (binding [sql/*in-progress-stmts* in-progress-stmts
+                                  rq/*handler-cancelled* cancelled]
                           (if-not (flags/use-more-vfutures?)
                             (ua/tracked-future (handle-event store
                                                              session
@@ -1168,7 +1306,8 @@
             (let [ret (deref event-fut timeout-ms ::timeout)]
               (if-not (= ::timeout ret)
                 ret
-                (let [in-progress-count (count @(:stmts in-progress-stmts))
+                (let [_ (reset! cancelled true)
+                      in-progress-count (count @(:stmts in-progress-stmts))
                       _ (sql/cancel-in-progress in-progress-stmts (flags/statement-cancel-wait-ms))
                       cancel-res (future-cancel event-fut)]
                   (tracer/add-data! {:attributes
