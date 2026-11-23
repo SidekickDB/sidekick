@@ -1,7 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it as baseIt, expect } from 'vitest';
 import { readFile, readdir, access } from 'fs/promises';
 import { join } from 'path';
-import { runCreateInstantApp, createTestDir } from './helpers.js';
+import { runCreateInstantApp, createTestDir, apiUrl } from './helpers.js';
+
+// SidekickDB: skipped unless SIDEKICK_E2E_API_URI is set (see helpers.ts).
+const it = (apiUrl ? baseIt : baseIt.skip) as typeof baseIt;
 
 describe.concurrent('create-sidekick-app e2e', { timeout: 120_000 }, () => {
   describe('basic scaffolding (next-js-app-dir default)', () => {

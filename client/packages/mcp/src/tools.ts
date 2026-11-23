@@ -1,6 +1,25 @@
 import { PlatformApi } from '@sidekickdb/platform';
 
-const API_URL = process.env.INSTANT_API_URL || 'https://api.instantdb.com';
+// There is no default server. The stdio server sets this from `--api-url`;
+// otherwise INSTANT_API_URL is used.
+let configuredApiURL: string | undefined;
+
+export const missingApiURLMessage =
+  'No SidekickDB server URL configured. Pass --api-url to the MCP server ' +
+  'or set the INSTANT_API_URL environment variable, for example ' +
+  '--api-url https://sidekick.example.com. SidekickDB has no default server.';
+
+export function setApiURL(apiURL: string) {
+  configuredApiURL = apiURL;
+}
+
+export function getApiURL(): string {
+  const apiURL = configuredApiURL || process.env.INSTANT_API_URL;
+  if (!apiURL) {
+    throw new Error(missingApiURLMessage);
+  }
+  return apiURL;
+}
 
 type ToolResult = {
   isError?: boolean;
@@ -58,7 +77,7 @@ export async function handleQuery(
 ): Promise<ToolResult> {
   try {
     const data = await api.withRetry(adminQuery, [
-      API_URL,
+      getApiURL(),
       api.token(),
       appId,
       query,
@@ -81,7 +100,7 @@ export async function handleTransact(
 ): Promise<ToolResult> {
   try {
     const data = await api.withRetry(adminTransact, [
-      API_URL,
+      getApiURL(),
       api.token(),
       appId,
       steps,

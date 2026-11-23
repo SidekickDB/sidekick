@@ -110,6 +110,7 @@ const run = (flags: Record<string, any>, { yes }: { yes: boolean }) =>
   );
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   prompts = [];
   updatedClients = [];
   logs = [];
@@ -127,7 +128,7 @@ beforeEach(() => {
       provider_id: 'prov-google',
       client_name: 'google-web',
       client_id: 'old-google-id',
-      redirect_to: 'https://api.instantdb.com/runtime/oauth/callback',
+      redirect_to: 'https://api.sidekick.test/runtime/oauth/callback',
       meta: { appType: 'web' },
       use_shared_credentials: false,
     },
@@ -188,7 +189,7 @@ describe('google', () => {
       oauthClientId: 'google-shared',
       clientId: 'new-google-id',
       clientSecret: 'new-google-secret',
-      redirectTo: 'https://api.instantdb.com/runtime/oauth/callback',
+      redirectTo: 'https://api.sidekick.test/runtime/oauth/callback',
       useSharedCredentials: false,
     });
     expect(logs.join('\n')).toContain(
@@ -315,7 +316,7 @@ describe('google', () => {
       oauthClientId: 'google-shared',
       clientId: 'new-google-id',
       clientSecret: 'new-google-secret',
-      redirectTo: 'https://api.instantdb.com/runtime/oauth/callback',
+      redirectTo: 'https://api.sidekick.test/runtime/oauth/callback',
       useSharedCredentials: false,
     });
   });

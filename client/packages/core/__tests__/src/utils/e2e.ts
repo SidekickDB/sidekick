@@ -8,19 +8,20 @@ import {
 } from '../../../src';
 import { worker } from './msw';
 
-// __DEV_LOCAL_PORT__ is set by vitest.config.ts.
-// This allows us to run tests against mulutple checkouts
-// If CI=1 then __DEV_LOCAL_PORT__ will be falsey and tests will hit prod.
-// Otherwise they will hit localhost at the specified port.
-declare const __DEV_LOCAL_PORT__: number;
+// SidekickDB: __SIDEKICK_E2E_API_URI__ is set by vitest.config.ts from
+// SIDEKICK_E2E_API_URI. The e2e project only runs when it is set; there is no
+// default host.
+declare const __SIDEKICK_E2E_API_URI__: string;
 
-const apiUrl = __DEV_LOCAL_PORT__
-  ? `http://localhost:${__DEV_LOCAL_PORT__}`
-  : 'https://api.instantdb.com';
+if (!__SIDEKICK_E2E_API_URI__) {
+  throw new Error(
+    'core e2e tests need SIDEKICK_E2E_API_URI set to a SidekickDB server URL',
+  );
+}
 
-const websocketURI = __DEV_LOCAL_PORT__
-  ? `ws://localhost:${__DEV_LOCAL_PORT__}/runtime/session`
-  : 'wss://api.instantdb.com/runtime/session';
+const apiUrl = __SIDEKICK_E2E_API_URI__;
+
+const websocketURI = `${apiUrl.replace(/^http/, 'ws')}/runtime/session`;
 
 // Make a factory function that returns a typed test instance
 export function makeE2ETest<Schema extends InstantSchemaDef<any, any, any>>({
@@ -57,6 +58,8 @@ export function makeE2ETest<Schema extends InstantSchemaDef<any, any, any>>({
         apiURI: apiUrl,
         websocketURI,
         schema,
+        // SidekickDB: never load the devtool iframe from a dashboard host.
+        devtool: false,
       });
       (db as any)._testApp = app;
       await use(db);

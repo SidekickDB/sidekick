@@ -74,9 +74,21 @@
       "outputs": []
     },
     "test:ci": {
+      "cache": false,
+      "passThroughEnv": [
+        "NODE_OPTIONS",
+        "SIDEKICK_E2E_API_URI",
+        "SIDEKICK_NETWORK_GUARD_ALLOW",
+        "SIDEKICK_NETWORK_GUARD_LOG"
+      ],
       "outputs": []
     },
     "bench:ci": {
+      "passThroughEnv": [
+        "NODE_OPTIONS",
+        "SIDEKICK_NETWORK_GUARD_ALLOW",
+        "SIDEKICK_NETWORK_GUARD_LOG"
+      ],
       "outputs": []
     },
     "dev": {

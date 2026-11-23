@@ -90,7 +90,7 @@ const withEntry = (flags: Map<string, string>, key: string, value: string) =>
   new Map([...flags, [key, value]]);
 
 beforeEach(() => {
-  vi.stubEnv('INSTANT_CLI_API_URI', undefined);
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   prompts = [];
   addedClients = [];
   logs = [];
@@ -208,7 +208,7 @@ describe('success', () => {
       clientName: 'github-web',
       clientId: 'Iv1.abc123',
       clientSecret: 'ghs_abc123',
-      redirectTo: 'https://api.instantdb.com/runtime/oauth/callback',
+      redirectTo: 'https://api.sidekick.test/runtime/oauth/callback',
       meta: { providerName: 'github' },
     });
     expect(addedClients[0].authorizationEndpoint).toBeUndefined();
@@ -219,7 +219,7 @@ describe('success', () => {
       'Add this callback URL in your GitHub OAuth App settings:',
     );
     expect(output).toContain(
-      'https://api.instantdb.com/runtime/oauth/callback',
+      'https://api.sidekick.test/runtime/oauth/callback',
     );
     expect(output).toContain('GitHub OAuth client created: github-web');
     expect(output).toContain('ID: client-1');
@@ -238,7 +238,7 @@ describe('success', () => {
     );
     expect(output).toContain('https://myapp.com/cb');
     expect(output).toContain(
-      'https://api.instantdb.com/runtime/oauth/callback with all query parameters',
+      'https://api.sidekick.test/runtime/oauth/callback with all query parameters',
     );
     expect(output).toContain('https://myapp.com/cb?test-redirect=true');
   });

@@ -90,6 +90,7 @@ const withEntry = (flags: Map<string, string>, key: string, value: string) =>
   new Map([...flags, [key, value]]);
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   prompts = [];
   addedClients = [];
   logs = [];
@@ -216,7 +217,7 @@ describe('web: success', () => {
     const output = logs.join('\n');
     expect(output).toContain('Add this redirect URI in Google Console:');
     expect(output).toContain(
-      'https://api.instantdb.com/runtime/oauth/callback',
+      'https://api.sidekick.test/runtime/oauth/callback',
     );
     expect(output).toContain('Google OAuth client created: google-web');
     expect(output).toContain('App type: web');
@@ -236,7 +237,7 @@ describe('web: success', () => {
     expect(output).toContain('Add this redirect URI in Google Console:');
     expect(output).toContain('https://myapp.com/cb');
     expect(output).toContain(
-      'https://api.instantdb.com/runtime/oauth/callback with all query parameters',
+      'https://api.sidekick.test/runtime/oauth/callback with all query parameters',
     );
   });
 });

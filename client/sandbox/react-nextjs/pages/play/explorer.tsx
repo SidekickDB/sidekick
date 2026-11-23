@@ -2,11 +2,18 @@
 
 import { Explorer, Toaster } from '@sidekickdb/components';
 import { useEphemeralApp } from '../../hooks/useEphemeralApp';
+import config from '../../config';
 
 function Main({ appId, adminToken }: { appId: string; adminToken: string }) {
   return (
     <div className="min-h-screen">
-      <Explorer appId={appId} adminToken={adminToken} useShadowDOM={true} />
+      <Explorer
+        appId={appId}
+        adminToken={adminToken}
+        apiURI={config.apiURI}
+        websocketURI={config.websocketURI}
+        useShadowDOM={true}
+      />
       <Toaster />
     </div>
   );

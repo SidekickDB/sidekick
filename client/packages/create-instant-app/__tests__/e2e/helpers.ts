@@ -7,6 +7,17 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const BIN = join(__dirname, '../../dist/index.js');
 
+// SidekickDB: networked suite. It runs only against the backend named by
+// SIDEKICK_E2E_API_URI and is skipped when that is unset; there is no default.
+export const apiUrl = process.env.SIDEKICK_E2E_API_URI
+  ? new URL(process.env.SIDEKICK_E2E_API_URI).href.replace(/\/+$/, '')
+  : undefined;
+if (!apiUrl) {
+  console.warn(
+    '[sidekick] Skipping create-sidekick-app e2e: set SIDEKICK_E2E_API_URI to a SidekickDB server URL to run it.',
+  );
+}
+
 const sandboxHomeDir = join(tmpdir(), 'create-sidekick-app-e2e-home');
 
 export type CliResult = {
@@ -35,6 +46,7 @@ export function runCreateInstantApp(
       {
         env: {
           ...process.env,
+          INSTANT_CLI_API_URI: apiUrl ?? '',
           // Prevent reading real auth / dotenv
           DOTENV_CONFIG_PATH: '/dev/null',
           INSTANT_CLI_AUTH_TOKEN: '',

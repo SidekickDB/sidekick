@@ -6,7 +6,7 @@ services:
     ports:
       - "8890:5432"
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the environment; see .env.example}
       POSTGRES_USER: ${POSTGRES_USER:-instant}
       POSTGRES_DB: ${POSTGRES_DB:-instant}
     volumes:
@@ -42,6 +42,8 @@ services:
       start_period: 60s
     environment:
       INSTANT_BACKEND_URL: ${SERVER_URL:? example http://server.localhost}
+      # Shows "Continue with Google" on the login page when set.
+      INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID:-}
     networks:
       - caddy
       - default
@@ -58,8 +60,8 @@ services:
       - caddy
       - default
     environment:
-      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-rustfsadmin}
-      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in the environment; see .env.example (formerly MINIO_ROOT_USER)}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY in the environment; see .env.example (formerly MINIO_ROOT_PASSWORD)}
       RUSTFS_ADDRESS: ":9000"
       RUSTFS_CONSOLE_ADDRESS: ":9001"
       RUSTFS_CONSOLE_ENABLE: "true"
@@ -86,8 +88,8 @@ services:
     # buckets. Access still needs a presigned URL.
     image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
-      ACCESS_KEY: ${STORAGE_ACCESS_KEY:-rustfsadmin}
-      SECRET_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
+      ACCESS_KEY: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in the environment; see .env.example (formerly MINIO_ROOT_USER)}
+      SECRET_KEY: ${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY in the environment; see .env.example (formerly MINIO_ROOT_PASSWORD)}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     entrypoint: >
@@ -121,15 +123,22 @@ services:
       retries: 5
       start_period: 180s
     environment:
+      # JVM flags. Defaults: heap up to 60% of the container memory limit, and
+      # upstream's native-memory bounds (cap on cached NIO buffers, periodic
+      # return of freed native memory). Setting JAVA_OPTS replaces all of them.
+      JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000}"
       SWARM_SERVICE_NAME: server
       WAL_HISTORY_STORAGE: pg
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:-pass}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the environment; see .env.example}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
       CONNECTION_POOL_SIZE: ${CONNECTION_POOL_SIZE:-20}
       INSTANT_BACKEND_URL: ${SERVER_URL:? example http://server.localhost}
       INSTANT_DASHBOARD_URL: ${DASHBOARD_URL:? example http://dash.localhost}
       INSTANT_SUPERUSER_EMAIL: ${INSTANT_SUPERUSER_EMAIL:-}
       INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID:-}
       INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET:-}
+      # DNS-over-HTTPS resolvers for outbound requests (webhooks, OAuth); "system"
+      # uses the system resolver. Unset means Cloudflare and Google DoH.
+      INSTANT_DNS_OVER_HTTPS_URLS: ${INSTANT_DNS_OVER_HTTPS_URLS:-}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}
@@ -143,8 +152,8 @@ services:
       INSTANT_APP_EMAIL_SENDER_EMAIL: ${INSTANT_APP_EMAIL_SENDER_EMAIL:-}
       INSTANT_TEAM_EMAIL_SENDER_NAME: ${INSTANT_TEAM_EMAIL_SENDER_NAME:-}
       INSTANT_TEAM_EMAIL_SENDER_EMAIL: ${INSTANT_TEAM_EMAIL_SENDER_EMAIL:-}
-      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-rustfsadmin}
-      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:? set STORAGE_SECRET_KEY (formerly MINIO_ROOT_PASSWORD)}
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in the environment; see .env.example (formerly MINIO_ROOT_USER)}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY in the environment; see .env.example (formerly MINIO_ROOT_PASSWORD)}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       S3_ENDPOINT: ${S3_ENDPOINT:-http://storage:9000}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:? example http://storage.localhost}
@@ -159,6 +168,9 @@ services:
         target: /app/resources/config/override.edn
     deploy:
       replicas: 2
+      resources:
+        limits:
+          memory: ${SERVER_MEMORY_LIMIT:-2g}
       labels:
         caddy: ${SERVER_URL:? ex http://server.localhost}
         caddy.reverse_proxy: "{{upstreams 8888}}"

@@ -179,12 +179,18 @@ jobs:
         run: pnpm run build-packages
 
       - name: Run tests
-        # SidekickDB: disabled. Several suites (core/mcp/cli e2e, resumable-stream)
-        # create ephemeral apps on and connect to upstream's production
-        # api.instantdb.com. Re-enable once tests target a SidekickDB-owned backend.
-        if: false
+        # SidekickDB: offline suites only. Networked suites (core browser e2e,
+        # mcp/cli/create-sidekick-app/platform e2e, resumable-stream) are
+        # skipped because SIDEKICK_E2E_API_URI is empty; they have no default
+        # host. `pnpm run test` preloads scripts/network-guard.cjs into every
+        # Node process and fails the step on any attempt to reach a
+        # non-localhost host.
         working-directory: client
-        run: pnpm run test
+        env:
+          SIDEKICK_E2E_API_URI: ''
+          SIDEKICK_NETWORK_GUARD_ALLOW: ''
+          TURBO_TELEMETRY_DISABLED: '1'
+        run: pnpm run test --continue
 
       - name: Build sandbox
         working-directory: client

@@ -11,8 +11,19 @@ type EphemeralApp = {
   apiURI: string;
 };
 
+// SidekickDB: networked suite. It runs only against the backend named by
+// SIDEKICK_E2E_API_URI and is skipped when that is unset; there is no default.
+const e2eApiURI = process.env.SIDEKICK_E2E_API_URI
+  ? new URL(process.env.SIDEKICK_E2E_API_URI).href.replace(/\/+$/, '')
+  : undefined;
+if (!e2eApiURI) {
+  console.warn(
+    '[sidekick] Skipping resumable stream tests: set SIDEKICK_E2E_API_URI to a SidekickDB server URL to run them.',
+  );
+}
+
 async function createEphemeralAppForTests(): Promise<EphemeralApp> {
-  const apiURI = process.env.INSTANT_API_URI || 'https://api.instantdb.com';
+  const apiURI = e2eApiURI!;
   const response = await fetch(`${apiURI}/dash/apps/ephemeral`, {
     method: 'POST',
     headers: {
@@ -72,7 +83,7 @@ function withScopedStreamIds(
   };
 }
 
-describe('resumable stream', () => {
+describe.skipIf(!e2eApiURI)('resumable stream', () => {
   let app: EphemeralApp;
   let resume: ResumableStreamContext;
   let waitUntilPromises: Promise<any>[] = [];

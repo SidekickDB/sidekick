@@ -109,10 +109,10 @@ function autoTransform(code: string): string {
     }
 
     // Add `init` to @sidekickdb/react import
-    if (trimmed.match(/^import\s+\{.*\}\s+from\s+['"]@instantdb\/react['"]/)) {
+    if (trimmed.match(/^import\s+\{.*\}\s+from\s+['"]@sidekickdb\/react['"]/)) {
       hasInstantImport = true;
       const replaced = line.replace(
-        /import\s+\{([^}]+)\}\s+from\s+(['"]@instantdb\/react['"])/,
+        /import\s+\{([^}]+)\}\s+from\s+(['"]@sidekickdb\/react['"])/,
         (match, imports, from) => {
           const names = imports
             .split(',')

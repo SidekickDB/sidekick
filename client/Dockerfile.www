@@ -46,6 +46,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV INSTANT_API_URI=
 ENV INSTANT_BACKEND_URL=
+# Only its presence is used: the login page shows "Continue with Google" when set.
+ENV INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID=
 ARG NEXT_PUBLIC_SELF_HOSTED=true
 ENV NEXT_PUBLIC_SELF_HOSTED=${NEXT_PUBLIC_SELF_HOSTED}
 
@@ -83,9 +85,13 @@ try {
   process.exit(1);
 }
 
+const dashboardGoogleOAuth = Boolean(
+  (process.env.INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID || '').trim(),
+);
+
 fs.writeFileSync(
   '/app/www/public/publicSelfHostedVariables.js',
-  `window.__instantConfig = ${JSON.stringify({ apiURI })};\n`,
+  `window.__instantConfig = ${JSON.stringify({ apiURI, dashboardGoogleOAuth })};\n`,
 );
 NODE
 

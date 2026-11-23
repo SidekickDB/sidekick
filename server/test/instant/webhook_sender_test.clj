@@ -8,11 +8,14 @@
    [instant.webhook-sender :as webhook-sender])
   (:import
    (java.math BigInteger)
+   (java.net InetAddress UnknownHostException)
    (java.nio.charset StandardCharsets)
    (java.security KeyFactory PublicKey Signature)
    (java.security.spec EdECPoint EdECPublicKeySpec NamedParameterSpec)
    (java.util Base64)
-   (mockwebserver3 MockResponse$Builder MockWebServer)))
+   (java.util.concurrent ExecutionException)
+   (mockwebserver3 MockResponse$Builder MockWebServer)
+   (okio Buffer)))
 
 (defn jwk->public-key ^PublicKey [{:keys [x]}]
   (let [key-bytes (.decode (Base64/getUrlDecoder) ^String x)
@@ -238,3 +241,86 @@
               "a body over the cap is rejected even without Content-Length"))
         (finally
           (.close server))))))
+
+(defn- loopback? [^java.net.InetAddress ip]
+  (.isLoopbackAddress ip))
+
+(deftest resolve-hostname-uses-system-dns-without-doh
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)]
+    (try
+      (is (every? loopback? (webhook-sender/resolve-hostname executor [] "localhost")))
+      (is (seq (webhook-sender/resolve-hostname executor [] "localhost")))
+      (finally
+        (.shutdownNow executor)))))
+
+(defn- nxdomain-response
+  "A DNS-over-HTTPS answer with RCODE 3 (NXDOMAIN): a 12-byte DNS header with
+   the response bit set and no records."
+  []
+  (let [^bytes header (byte-array (map unchecked-byte [0 0 0x81 0x83 0 0 0 0 0 0 0 0]))]
+    (.. (MockResponse$Builder.)
+        (setHeader "Content-Type" "application/dns-message")
+        (body (doto (Buffer.) (.write header)))
+        (build))))
+
+(defn- doh-failure
+  "The exception a failed DoH lookup ends in, or nil when it resolved."
+  [executor clients hostname]
+  (try
+    (webhook-sender/resolve-hostname executor clients hostname)
+    nil
+    (catch ExecutionException e
+      e)))
+
+;; A failed DoH lookup must be final. If it fell back to the system resolver, a
+;; user-supplied URL could reach names that only exist inside the network.
+(deftest doh-failure-never-reaches-system-dns
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)
+        system-lookups (atom [])
+        server (doto (MockWebServer.) (.start))]
+    (try
+      (with-redefs [webhook-sender/system-dns-lookup
+                    (fn [hostname]
+                      (swap! system-lookups conj hostname)
+                      [(InetAddress/getByName "203.0.113.7")])]
+        ;; One answer for the A query and one for the AAAA query.
+        (.enqueue server (nxdomain-response))
+        (.enqueue server (nxdomain-response))
+        (let [doh-url (str "http://127.0.0.1:" (.getPort server) "/dns-query")
+              clients (webhook-sender/make-dns-clients executor [doh-url])
+              cause (some-> (doh-failure executor clients "missing.example.com") ex-cause)]
+          (is (instance? UnknownHostException cause) "NXDOMAIN fails the lookup")
+          (is (some-> cause ex-message (string/includes? "NXDOMAIN")))
+          (is (pos? (.getRequestCount server)) "the DoH endpoint answered"))
+
+        ;; Nothing listens on port 1, so the DoH endpoint is unreachable.
+        (let [unreachable ["http://127.0.0.1:1/dns-query"]
+              clients (webhook-sender/make-dns-clients executor unreachable)
+              dns (webhook-sender/make-dns-resolver executor unreachable)]
+          (is (some? (doh-failure executor clients "missing.example.com"))
+              "an unreachable DoH endpoint fails the lookup")
+          ;; A single-label name, the kind a search domain or Docker's DNS expands.
+          (is (some? (doh-failure executor clients "intranet")))
+          (is (thrown? ExecutionException (.lookup dns "intranet"))))
+
+        (is (= [] @system-lookups)))
+      (finally
+        (.close server)
+        (.shutdownNow executor)))))
+
+(deftest system-dns-resolver-still-filters-bad-ips
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)
+        dns (webhook-sender/make-dns-resolver executor [])]
+    (try
+      (is (empty? (.lookup dns "localhost")))
+      (finally
+        (.shutdownNow executor)))))
+
+(deftest invalid-dns-over-https-url-is-rejected
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)]
+    (try
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"INSTANT_DNS_OVER_HTTPS_URLS"
+                            (webhook-sender/make-dns-clients executor ["not a url"])))
+      (finally
+        (.shutdownNow executor)))))

@@ -16,6 +16,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run",
     "check": "vue-tsc --noEmit",
     "build:types": "vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
     "build:js": "vite build",
