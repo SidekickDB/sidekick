@@ -462,6 +462,43 @@ hand. If upstream adds a package, add it to `SCOPED_PACKAGES` in
 `@instantdb/*` name), add the `repository`/`bugs`/`homepage` fields as in PR #7,
 and normalize again.
 
+### Configuration names: `SIDEKICK_*` and `sidekick.*` (PR #19)
+
+Every `INSTANT_*` variable can also be set as `SIDEKICK_*`, and the CLI's
+`instant.config`, `instant.schema`, `instant.perms` and `instant.email` files
+can be named `sidekick.*`. The SidekickDB name wins when both exist; a blank
+`SIDEKICK_*` value counts as unset. The source keeps upstream's `INSTANT_*`
+names, and the alias lives in one place per component:
+
+- Server: `server/src/instant/util/env.clj`. `env/getenv` replaces
+  `System/getenv` wherever an `INSTANT_*` variable is read (`config.clj`,
+  `config_edn.clj`, `util/logging_exporter.clj`), and `env/describe` names the
+  variable in messages (`config.clj`, `email_router.clj`, `webhook_sender.clj`).
+- Self-hosting: the three compose files use
+  `${SIDEKICK_X:-${INSTANT_X:-default}}` and still pass `INSTANT_X` to the
+  container, so both names work with any server image. `deploy-swarm.sh` does
+  the same in shell. `swarm.yml` reads only `INSTANT_*`: `docker stack` does not
+  expand a nested default. `.env.example` and `README.md` use the `SIDEKICK_*`
+  names.
+- Dashboard: `client/Dockerfile.www` (start script) and
+  `client/www/lib/config.ts`.
+- CLI: `src/util/envAliases.ts` copies `SIDEKICK_` variables onto their
+  `INSTANT_` names, called from `src/util/loadEnv.ts`;
+  `src/util/findConfigCandidates.ts` (`withSidekickFileNames`) and
+  `src/util/instantConfig.ts` look for `sidekick.*` files first.
+- create-sidekick-app: `src/envAliases.ts` (imported first in `src/index.ts`),
+  `src/utils/appConfig.ts`.
+- `client/packages/resumable-stream/src/index.ts` (`readEnv`).
+
+Files the CLI creates keep the `instant.*` names, and a new `.env` gets the
+`INSTANT_*` names. The MCP server and the Python SDK have no aliases.
+
+**Resolving:** keep upstream's `INSTANT_*` name in the source and keep the
+lookup. When upstream adds a variable: on the server read it with
+`env/getenv`; in the compose files give it the nested form; in the CLI nothing
+is needed. When upstream adds an `instant.*` file kind to the CLI, add it to
+`LEGACY_CONFIG_FILE` in `findConfigCandidates.ts`.
+
 ### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16)
 
 - Tests that hung or flaked on 2-vCPU CI runners:

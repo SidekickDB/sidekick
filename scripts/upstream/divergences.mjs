@@ -75,6 +75,19 @@ export const DIVERGENCES = {
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are.",
   },
+  "config-aliases": {
+    title:
+      "Configuration names: SIDEKICK_* variables and sidekick.* config files accepted next to INSTANT_* / instant.*",
+    prs: [19],
+    resolve:
+      "The source keeps upstream's INSTANT_* names; only the lookup differs. Server: keep env/getenv " +
+      "(instant.util.env) wherever an INSTANT_* variable is read, and use it for a variable upstream adds. " +
+      "Self-hosting compose files: keep ${SIDEKICK_X:-${INSTANT_X:-default}} and give a new INSTANT_* " +
+      "variable the same form (not in swarm.yml: docker stack cannot nest defaults; add it to " +
+      "deploy-swarm.sh instead). CLI: keep applyEnvAliases in loadEnv.ts, withSidekickFileNames in " +
+      "findConfigCandidates.ts and the sidekick.config source in instantConfig.ts; a new instant.* file " +
+      "kind must be added to LEGACY_CONFIG_FILE. Take upstream's other changes.",
+  },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
@@ -102,6 +115,7 @@ const PR_CATEGORY = {
   11: "fail-closed",
   14: (file) => (file.startsWith("self-hosting/") ? "selfhost" : "dashboard"),
   16: "own-fixes",
+  19: "config-aliases",
 };
 
 export function categoryFor(pr, file) {
