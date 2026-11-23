@@ -81,6 +81,21 @@ jobs:
           pnpm i --frozen-lockfile --prefer-offline
           pnpm exec turbo run build --filter='@sidekickdb/core...' --no-update-notifier
 
+      # Does this Compose evaluate a nested ${A:-${B:?...}} when A is set?
+      # self-hosting/docker-compose.yml reads the storage keys that way. Shown
+      # next to the Compose version; it does not fail the job.
+      - name: Probe Compose nested-default handling
+        run: |
+          dir=$(mktemp -d)
+          printf 'services:\n  probe:\n    image: busybox\n    environment:\n      X: ${A:-${B:?need A or B}}\n' > "$dir/compose.yml"
+          echo "Compose: $(docker compose version --short)"
+          echo "--- A set, B unset (expect X: a)"
+          env -u B A=a docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
+          echo "--- A and B unset (expect an error naming 'need A or B')"
+          env -u A -u B docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
+          echo "--- A set to empty, B unset (expect the error)"
+          env -u B A= docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
+
       - name: Run the benchmark
         run: |
           node scripts/bench/self-hosted/run.mjs \
