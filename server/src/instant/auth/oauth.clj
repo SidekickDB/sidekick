@@ -4,6 +4,7 @@
    [clj-http.client :as clj-http]
    [clojure.string :as string]
    [instant.auth.jwt :as jwt]
+   [instant.config :as config]
    [instant.util.cache :as cache]
    [instant.util.crypt :as crypt-util]
    [instant.util.exception :as ex]
@@ -420,11 +421,15 @@
 
 (defn start []
   (tracer/record-info! {:name "oauth/start"})
-  (try
-    ;; Initialize with Google
-    (get-discovery "https://accounts.google.com/.well-known/openid-configuration")
-    (catch Exception e
-      (tracer/record-exception-span! e {:name "oauth/start-error"})))
+  ;; Warms the cache for Google sign-in; the cache otherwise fetches on first
+  ;; use. Skipped when dashboard Google sign-in is not configured, so servers
+  ;; without it do not contact Google at boot.
+  (when (config/dashboard-google-oauth-configured?)
+    (try
+      ;; Initialize with Google
+      (get-discovery "https://accounts.google.com/.well-known/openid-configuration")
+      (catch Exception e
+        (tracer/record-exception-span! e {:name "oauth/start-error"}))))
   (tracer/record-info! {:name "oauth/start-refresh-worker"})
   (def schedule
     (chime-core/chime-at

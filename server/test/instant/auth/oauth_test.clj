@@ -1,7 +1,8 @@
 (ns instant.auth.oauth-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [instant.auth.oauth :as oauth]))
+   [instant.auth.oauth :as oauth]
+   [instant.config :as config]))
 
 (deftest fetch-discovery-throws-on-invalid-urls
   (testing "unparseable / non-http(s) urls are rejected before any request"
@@ -37,3 +38,18 @@
          {:token_endpoint "https://safe.example.com/token"
           :userinfo_endpoint "https://safe.example.com/userinfo"
           :jwks_uri "https://safe.example.com/jwks"}))))
+
+(deftest start-prefetches-google-only-when-configured
+  (doseq [configured? [false true]]
+    (testing (str "dashboard Google sign-in configured: " configured?)
+      (let [fetched (atom [])]
+        (with-redefs [config/dashboard-google-oauth-configured? (constantly configured?)
+                      oauth/get-discovery (fn [endpoint] (swap! fetched conj endpoint))]
+          (try
+            (oauth/start)
+            (finally
+              (oauth/stop))))
+        (is (= (if configured?
+                 ["https://accounts.google.com/.well-known/openid-configuration"]
+                 [])
+               @fetched))))))
