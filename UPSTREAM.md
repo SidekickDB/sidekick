@@ -391,7 +391,7 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `server/src/instant/{db/cel,db/instaql,model/rule}.clj` and
   `server/test/instant/{db/cel,db/instaql,db/seeks_permission_helpers,reactive/session}_test.clj`.
   In `session_test.clj` only upstream's five new tests are added: the helpers
-  above them are byte-identical to the ones #2944 (PR #3) already added.
+  above them are byte-identical to the ones #2954 (PR #3) already added.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
