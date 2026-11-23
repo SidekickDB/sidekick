@@ -151,9 +151,12 @@ function install() {
     return originalConnect.apply(this, args);
   };
 
-  // DNS: refuse to resolve non-loopback names so lookups cannot leak either.
+  // DNS: refuse to resolve non-loopback names, or reverse-resolve
+  // non-loopback addresses, so lookups cannot leak either.
   const dnsFns = [
     'lookup',
+    'lookupService',
+    'reverse',
     'resolve',
     'resolve4',
     'resolve6',
@@ -233,11 +236,16 @@ function install() {
       let code;
       if (opts.eval) {
         const src = String(filename);
-        code = /^\s*(import|export)\s/m.test(src)
-          ? `import ${JSON.stringify(pathToFileURL(guardFile).href)};\n${src}`
-          : `${prelude}require(${JSON.stringify(guardFile)});\n${src}`;
-        if (code.startsWith('import')) {
-          code = `${prelude}${code}`;
+        if (/^\s*(import|export)\s/m.test(src)) {
+          // ES module code: static imports are hoisted and run in order, so
+          // the config is set by a data: module imported before the guard.
+          const configModule =
+            'data:text/javascript,' + encodeURIComponent(prelude);
+          code =
+            `import ${JSON.stringify(configModule)};\n` +
+            `import ${JSON.stringify(pathToFileURL(guardFile).href)};\n${src}`;
+        } else {
+          code = `${prelude}require(${JSON.stringify(guardFile)});\n${src}`;
         }
       } else {
         let url;
