@@ -395,7 +395,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #21)
+### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -423,11 +423,16 @@ The self-hosted stack works without Instant infrastructure.
   files and `swarm.yml` for each way `.env` can be filled, on the runner's
   Compose and on a pinned current release; `check.mjs` lists the workflow in
   `SELF_HOSTING_CHECK_WORKFLOWS` with no exception from its rules.
+- Postgres is not published beyond the host: `docker-compose.yml` binds port
+  8890 to `${POSTGRES_BIND_ADDRESS:-127.0.0.1}` and `swarm.yml` has no
+  published port (swarm ignores a host address). Upstream publishes
+  `8890:5432` on all interfaces in both.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
 such as the `SIDEKICK_*` aliases are fine), the CORS rule, the checksum
-setting and the healthchecks. Run `node scripts/self-hosting/render-check.mjs`
+setting, the healthchecks and the unpublished Postgres port (127.0.0.1 in
+`docker-compose.yml`, none in `swarm.yml`). Run `node scripts/self-hosting/render-check.mjs`
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
 Port upstream's new settings into that form.
