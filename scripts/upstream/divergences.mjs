@@ -126,6 +126,11 @@ export const DIVERGENCES = {
       "Keep server/src/instant/session_counter.clj deleted, and the route and the start step in core.clj removed. " +
       "Take upstream's other changes in those files. server/test/instant/dash/removed_routes_test.clj must pass.",
   },
+  "security-policy": {
+    title: "SidekickDB's own security policy (SECURITY.md)",
+    prs: [],
+    resolve: "Upstream has no SECURITY.md. If it adds one, keep SidekickDB's.",
+  },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
