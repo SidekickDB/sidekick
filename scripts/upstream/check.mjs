@@ -94,12 +94,98 @@ export const DISPATCH_ONLY = [
   "sync-instant-skills.yml",
 ];
 
+// SidekickDB's own release workflows (RELEASING.md). Upstream has no files
+// with these names. Each may use the rights matched by `allow` (whole job
+// lines), and only while checkReleaseShape finds nothing: workflow_dispatch as
+// the only trigger, `permissions: {}` at workflow level, the repository + main
+// guard and job-level permissions on every job, and the named environment on
+// every job that has an allowed line. Everything else in RISKY still fails in
+// these files.
+export const RELEASE_WORKFLOWS = {
+  "sidekick-release-npm.yml": {
+    environment: "npm-release",
+    allow: [
+      /^\s+id-token:\s*write\s*$/,
+      /^\s+node scripts\/sidekick-release-npm\.mjs "\$\{args\[@\]\}"\s*$/,
+      // The publish job's sparse checkout of the script.
+      /^\s+client\/scripts\/sidekick-release-npm\.mjs\s*$/,
+    ],
+  },
+  "sidekick-release-images.yml": {
+    environment: "image-release",
+    allow: [
+      /^\s+packages:\s*write\s*$/,
+      /^\s+uses:\s*docker\/login-action@[0-9a-f]{40}(\s+#.*)?$/,
+      /^\s+push:\s*\$\{\{\s*inputs\.push\s*\}\}\s*$/,
+    ],
+  },
+};
+
 export const KNOWN_WORKFLOWS = [
   "clojure.yml",
   "js.yml",
   "python.yml",
   ...DISPATCH_ONLY,
+  ...Object.keys(RELEASE_WORKFLOWS),
 ];
+
+const RELEASE_GUARDS = [
+  "github.repository == 'SidekickDB/sidekick'",
+  "github.ref == 'refs/heads/main'",
+];
+
+// True when `cond` can only be true with both RELEASE_GUARDS: they must be
+// top-level `&&` terms and the condition must have no top-level `||`.
+export function hasReleaseGuard(cond) {
+  if (cond === null || cond === undefined) return false;
+  let expr = cond.trim().replace(/\s+#.*$/, "");
+  if (expr.includes("${{")) {
+    const m = expr.match(/^\$\{\{([\s\S]*)\}\}$/);
+    if (!m || m[1].includes("}}") || m[1].includes("${{")) return false;
+    expr = m[1];
+  }
+  expr = stripParens(expr);
+  if (splitTopLevel(expr, "||").length > 1) return false;
+  // `(a && b) && c` is a && b && c; a parenthesised `||` stays one term.
+  const terms = [];
+  const flatten = (e) => {
+    const parts = splitTopLevel(stripParens(e), "&&");
+    if (parts.length === 1) terms.push(stripParens(e).replace(/\s+/g, " "));
+    else parts.forEach(flatten);
+  };
+  flatten(expr);
+  return RELEASE_GUARDS.every((g) => terms.includes(g));
+}
+
+function checkReleaseShape(rel, spec, { jobs, triggers, top }) {
+  const out = [];
+  if (triggers.length !== 1 || triggers[0] !== "workflow_dispatch")
+    out.push(
+      `${rel}: release workflow must be started by workflow_dispatch only, found: ${triggers.join(", ") || "(none)"}`,
+    );
+  if (!top.some(({ text }) => /^permissions:\s*\{\}\s*(#.*)?$/.test(text)))
+    out.push(`${rel}: release workflow must set \`permissions: {}\` at workflow level`);
+  if (!jobs.length) out.push(`${rel}: release workflow has no jobs`);
+  for (const j of jobs) {
+    if (!hasReleaseGuard(j.if))
+      out.push(
+        `${rel}:${j.start}: release job "${j.name}" must be guarded with if: ${RELEASE_GUARDS.join(" && ")} (no ||), found if: ${j.if ?? "(none)"}`,
+      );
+    const env = j.lines
+      .map(({ text }) => text.match(/^    environment:\s*(.*?)\s*$/)?.[1])
+      .find((x) => x !== undefined);
+    const holdsRights = j.lines.some(({ text }) =>
+      spec.allow.some((re) => re.test(text)),
+    );
+    if (holdsRights && env !== spec.environment)
+      out.push(
+        `${rel}:${j.start}: release job "${j.name}" must use \`environment: ${spec.environment}\`, found ${env ?? "(none)"}`,
+      );
+    if (!j.lines.some(({ text }) => /^    permissions:/.test(text)))
+      out.push(`${rel}:${j.start}: release job "${j.name}" must set its own permissions`);
+  }
+  return out;
+}
 
 // Things an enabled job must not do.
 const RISKY = [
@@ -121,9 +207,16 @@ const RISKY = [
   ],
   [/flyctl/, "deploys to Fly"],
   [/\bvercel\b/i, "deploys to Vercel"],
-  [/docker push|push:\s*true|amazon-ecr|docker\/login-action/, "pushes images"],
+  [
+    /docker push|push:\s*(?:true|\$\{\{)|amazon-ecr|docker\/login-action/,
+    "pushes images",
+  ],
   [/aws-actions\/|elastic-beanstalk/, "uses AWS credentials or deploys"],
   [/gh-action-pypi-publish|twine upload/, "publishes to PyPI"],
+  [
+    /sidekick-release-npm\.mjs(?!\s+(?:plan|pack)\b)/,
+    "runs the SidekickDB npm release script (publish-tarballs, claim-names or trust)",
+  ],
   [/algolia/i, "writes to Algolia"],
   [/git push/, "pushes to a repository"],
   [
@@ -351,9 +444,15 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
   }
   for (const f of files) {
     const rel = `.github/workflows/${f}`;
-    const { jobs, triggers, top } = parseWorkflow(
-      fs.readFileSync(path.join(dir, f), "utf8"),
-    );
+    const parsed = parseWorkflow(fs.readFileSync(path.join(dir, f), "utf8"));
+    const { jobs, triggers, top } = parsed;
+    // Rights a SidekickDB release workflow may use, only while its shape holds.
+    let allowed = [];
+    if (RELEASE_WORKFLOWS[f]) {
+      const shape = checkReleaseShape(rel, RELEASE_WORKFLOWS[f], parsed);
+      failures.push(...shape);
+      if (!shape.length) allowed = RELEASE_WORKFLOWS[f].allow;
+    }
     // Workflow-level env/permissions apply to every job.
     if (jobs.some((j) => !isFalse(j.if))) {
       for (const { n, text } of top) {
@@ -474,6 +573,7 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
       );
       for (const { n, text } of j.lines) {
         if (disabledStepLines.has(n) || /^\s*#/.test(text)) continue;
+        if (allowed.some((re) => re.test(text))) continue;
         const code = text.replace(/\s#.*$/, "");
         for (const [re, why] of RISKY) {
           if (re.test(code)) {

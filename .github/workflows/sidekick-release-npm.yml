@@ -1,0 +1,141 @@
+name: Release npm packages (SidekickDB)
+
+# SidekickDB: publishes the @sidekickdb/* packages and create-sidekick-app
+# with npm trusted publishing (GitHub OIDC). There is no npm token: npm only
+# accepts the publish because each package on npmjs.com names this repository,
+# this workflow file and the `npm-release` environment as its trusted
+# publisher. See RELEASING.md.
+#
+# Two jobs, so that no install or build step can mint the publish credential:
+#   build    contents: read only. Installs, builds and packs the packages and
+#            uploads the tarballs with a manifest.
+#   publish  id-token: write, in the npm-release environment. No install and
+#            no build: a sparse checkout of the release script and the package
+#            manifests, the downloaded tarballs (checked against the checkout)
+#            and `npm publish`.
+#
+# Started by hand only, from main. The version comes from
+# client/packages/version/src/version.ts. dry_run defaults to true.
+#
+# scripts/upstream/check.mjs allows this file's publish rights only while it
+# keeps a workflow_dispatch-only trigger, `permissions: {}`, the repository +
+# main guard and job-level permissions on every job, and the `npm-release`
+# environment on the job that holds them.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run `npm publish --dry-run` only
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: sidekick-release-npm
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and pack
+    if: github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: '10.2.0'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install dependencies
+        working-directory: client
+        run: pnpm i --frozen-lockfile
+
+      - name: Check version and package list
+        working-directory: client
+        run: |
+          node --test scripts/sidekick-release-npm.test.mjs
+          node scripts/sidekick-release-npm.mjs plan
+
+      - name: Build and pack
+        working-directory: client
+        env:
+          TURBO_TELEMETRY_DISABLED: '1'
+        run: node scripts/sidekick-release-npm.mjs pack --out "$RUNNER_TEMP/npm-tarballs"
+
+      - name: Upload tarballs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-tarballs
+          path: ${{ runner.temp }}/npm-tarballs
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish to npm
+    needs: build
+    if: github.repository == 'SidekickDB/sidekick' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      # Only the release script, the package manifests and the version file:
+      # nothing here installs or runs dependency code.
+      - name: Checkout release script and manifests
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            client/scripts/sidekick-release-npm.mjs
+            client/packages/*/package.json
+            client/packages/version/src/version.ts
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # Trusted publishing needs npm 11.5.1 or later. Exact version.
+      - name: Update npm
+        run: npm install -g npm@11.21.3 --ignore-scripts && npm --version
+
+      - name: Download tarballs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: npm-tarballs
+          path: ${{ runner.temp }}/npm-tarballs
+
+      - name: Publish
+        working-directory: client
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          TARBALLS: ${{ runner.temp }}/npm-tarballs
+        run: |
+          args=(publish-tarballs --dir "$TARBALLS")
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          node scripts/sidekick-release-npm.mjs "${args[@]}"
+
+      - name: Upload npm logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: npm-logs
+          path: /home/runner/.npm/_logs/

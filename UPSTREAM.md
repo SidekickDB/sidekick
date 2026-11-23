@@ -227,8 +227,9 @@ hints come from `scripts/upstream/divergences.mjs`).
 
 ### CI lockdown (PR #1, PR #5)
 
-SidekickDB has no release infrastructure, so no workflow may publish, deploy,
-push elsewhere or write to upstream's services.
+No upstream workflow may publish, deploy, push elsewhere or write to upstream's
+services. SidekickDB releases only through its own two release workflows (PR
+#18, [`RELEASING.md`](RELEASING.md)), which upstream does not have.
 
 - `.github/workflows/js.yml`: jobs `publish-docs`, `deploy-remote-mcp`,
   `publish-experimental-package`, `publish-packages`, `vercel-preview`,
@@ -476,6 +477,27 @@ and normalize again.
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are.
 
+### Release pipeline (PR #18)
+
+- `.github/workflows/sidekick-release-npm.yml` and
+  `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
+  workflows (npm trusted publishing, GHCR images). `check.mjs` allows their
+  rights only while they keep a `workflow_dispatch`-only trigger,
+  `permissions: {}`, the `SidekickDB/sidekick` + `main` guard and job-level
+  permissions on every job, and their environment on every job that holds a
+  right. The npm workflow builds in a job without publish rights and
+  publishes from a job that installs nothing.
+- `client/scripts/sidekick-release-npm.mjs` and its test; `RELEASING.md`.
+- `server/flags-config/package.json`: `"private": true`.
+- `client/packages/version/src/version.ts` stays upstream's: SidekickDB keeps
+  upstream's version numbering (see `RELEASING.md`, version rules).
+
+**Resolving:** upstream has none of these files except
+`server/flags-config/package.json`; keep `"private": true` there and take
+upstream's other changes. Take upstream's `version.ts`; if it names a version
+SidekickDB already published, bump to the next unused patch before the next
+release.
+
 ### Upstream sync tooling (this file's PR)
 
 `UPSTREAM.md` and `scripts/upstream/`. Upstream has neither, so they never
@@ -489,7 +511,7 @@ for the person reviewing the sync PR.
 
 | What | How |
 |---|---|
-| No workflow re-enables publish or deploy | `check.mjs` fails if a job or step that was disabled before the merge is enabled after it (it reads the disabled set from the pre-merge commit, so newly gated jobs stay protected), if a job condition can be true (`false \|\| ...`, `(false) \|\| ...`, `${{ false }} \|\| ...`; only `false`, `false && (...)` and one `${{ }}` around such a condition count as disabled), if a publish-only workflow regains a trigger, if any workflow gains a `schedule` or `pull_request_target` trigger, or if an enabled job, a workflow-level `env`/`permissions` block, or a local action (`./.github/actions/*`) used by an enabled job uses repository secrets, `secrets: inherit`, any write permission (`<scope>: write`, `write-all`), publish or deploy tools, or Instant-owned hosts. New workflow files are flagged for review |
+| No workflow re-enables publish or deploy | `check.mjs` fails if a job or step that was disabled before the merge is enabled after it (it reads the disabled set from the pre-merge commit, so newly gated jobs stay protected), if a job condition can be true (`false \|\| ...`, `(false) \|\| ...`, `${{ false }} \|\| ...`; only `false`, `false && (...)` and one `${{ }}` around such a condition count as disabled), if a publish-only workflow regains a trigger, if any workflow gains a `schedule` or `pull_request_target` trigger, or if an enabled job, a workflow-level `env`/`permissions` block, or a local action (`./.github/actions/*`) used by an enabled job uses repository secrets, `secrets: inherit`, any write permission (`<scope>: write`, `write-all`), publish or deploy tools, or Instant-owned hosts. SidekickDB's two release workflows (PR #18) may keep their publish rights only in their checked shape. New workflow files are flagged for review |
 | JS tests stay behind the network guard (PR #9) | `check.mjs` fails if **Run tests** loses `SIDEKICK_E2E_API_URI: ''`, `SIDEKICK_NETWORK_GUARD_ALLOW: ''` or `pnpm run test`, or if the client `test`/`bench` scripts stop running through `scripts/with-network-guard.mjs` |
 | SDKs, CLI and MCP still fail closed (PR #11) | `check.mjs` fails on an Instant host added to `client/packages/*/src` or `bin` outside tests and comments (`--accept-hosts` once a person has confirmed it is only a link). Also run the `apiURI`/`endpoints` tests and look for new clients or commands that talk to a server without a required URL |
 | No new default that points at Instant-owned hosts | `check.mjs` lists every added line (outside comments) that mentions an `instantdb.com` host, `stopaio.s3.amazonaws.com` or an Instant S3 bucket, split into runtime code or config defaults, build-time files, and docs/tests. Instant-domain email addresses outside docs and tests (sender or contact defaults such as the ones PR #4 removed) are listed in their own section; in docs and tests they are listed with the hosts. Review everything outside docs/tests; nothing there should be a default |
