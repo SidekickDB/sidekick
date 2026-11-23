@@ -115,7 +115,12 @@ export function collectFiles(o, root) {
   for (const f of o.files) {
     const abs = path.resolve(f);
     const rel = path.relative(root, abs).split(path.sep).join("/");
-    if (rel === "" || rel.startsWith("../") || rel === ".." || path.isAbsolute(rel)) {
+    if (
+      rel === "" ||
+      rel.startsWith("../") ||
+      rel === ".." ||
+      path.isAbsolute(rel)
+    ) {
       throw new Error(`refusing a path outside the repository: ${f}`);
     }
     if (fs.existsSync(abs) && fs.statSync(abs).isDirectory()) {
@@ -164,7 +169,14 @@ export function normalizeFiles(
       if (/instantdb|instant-cli|instant-app/.test(buf.toString("latin1"))) {
         result.leftovers.push({
           file,
-          items: [{ line: 1, id: "not-utf8", text: file, hint: "not UTF-8; rename it by hand" }],
+          items: [
+            {
+              line: 1,
+              id: "not-utf8",
+              text: file,
+              hint: "not UTF-8; rename it by hand",
+            },
+          ],
         });
       }
       continue;

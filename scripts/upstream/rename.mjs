@@ -138,7 +138,10 @@ function mask(line) {
       return `\u0000${saved.length - 1}\u0000`;
     });
   }
-  return { masked, unmask: (t) => t.replace(MASK_RE, (_m, n) => saved[Number(n)]) };
+  return {
+    masked,
+    unmask: (t) => t.replace(MASK_RE, (_m, n) => saved[Number(n)]),
+  };
 }
 
 // ---------------------------------------------------------------------------

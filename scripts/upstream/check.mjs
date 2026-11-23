@@ -75,8 +75,16 @@ export const GUARDED_STEPS = {
   ],
 };
 export const GUARDED_SCRIPTS = [
-  { file: "client/package.json", script: "test", must: /with-network-guard\.mjs/ },
-  { file: "client/package.json", script: "bench", must: /with-network-guard\.mjs/ },
+  {
+    file: "client/package.json",
+    script: "test",
+    must: /with-network-guard\.mjs/,
+  },
+  {
+    file: "client/package.json",
+    script: "bench",
+    must: /with-network-guard\.mjs/,
+  },
 ];
 
 // Workflows whose only trigger may be workflow_dispatch.
@@ -110,7 +118,10 @@ const RISKY = [
   [/gh-action-pypi-publish|twine upload/, "publishes to PyPI"],
   [/algolia/i, "writes to Algolia"],
   [/git push/, "pushes to a repository"],
-  [/secrets:\s*inherit/, "passes every secret to a reusable workflow (secrets: inherit)"],
+  [
+    /secrets:\s*inherit/,
+    "passes every secret to a reusable workflow (secrets: inherit)",
+  ],
   [/instantdb\.com|stopaio/, "contacts an Instant-owned host"],
 ];
 
@@ -275,7 +286,9 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
         const code = text.replace(/\s#.*$/, "");
         for (const [re, why] of RISKY) {
           if (re.test(code))
-            failures.push(`${rel}:${n}: workflow-level setting ${why}, which every enabled job inherits: ${text.trim().slice(0, 140)}`);
+            failures.push(
+              `${rel}:${n}: workflow-level setting ${why}, which every enabled job inherits: ${text.trim().slice(0, 140)}`,
+            );
         }
       }
     }
@@ -283,7 +296,9 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
       const j = jobs.find((x) => x.name === g.job);
       const st = j?.steps.find((x) => x.name === g.step);
       if (!st) {
-        warnings.push(`${rel}: expected guarded step "${g.step}" in job "${g.job}" not found`);
+        warnings.push(
+          `${rel}: expected guarded step "${g.step}" in job "${g.job}" not found`,
+        );
         continue;
       }
       if (isFalse(st.if) || isFalse(j.if)) continue;
@@ -292,11 +307,15 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
         const m = body.match(new RegExp(`^\\s*${k}:\\s*(.*?)\\s*$`, "m"));
         const val = m ? m[1].replace(/^(['"])(.*)\1$/, "$2") : null;
         if (val !== v)
-          failures.push(`${rel}: step "${g.step}" must set ${k}: '${v}' (network guard, PR #9), found ${m ? m[1] : "(unset)"}`);
+          failures.push(
+            `${rel}: step "${g.step}" must set ${k}: '${v}' (network guard, PR #9), found ${m ? m[1] : "(unset)"}`,
+          );
       }
       const run = body.match(/^\s*run:\s*(.*)$/m)?.[1]?.trim() ?? "";
       if (!g.run.test(run))
-        failures.push(`${rel}: step "${g.step}" must run \`pnpm run test\` (which preloads the network guard), found run: ${run || "(none)"}`);
+        failures.push(
+          `${rel}: step "${g.step}" must run \`pnpm run test\` (which preloads the network guard), found run: ${run || "(none)"}`,
+        );
     }
     if (!KNOWN_WORKFLOWS.includes(f))
       warnings.push(`${rel}: new workflow file, review it by hand`);
@@ -351,18 +370,26 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
           const u = text.match(/uses:\s*\.\/(\.github\/actions\/[^\s@#]+)/);
           if (!u) continue;
           const adir = path.join(root, u[1]);
-          const afile = ["action.yml", "action.yaml"].map((x) => path.join(adir, x)).find((x) => fs.existsSync(x));
+          const afile = ["action.yml", "action.yaml"]
+            .map((x) => path.join(adir, x))
+            .find((x) => fs.existsSync(x));
           if (!afile) {
-            warnings.push(`${rel}: job "${j.name}" uses ${u[1]}, which has no action.yml`);
+            warnings.push(
+              `${rel}: job "${j.name}" uses ${u[1]}, which has no action.yml`,
+            );
             continue;
           }
-          fs.readFileSync(afile, "utf8").split("\n").forEach((at, k) => {
-            if (/^\s*#/.test(at)) return;
-            for (const [re, why] of RISKY) {
-              if (re.test(at.replace(/\s#.*$/, "")))
-                failures.push(`${path.relative(root, afile)}:${k + 1}: action used by enabled job "${j.name}" (${rel}) ${why}: ${at.trim().slice(0, 140)}`);
-            }
-          });
+          fs.readFileSync(afile, "utf8")
+            .split("\n")
+            .forEach((at, k) => {
+              if (/^\s*#/.test(at)) return;
+              for (const [re, why] of RISKY) {
+                if (re.test(at.replace(/\s#.*$/, "")))
+                  failures.push(
+                    `${path.relative(root, afile)}:${k + 1}: action used by enabled job "${j.name}" (${rel}) ${why}: ${at.trim().slice(0, 140)}`,
+                  );
+              }
+            });
         }
       }
       const disabledStepLines = new Set(
@@ -395,7 +422,9 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
       continue;
     }
     if (cmd !== undefined && !g.must.test(cmd))
-      failures.push(`${g.file}: script "${g.script}" must run through scripts/with-network-guard.mjs (PR #9), found: ${cmd}`);
+      failures.push(
+        `${g.file}: script "${g.script}" must run through scripts/with-network-guard.mjs (PR #9), found: ${cmd}`,
+      );
   }
   return { failures, warnings };
 }
@@ -466,7 +495,8 @@ export function scanAddedLines(diff) {
       const text = l.slice(1);
       const here = `${file}:${ln}: ${text.trim().slice(0, 160)}`;
       ln++;
-      if (file.startsWith("scripts/upstream/") || file === "UPSTREAM.md") continue;
+      if (file.startsWith("scripts/upstream/") || file === "UPSTREAM.md")
+        continue;
       // A comment cannot contact anything or set a default.
       if (/^\s*(#|\/\/|;|\*|\/\*|<!--)/.test(text)) continue;
       const cls = classify(file);
@@ -474,7 +504,8 @@ export function scanAddedLines(diff) {
       const hasHost = HOST_RE.test(text.replace(EMAIL_RE, ""));
       if (hasEmail && cls !== "docs-tests") out.emails.push(here);
       if (hasHost || (hasEmail && cls === "docs-tests")) out[cls].push(here);
-      if (hasHost && SDK_SOURCE.test(file) && cls !== "docs-tests") out.sdk.push(here);
+      if (hasHost && SDK_SOURCE.test(file) && cls !== "docs-tests")
+        out.sdk.push(here);
     } else if (!l.startsWith("-")) ln++;
   }
   return out;
@@ -492,28 +523,39 @@ export function checkInstantHosts(base, root) {
 // Session `versions` keys ('@instantdb/<pkg>': version) are part of the wire
 // protocol: the server reads them. The rename must never touch them.
 
-const VERSIONS_KEY_RE = /(['"])@(instantdb|sidekickdb)\/([a-z0-9-]+)\1\s*:\s*[^,}\n]*version/gi;
-const VERSIONS_SCOPE = /^client\/packages\/(?!python\/)[^/]+\/src\/.*\.(?:[cm]?[jt]sx?|svelte|vue)$/;
+const VERSIONS_KEY_RE =
+  /(['"])@(instantdb|sidekickdb)\/([a-z0-9-]+)\1\s*:\s*[^,}\n]*version/gi;
+const VERSIONS_SCOPE =
+  /^client\/packages\/(?!python\/)[^/]+\/src\/.*\.(?:[cm]?[jt]sx?|svelte|vue)$/;
 
 export function versionsKeys(texts) {
   const keys = new Set();
   for (const [file, text] of texts) {
     if (!VERSIONS_SCOPE.test(file)) continue;
-    for (const m of text.matchAll(VERSIONS_KEY_RE)) keys.add(`${file} @${m[2]}/${m[3]}`);
+    for (const m of text.matchAll(VERSIONS_KEY_RE))
+      keys.add(`${file} @${m[2]}/${m[3]}`);
   }
   return keys;
 }
 
 function filesAt(ref, root) {
   const names = lines(
-    git(["ls-tree", "-r", "--name-only", "-z", ref, "--", "client/packages"], { cwd: root }).replace(/\0/g, "\n"),
+    git(["ls-tree", "-r", "--name-only", "-z", ref, "--", "client/packages"], {
+      cwd: root,
+    }).replace(/\0/g, "\n"),
   ).filter((f) => VERSIONS_SCOPE.test(f));
-  return names.map((f) => [f, git(["show", `${ref}:${f}`], { cwd: root, raw: true })]);
+  return names.map((f) => [
+    f,
+    git(["show", `${ref}:${f}`], { cwd: root, raw: true }),
+  ]);
 }
 
 function filesInTree(root) {
   const names = lines(
-    git(["ls-files", "-z", "--", "client/packages"], { cwd: root }).replace(/\0/g, "\n"),
+    git(["ls-files", "-z", "--", "client/packages"], { cwd: root }).replace(
+      /\0/g,
+      "\n",
+    ),
   ).filter((f) => VERSIONS_SCOPE.test(f));
   const out = [];
   for (const f of names) {
@@ -530,12 +572,20 @@ export function compareVersionsKeys(before, after) {
   const failures = [];
   const info = [];
   for (const k of after) {
-    if (k.includes(" @sidekickdb/")) failures.push(`${k.replace(" ", ": ")} is a session versions key under the new name; it must stay '@instantdb/...' (wire protocol)`);
+    if (k.includes(" @sidekickdb/"))
+      failures.push(
+        `${k.replace(" ", ": ")} is a session versions key under the new name; it must stay '@instantdb/...' (wire protocol)`,
+      );
   }
   for (const k of before) {
-    if (!after.has(k) && k.includes(" @instantdb/")) failures.push(`${k.replace(" ", ": ")} versions key is gone; if upstream removed it on purpose, say so in the sync PR`);
+    if (!after.has(k) && k.includes(" @instantdb/"))
+      failures.push(
+        `${k.replace(" ", ": ")} versions key is gone; if upstream removed it on purpose, say so in the sync PR`,
+      );
   }
-  for (const k of after) if (!before.has(k) && k.includes(" @instantdb/")) info.push(`new versions key ${k.replace(" ", ": ")}`);
+  for (const k of after)
+    if (!before.has(k) && k.includes(" @instantdb/"))
+      info.push(`new versions key ${k.replace(" ", ": ")}`);
   return { failures, info };
 }
 
@@ -592,7 +642,12 @@ export function defaultBase(root) {
   return "origin/main";
 }
 
-export function runChecks({ root, base, allowLeftovers = false, acceptHosts = false }) {
+export function runChecks({
+  root,
+  base,
+  allowLeftovers = false,
+  acceptHosts = false,
+}) {
   const failures = [];
   const warnings = [];
   const review = {};
@@ -632,7 +687,10 @@ export function runChecks({ root, base, allowLeftovers = false, acceptHosts = fa
     );
   }
 
-  const vk = compareVersionsKeys(versionsKeys(filesAt(base, root)), versionsKeys(filesInTree(root)));
+  const vk = compareVersionsKeys(
+    versionsKeys(filesAt(base, root)),
+    versionsKeys(filesInTree(root)),
+  );
   failures.push(...vk.failures);
   warnings.push(...vk.info);
 

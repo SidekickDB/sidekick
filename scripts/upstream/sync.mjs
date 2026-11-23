@@ -925,7 +925,12 @@ function afterMerge({ o, root, state, attribution, conf }) {
   const continued = !conf;
   const summary = [
     ...(state.summary || []),
-    ...summarize(state, { conf, norm, lock: lock === "FAILED" ? null : lock, continued }),
+    ...summarize(state, {
+      conf,
+      norm,
+      lock: lock === "FAILED" ? null : lock,
+      continued,
+    }),
   ];
   // Files a person resolves by hand: those left unmerged, plus files the
   // checks rejected. Once --continue runs, they count as resolved.
@@ -954,7 +959,11 @@ function afterMerge({ o, root, state, attribution, conf }) {
     if (o.reportFile) fs.writeFileSync(o.reportFile, report.join("\n") + "\n");
     fs.writeFileSync(
       statePath(root),
-      JSON.stringify({ ...next, lockHash: undefined, stopTree: stagedTree(root) }, null, 2),
+      JSON.stringify(
+        { ...next, lockHash: undefined, stopTree: stagedTree(root) },
+        null,
+        2,
+      ),
     );
     return 2;
   }
@@ -990,7 +999,9 @@ function cont(o, root) {
   git(["add", "-u"], { cwd: root });
   // Everything changed since the script last stopped was changed by hand.
   if (state.stopTree) {
-    const byHand = lines(git(["diff", "--cached", "--name-only", state.stopTree], { cwd: root }));
+    const byHand = lines(
+      git(["diff", "--cached", "--name-only", state.stopTree], { cwd: root }),
+    );
     state.leftForHand = [...new Set([...(state.leftForHand || []), ...byHand])];
     delete state.stopTree;
   }

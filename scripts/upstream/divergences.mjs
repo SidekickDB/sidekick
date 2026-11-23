@@ -22,7 +22,7 @@ export const DIVERGENCES = {
       "JS tests run offline in CI behind a network guard; networked suites only with SIDEKICK_E2E_API_URI",
     prs: [9],
     resolve:
-      'Keep the "Run tests" step\'s SIDEKICK_E2E_API_URI: \'\' and SIDEKICK_NETWORK_GUARD_ALLOW: \'\', the ' +
+      "Keep the \"Run tests\" step's SIDEKICK_E2E_API_URI: '' and SIDEKICK_NETWORK_GUARD_ALLOW: '', the " +
       "client test/bench scripts that run through scripts/with-network-guard.mjs, and the e2e helpers that " +
       "skip without SIDEKICK_E2E_API_URI and have no default host. A new upstream e2e suite must be gated the " +
       "same way (skip unless SIDEKICK_E2E_API_URI is set, pass it explicitly to every client).",
@@ -64,8 +64,8 @@ export const DIVERGENCES = {
     prs: [4, 14],
     resolve:
       "Keep the `storage` (RustFS) service, STORAGE_* variables with MINIO_* fallbacks, the createbuckets " +
-      "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep \"no default " +
-      'outside tests" for buckets, ARNs and sender addresses. Port upstream\'s new settings into that form.',
+      'CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep "no default ' +
+      "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
   "own-fixes": {
     title:

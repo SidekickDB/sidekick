@@ -273,7 +273,10 @@ test("path forms: our packages renamed, third-party kept, unknown reported", () 
     "COPY node_modules/@sidekickdb/react ./r\n",
   );
   assert.equal(
-    norm(f, "join(dir, 'node_modules', '@instantdb', 'react', 'package.json')\n"),
+    norm(
+      f,
+      "join(dir, 'node_modules', '@instantdb', 'react', 'package.json')\n",
+    ),
     "join(dir, 'node_modules', '@sidekickdb', 'react', 'package.json')\n",
   );
   for (const t of [
@@ -284,7 +287,10 @@ test("path forms: our packages renamed, third-party kept, unknown reported", () 
     assert.deepEqual(scanLeftovers(f, t), []);
   }
   const cases = [
-    ["join(dir, 'node_modules', '@instantdb', 'newpkg')\n", "scope-path-segment"],
+    [
+      "join(dir, 'node_modules', '@instantdb', 'newpkg')\n",
+      "scope-path-segment",
+    ],
     ["x node_modules/@instantdb/newpkg/index.js\n", "unknown-scoped-package"],
     ["ls node_modules/@instantdb\n", "scope-directory"],
   ];
@@ -300,7 +306,10 @@ test("path forms: our packages renamed, third-party kept, unknown reported", () 
 test("guards protect only the wire token, not the rest of the line", () => {
   const f = "client/packages/x/src/a.ts";
   assert.equal(
-    norm(f, "h({ 'X-Instant-Source': 'instant-cli' }); import('@instantdb/core');\n"),
+    norm(
+      f,
+      "h({ 'X-Instant-Source': 'instant-cli' }); import('@instantdb/core');\n",
+    ),
     "h({ 'X-Instant-Source': 'instant-cli' }); import('@sidekickdb/core');\n",
   );
   assert.equal(
