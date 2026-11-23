@@ -265,3 +265,65 @@ test("CRLF line endings are preserved", () => {
     "a @sidekickdb/core\r\nb\r\n",
   );
 });
+
+test("path forms: our packages renamed, third-party kept, unknown reported", () => {
+  const f = "client/packages/x/src/a.ts";
+  assert.equal(
+    norm(f, "COPY node_modules/@instantdb/react ./r\n"),
+    "COPY node_modules/@sidekickdb/react ./r\n",
+  );
+  assert.equal(
+    norm(f, "join(dir, 'node_modules', '@instantdb', 'react', 'package.json')\n"),
+    "join(dir, 'node_modules', '@sidekickdb', 'react', 'package.json')\n",
+  );
+  for (const t of [
+    "alias: { es: 'node_modules/@instantdb/eventsource' }\n",
+    "join(dir, 'node_modules', '@instantdb', 'eventsource')\n",
+  ]) {
+    assert.equal(norm(f, t), t);
+    assert.deepEqual(scanLeftovers(f, t), []);
+  }
+  const cases = [
+    ["join(dir, 'node_modules', '@instantdb', 'newpkg')\n", "scope-path-segment"],
+    ["x node_modules/@instantdb/newpkg/index.js\n", "unknown-scoped-package"],
+    ["ls node_modules/@instantdb\n", "scope-directory"],
+  ];
+  for (const [t, id] of cases) {
+    assert.equal(norm(f, t), t);
+    assert.deepEqual(
+      scanLeftovers(f, t).map((l) => l.id),
+      [id],
+    );
+  }
+});
+
+test("guards protect only the wire token, not the rest of the line", () => {
+  const f = "client/packages/x/src/a.ts";
+  assert.equal(
+    norm(f, "h({ 'X-Instant-Source': 'instant-cli' }); import('@instantdb/core');\n"),
+    "h({ 'X-Instant-Source': 'instant-cli' }); import('@sidekickdb/core');\n",
+  );
+  assert.equal(
+    norm(f, "const ua = `instant-cli/${v}`; // see npx instant-cli push\n"),
+    "const ua = `instant-cli/${v}`; // see npx @sidekickdb/cli push\n",
+  );
+  // A leftover on a guarded line is still reported.
+  const t = "new BroadcastChannel('@instantdb'); // Use instant-cli here\n";
+  assert.equal(norm(f, t), t);
+  assert.deepEqual(
+    scanLeftovers(f, t).map((l) => l.id),
+    ["cli-name"],
+  );
+});
+
+test("session versions keys are kept for several value shapes", () => {
+  const f = "client/packages/newfw/src/a.ts";
+  for (const t of [
+    "  '@instantdb/newfw': version,\n",
+    "  '@instantdb/core': coreVersion,\n",
+    "  '@instantdb/core': pkg.version,\n",
+    "  '@instantdb/core': '1.2.3',\n",
+  ]) {
+    assert.equal(norm(f, t), t);
+  }
+});

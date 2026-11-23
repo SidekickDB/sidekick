@@ -96,24 +96,50 @@ function toPosix(file) {
 }
 
 // ---------------------------------------------------------------------------
-// Guards: a line matching any of these is a wire identifier or an internal
-// key and is left alone wherever it appears, including in new upstream files.
+// Guards: wire identifiers and internal keys that keep an old name wherever
+// they appear, including in new upstream files. Only the matched text is
+// protected (masked while the rules run), so other old names on the same
+// line are still renamed or reported.
 
-export const LINE_GUARDS = [
-  // HTTP header values and user agents sent to the server.
-  { re: /X-Instant-Source/, why: "X-Instant-Source header value" },
-  { re: /User-Agent|userAgent/, why: "User-Agent header value" },
-  { re: /instant-cli-version/, why: "instant-cli-version header" },
-  // Effect service tags such as 'instant-cli/new/context/authToken'.
-  { re: /Context\.Tag\(|['"`]instant-cli\/new\//, why: "internal Effect tag" },
-  // Cross-tab runtime channel name.
-  { re: /BroadcastChannel\(/, why: "BroadcastChannel name" },
-  // Session `versions` keys, read by server/src/instant/reactive/session.clj.
+export const GUARDS = [
+  // HTTP header values sent to the server.
   {
-    re: /['"]@instantdb\/[\w-]+['"]\s*:\s*\w*[vV]ersion\b/,
+    re: /(['"`])X-Instant-Source\1\s*[:,]\s*(['"`])[^'"`]*\2/g,
+    why: "X-Instant-Source header value",
+  },
+  // CLI User-Agent `instant-cli/<version>`.
+  { re: /\binstant-cli\/(?=\$\{|\d|<)/g, why: "User-Agent value" },
+  { re: /\binstant-cli-version\b/g, why: "instant-cli-version header" },
+  // Effect service tags such as 'instant-cli/new/context/authToken'.
+  { re: /(['"`])instant-cli\/new\/[^'"`]*\1/g, why: "internal Effect tag" },
+  // Cross-tab runtime channel name.
+  {
+    re: /BroadcastChannel\(\s*(['"`])@instantdb\1\s*\)/g,
+    why: "BroadcastChannel name",
+  },
+  // Session `versions` keys, read by server/src/instant/reactive/session.clj:
+  // '@instantdb/<pkg>': version / coreVersion / pkg.version / '1.2.3'.
+  // check.mjs also fails if the set of these keys changes.
+  {
+    re: /(['"])@instantdb\/[\w-]+\1(?=\s*:\s*(?:[\w.]*[vV]ersion\b|(['"`])\d+\.\d+))/g,
     why: "session versions key (wire protocol)",
   },
 ];
+
+const MASK_RE = /\u0000(\d+)\u0000/g;
+
+/** Replace guarded spans with placeholders no rule can match. */
+function mask(line) {
+  const saved = [];
+  let masked = line;
+  for (const g of GUARDS) {
+    masked = masked.replace(g.re, (m) => {
+      saved.push(m);
+      return `\u0000${saved.length - 1}\u0000`;
+    });
+  }
+  return { masked, unmask: (t) => t.replace(MASK_RE, (_m, n) => saved[Number(n)]) };
+}
 
 // ---------------------------------------------------------------------------
 // Allowlist: specific lines in specific files that keep an old name. Matched
@@ -166,7 +192,6 @@ for (const [p, re, why] of ALLOWLIST) {
 }
 
 function lineIsProtected(file, line) {
-  for (const g of LINE_GUARDS) if (g.re.test(line)) return g.why;
   for (const a of ALLOW_BY_PATH.get(file) || [])
     if (a.re.test(line)) return a.why;
   return null;
@@ -219,12 +244,10 @@ const COMMON_RULES = [
     re: /@instantdb(\\?\/)([a-z0-9]+(?:-[a-z0-9]+)*)/g,
     to: scopedReplacer,
   },
-  {
-    id: "scope-directory",
-    // node_modules/@instantdb (the scope directory itself)
-    re: /node_modules\/@instantdb(?=$|[\s'"`/)])/g,
-    to: "node_modules/@sidekickdb",
-  },
+  // node_modules/@instantdb/<pkg> is handled by "scoped-package" above,
+  // which knows which packages are ours. The bare scope directory
+  // (node_modules/@instantdb) is ambiguous, because it also holds the
+  // third-party @instantdb/eventsource, so it is reported, not rewritten.
   {
     id: "cli-runner-pkg",
     // pnpm dlx / pnpx / bunx need the binary name because the package
@@ -282,9 +305,12 @@ const COMMON_RULES = [
   },
   {
     id: "scope-path-segment",
-    // join(dir, 'node_modules', '@instantdb', 'react')
-    re: /((['"])node_modules\2,\s*)(['"])@instantdb\3/g,
-    to: "$1$3@sidekickdb$3",
+    // join(dir, 'node_modules', '@instantdb', 'react'): only when the next
+    // segment is one of our packages. Third-party and unknown packages are
+    // left alone (unknown ones are reported as leftovers).
+    re: /((['"])node_modules\2,\s*)(['"])@instantdb\3(\s*,\s*)(['"])([a-z0-9]+(?:-[a-z0-9]+)*)\5/g,
+    to: (m, pre, _q1, q, sep, q2, name) =>
+      SCOPED.has(name) ? `${pre}${q}@sidekickdb${q}${sep}${q2}${name}${q2}` : m,
   },
   {
     id: "cli-install",
@@ -468,6 +494,9 @@ export function normalizeText(file, text) {
   const out = lines.map((line, i) => {
     if (!/instantdb|instant-cli|instant-app/.test(line)) return line;
     if (lineIsProtected(file, line)) return line;
+    const orig = line;
+    const { masked, unmask } = mask(line);
+    line = masked;
     const applicable = rules.filter((r) => {
       if (!sections) return true;
       if (r.id === "pkg-dep-cli") return DEP_SECTIONS.has(sections[i]);
@@ -499,12 +528,12 @@ export function normalizeText(file, text) {
         last = m.index + m[0].length;
       }
     }
-    cur += apply(line.slice(last), false);
-    if (cur !== line) {
+    cur = unmask(cur + apply(line.slice(last), false));
+    if (cur !== orig) {
       changes.push({
         line: i + 1,
         rule: [...applied].join("+"),
-        before: line.trimEnd(),
+        before: orig.trimEnd(),
         after: cur.trimEnd(),
       });
     }
@@ -552,10 +581,29 @@ const LEFTOVER_CHECKS = [
   },
   {
     id: "bare-scope",
-    re: /(['"`])@instantdb\1/g,
+    // A quoted '@instantdb' scope, unless the next path segment names a
+    // third-party package (join(..., '@instantdb', 'eventsource')).
+    re: /(['"`])@instantdb\1(?!\s*,\s*(['"])([a-z0-9-]+)\2)/g,
     test: () => true,
     hint: () =>
       "bare '@instantdb' scope: '@sidekickdb' if it means our packages",
+  },
+  {
+    id: "scope-path-segment",
+    // join(..., '@instantdb', '<pkg>') with a package that is neither ours
+    // nor known third-party.
+    re: /(['"`])@instantdb\1\s*,\s*(['"])([a-z0-9]+(?:-[a-z0-9]+)*)\2/g,
+    test: (m) => !SCOPED.has(m[3]) && !THIRD_PARTY.has(m[3]),
+    hint: (m) =>
+      `path to @instantdb/${m[3]}, which is not in the rename map: add it to SCOPED_PACKAGES or THIRD_PARTY_SCOPED in scripts/upstream/rename.mjs`,
+  },
+  {
+    id: "scope-directory",
+    // node_modules/@instantdb on its own (no package after it).
+    re: /node_modules\/@instantdb(?![\\/\w-])/g,
+    test: () => true,
+    hint: () =>
+      "the bare node_modules/@instantdb scope directory also holds third-party @instantdb/eventsource; point it at the package you mean",
   },
   {
     id: "cli-name",
@@ -600,8 +648,9 @@ export function scanLeftovers(file, text) {
   splitLines(text).forEach((line, i) => {
     if (!/instantdb|instant-cli|instant-app/.test(line)) return;
     if (lineIsProtected(file, line)) return;
+    const scan = mask(line).masked;
     for (const c of LEFTOVER_CHECKS) {
-      for (const m of line.matchAll(c.re)) {
+      for (const m of scan.matchAll(c.re)) {
         if (c.test(m, file)) {
           found.push({
             line: i + 1,

@@ -115,6 +115,9 @@ export function collectFiles(o, root) {
   for (const f of o.files) {
     const abs = path.resolve(f);
     const rel = path.relative(root, abs).split(path.sep).join("/");
+    if (rel === "" || rel.startsWith("../") || rel === ".." || path.isAbsolute(rel)) {
+      throw new Error(`refusing a path outside the repository: ${f}`);
+    }
     if (fs.existsSync(abs) && fs.statSync(abs).isDirectory()) {
       files.push(
         ...lines(
@@ -153,7 +156,19 @@ export function normalizeFiles(
       continue;
     }
     if (isBinary(buf)) continue;
-    const text = buf.toString("utf8");
+    let text;
+    try {
+      text = new TextDecoder("utf-8", { fatal: true }).decode(buf);
+    } catch {
+      // Not UTF-8: rewriting would re-encode the whole file. Report instead.
+      if (/instantdb|instant-cli|instant-app/.test(buf.toString("latin1"))) {
+        result.leftovers.push({
+          file,
+          items: [{ line: 1, id: "not-utf8", text: file, hint: "not UTF-8; rename it by hand" }],
+        });
+      }
+      continue;
+    }
     const { text: next, changes } = normalizeText(file, text);
     if (changes.length) {
       result.changed.push({ file, changes });
