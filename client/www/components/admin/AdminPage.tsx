@@ -5,7 +5,7 @@ import { capitalize } from 'lodash';
 import { ReactNode, useContext, useState } from 'react';
 import { v4 } from 'uuid';
 
-import config from '@/lib/config';
+import config, { isSelfHosted } from '@/lib/config';
 import { TokenContext } from '@/lib/contexts';
 import { jsonFetch, jsonMutate } from '@/lib/fetch';
 import { errorToast, successToast } from '@/lib/toast';
@@ -39,6 +39,7 @@ import { Workspace } from '@/lib/hooks/useWorkspace';
 import Link from 'next/link';
 import { formatCredit } from '../dash/org-management/OrgBilling';
 import { messageFromInstantError } from '@/lib/errors';
+import { ActivateSelfHostedPlanButton } from '@/components/dash/ActivateSelfHostedPlan';
 
 // A top-level section header: bold title plus an optional one-line muted
 // description. This is where the page's hierarchy lives.
@@ -467,7 +468,19 @@ export function Admin({
               </Callout>
             ) : null}
 
-            {!canAddMembers ? (
+            {!canAddMembers && isSelfHosted ? (
+              <Callout>
+                <FieldHint>
+                  The Pro plan is included with this self-hosted instance.
+                  Activate it to invite teammates to this app.
+                </FieldHint>
+                <div className="flex flex-col items-center gap-2">
+                  <ActivateSelfHostedPlanButton
+                    target={{ type: 'app', appId: app.id }}
+                  />
+                </div>
+              </Callout>
+            ) : !canAddMembers ? (
               <Callout>
                 <FieldHint>
                   Upgrade to a paid plan to invite teammates to this app.

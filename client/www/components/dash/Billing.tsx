@@ -5,7 +5,7 @@ import config, { isSelfHosted, stripeKey } from '@/lib/config';
 import { TokenContext } from '@/lib/contexts';
 import { jsonFetch } from '@/lib/fetch';
 import { AppsSubscriptionResponse, InstantIssue } from '@/lib/types';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 import { useContext, useRef, useState } from 'react';
 import { Loading, ErrorMessage } from '@/components/dash/shared';
 import { errorToast } from '@/lib/toast';

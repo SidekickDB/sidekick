@@ -182,7 +182,16 @@ const mainTabs: Tab<MainTabId>[] = [
     minRole: 'admin',
     icon: makeIcon(ShieldCheckIcon),
   },
-  { id: 'billing', title: 'Billing', icon: makeIcon(CreditCardIcon) },
+  // Self-hosted dashboards have no billing.
+  ...(isSelfHosted
+    ? []
+    : [
+        {
+          id: 'billing' as const,
+          title: 'Billing',
+          icon: makeIcon(CreditCardIcon),
+        },
+      ]),
   { id: 'oauth-apps', title: 'OAuth Apps', icon: makeIcon(CubeIcon) },
 ];
 
@@ -1042,7 +1051,9 @@ function DashboardContent({
           nav={nav}
           workspace={workspace}
         />
-      ) : tab === 'billing' && isMinRole('collaborator', role) ? (
+      ) : tab === 'billing' &&
+        !isSelfHosted &&
+        isMinRole('collaborator', role) ? (
         <Billing appId={appId} />
       ) : tab === 'oauth-apps' ? (
         <OAuthApps appId={appId} />
