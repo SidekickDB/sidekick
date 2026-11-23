@@ -14,7 +14,7 @@
    (java.nio.charset StandardCharsets)
    (java.time Duration Instant)
    (java.util ArrayList Collection List)
-   (java.util.concurrent Callable ExecutionException ExecutorService TimeUnit)
+   (java.util.concurrent Callable ExecutorService TimeUnit)
    (java.util.function Predicate)
    (javax.net.ssl SSLException)
    (okhttp3 ConnectionPool Dispatcher Dns FormBody$Builder Headers HttpUrl MediaType OkHttpClient OkHttpClient$Builder Request$Builder RequestBody Response)
@@ -71,17 +71,18 @@
 
 (defn resolve-hostname
   "Resolves with the DoH clients, or with the system resolver when there are
-   none. Falls back to the system resolver when every DoH lookup fails, e.g.
-   when the DoH endpoints are unreachable."
+   none (INSTANT_DNS_OVER_HTTPS_URLS=system).
+
+   A failed DoH lookup is final: it never falls back to the system resolver.
+   Public DoH cannot resolve names that exist only inside the network
+   (/etc/hosts, search domains, Docker's embedded DNS, private zones), and
+   that is part of the SSRF protection. A fallback would let a user-supplied
+   URL reach such a name whenever DoH answers NXDOMAIN or is unreachable.
+   The system resolver is used only when the operator chooses it."
   ^List [^ExecutorService executor dns-clients hostname]
   (if (empty? dns-clients)
     (system-dns-lookup hostname)
-    (try
-      (race-dns-resolve executor dns-clients hostname)
-      (catch ExecutionException e
-        (tracer/record-exception-span! e {:name "webhook-sender/dns-over-https-failed"
-                                          :attributes {:hostname hostname}})
-        (system-dns-lookup hostname)))))
+    (race-dns-resolve executor dns-clients hostname)))
 
 (defn make-dns-clients [executor urls]
   (mapv (fn [url]

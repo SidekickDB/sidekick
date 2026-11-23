@@ -119,4 +119,11 @@
            (config/parse-dns-over-https-urls "https://doh.example.com/dns-query")))
     (is (= ["https://a.example/dns-query" "https://b.example/dns-query"]
            (config/parse-dns-over-https-urls
-            " https://a.example/dns-query, ,https://b.example/dns-query ")))))
+            " https://a.example/dns-query, ,https://b.example/dns-query "))))
+  (testing "a value with no endpoint is rejected, not read as system"
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                          #"INSTANT_DNS_OVER_HTTPS_URLS"
+                          (config/parse-dns-over-https-urls ",")))
+    (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                          #"INSTANT_DNS_OVER_HTTPS_URLS"
+                          (config/parse-dns-over-https-urls " , , ")))))

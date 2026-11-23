@@ -34,6 +34,27 @@ storage variables to your AWS access key ID and secret access key.
 missing. It does not generate secrets, because a new value on every deploy
 would not match the existing volumes.
 
+### Upgrading an existing deployment
+
+- Keep the values your volumes were created with. Postgres reads
+  `POSTGRES_PASSWORD` only when it initializes an empty data volume, so a
+  newly generated password does not match an existing database and the server
+  fails with `password authentication failed`. If you never set these
+  variables, the old compose files used `pass` for Postgres and `rustfsadmin`
+  for both storage keys: put those values in `.env` first so the stack starts,
+  then rotate.
+- To rotate the Postgres password, change it in Postgres first
+  (`ALTER USER ... PASSWORD ...`), then set the same value in `.env` and
+  recreate the server.
+- An `.env` copied from an older `.env.example` may still hold the
+  placeholders `pleasegenerateapasswordhere` and `pleasegenerateauserhere`.
+  They are not blank, so the compose files accept them. Replace them.
+- The server container now has a memory limit (`SERVER_MEMORY_LIMIT`, default
+  `2g`) and the heap is 60% of it. Before, there was no limit and the heap
+  could grow to a quarter of the host's memory. On a host with more than about
+  5 GB of memory the new default is a smaller heap than you had: raise
+  `SERVER_MEMORY_LIMIT` to keep it. See [Server memory](#server-memory).
+
 ## Local development
 
 `docker-compose.local.yml` is for local development only. It builds the server
@@ -58,6 +79,12 @@ they cap the size of cached NIO buffers and return freed native memory to the
 OS every 60 seconds. Raise `SERVER_MEMORY_LIMIT` on a bigger host; setting
 `JAVA_OPTS` replaces all three defaults, so repeat the ones you want to keep.
 
+Direct (off-heap) buffer memory is not capped separately: the JVM allows it to
+grow as large as the heap, so heap plus direct memory can in principle exceed
+the container limit, and the kernel then kills the container. If that happens,
+raise `SERVER_MEMORY_LIMIT`, or lower `-XX:MaxRAMPercentage` or add
+`-XX:MaxDirectMemorySize=...` in `JAVA_OPTS`.
+
 ## Startup and DNS
 
 The server only prefetches Google's OpenID configuration and signing keys at
@@ -66,13 +93,20 @@ startup when dashboard Google sign-in is configured
 fetched on first use, for example when an app uses Google sign-in.
 
 Outbound requests to user-supplied URLs (webhooks, OAuth discovery and keys)
-resolve hostnames with DNS-over-HTTPS through Cloudflare and Google by default,
-and fall back to the system resolver when both fail (after up to 10 seconds
-when they time out). Set
-`INSTANT_DNS_OVER_HTTPS_URLS` to a comma-separated list of DoH endpoints to use
-your own, or to `system` to use only the system resolver, for example on a
-network that blocks those endpoints. Private and loopback addresses are
-rejected in every mode.
+resolve hostnames with DNS-over-HTTPS through Cloudflare and Google by default.
+Set `INSTANT_DNS_OVER_HTTPS_URLS` to a comma-separated list of DoH endpoints to
+use your own, or to `system` to use only the system resolver. Private and
+loopback addresses are rejected in every mode.
+
+There is no automatic fallback from DoH to the system resolver. Public DoH
+cannot resolve names that exist only inside your network (`/etc/hosts`, search
+domains, Docker's embedded DNS, private zones), which keeps app owners from
+pointing a webhook or an OAuth provider at an internal service by name. On a
+network that blocks the DoH endpoints, those requests fail with a DNS error
+after up to 10 seconds; set `INSTANT_DNS_OVER_HTTPS_URLS=system` there. With
+`system`, internal names resolve, and the address filter is the only
+protection left: it rejects private, loopback and link-local addresses, but
+not internal services that use public address space.
 
 ## Object storage
 
