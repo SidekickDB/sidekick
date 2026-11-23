@@ -19,6 +19,13 @@ ships no `NOTICE` file. SidekickDB's own changes are listed under
 [Intentional divergences](#intentional-divergences) below, and each one is in the
 git history with the pull request that made it.
 
+Section 4(b) of the licence asks that modified files carry prominent notices
+stating that they were changed. SidekickDB has not added per-file notices so
+far: the changes are documented here and in the git history (every file's log
+shows which commits are SidekickDB's). Whether per-file notices should be added
+is an open decision for the maintainers; this is a description of the current
+state, not legal advice.
+
 ## How the fork relates to upstream
 
 - Upstream: `instantdb/instant`, branch `main`.
@@ -64,14 +71,17 @@ git config --worktree remote.upstream.pushurl DISABLED
 git config --worktree remote.upstream.tagopt --no-tags
 ```
 
-You need Node.js (the version CI uses) and pnpm. pnpm switches to the version
-pinned in `client/package.json` (`packageManager`) by itself. Docker is not needed
-for the routine.
+You need git, Node.js (the version CI uses) and pnpm. pnpm switches to the
+version pinned in `client/package.json` (`packageManager`) by itself. The sync
+uses pnpm to regenerate the lockfile (this installs `client/node_modules`, scripts
+disabled) and then the workspace's prettier from `client/node_modules`. Docker is
+not needed for the routine.
 
 ## The routine
 
-All tooling lives in [`scripts/upstream/`](scripts/upstream/) and has no
-dependencies beyond Node.js and git.
+All tooling lives in [`scripts/upstream/`](scripts/upstream/). The scripts use
+only Node.js built-ins and git; `sync.mjs` also calls pnpm and prettier as
+described below.
 
 | Script | What it does |
 |---|---|
@@ -164,12 +174,12 @@ must stay, add it to `ALLOWLIST` in `scripts/upstream/rename.mjs` in the same PR
 2. Build and test, offline where possible:
    - Clojure: run the server tests against a throwaway Postgres matching the
      service in `.github/workflows/clojure.yml`. CI runs them too.
-   - JS: `pnpm build-packages`, `pnpm build-sandbox` and `pnpm check-format` in
-     `client/`. Run the offline unit tests per package with
-     `pnpm exec vitest run` under a Node preload that blocks every non-loopback
-     connection (`NODE_OPTIONS=--require <guard>.cjs`). Do not run the e2e
-     projects, `pnpm test` or the `resumable-stream` tests: by default they create
-     apps on Instant's production API.
+   - JS: `pnpm build-packages`, `pnpm build-sandbox`, `pnpm check-format` and
+     `pnpm run test` in `client/`. Since PR #9 `pnpm run test` runs the offline
+     suites through `scripts/with-network-guard.mjs`, which blocks every
+     non-loopback connection and fails the run if anything tried. Leave
+     `SIDEKICK_E2E_API_URI` unset (the networked suites then skip) unless you
+     point it at a SidekickDB server you run; never at Instant's hosts.
    - Run `node --test scripts/upstream/*.test.mjs` if the tooling changed.
 3. Push the branch to `origin` (SidekickDB/sidekick only) and open a PR against
    `main` titled `Sync upstream instantdb/instant (<date>)`. Paste the report and
@@ -189,14 +199,23 @@ git diff --stat "$base" upstream/main                 # areas
 git switch --no-track -c "sync/upstream-$(date +%F)" origin/main
 git merge --no-ff --no-commit upstream/main
 git diff --name-only --diff-filter=U                  # conflicts
-# For each conflicted file, normalize the three stages and re-merge:
-#   git show :1:<f> | node scripts/upstream/normalize-rename.mjs --stdin --path <f> > base
-#   (same for :2: -> ours and :3: -> theirs)
-#   git merge-file -p --diff3 ours base theirs > <f>
+
+# For each conflicted file <f>, normalize the three stages outside the
+# repository and re-merge:
+t=$(mktemp -d)
+for s in 1 2 3; do
+  git show ":$s:<f>" | node scripts/upstream/normalize-rename.mjs --stdin --path "<f>" > "$t/$s"
+done
+git merge-file -p --diff3 "$t/2" "$t/1" "$t/3" > "<f>"   # exit 0: clean
+rm -rf "$t"
+git add -- "<f>"                                      # once it is resolved
+
 node scripts/upstream/normalize-rename.mjs --changed "$base..upstream/main" --lockfile never
 git checkout HEAD -- client/pnpm-lock.yaml && (cd client && pnpm install --ignore-scripts)
 node scripts/upstream/check.mjs --base HEAD
-git add -A && git commit                              # the merge commit
+git add -u                                            # tracked files only
+git status --short                                    # add new upstream files by name if any are untracked
+git commit                                            # the merge commit
 ```
 
 ## Intentional divergences
@@ -214,10 +233,9 @@ push elsewhere or write to upstream's services.
 - `.github/workflows/js.yml`: jobs `publish-docs`, `deploy-remote-mcp`,
   `publish-experimental-package`, `publish-packages`, `vercel-preview`,
   `vercel-prod-deploy` and `vercel-staging-deploy` have
-  `if: false && (<upstream condition>)`. The `build` job's **Run tests** step is
-  `if: false`, because the core, mcp and cli e2e suites and the resumable-stream
-  tests create apps on and connect to `api.instantdb.com`. CI has no JS network
-  guard: the step is disabled instead (`dd309ff5`).
+  `if: false && (<upstream condition>)`. PR #1 also disabled the `build` job's
+  **Run tests** step (`dd309ff5`); PR #9 re-enabled it behind the network guard
+  (next section).
 - `.github/workflows/clojure.yml`: jobs `publish-image` and `publish-eb` are
   disabled. The **Fetch timings** step is disabled. `clj-check` passes no secrets
   and sets `SAVE_TIMINGS: 'false'`.
@@ -235,45 +253,130 @@ changes. If upstream changes the condition of a disabled job, put the new
 condition inside `false && (...)`. A new job that publishes, deploys, uses
 secrets or write permissions gets the same treatment with a `# SidekickDB:`
 comment. A new publish-only workflow gets its triggers commented out. Never
-re-enable **Run tests** or **Fetch timings**.
+re-enable **Fetch timings**.
 
-### Dashboard decoupled from Instant services (PR #2)
+### JS tests offline in CI behind a network guard (PR #9)
+
+- `.github/workflows/js.yml`, `build` job, **Run tests** step: runs
+  `pnpm run test --continue` with `SIDEKICK_E2E_API_URI: ''`,
+  `SIDEKICK_NETWORK_GUARD_ALLOW: ''` and `TURBO_TELEMETRY_DISABLED: '1'`.
+- `client/scripts/network-guard.cjs` and `client/scripts/with-network-guard.mjs`:
+  the guard is preloaded into every Node process (and worker thread) of
+  `pnpm run test` / `pnpm run bench` (`client/package.json`). It refuses every
+  non-loopback connection and DNS lookup, always refuses `instantdb.com`, and
+  fails the run if anything was blocked. `client/turbo.json` passes the guard
+  variables through and no longer caches `test:ci`.
+- The networked suites (core browser e2e, cli, create-sidekick-app, mcp and
+  platform e2e, resumable-stream) run only when `SIDEKICK_E2E_API_URI` is set and
+  use only that URL; they have no default host. svelte, vue and components gained
+  a `test:ci` script.
+
+**Resolving:** keep the step's two empty variables and `pnpm run test`, the
+guarded `test`/`bench` scripts, and the e2e helpers that skip without
+`SIDEKICK_E2E_API_URI`. A new upstream e2e suite must be gated the same way.
+`check.mjs` fails if the step loses either variable or its command, or if the
+client `test`/`bench` script stops using the guard.
+
+### SDKs, CLI and MCP fail closed (PR #11)
+
+The JS packages have no default server any more: no `api.instantdb.com`, no
+`instantdb.com` dashboard, no localhost default.
+
+- core `init()` requires `apiURI` (`MissingApiURIError`) and derives
+  `websocketURI` from it (`client/packages/core/src/endpoints.ts`); the devtool
+  loads nothing without `devtool.dashURI`.
+- admin, platform (`PlatformApi`, OAuth helpers), webhooks and the components
+  `<Explorer>` require `apiURI`; resumable-stream falls back only to
+  `INSTANT_API_URI`.
+- CLI and create-sidekick-app need `INSTANT_CLI_API_URI` (or `apiURI` in
+  `instant.config.ts`, or `INSTANT_CLI_DEV` for localhost) and fail otherwise;
+  dashboard commands need `INSTANT_CLI_DASH_URI` / `dashURI`.
+- MCP uses `--api-url` or `INSTANT_API_URL`, and hosted mode requires it.
+- About 80 files under `client/packages/*` (sources, tests and READMEs), plus
+  `client/sandbox/react-nextjs/pages/play/explorer.tsx` and three dashboard
+  files that pass the URL explicitly.
+
+**Resolving:** keep SidekickDB's side of every endpoint default. If upstream adds
+a client, option or command that talks to a server, make it take the URL
+explicitly and fail without it. Never re-add a default pointing at
+`instantdb.com`. Every sync must re-check this: `check.mjs` fails on an Instant
+host added to `client/packages/*/src` or `bin` (outside tests and comments), and
+the core, admin, platform, resumable-stream, mcp and cli `apiURI`/`endpoints`
+tests must pass.
+
+### Dashboard decoupled from Instant services (PR #2, PR #14)
 
 The dashboard (`client/www`) contacted Instant-owned services at build time and
-from users' browsers.
+from users' browsers. PR #2 (32 files; paths below are under `client/www/`
+unless they start with `client/`):
 
-- **Berkeley Mono removed** (`f0acc6bd`): `client/www/next.config.js`
-  (`fetchFonts`), `app/layout.tsx`, `pages/_document.tsx`, `styles/globals.css`,
+- **Build-time fetches made opt-in, then removed** (`8faa256b`):
+  `next.config.js`, `lib/ogImage.tsx`.
+- **Berkeley Mono removed** (`f0acc6bd`): `next.config.js` (`fetchFonts`),
+  `app/layout.tsx`, `pages/_document.tsx`, `styles/globals.css`,
   `tailwind.config.js`, `lib/ogImage.tsx`, `.gitignore`,
-  `client/packages/components/src/style.css` and its `tailwind.config.cjs`. The
-  font was downloaded from `stopaio.s3.amazonaws.com`.
+  `client/packages/components/src/style.css` and
+  `client/packages/components/tailwind.config.cjs`. The font was downloaded from
+  `stopaio.s3.amazonaws.com`.
 - **GitHub star count removed** (`984dcb9b`): `fetchStarCount()` in
-  `next.config.js`, `lib/starCountContext.tsx`, `components/marketingUi.tsx`.
-- **Docs feedback, docs AI chat and GitHub webhook removed** (`a31322cd`):
-  `components/docs/RatingBox.tsx`, `components/chat/*`, `app/api/chat/route.ts`,
-  `app/api/github-webhook/route.ts`, `/intern/docs-feedback`, `/intern/chat` and
-  their components, `lib/intern/docs-feedback/analytics.ts`, and the
-  feedback-app client (`prodDB`) in `lib/intern/docs-feedback/db.ts`.
+  `next.config.js`, `components/marketingUi.tsx`; deleted
+  `lib/starCountContext.tsx`.
+- **Docs feedback, docs AI chat and GitHub webhook removed** (`a31322cd`).
+  Deleted: `app/api/chat/route.ts`, `app/api/github-webhook/route.ts`,
+  `app/intern/chat/{content,page}.tsx`, `components/chat/{ChatHistory,ChatWidget}.tsx`,
+  `components/docs/RatingBox.tsx`, the eight
+  `components/intern/docs-feedback/*.tsx` dashboards (admin-ratings-section,
+  ai-chat-usage-dashboard, analytics-dashboard, auth, chat-conversations-view,
+  feedback-pages, metrics-overview, page-drilldown),
+  `lib/intern/docs-feedback/analytics.ts`, `pages/intern/docs-feedback.tsx`.
+  Changed: `app/examples/[slug]/content.tsx`, `app/tutorial/content.tsx` (the
+  rating box mounts), `app/intern/content.tsx` (index entries),
+  `lib/intern/docs-feedback/db.ts` (the feedback-app client `prodDB` removed).
+
+PR #14, self-hosted dashboard: `loadStripe` comes from `@stripe/stripe-js/pure`
+and Stripe.js loads only when a checkout starts; billing tabs are hidden and
+"Activate … for free" replaces dead ends when self-hosted; "Continue with
+Google" shows only when configured (`dashboardGoogleOAuth`). Files:
+`client/Dockerfile.www`, `components/admin/AdminPage.tsx`,
+`components/dash/{ActivateSelfHostedPlan,Auth,Billing,Orgs}.tsx`,
+`components/dash/org-management/{Members,OrgBilling}.tsx`,
+`lib/config.ts`, `lib/config.selfHosted.test.ts`, `pages/dash/{index,org}.tsx`,
+and the `self-hosting/` compose files (variable passed to `www`).
 
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
-feedback app or the chat, drop that part. Take upstream's other changes.
+feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
+the self-hosted billing and Google-login conditions. Take upstream's other
+changes.
 
-### Upstream fix batch 1 (PR #3)
+### Upstream fixes taken early (PR #3, PR #10)
 
-Seven cherry-picks of open upstream PRs (instantdb/instant#2903, #2948, #2944,
-#2936, #2954, #2940, #2941, each with `Upstream-PR:` and `Upstream-Commit:`
-trailers) plus one SidekickDB follow-up (`f0c3e113`). Paths:
-`server/src/instant/{db/cel,db/datalog,db/permissioned_transaction,grouped_queue,reactive/invalidator}.clj`,
-`client/packages/core/src/Reactor.js`,
-`client/packages/react-common/src/useQuery.ts` and their tests.
+Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
+`Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
+
+- PR #3 (batch 1): instantdb/instant#2903, #2948, #2944, #2936, #2954, #2940,
+  #2941 and follow-up `f0c3e113`. Paths:
+  `server/src/instant/{db/cel,db/datalog,db/permissioned_transaction,grouped_queue,reactive/invalidator}.clj`,
+  `client/packages/core/src/Reactor.js`,
+  `client/packages/react-common/src/useQuery.ts` and their tests.
+- PR #10 (batch 2): instantdb/instant#2815 (both-cursor page queries), #2946
+  (`SameSite=None` OAuth state cookie), #2870 (tighter CSP, with
+  `style-src 'unsafe-inline'` added), #2876 (non-ASCII upload filenames), #2926
+  (smaller backup upload buffers), #2945 (bounded `logical_decoding_work_mem`,
+  with a follow-up that keeps the bound when `DATABASE_URL` has `options=`).
+  Paths: `server/src/instant/{admin/routes,backup,core,dash/routes,db/datalog,jdbc/wal,runtime/routes,storage/routes}.clj`,
+  `client/packages/core/src/StorageAPI.ts`, `client/packages/admin/src/index.ts`,
+  `client/packages/components/src/components/explorer/inner-explorer.tsx`,
+  `client/www/app/docs/http-api/page.md`, and their tests.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
 changed the file again later (PR #8 did for #2944's test) `sync.mjs` keeps
 SidekickDB's version. If upstream merged a different version, take upstream's
 and drop ours (and any test of ours that now duplicates upstream's). Otherwise
-keep ours and apply upstream's other changes. Re-run the affected tests.
+keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
+that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
+tests.
 
 ### Self-hosting defaults and RustFS (PR #4)
 
@@ -291,6 +394,8 @@ The self-hosted stack works without Instant infrastructure.
   `postmark.clj`, `sendgrid.clj` (no `instantdb.com` sender or reply-to
   defaults), and their tests.
 - `client/www/app/docs/self-hosting/vps/page.md`.
+- PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
+  compose files.
 
 **Resolving:** keep the `storage` service, the `STORAGE_*` variables with their
 fallbacks, the CORS rule, the checksum setting and the healthchecks. In server
@@ -328,7 +433,8 @@ Old names that stay on purpose (the allowlist and guards in
 
 Never renamed (excluded paths): `server/` (including `server/flags-config`),
 `self-hosting/`, `.github/`, `client/packages/python/`, `client/www/_posts/`,
-`client/www/_emails/{html,txt,markdown}/`, `LICENSE.md`, lockfiles (pnpm
+`client/www/_emails/{html,txt,markdown}/`, `LICENSE.md`, `UPSTREAM.md`,
+`scripts/upstream/`, lockfiles (pnpm
 regenerates `client/pnpm-lock.yaml`; the `examples/` lockfiles still resolve the
 published upstream packages and are left alone until `@sidekickdb/*` is
 published).
@@ -337,8 +443,16 @@ Replaying the normalizer over the tree before PR #7 reproduces PR #7 exactly in
 589 of the 630 files it changed besides `client/pnpm-lock.yaml`. The other 41
 are edits it is not meant to make: the added `bugs` fields, the CLI's
 legacy-compat code and its new test, two prettier rewraps, and prose that names
-the CLI. (This PR also fixes one place PR #7 missed, the escaped
-`@instantdb\/react` in `client/www/recipes.ts`.)
+the CLI. One place PR #7 missed, the escaped `@instantdb\/react` in
+`client/www/recipes.ts`, is fixed in its own PR; until it merges, `--all --check`
+on `main` reports exactly that file.
+
+Path forms are renamed only for our packages: `node_modules/@instantdb/react`
+and `join(..., 'node_modules', '@instantdb', 'react')` become `@sidekickdb`;
+`@instantdb/eventsource` paths are left alone; the bare
+`node_modules/@instantdb` directory and unknown packages are reported as
+leftovers. Guards mask only the protected token, so other old names on the same
+line are still renamed or reported.
 
 **Resolving:** `sync.mjs` re-merges conflicted files with the rename applied to
 all sides, so a remaining conflict is a real edit on both sides: keep both
@@ -348,16 +462,19 @@ hand. If upstream adds a package, add it to `SCOPED_PACKAGES` in
 `@instantdb/*` name), add the `repository`/`bugs`/`homepage` fields as in PR #7,
 and normalize again.
 
-### Test fixes (PR #1, PR #6, PR #8)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16)
 
-Fixes for tests that hung or flaked on 2-vCPU CI runners:
-`server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
-`server/test/instant/reactive/session_test.clj` (PR #6),
-`server/test/instant/custodian_test.clj` and
-`server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8).
+- Tests that hung or flaked on 2-vCPU CI runners:
+  `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
+  `server/test/instant/reactive/session_test.clj` (PR #6),
+  `server/test/instant/custodian_test.clj` and
+  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8).
+- PR #16: `server/src/instant/db/attr_sketch.clj` loads attr sketches on its
+  own virtual-thread executor instead of `ForkJoinPool.commonPool()`, with
+  `server/test/instant/db/attr_sketch_lookup_test.clj`.
 
-**Resolving:** keep SidekickDB's fix unless upstream fixed the same test; then
-take upstream's version. Take upstream's new tests as they are.
+**Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
+then take upstream's version. Take upstream's new tests as they are.
 
 ### Upstream sync tooling (this file's PR)
 
@@ -372,9 +489,12 @@ for the person reviewing the sync PR.
 
 | What | How |
 |---|---|
-| No workflow re-enables publish or deploy | `check.mjs` fails if a job or step that was disabled before the merge is enabled after it (it reads the disabled set from the pre-merge commit, so newly gated jobs stay protected), if a publish-only workflow regains a trigger, if any workflow gains a `schedule` or `pull_request_target` trigger, or if an enabled job uses repository secrets, `id-token`/`packages`/`contents: write`, publish or deploy tools, or Instant-owned hosts. New workflow files are flagged for review |
-| No new default that points at Instant-owned hosts | `check.mjs` lists every added line that mentions an `instantdb.com` host, `stopaio.s3.amazonaws.com` or an Instant S3 bucket, split into runtime code or config defaults, build-time files, and docs/tests. Review the first two groups; nothing there should be a default |
-| No new build-time or runtime contact with Instant services | The same list, plus the report's flag when `client/www/next.config.js` changes. Also look for new `init()` calls without an `apiURI` and new fetches in build scripts. Before building images, read `next.config.js` and the Dockerfiles |
+| No workflow re-enables publish or deploy | `check.mjs` fails if a job or step that was disabled before the merge is enabled after it (it reads the disabled set from the pre-merge commit, so newly gated jobs stay protected), if a job condition is `false \|\| ...`, if a publish-only workflow regains a trigger, if any workflow gains a `schedule` or `pull_request_target` trigger, or if an enabled job, a workflow-level `env`/`permissions` block, or a local action (`./.github/actions/*`) used by an enabled job uses repository secrets, `secrets: inherit`, `id-token`/`packages`/`contents: write`, publish or deploy tools, or Instant-owned hosts. New workflow files are flagged for review |
+| JS tests stay behind the network guard (PR #9) | `check.mjs` fails if **Run tests** loses `SIDEKICK_E2E_API_URI: ''`, `SIDEKICK_NETWORK_GUARD_ALLOW: ''` or `pnpm run test`, or if the client `test`/`bench` scripts stop running through `scripts/with-network-guard.mjs` |
+| SDKs, CLI and MCP still fail closed (PR #11) | `check.mjs` fails on an Instant host added to `client/packages/*/src` or `bin` outside tests and comments (`--accept-hosts` once a person has confirmed it is only a link). Also run the `apiURI`/`endpoints` tests and look for new clients or commands that talk to a server without a required URL |
+| No new default that points at Instant-owned hosts | `check.mjs` lists every added line (outside comments) that mentions an `instantdb.com` host, `stopaio.s3.amazonaws.com` or an Instant S3 bucket, split into runtime code or config defaults, build-time files, and docs/tests. Instant-domain email addresses outside docs and tests (sender or contact defaults such as the ones PR #4 removed) are listed in their own section; in docs and tests they are listed with the hosts. Review everything outside docs/tests; nothing there should be a default |
+| No new build-time or runtime contact with Instant services | The same lists, plus the report's flag when `client/www/next.config.js` changes. Also look for new fetches in build scripts and Dockerfiles before building images |
+| Wire `versions` keys unchanged | `check.mjs` fails if a session `versions` key (`'@instantdb/<pkg>': version` in `client/packages/*/src`) disappears or appears under `@sidekickdb/` |
 | Rename leftovers | `check.mjs` fails if a changed file still needs the normalizer or has a leftover (an old name the rules do not rewrite and the allowlist does not cover) |
 | LLM rules copies | `client/www/lib/intern/instant-rules.md` and `client/packages/create-instant-app/template/rules/AGENTS.md` must stay byte-identical |
 | Conflict markers | none left in changed files |
@@ -408,8 +528,8 @@ instructions.
 - Upstream adds or renames a package: update `SCOPED_PACKAGES` in
   `scripts/upstream/rename.mjs`.
 - An old name must stay somewhere new: add an `ALLOWLIST` entry (path, a regex
-  for the line, the reason). Prefer a `LINE_GUARDS` entry if it is a wire
-  identifier that can appear anywhere.
+  for the line, the reason). Prefer a `GUARDS` entry (a regex for just the
+  protected token) if it is a wire identifier that can appear anywhere.
 - A new intentional divergence: add its PR to `PR_CATEGORY` and `DIVERGENCES` in
   `scripts/upstream/divergences.mjs` and a section here. Unlisted PRs are still
   attributed, under their own title.
@@ -418,4 +538,6 @@ instructions.
   `scripts/upstream/check.mjs`.
 - After changing the rules, run `node --test scripts/upstream/*.test.mjs` and
   `node scripts/upstream/normalize-rename.mjs --all --check`. On `main` the
-  second must report 0 files and no leftovers.
+  second must report no leftovers and no files to change (apart from
+  `client/www/recipes.ts` until its fix merges). CI does not run these tests
+  yet; run them by hand.

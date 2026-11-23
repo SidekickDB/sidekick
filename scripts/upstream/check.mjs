@@ -11,17 +11,24 @@
 // working tree.
 //
 // Fails (exit 1) when:
-//   - a disabled publish/deploy job or step is enabled again, a publish-only
-//     workflow regains a trigger, a new schedule/pull_request_target trigger
-//     appears, or an enabled job uses secrets, write permissions, publish or
-//     deploy tools, or Instant-owned hosts;
+//   - a publish/deploy job or step that was disabled before the merge is
+//     enabled, a condition is `false || ...`, a publish-only workflow regains
+//     a trigger, a schedule/pull_request_target trigger appears, or an enabled
+//     job, a workflow-level block or a local action it uses relies on secrets,
+//     `secrets: inherit`, write permissions, publish or deploy tools, or
+//     Instant-owned hosts;
+//   - the JS "Run tests" step or the client test/bench scripts leave the
+//     network guard (PR #9);
+//   - an Instant host is added to SDK/CLI/MCP source (PR #11; --accept-hosts
+//     once a person confirmed it is only a link);
+//   - a session `versions` key is renamed or removed;
 //   - files still need the rename normalizer, or rename leftovers remain
 //     (unless --allow-leftovers);
 //   - the two copies of the LLM rules differ;
 //   - conflict markers remain in changed files.
 // Lists for review (does not fail): added lines that mention Instant-owned
-// hosts, split into runtime/config defaults, build-time files, and
-// docs/tests.
+// hosts (runtime/config, build-time, docs/tests), and Instant-domain email
+// addresses outside docs and tests.
 
 import fs from "node:fs";
 import path from "node:path";

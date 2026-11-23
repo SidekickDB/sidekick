@@ -9,45 +9,70 @@ import { git, lines } from "./git.mjs";
 export const DIVERGENCES = {
   "ci-lockdown": {
     title:
-      'CI lockdown: publish/deploy jobs disabled, JS "Run tests" disabled, no secrets or timing writes, job timeouts, detect_changes merge base',
+      "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base",
     prs: [1, 5],
     resolve:
       'Keep every line marked "# SidekickDB:" / "// SidekickDB:". Take upstream\'s other changes. ' +
       "A new or changed publish/deploy job gets `if: false && (<upstream condition>)`; a new publish-only " +
-      'workflow gets its triggers commented out (workflow_dispatch only). Never re-enable "Run tests" or ' +
-      '"Fetch timings". Then run scripts/upstream/check.mjs.',
+      'workflow gets its triggers commented out (workflow_dispatch only). Never re-enable "Fetch timings". ' +
+      "Then run scripts/upstream/check.mjs.",
+  },
+  "js-test-guard": {
+    title:
+      "JS tests run offline in CI behind a network guard; networked suites only with SIDEKICK_E2E_API_URI",
+    prs: [9],
+    resolve:
+      'Keep the "Run tests" step\'s SIDEKICK_E2E_API_URI: \'\' and SIDEKICK_NETWORK_GUARD_ALLOW: \'\', the ' +
+      "client test/bench scripts that run through scripts/with-network-guard.mjs, and the e2e helpers that " +
+      "skip without SIDEKICK_E2E_API_URI and have no default host. A new upstream e2e suite must be gated the " +
+      "same way (skip unless SIDEKICK_E2E_API_URI is set, pass it explicitly to every client).",
+  },
+  "fail-closed": {
+    title:
+      "SDKs, CLI and MCP fail closed: no default server URL (no api.instantdb.com, no localhost default)",
+    prs: [11],
+    resolve:
+      "Keep SidekickDB's side: init()/clients require apiURI (websocketURI derived from it), the CLI needs " +
+      "INSTANT_CLI_API_URI or instant.config.ts, MCP needs --api-url/INSTANT_API_URL, the devtool loads " +
+      "nothing without devtool.dashURI. If upstream adds a client, option or command that reaches a server, " +
+      "make it take the URL explicitly and fail without it. Never re-add a default that points at " +
+      "instantdb.com. check.mjs fails on Instant hosts added to package sources.",
   },
   dashboard: {
     title:
-      "Dashboard decoupled from Instant services (Berkeley Mono, GitHub star count, docs feedback, docs AI chat and GitHub webhook removed)",
-    prs: [2],
+      "Dashboard decoupled from Instant services (Berkeley Mono, star count, docs feedback/AI chat/GitHub webhook removed; self-hosted: no Stripe.js, billing hidden)",
+    prs: [2, 14],
     resolve:
       "Keep the removals. If upstream changed a file SidekickDB deleted, keep it deleted. If upstream " +
       "re-introduces the font (stopaio.s3.amazonaws.com), the star count, the feedback app or the chat, drop " +
-      "that part. Take upstream's other changes in these files.",
+      "that part. Keep loadStripe from @stripe/stripe-js/pure (loaded only at checkout) and the self-hosted " +
+      "billing/Google-login conditions. Take upstream's other changes in these files.",
   },
-  "fix-batch-1": {
-    title: "Upstream fix batch 1 (sync correctness and quick wins)",
-    prs: [3],
+  "upstream-fixes": {
+    title:
+      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2) and their follow-ups",
+    prs: [3, 10],
     resolve:
-      "Upstream may have fixed the same issue its own way. If so, take upstream's fix and drop ours (and a " +
-      "test that now duplicates upstream's); otherwise keep ours and apply upstream's other changes. Re-run " +
-      "the affected Clojure/JS tests.",
+      "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
+      "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
+      "take upstream's and drop ours (and a test of ours that now duplicates upstream's), but keep a " +
+      "SidekickDB follow-up that upstream lacks. Re-run the affected tests.",
   },
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks",
-    prs: [4],
+    prs: [4, 14],
     resolve:
       "Keep the `storage` (RustFS) service, STORAGE_* variables with MINIO_* fallbacks, the createbuckets " +
-      'CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep "no default ' +
-      "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
+      "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep \"no default " +
+      'outside tests" for buckets, ARNs and sender addresses. Port upstream\'s new settings into that form.',
   },
-  "test-fixes": {
-    title: "Test fixes for flaky or hanging tests on 2-vCPU CI runners",
-    prs: [6, 8],
+  "own-fixes": {
+    title:
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool",
+    prs: [6, 8, 16],
     resolve:
-      "Keep SidekickDB's fix unless upstream fixed the same test; then take upstream's version. Take " +
+      "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are.",
   },
   rename: {
@@ -61,17 +86,22 @@ export const DIVERGENCES = {
   },
 };
 
-// PR number -> divergence key. PR #1 carries the CI lockdown and one test
-// fix, so it is split by path.
+// PR number -> divergence key. Some PRs carry two concerns and are split by
+// path.
 const PR_CATEGORY = {
-  1: (file) => (file.startsWith(".github/") ? "ci-lockdown" : "test-fixes"),
+  1: (file) => (file.startsWith(".github/") ? "ci-lockdown" : "own-fixes"),
   2: "dashboard",
-  3: "fix-batch-1",
+  3: "upstream-fixes",
   4: "selfhost",
   5: "ci-lockdown",
-  6: "test-fixes",
+  6: "own-fixes",
   7: "rename",
-  8: "test-fixes",
+  8: "own-fixes",
+  9: "js-test-guard",
+  10: "upstream-fixes",
+  11: "fail-closed",
+  14: (file) => (file.startsWith("self-hosting/") ? "selfhost" : "dashboard"),
+  16: "own-fixes",
 };
 
 export function categoryFor(pr, file) {
