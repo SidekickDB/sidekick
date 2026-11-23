@@ -398,16 +398,19 @@ The self-hosted stack works without Instant infrastructure.
 - `client/www/app/docs/self-hosting/vps/page.md`.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
-- PR #21: no nested defaults in the compose files. Compose 2.38 evaluates the
-  inner `:?` of `${A:-${B:?...}}` even when `A` is set, so every required
-  variable is a plain `${VAR:?message}`. `scripts/self-hosting/render-check.mjs`
+- PR #21: no required `:?` inside a default in the compose files. Compose 2.38
+  evaluates the inner `:?` of `${A:-${B:?...}}` even when `A` is set, so every
+  required variable is a plain `${VAR:?message}`. Nested `:-` defaults, such
+  as the `SIDEKICK_*` aliases `${SIDEKICK_X:-${INSTANT_X:-default}}` (PR #19),
+  render correctly on 2.38.2 and 5.8.0 and stay; the render check asserts them. `scripts/self-hosting/render-check.mjs`
   and `.github/workflows/sidekick-self-hosting-check.yml` render the compose
   files and `swarm.yml` for each way `.env` can be filled, on the runner's
   Compose and on a pinned current release; `check.mjs` lists the workflow in
   `SELF_HOSTING_CHECK_WORKFLOWS` with no exception from its rules.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
-(plain `${VAR:?message}`, never a nested default), the CORS rule, the checksum
+(plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
+such as the `SIDEKICK_*` aliases are fine), the CORS rule, the checksum
 setting and the healthchecks. Run `node scripts/self-hosting/render-check.mjs`
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.

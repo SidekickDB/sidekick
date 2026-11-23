@@ -110,6 +110,10 @@ ends up with one line per key. Before the first change it copies `.env` to
 again changes nothing. `.env` keeps its permissions. Check the result with
 `docker compose config --quiet`.
 
+It only matches lines that start with the variable name, as `.env.example`
+writes them. A line written as `export MINIO_ROOT_USER=...` or with leading
+spaces is not renamed; edit such lines by hand.
+
 The compose files used to fall back to the old names with a nested default,
 `${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}`. Compose 2.38 evaluates the
 inner `:?` even when `STORAGE_ACCESS_KEY` is set, so those files did not start

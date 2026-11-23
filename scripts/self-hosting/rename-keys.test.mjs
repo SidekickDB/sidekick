@@ -48,6 +48,13 @@ const shapes = [
     want: 'STORAGE_ACCESS_KEY=n\nSTORAGE_SECRET_KEY=s\nMINIO_ROOT_USER=u\nMINIO_ROOT_PASSWORD=p\n',
   },
   {
+    // Documented limitation: such lines are left as they are, for the user
+    // to edit by hand.
+    name: 'export and indented lines are not touched',
+    env: 'export MINIO_ROOT_USER=u\n  MINIO_ROOT_PASSWORD=p\n',
+    want: 'export MINIO_ROOT_USER=u\n  MINIO_ROOT_PASSWORD=p\n',
+  },
+  {
     name: 'neither: nothing changes',
     env: 'STORAGE_ACCESS_KEY=\nSTORAGE_SECRET_KEY=\n',
     want: 'STORAGE_ACCESS_KEY=\nSTORAGE_SECRET_KEY=\n',

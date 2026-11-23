@@ -11,6 +11,11 @@
 // or a standalone binary). Every case runs on every one, so the result shows
 // whether a behaviour depends on the Compose version. Exits 1 if any case
 // does not behave as expected.
+//
+// Rule for the compose files: a required variable is a plain ${VAR:?message}
+// and a ":?" never appears inside a default (Compose 2.38 evaluates it even
+// when the outer variable is set). Nested ":-" defaults, used by the
+// SIDEKICK_* aliases, are fine and asserted here.
 
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -329,8 +334,78 @@ for (const cmd of composes) {
     );
   }
 
-  // Informational only: how this Compose renders a nested ":-" default. No
-  // shipped file may depend on it.
+  // The SIDEKICK_* aliases (#19) use nested ":-" defaults,
+  // ${SIDEKICK_X:-${INSTANT_X:-default}}, in every compose file, so this is
+  // asserted, not just shown: the new name wins, the old name still works,
+  // and the default applies when neither is set.
+  for (const file of [
+    'docker-compose.yml',
+    'docker-compose.with-caddy.yml',
+    'docker-compose.local.yml',
+  ]) {
+    const secrets = {
+      POSTGRES_PASSWORD: PG,
+      STORAGE_ACCESS_KEY: AK,
+      STORAGE_SECRET_KEY: SK,
+    };
+    for (const [name, values, want] of [
+      [
+        'alias: only SIDEKICK_BACKEND_URL',
+        { SIDEKICK_BACKEND_URL: 'http://new.example', INSTANT_BACKEND_URL: '' },
+        'http://new.example',
+      ],
+      [
+        'alias: only INSTANT_BACKEND_URL',
+        { SIDEKICK_BACKEND_URL: '', INSTANT_BACKEND_URL: 'http://old.example' },
+        'http://old.example',
+      ],
+      [
+        'alias: both set, SIDEKICK wins',
+        {
+          SIDEKICK_BACKEND_URL: 'http://new.example',
+          INSTANT_BACKEND_URL: 'http://old.example',
+        },
+        'http://new.example',
+      ],
+      [
+        'alias: neither set, default',
+        { SIDEKICK_BACKEND_URL: '', INSTANT_BACKEND_URL: '' },
+        'http://localhost:8888',
+      ],
+    ]) {
+      const r = renderCompose(
+        cmd,
+        file,
+        envFile(`${file}-${name.replace(/\W+/g, '_')}`, {
+          ...secrets,
+          ...values,
+        }),
+      );
+      const problems = [];
+      if (!r.ok)
+        problems.push(`did not render: ${r.stderr.trim().split('\n').at(-1)}`);
+      else {
+        for (const svc of ['server', 'www']) {
+          const got = envOf(r.config, svc).INSTANT_BACKEND_URL;
+          if (got !== want)
+            problems.push(
+              `${svc} INSTANT_BACKEND_URL is ${JSON.stringify(got)}, expected "${want}"`,
+            );
+        }
+      }
+      record(
+        label,
+        file,
+        name,
+        problems,
+        r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+      );
+    }
+  }
+
+  // Informational: the bare nested ":-" form. The compose files rely on it
+  // for the SIDEKICK_* aliases, which the cases above assert. What Compose
+  // 2.38 rejects is a required ":?" inside a default, which no file uses.
   {
     const probe = path.join(tmp, 'nested.yml');
     fs.writeFileSync(

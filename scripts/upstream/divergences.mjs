@@ -64,7 +64,8 @@ export const DIVERGENCES = {
     prs: [4, 14, 21],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
-      "(no nested defaults: Compose 2.38 rejects them; run scripts/self-hosting/render-check.mjs), the createbuckets " +
+      "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
+      "are fine; run scripts/self-hosting/render-check.mjs), the createbuckets " +
       'CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
