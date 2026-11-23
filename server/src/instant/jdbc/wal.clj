@@ -28,6 +28,7 @@
    [instant.config :as config]
    [instant.db.model.transaction :as tx-model]
    [instant.discord :as discord]
+   [instant.flags :as flags]
    [instant.gauges :as gauges]
    [instant.health :as health]
    [instant.isn :refer [->ISN set-max-seen-isn]]
@@ -66,11 +67,47 @@
   (or (:password db-spec)
       (:password (uri/query-map (jdbc-url db-spec)))))
 
+(defn- replication-startup-options
+  "Each replication stream decodes transactions into its own memory, up to
+   logical_decoding_work_mem, before spilling to disk. We run several streams
+   per machine, so we keep this at the postgres default instead of inheriting
+   the much larger value from the db parameter group. Can be raised with a flag
+   in an emergency; new streams pick it up."
+  [url-options]
+  (str (when url-options
+         (str url-options " "))
+       "-c logical_decoding_work_mem="
+       (flags/flag :logical-decoding-work-mem-kb (* 64 1024))))
+
+(defn split-url-options
+  "pgjdbc gives an `options` parameter in the URL precedence over the OPTIONS
+   connection property, so a DATABASE_URL with `?options=...` would silently
+   drop logical_decoding_work_mem. Returns the URL without its `options`
+   parameters and their decoded values joined by spaces (or nil)."
+  [^String url]
+  (let [[base query] (clojure.string/split url #"\?" 2)
+        params (when query
+                 (clojure.string/split query #"&"))
+        options-param? (fn [param]
+                         (= "options" (first (clojure.string/split param #"=" 2))))
+        kept (remove options-param? params)
+        options (keep (fn [param]
+                        (some-> (second (clojure.string/split param #"=" 2))
+                                (java.net.URLDecoder/decode "UTF-8")
+                                clojure.string/trim
+                                not-empty))
+                      (filter options-param? params))]
+    [(if (seq kept)
+       (str base "?" (clojure.string/join "&" kept))
+       base)
+     (when (seq options)
+       (clojure.string/join " " options))]))
+
 (defn- get-pg-replication-conn
   "Given a db-spec, return a PGConnection you can use for replication.
 
    This PG connection has a few special settings to support replication
-   (e.g REPLICATION, ASSUME_MIN_SERVER_VERSION, PREFER_QUERY_MODE)"
+   (e.g REPLICATION, ASSUME_MIN_SERVER_VERSION, PREFER_QUERY_MODE, OPTIONS)"
   ^PgConnection [db-spec]
   (let [db-spec (if-let [secret-arn (:secret-arn db-spec)]
                   (-> db-spec
@@ -78,14 +115,16 @@
                       (merge (aurora-config/secret-arn->db-creds secret-arn)))
                   db-spec)
         props (Properties.)
+        ;; Later `-c` settings win, so ours go after any from the URL.
+        [url url-options] (split-url-options (jdbc-url (-> db-spec
+                                                           (dissoc :user :password))))
         _ (do (.set PGProperty/USER props (jdbc-username db-spec))
               (.set PGProperty/PASSWORD props (jdbc-password db-spec))
               (.set PGProperty/REPLICATION props "database")
               (.set PGProperty/ASSUME_MIN_SERVER_VERSION props "9.4")
-              (.set PGProperty/PREFER_QUERY_MODE props "simple"))
-        conn (DriverManager/getConnection (jdbc-url (-> db-spec
-                                                        (dissoc :user :password)))
-                                          props)]
+              (.set PGProperty/PREFER_QUERY_MODE props "simple")
+              (.set PGProperty/OPTIONS props (replication-startup-options url-options)))
+        conn (DriverManager/getConnection url props)]
     (.unwrap conn PgConnection)))
 
 (defn get-pg-copy-ready-conn
