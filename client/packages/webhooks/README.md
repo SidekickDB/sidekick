@@ -44,6 +44,7 @@ import schema from './instant.schema';
 // auth, like writes or impersonation.
 const db = init({
   appId: process.env.INSTANT_APP_ID!,
+  apiURI: process.env.INSTANT_API_URI!,
   schema,
 });
 
@@ -61,7 +62,10 @@ import schema from './instant.schema';
 // webhooks. Include it if you also want to use webhooks.manager.* (or any
 // other platform-SDK feature). When provided, the platform SDK refreshes the
 // OAuth token transparently for manager calls.
-const api = new PlatformApi({ auth: { token: accessToken } });
+const api = new PlatformApi({
+  apiURI: process.env.INSTANT_API_URI!,
+  auth: { token: accessToken },
+});
 
 const webhooks = api.webhooks(appId, { schema });
 
@@ -78,12 +82,14 @@ import schema from './instant.schema';
 // adminToken is optional — you just need appId + schema for typed handlers.
 const webhooks = new Webhooks<typeof schema>({
   appId: process.env.INSTANT_APP_ID!,
+  apiURI: process.env.INSTANT_API_URI!,
   schema,
 });
 
 // To also manage webhooks (manager.create, manager.list, …) pass adminToken.
 const webhooksWithManager = new Webhooks<typeof schema>({
   appId: process.env.INSTANT_APP_ID!,
+  apiURI: process.env.INSTANT_API_URI!,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN!,
   schema,
 });
@@ -94,7 +100,7 @@ const webhooksWithManager = new Webhooks<typeof schema>({
 - `appId` — required for `manager.*`; recommended for the receiving side so error messages and helpers are scoped.
 - `adminToken` (or `token`) — required for `manager.*`. Not needed to verify signatures or dispatch handlers.
 - `schema` — optional. Pass your schema to get fully typed `record.before` / `record.after` in handlers and typed `namespaces` on `manager.create` / `manager.update`.
-- `apiURI` — defaults to `https://api.instantdb.com`. Override for self-hosted or local development.
+- `apiURI` — required. The URL of your SidekickDB server; there is no default.
 - `withAuth` — advanced hook used by the platform SDK to inject a fresh OAuth token per request; you generally won't pass this directly.
 
 The rest of this README uses `db.webhooks` in examples. The same methods exist on a standalone `Webhooks` instance or on `api.webhooks(appId)`.
@@ -118,6 +124,7 @@ import schema from '@/instant.schema';
 
 const db = init({
   appId: process.env.INSTANT_APP_ID!,
+  apiURI: process.env.INSTANT_API_URI!,
   schema,
 });
 

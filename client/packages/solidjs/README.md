@@ -33,6 +33,7 @@ import { init, id } from '@sidekickdb/solidjs';
 
 const db = init({
   appId: import.meta.env.VITE_INSTANT_APP_ID,
+  apiURI: import.meta.env.VITE_INSTANT_API_URI,
 });
 
 function Chat() {

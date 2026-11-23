@@ -13,6 +13,7 @@ const schema = i.schema({
 const dateDb = init({
   schema: schema,
   appId: '123',
+  apiURI: 'https://sidekick.example.com',
   useDateObjects: true,
 });
 
@@ -29,6 +30,7 @@ function _testDateDb() {
 const undefinedDateDb = init({
   schema: schema,
   appId: '123',
+  apiURI: 'https://sidekick.example.com',
 });
 
 // Test that undefined returns string | number for date
@@ -48,6 +50,7 @@ function _testUndefinedDateDb() {
 const noDateDb = init({
   schema: schema,
   appId: '123',
+  apiURI: 'https://sidekick.example.com',
   useDateObjects: false,
 });
 

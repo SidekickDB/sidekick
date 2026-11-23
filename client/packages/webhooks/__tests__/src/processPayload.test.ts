@@ -12,7 +12,12 @@ const schema = i.schema({
 type Schema = typeof schema;
 
 function makeWebhooks() {
-  return new Webhooks<Schema>({ appId: 'app', adminToken: 'tok', schema });
+  return new Webhooks<Schema>({
+    appId: 'app',
+    adminToken: 'tok',
+    apiURI: 'http://localhost:8888',
+    schema,
+  });
 }
 
 function record(

@@ -8,10 +8,8 @@ const defaultConfig = {
 };
 
 describe('getDevtoolSrc', () => {
-  test('uses the Instant dashboard by default', () => {
-    expect(getDevtoolSrc('app-id', defaultConfig)).toBe(
-      'https://instantdb.com/_devtool?appId=app-id',
-    );
+  test('has no default dashboard', () => {
+    expect(getDevtoolSrc('app-id', defaultConfig)).toBeNull();
   });
 
   test('uses a configured dashboard URI', () => {

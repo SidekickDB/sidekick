@@ -14,6 +14,7 @@ function _testUseDatesTest() {
   const db = init({
     schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
     useDateObjects: true,
   });
 
@@ -35,6 +36,7 @@ function _testUseDatesFalseTest() {
   const db = init({
     schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
     useDateObjects: false,
   });
 
@@ -56,6 +58,7 @@ function _testUseDatesUndefinedTest() {
   const db = init({
     schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   });
 
   const { data } = db.useQuery({ tbl: {} });
@@ -75,6 +78,7 @@ function _testUseDatesUndefinedTest() {
 function _testDataNoSchema() {
   const db = init({
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   });
 
   const { data } = db.useQuery({ tbl: {} });
