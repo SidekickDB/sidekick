@@ -41,6 +41,8 @@ export type OAuthConfig = {
   clientId: string;
   clientSecret: string;
   serverOrigin: string;
+  /** URL of the SidekickDB server whose Platform API this MCP wraps. */
+  apiURI: string;
 };
 
 export async function tokensOfBearerToken(
@@ -283,6 +285,7 @@ export class ServiceProvider implements OAuthServerProvider {
       clientId: this.#oauthConfig.clientId,
       clientSecret: this.#oauthConfig.clientSecret,
       redirectUri: `${this.#oauthConfig.serverOrigin}/oauth/external-redirect`,
+      apiURI: this.#oauthConfig.apiURI,
     });
 
     const instantTokenExpiresAt = tokenInfo.expiresAt;
@@ -395,6 +398,7 @@ export class ServiceProvider implements OAuthServerProvider {
       token,
     );
     const api = new PlatformApi({
+      apiURI: this.#oauthConfig.apiURI,
       auth: makeApiAuth(
         this.#oauthConfig,
         this.#keyConfig,
@@ -712,7 +716,7 @@ async function oauthRedirectFromStart(
     return;
   }
   const externalAuthUrl = new URL(
-    `https://api.instantdb.com/platform/oauth/start`,
+    `${oauthConfig.apiURI.replace(/\/+$/, '')}/platform/oauth/start`,
   );
   externalAuthUrl.searchParams.set('client_id', oauthConfig.clientId);
   externalAuthUrl.searchParams.set('response_type', 'code');

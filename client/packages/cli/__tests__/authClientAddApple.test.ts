@@ -115,6 +115,7 @@ const PEM_CONTENTS =
 const PEM_PATH = '/tmp/AuthKey_ABC123.p8';
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   prompts = [];
   addedClients = [];
   logs = [];
@@ -309,7 +310,7 @@ describe('web: success', () => {
       clientName: 'apple-web',
       clientId: 'com.example.web',
       clientSecret: PEM_CONTENTS.trim(),
-      redirectTo: 'https://api.instantdb.com/runtime/oauth/callback',
+      redirectTo: 'https://api.sidekick.test/runtime/oauth/callback',
       meta: { teamId: 'ABCD1234', keyId: 'XYZ789' },
     });
     const output = logs.join('\n');
@@ -321,7 +322,7 @@ describe('web: success', () => {
       'Add this return URL under your Services ID on developer.apple.com:',
     );
     expect(output).toContain(
-      'https://api.instantdb.com/runtime/oauth/callback',
+      'https://api.sidekick.test/runtime/oauth/callback',
     );
     expect(output).not.toContain('Native-only flow configured.');
   });
@@ -335,7 +336,7 @@ describe('web: success', () => {
     const output = logs.join('\n');
     expect(output).toContain('https://myapp.com/cb');
     expect(output).toContain(
-      'https://api.instantdb.com/runtime/oauth/callback with all query parameters',
+      'https://api.sidekick.test/runtime/oauth/callback with all query parameters',
     );
   });
 });

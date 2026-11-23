@@ -27,9 +27,9 @@ const potentialAdminTokenEnvs = {
   short: 'INSTANT_ADMIN_TOKEN',
 };
 
-const instantDashOrigin = dev
-  ? 'http://localhost:3000'
-  : 'https://instantdb.com';
+// No default dashboard: links are only printed when one is configured.
+const instantDashOrigin =
+  process.env.INSTANT_CLI_DASH_URI || (dev ? 'http://localhost:3000' : null);
 
 function indexingJobCompletedActionMessage(job) {
   if (job.job_type === 'check-data-type') {
@@ -114,7 +114,9 @@ function indexingJobCompletedMessage(job) {
           header: 'id',
           width: 37,
           getValue: (triple) =>
-            link(createUrl(triple, job).toString(), triple.entity_id),
+            instantDashOrigin
+              ? link(createUrl(triple, job).toString(), triple.entity_id)
+              : triple.entity_id,
         },
         {
           header: label,
