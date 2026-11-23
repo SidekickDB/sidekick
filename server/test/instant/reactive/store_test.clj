@@ -545,3 +545,39 @@
 
 (comment
   (test/run-tests *ns*))
+
+(deftest mark-instaql-queries-undelivered!
+  (let [store   (rs/init)
+        app-id  (random-uuid)
+        sess-id (random-uuid)
+        q       {:movie {}}
+        other-q {:actor {}}
+        lookup  [:instaql-query/session-id+query [sess-id q]]
+        query   #(d/entity @(rs/app-conn store app-id) lookup)
+        record! (fn [v result-hash]
+                  (rs/add-instaql-query! store {:app-id app-id
+                                                :session-id sess-id
+                                                :instaql-query q
+                                                :v v}
+                                         result-hash))]
+    (rs/bump-instaql-version! store app-id sess-id q :join-rows)
+    (is (:result-changed? (record! 1 42)))
+    (is (false? (:instaql-query/stale? (query))))
+
+    (rs/mark-instaql-queries-undelivered! store app-id sess-id [q other-q])
+
+    (testing "the query is stale again and has no recorded result"
+      (is (true? (:instaql-query/stale? (query))))
+      (is (nil? (:instaql-query/hash (query))))
+      (is (= [q] (map :instaql-query/query
+                      (rs/get-stale-instaql-queries store app-id sess-id)))))
+
+    (testing "the same result counts as changed on the next recompute"
+      (rs/bump-instaql-version! store app-id sess-id q :join-rows)
+      (is (:result-changed? (record! 2 42))))
+
+    (testing "queries that are gone are ignored"
+      (is (nil? (rs/mark-instaql-queries-undelivered! store app-id sess-id [])))
+      (rs/remove-query! store app-id sess-id q)
+      (rs/mark-instaql-queries-undelivered! store app-id sess-id [q])
+      (is (nil? (query))))))

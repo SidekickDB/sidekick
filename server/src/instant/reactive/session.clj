@@ -440,7 +440,8 @@
                                              :client-event-id client-event-id})))
 
 (defn- recompute-instaql-query!
-  [{:keys [store current-user app-id sess-id attrs table-info admin?]}
+  [{:keys [store current-user app-id sess-id attrs table-info admin?
+           on-cancelled on-recomputed]}
    {:keys [instaql-query/query instaql-query/return-type
            instaql-query/forms-hash]}]
   (let [ctx {:db {:conn-pool (aurora/conn-pool (db-read-level app-id))}
@@ -451,11 +452,14 @@
              ;; Will only be present for byop apps
              :table-info table-info
              :current-user current-user
-             :admin? admin?}
+             :admin? admin?
+             :on-cancelled on-cancelled}
         start-ms (System/currentTimeMillis)
         {:keys [session/inference?]} (rs/session store sess-id)
         {:keys [instaql-result result-meta result-changed? instaql-topic?]}
         (rq/instaql-query-reactive! store ctx query return-type inference?)
+        _ (when on-recomputed
+            (on-recomputed query))
         end-ms (System/currentTimeMillis)]
     {:instaql-query query
      :instaql-query-hash forms-hash
@@ -464,6 +468,38 @@
      :result-changed? result-changed?
      :duration-ms (- end-ms start-ms)
      :instaql-topic? instaql-topic?}))
+
+(def ^:private default-refresh-retry-delays-ms
+  "How long to wait before each retry of a refresh that failed or timed out.
+   The :refresh-retry-delays-ms flag overrides it; an empty list turns the
+   retries off."
+  [500 1000 2000])
+
+(defn- undeliver-and-retry-refresh!
+  "Called when a refresh failed or was cancelled after it may have recomputed
+   `instaql-queries` but before it sent their results (instantdb/instant#2932).
+   Marks them stale with no recorded result, so the next refresh sends them,
+   and schedules that refresh, once per entry of the retry delays, in a row.
+   Runs detached: the cancelled handler's thread is interrupted, and the
+   refresh must not start before the queries are marked."
+  [store app-id sess-id retry instaql-queries]
+  (binding [ua/*child-vfutures* nil]
+    (ua/vfut-bg
+     (rs/mark-instaql-queries-undelivered! store app-id sess-id instaql-queries)
+     (if-let [delay-ms (nth (vec (flags/flag :refresh-retry-delays-ms
+                                             default-refresh-retry-delays-ms))
+                            retry
+                            nil)]
+       (do
+         (Thread/sleep (long delay-ms))
+         (when-let [receive-q (-> (rs/session store sess-id) :session/socket :receive-q)]
+           (receive-queue/put! receive-q {:op :refresh
+                                          :session-id sess-id
+                                          :refresh-retry (inc retry)})))
+       (tracer/record-info! {:name "handle-refresh/retries-exhausted"
+                             :attributes {:app-id app-id
+                                          :session-id sess-id
+                                          :retry retry}})))))
 
 (defn- handle-refresh! [store sess-id event debug-info]
   (e2e-tracer/invalidator-tracking-step! {:tx-id (:tx-id event)
@@ -476,20 +512,38 @@
         admin? (-> auth :admin?)
         {:keys [attrs table-info]} (get-attrs (:app auth))
         stale-queries (rs/get-stale-instaql-queries store app-id sess-id)
+        ;; If the refresh fails or is cancelled, every query it recomputed or
+        ;; interrupted may have a result the client never got. The refresh
+        ;; undelivers the ones registered when it fails; recomputes that end
+        ;; after that see :failed? and undeliver themselves.
+        refresh-state (atom {:failed? false :unsent []})
+        undeliver! (partial undeliver-and-retry-refresh!
+                            store app-id sess-id (:refresh-retry event 0))
+        maybe-unsent! (fn [q]
+                        (when (:failed? (swap! refresh-state update :unsent conj q))
+                          (undeliver! [q])))
         opts {:store store
               :app-id app-id
               :current-user current-user
               :sess-id sess-id
               :attrs attrs
               :table-info table-info
-              :admin? admin?}
+              :admin? admin?
+              :on-cancelled maybe-unsent!
+              :on-recomputed maybe-unsent!}
+        refresh-failed! (fn []
+                          (undeliver! (:unsent (swap! refresh-state assoc :failed? true))))
         processed-tx-id (rs/get-processed-tx-id store app-id)
         processed-isn (rs/get-processed-isn store app-id)
         _ (reset! debug-info {:processed-tx-id processed-tx-id
                               :processed-isn processed-isn
                               :instaql-queries (map :instaql-query/query stale-queries)})
-        recompute-results (->> stale-queries
-                               (ua/pmap (partial recompute-instaql-query! opts)))
+        recompute-results (try
+                            (->> stale-queries
+                                 (ua/pmap (partial recompute-instaql-query! opts)))
+                            (catch Throwable e
+                              (refresh-failed!)
+                              (throw e)))
         {computations true spam false} (group-by :result-changed? recompute-results)
         num-spam (count spam)
         num-computations (count computations)
@@ -524,17 +578,21 @@
     (if (or (seq computations) attrs-changed?)
       (tracer/with-span! {:name "handle-refresh/send-event!"
                           :attributes tracer-attrs}
-        (rs/send-event! store app-id sess-id (with-meta
-                                               (cond->
-                                                   {:op :refresh-ok
-                                                    :processed-tx-id processed-tx-id
-                                                    :processed-isn processed-isn
-                                                    :computations (vec computations)}
-                                                 (or (not can-skip-attrs?) attrs-changed?)
-                                                 (assoc :attrs attrs))
-                                               {:tx-id (:tx-id event)
-                                                :tx-created-at (:tx-created-at event)
-                                                :session-id sess-id})))
+        (try
+          (rs/send-event! store app-id sess-id (with-meta
+                                                 (cond->
+                                                     {:op :refresh-ok
+                                                      :processed-tx-id processed-tx-id
+                                                      :processed-isn processed-isn
+                                                      :computations (vec computations)}
+                                                   (or (not can-skip-attrs?) attrs-changed?)
+                                                   (assoc :attrs attrs))
+                                                 {:tx-id (:tx-id event)
+                                                  :tx-created-at (:tx-created-at event)
+                                                  :session-id sess-id}))
+          (catch Throwable e
+            (refresh-failed!)
+            (throw e))))
       (when (flags/throttle-refresh? app-id)
         (let [throttle-ms (flags/refresh-throttle-ms)]
           (tracer/add-data! {:attributes {:throttle-ms throttle-ms}})
@@ -1148,7 +1206,9 @@
               timeout-ms (or (when app-id
                                (flags/handle-receive-timeout app-id))
                              handle-receive-timeout-ms)
-              event-fut (binding [sql/*in-progress-stmts* in-progress-stmts]
+              cancelled (atom false)
+              event-fut (binding [sql/*in-progress-stmts* in-progress-stmts
+                                  rq/*handler-cancelled* cancelled]
                           (if-not (flags/use-more-vfutures?)
                             (ua/tracked-future (handle-event store
                                                              session
@@ -1168,7 +1228,8 @@
             (let [ret (deref event-fut timeout-ms ::timeout)]
               (if-not (= ::timeout ret)
                 ret
-                (let [in-progress-count (count @(:stmts in-progress-stmts))
+                (let [_ (reset! cancelled true)
+                      in-progress-count (count @(:stmts in-progress-stmts))
                       _ (sql/cancel-in-progress in-progress-stmts (flags/statement-cancel-wait-ms))
                       cancel-res (future-cancel event-fut)]
                   (tracer/add-data! {:attributes

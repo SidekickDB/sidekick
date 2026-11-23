@@ -641,6 +641,28 @@
              (app-conn store app-id)
              [[:db.fn/call remove-subscriptions-tx-data sess-id q]]))
 
+(defn- mark-instaql-queries-undelivered-tx-data
+  "Should be used in a db.fn/call. Returns transactions.
+   Marks the queries stale and forgets their result hash, so the next refresh
+   recomputes them and sends the result even if it matches the last one we
+   computed (which may never have reached the client)."
+  [db session-id instaql-queries]
+  (for [q instaql-queries
+        :let [eid (d/entid db [:instaql-query/session-id+query [session-id q]])]
+        :when eid
+        tx [[:db/add eid :instaql-query/stale? true]
+            [:db.fn/retractAttribute eid :instaql-query/hash]]]
+    tx))
+
+(defn mark-instaql-queries-undelivered!
+  "Used when a refresh fails or is cancelled after it may have recomputed
+   these queries, but before it sent their results."
+  [store app-id sess-id instaql-queries]
+  (when (seq instaql-queries)
+    (transact! "store/mark-instaql-queries-undelivered!"
+               (app-conn store app-id)
+               [[:db.fn/call mark-instaql-queries-undelivered-tx-data sess-id instaql-queries]])))
+
 ;; --------------
 ;; adding queries
 
