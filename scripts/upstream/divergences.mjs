@@ -61,12 +61,14 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks",
-    prs: [4, 14, 21],
+    prs: [4, 14, 21, 31],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
       "are fine; run scripts/self-hosting/render-check.mjs), the createbuckets " +
-      'CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep "no default ' +
+      "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION, the healthchecks and the unpublished Postgres port " +
+      "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml). " +
+      'In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
   "own-fixes": {
@@ -162,6 +164,7 @@ const PR_CATEGORY = {
   24: "own-fixes",
   27: "ci-lockdown",
   29: "removed-session-counter",
+  31: "selfhost",
 };
 
 export function categoryFor(pr, file) {
