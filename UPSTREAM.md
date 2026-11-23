@@ -362,7 +362,7 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
 changes.
 
-### Upstream fixes taken early (PR #3, PR #10, PR #32)
+### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #TBD)
 
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
@@ -385,6 +385,13 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   longer throws, fixes instantdb/instant#2779; no `.at()` in infinite queries).
   Paths: `client/packages/core/src/{IndexedDBStorage,infiniteQuery,utils/PersistedObject}.ts`
   and `client/packages/core/__tests__/src/utils/PersistedObject.test.ts`.
+- PR #TBD: instantdb/instant#2953 (a permission check fetches, and so
+  subscribes to, only the fields its rules read plus `id`; fixes
+  instantdb/instant#2951). Paths:
+  `server/src/instant/{db/cel,db/instaql,model/rule}.clj` and
+  `server/test/instant/{db/cel,db/instaql,db/seeks_permission_helpers,reactive/session}_test.clj`.
+  In `session_test.clj` only upstream's five new tests are added: the helpers
+  above them are byte-identical to the ones #2944 (PR #3) already added.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
