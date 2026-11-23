@@ -18,6 +18,7 @@ import {
   OAuthServiceProvider,
 } from '@/lib/types';
 import { useDarkMode } from '../DarkModeToggle';
+import config from '@/lib/config';
 
 function firebaseExampleCode({
   appId,
@@ -30,7 +31,7 @@ function firebaseExampleCode({
 import { onAuthStateChanged } from 'firebase/auth';
 import { init } from '@sidekickdb/react';
 
-const db = init({ appId: "${appId}" });
+const db = init({ appId: "${appId}", apiURI: "${config.apiURI}" });
 
 function App() {
   useEffect(() => {

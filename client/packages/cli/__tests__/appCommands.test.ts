@@ -107,6 +107,7 @@ const runFail = <A, E, R>(
   );
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   logs = [];
   prompts = [];
   requests = [];

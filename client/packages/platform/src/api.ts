@@ -1,5 +1,6 @@
 import {
   InstantAPIError,
+  requireApiURI,
   version as coreVersion,
   InstantRules,
   InstantSchemaDef,
@@ -1433,7 +1434,10 @@ export class PlatformApiMissingAuthError extends Error {
  * ```ts
  * import { PlatformApi } from '@sidekickdb/platform';
  *
- * const api = new PlatformApi({ auth: { token: 'oauth-access-token' } });
+ * const api = new PlatformApi({
+ *   apiURI: 'https://sidekick.example.com',
+ *   auth: { token: 'oauth-access-token' },
+ * });
  * const { apps } = await api.getApps({
  *   includeSchema: true,
  *   includePerms: true,
@@ -1448,11 +1452,14 @@ export class PlatformApi {
    * @param config – Runtime configuration.
    * @param config.auth.token – OAuth access-token obtained via the oauth flow
    *   or a personal access token.
-   * @throws {Error} When `token` is missing.
+   * @param config.apiURI – URL of your SidekickDB server. Required.
+   * @throws {MissingApiURIError} When `apiURI` is missing.
    */
   constructor(config?: PlatformApiConfig) {
     this.#auth = config?.auth;
-    this.#apiURI = config?.apiURI || 'https://api.instantdb.com';
+    this.#apiURI = requireApiURI(config?.apiURI, {
+      target: 'new PlatformApi()',
+    });
   }
 
   token(): string {

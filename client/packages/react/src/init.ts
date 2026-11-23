@@ -16,14 +16,14 @@ import version from './version.ts';
  * @example
  *  import { init } from "@sidekickdb/react"
  *
- *  const db = init({ appId: "my-app-id" })
+ *  const db = init({ appId: "my-app-id", apiURI: "https://sidekick.example.com" })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
  *  import { init } from "@sidekickdb/react"
  *  import schema from ""../instant.schema.ts";
  *
- *  const db = init({ appId: "my-app-id", schema })
+ *  const db = init({ appId: "my-app-id", apiURI: "https://sidekick.example.com", schema })
  *
  *  // To learn more: https://instantdb.com/docs/modeling-data
  */

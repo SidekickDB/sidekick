@@ -60,11 +60,6 @@ const ONE_DAY_MS = ONE_MIN_MS * 60 * 24;
 
 export const COOKIE_SYNC_LAST_UPDATED_KEY = 'lastSyncedUserCookie';
 
-const defaultConfig = {
-  apiURI: 'https://api.instantdb.com',
-  websocketURI: 'wss://api.instantdb.com/runtime/session',
-};
-
 // Param that the backend adds if this is an oauth redirect
 const OAUTH_REDIRECT_PARAM = '_instant_oauth_redirect';
 const OAUTH_EXTRA_FIELDS_ID_PARAM = '_instant_extra_fields_id';
@@ -302,7 +297,7 @@ export default class Reactor {
   ) {
     this._EventSource = EventSourceConstructor;
 
-    this.config = { ...defaultConfig, ...config };
+    this.config = { ...config };
     this.queryCacheLimit = this.config.queryCacheLimit ?? 10;
     this._pendingTxCleanupTimeout =
       this.config.pendingTxCleanupTimeout ?? PENDING_TX_CLEANUP_TIMEOUT;

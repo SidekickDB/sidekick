@@ -32,7 +32,10 @@ Welcome to [Instant's](http://instantdb.com) Svelte SDK.
 <script lang="ts">
   import { init, id } from '@sidekickdb/svelte';
 
-  const db = init({ appId: import.meta.env.VITE_INSTANT_APP_ID });
+  const db = init({
+    appId: import.meta.env.VITE_INSTANT_APP_ID,
+    apiURI: import.meta.env.VITE_INSTANT_API_URI,
+  });
 
   // 1. Read
   const query = db.useQuery({ messages: {} });

@@ -53,6 +53,8 @@ function initDb(appId: string, config: InitDbConfig = {}) {
     apiURI: apiUrl,
     websocketURI,
     schema,
+    // SidekickDB: never load the devtool iframe from a dashboard host.
+    devtool: false,
   });
 }
 

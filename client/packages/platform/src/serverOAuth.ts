@@ -1,3 +1,4 @@
+import { requireApiURI } from '@sidekickdb/core';
 import { InstantOAuthError } from './oauthCommon.ts';
 
 export async function exchangeCodeForToken({
@@ -5,7 +6,7 @@ export async function exchangeCodeForToken({
   clientId,
   clientSecret,
   redirectUri,
-  apiURI = 'https://api.instantdb.com',
+  apiURI: apiURIOpt,
 }: {
   code: string;
   clientId: string;
@@ -19,6 +20,9 @@ export async function exchangeCodeForToken({
   scopes: string;
   tokenType: 'Bearer';
 }> {
+  const apiURI = requireApiURI(apiURIOpt, {
+    target: 'exchangeCodeForToken()',
+  });
   const res = await fetch(`${apiURI}/platform/oauth/token`, {
     method: 'POST',
     headers: { 'Content-type': 'application/json' },
@@ -73,7 +77,7 @@ export async function exchangeRefreshToken({
   clientId,
   clientSecret,
   refreshToken,
-  apiURI = 'https://api.instantdb.com',
+  apiURI: apiURIOpt,
 }: {
   clientId: string;
   clientSecret: string;
@@ -85,6 +89,9 @@ export async function exchangeRefreshToken({
   scopes: string;
   tokenType: 'Bearer';
 }> {
+  const apiURI = requireApiURI(apiURIOpt, {
+    target: 'exchangeRefreshToken()',
+  });
   const res = await fetch(`${apiURI}/platform/oauth/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

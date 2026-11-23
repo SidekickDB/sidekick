@@ -2,6 +2,7 @@ import './style.css';
 import { init, i, id } from '@sidekickdb/core';
 
 const APP_ID = import.meta.env.VITE_INSTANT_APP_ID;
+const localPort = import.meta.env.VITE_LOCAL_SERVER_PORT || '8888';
 
 const preEl = document.createElement('pre');
 document.body.appendChild(preEl);
@@ -16,6 +17,7 @@ document.body.appendChild(buttonEl);
 
 const db = init({
   appId: APP_ID,
+  apiURI: `http://localhost:${localPort}`,
   schema: i.schema({
     entities: {
       todos: i.entity({

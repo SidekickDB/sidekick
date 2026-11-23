@@ -97,6 +97,7 @@ const withEntry = (flags: Map<string, string>, key: string, value: string) =>
   new Map([...flags, [key, value]]);
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   prompts = [];
   addedClients = [];
   addedProviders = [];

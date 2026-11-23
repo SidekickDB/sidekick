@@ -30,4 +30,26 @@ describe('Instant origins', () => {
     expect(instantBackendOrigin).toBe('http://localhost:8888');
     expect(instantDashOrigin).toBe('http://localhost:3000');
   });
+
+  it('has no default server or dashboard', async () => {
+    vi.stubEnv('INSTANT_CLI_API_URI', '');
+    vi.stubEnv('INSTANT_CLI_DASH_URI', '');
+    vi.stubEnv('INSTANT_CLI_DEV', '');
+
+    const {
+      instantBackendOrigin,
+      instantDashOrigin,
+      requireBackendOrigin,
+      requireDashOrigin,
+    } = await import('./fetch.js');
+
+    expect(instantBackendOrigin).toBeNull();
+    expect(instantDashOrigin).toBeNull();
+    expect(() => requireBackendOrigin()).toThrow(
+      'No SidekickDB server URL configured. Set the INSTANT_CLI_API_URI environment variable',
+    );
+    expect(() => requireDashOrigin()).toThrow(
+      'No SidekickDB dashboard URL configured. Set the INSTANT_CLI_DASH_URI environment variable',
+    );
+  });
 });

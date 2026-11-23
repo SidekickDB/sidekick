@@ -37,6 +37,8 @@ function App() {
         darkMode={false}
         appId={import.meta.env.VITE_INSTANT_APP_ID}
         adminToken={import.meta.env.VITE_INSTANT_ADMIN_TOKEN}
+        // URL of your SidekickDB server. Required: there is no default.
+        apiURI={import.meta.env.VITE_INSTANT_API_URI}
       />
       <Toaster position="top-right" />
     </>
