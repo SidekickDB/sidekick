@@ -391,7 +391,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #21)
+### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31)
 
 The self-hosted stack works without Instant infrastructure.
 
