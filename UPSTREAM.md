@@ -587,13 +587,16 @@ upstream's other changes. Take upstream's `version.ts`; if it names a version
 SidekickDB already published, bump to the next unused patch before the next
 release.
 
-### Self-hosted stack benchmark (PR #20)
+### Self-hosted stack benchmark (PR #20, PR #23)
 
 `scripts/bench/self-hosted/` (`run.mjs`, `workload.mjs`, `summarize.mjs`,
 `compose.bench.yml`, kept results in `results/`) and
 `.github/workflows/sidekick-self-hosted-bench.yml` measure the single-node
-stack in `self-hosting/docker-compose.yml`: start-up time, per-service and
-server JVM memory, and a small live-query workload. See the README there for
+stack in `self-hosting/docker-compose.yml`: start-up time and its phases,
+per-step init times from the server log, per-service and server JVM memory,
+a small live-query workload, and smoke checks (`smoke.mjs`: dev headers,
+presence, streams, SSE). Since PR #23 it compares runtime modes
+(`--modes default,self-hosted`) in one job. See the README there for
 what is and is not measured. The workflow is read-only (`contents: read`, no
 secrets), runs on demand and on pull requests that change the harness, and
 `check.mjs` lists it in `BENCH_WORKFLOWS` without any exception from its rules.

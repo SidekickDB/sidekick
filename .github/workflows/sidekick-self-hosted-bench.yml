@@ -16,8 +16,12 @@ on:
   workflow_dispatch:
     inputs:
       samples:
-        description: Cold-start samples (at least 3)
-        default: '5'
+        description: Cold-start samples per runtime mode (at least 3)
+        default: '3'
+        required: true
+      modes:
+        description: Runtime modes to compare, alternating in one job
+        default: 'default,self-hosted'
         required: true
       idle_seconds:
         description: Seconds to wait after start-up before the idle snapshot
@@ -41,10 +45,11 @@ jobs:
     name: Self-hosted benchmark
     # A pinned image, so baselines from different runs are comparable.
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       BENCH_RUNNER_LABEL: ubuntu-24.04
-      SAMPLES: ${{ inputs.samples || '5' }}
+      SAMPLES: ${{ inputs.samples || '3' }}
+      MODES: ${{ inputs.modes || 'default,self-hosted' }}
       IDLE_SECONDS: ${{ inputs.idle_seconds || '120' }}
       # The commit under test: the PR head, not GitHub's merge commit.
       GITHUB_SHA_UNDER_TEST: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -64,6 +69,10 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
+
+      # Synthetic results only, a second; fails before the long run starts.
+      - name: Test the summary on synthetic results
+        run: node --test scripts/bench/self-hosted/summarize.test.mjs
 
       - name: Get pnpm cache directory path
         id: pnpm-cache-dir-path
@@ -103,6 +112,7 @@ jobs:
         run: |
           node scripts/bench/self-hosted/run.mjs \
             --samples "$SAMPLES" \
+            --modes "$MODES" \
             --idle-seconds "$IDLE_SECONDS" \
             --out "$RUNNER_TEMP/bench-out"
 

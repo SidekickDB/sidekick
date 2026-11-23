@@ -53,61 +53,15 @@ const intervalMs = Number(args['interval-ms']);
 const timeoutMs = Number(args['timeout-ms']);
 const sequentialWrites = Number(args['sequential-writes']);
 
-// @sidekickdb/core expects a browser. These are the parts it needs in Node:
-// `window` must exist for the reactor to connect, and the network listener
-// and storage are replaced below.
-globalThis.window ??= globalThis;
+import {
+  core,
+  createApp as createEphemeralApp,
+  openDb as open,
+  sleep,
+  withTimeout,
+} from './client.mjs';
 
-const core = await import(
-  new URL('../../../client/packages/core/dist/esm/index.js', import.meta.url)
-);
-const { init, id, StorageInterface } = core;
-
-class MemoryStore extends StorageInterface {
-  constructor(appId, storeName) {
-    super(appId, storeName);
-    this.map = new Map();
-  }
-  async getItem(k) {
-    return this.map.get(k) ?? null;
-  }
-  async setItem(k, v) {
-    this.map.set(k, v);
-  }
-  async getAllKeys() {
-    return [...this.map.keys()];
-  }
-  async multiSet(pairs) {
-    for (const [k, v] of pairs) this.map.set(k, v);
-  }
-  async removeItem(k) {
-    this.map.delete(k);
-  }
-}
-
-class AlwaysOnline {
-  static async getIsOnline() {
-    return true;
-  }
-  static listen() {
-    return () => {};
-  }
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function withTimeout(promise, ms, what) {
-  let timer;
-  return Promise.race([
-    promise.finally(() => clearTimeout(timer)),
-    new Promise((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error(`timed out after ${ms} ms: ${what}`)),
-        ms,
-      );
-    }),
-  ]);
-}
+const { id } = core;
 
 function percentile(sorted, p) {
   if (!sorted.length) return null;
@@ -129,33 +83,8 @@ function stats(values) {
   };
 }
 
-async function createApp() {
-  const res = await fetch(`${apiURI}/dash/apps/ephemeral`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ title: `bench-${Date.now()}` }),
-  });
-  if (!res.ok) {
-    throw new Error(
-      `POST /dash/apps/ephemeral: ${res.status} ${await res.text()}`,
-    );
-  }
-  return (await res.json()).app;
-}
-
-function openDb(appId, key) {
-  return init(
-    {
-      appId,
-      apiURI,
-      devtool: false,
-      verbose: false,
-      __extraDedupeKey: key,
-    },
-    MemoryStore,
-    AlwaysOnline,
-  );
-}
+const createApp = () => createEphemeralApp(apiURI);
+const openDb = (appId, key) => open(apiURI, appId, key);
 
 const startedAt = performance.now();
 const app = await createApp();

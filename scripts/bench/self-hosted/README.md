@@ -11,8 +11,10 @@ disposable machine, not a workstation with other Docker workloads.
 
 ## Running
 
-On GitHub: **Actions → Self-hosted benchmark → Run workflow** (inputs: number
-of samples, idle seconds). It also runs on a pull request that changes this
+On GitHub: **Actions → Self-hosted benchmark → Run workflow** (inputs:
+samples per runtime mode, the modes to compare, idle seconds). By default it
+compares the `default` and `self-hosted` runtime modes, 3 samples each,
+alternating in one job. It also runs on a pull request that changes this
 directory or the workflow, on every push to it; a pull request that changes
 only `results/` does not start it. The job summary shows the table; the artifact has
 `results.json`, `summary.md` and, for a failed sample, the compose logs.
@@ -21,7 +23,7 @@ Locally, on a disposable Linux machine with Docker, Node 24 and pnpm:
 
 ```sh
 (cd client && pnpm i --frozen-lockfile && pnpm exec turbo run build --filter='@sidekickdb/core...')
-node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
+node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted --out bench-out
 ```
 
 `--skip-build` reuses the `sidekick-bench/server:local` and
@@ -45,7 +47,8 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
    `--pull never`, and each sample checks that the server and dashboard
    containers run the image IDs built in step 1 (their local tags would
    otherwise resolve to Docker Hub).
-4. Per sample (at least 3, default 5):
+4. Per sample (at least 3 per mode; with several `--modes` the samples
+   alternate, each with `SIDEKICK_RUNTIME_MODE` set in its env file):
    - `down -v`, then `up -d` on fresh volumes, and polls every 250 ms:
      server `GET /` (the compose healthcheck target), `/health/system` WAL ok,
      compose health of server and dashboard; plus the bootstrap JVM's share
@@ -62,9 +65,25 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
      `transact-ok`. The first 10 writes are warm-up. A missed update fails the
      sample;
    - waits 30 s and records memory again;
+   - runs `smoke.mjs` for the paths the runtime mode changes: the dev
+     response header (`X-Instant-Server-Hostname` on `GET /`, expected only in
+     `default`), presence (two sessions see each other in a room), streams
+     (one session writes, another reads it back) and SSE (a session whose
+     WebSocket cannot connect falls back to SSE, which needs Node's
+     `--experimental-eventsource`, and receives writes made over WebSocket);
+   - from the server log of the cold start: the phases container start,
+     `Starting server...`, first init step and `Finished initializing`, the
+     duration of every `init.finish.<step>` span, and the `init.skip.<step>`
+     lines;
    - restarts the server container and times it back to `GET /`.
 5. Writes `results.json` (every sample, environment, image sizes, build
-   times) and `summary.md` (median, min, max and count per metric).
+   times) and `summary.md` (median, min, max and count per metric; with
+   several modes, side by side, and a difference counts only when the ranges
+   do not overlap). The smoke table counts every sample: one whose
+   `smoke.mjs` did not complete, or that lacks a check, counts as a failure
+   of that check, and the header names every failed sample.
+   `summarize.test.mjs` checks this on synthetic results; the workflow runs
+   it before the benchmark.
 
 ## What it does not measure
 
@@ -72,7 +91,8 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
   about how many users a host can serve.
 - Many apps, large apps, large frames, deep permissions, bulk writes,
   pagination, presence, streams, files, backups, sync tables, webhooks,
-  offline clients or SSE. Only WebSocket live queries and single writes.
+  offline clients or SSE. Only WebSocket live queries and single writes are
+  timed; the smoke checks only confirm that presence, streams and SSE work.
 - PostgreSQL internals (WAL bytes, slot lag, query plans, walsender memory),
   GC pauses, metaspace (JDK 26's `GC.heap_info` no longer prints it), native
   memory breakdown (NMT is off), CPU time, disk I/O.
@@ -90,4 +110,6 @@ label and CPU model, and look at the spread, not single values.
 ## Results
 
 Kept baselines are in `results/`, one Markdown and one JSON file per run,
-named after the date and the commit measured.
+named after the date and the commit measured. A Markdown file alone with a
+suffix (such as `2026-11-23-45e4cccb-presence-failure.md`) records a failure
+a run found, with its evidence and fix, rather than a baseline.
