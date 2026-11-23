@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git branch --show-current)",
+      "Bash(git branch --list:*)",
+      "Bash(git branch -r)",
+      "Bash(git branch -a)",
+      "Bash(git branch -vv)",
+      "Bash(git fetch origin)",
+      "Bash(git fetch upstream)",
+      "Bash(git merge-base:*)",
+      "Bash(git cherry:*)",
+      "Bash(gh repo set-default --view)",
+      "Bash(gh project item-list:*)",
+      "Bash(gh project field-list:*)",
+      "Bash(gh project view:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(node scripts/upstream/check.mjs:*)"
+    ],
+    "ask": ["Bash(gh pr merge:*)"],
+    "deny": ["Bash(git push upstream:*)"]
+  }
+}
