@@ -15,29 +15,29 @@
 //
 // Keep this file free of side effects: it is imported by the tests.
 
-import path from 'node:path';
+import path from "node:path";
 
 export const SCOPED_PACKAGES = [
-  'admin',
-  'components',
-  'core',
-  'expo-sqlite',
-  'mcp',
-  'platform',
-  'react',
-  'react-common',
-  'react-native',
-  'react-native-mmkv',
-  'resumable-stream',
-  'solidjs',
-  'svelte',
-  'version',
-  'vue',
-  'webhooks',
+  "admin",
+  "components",
+  "core",
+  "expo-sqlite",
+  "mcp",
+  "platform",
+  "react",
+  "react-common",
+  "react-native",
+  "react-native-mmkv",
+  "resumable-stream",
+  "solidjs",
+  "svelte",
+  "version",
+  "vue",
+  "webhooks",
 ];
 
 // @instantdb/* packages that are NOT ours and must keep their name.
-export const THIRD_PARTY_SCOPED = ['eventsource'];
+export const THIRD_PARTY_SCOPED = ["eventsource"];
 
 const SCOPED = new Set(SCOPED_PACKAGES);
 const THIRD_PARTY = new Set(THIRD_PARTY_SCOPED);
@@ -47,36 +47,36 @@ const THIRD_PARTY = new Set(THIRD_PARTY_SCOPED);
 
 // Directory prefixes, relative to the repository root, with trailing slash.
 export const EXCLUDED_DIRS = [
-  'server/', // includes server/flags-config
-  'self-hosting/',
-  '.github/',
-  'client/packages/python/',
-  'client/www/_posts/', // essays
-  'client/www/_emails/html/', // archived newsletters
-  'client/www/_emails/txt/',
-  'client/www/_emails/markdown/',
-  'scripts/upstream/', // this tooling names the old identifiers on purpose
+  "server/", // includes server/flags-config
+  "self-hosting/",
+  ".github/",
+  "client/packages/python/",
+  "client/www/_posts/", // essays
+  "client/www/_emails/html/", // archived newsletters
+  "client/www/_emails/txt/",
+  "client/www/_emails/markdown/",
+  "scripts/upstream/", // this tooling names the old identifiers on purpose
 ];
 
 // Exact files.
 export const EXCLUDED_FILES = [
-  'LICENSE',
-  'LICENSE.md',
-  'NOTICE',
-  'UPSTREAM.md',
+  "LICENSE",
+  "LICENSE.md",
+  "NOTICE",
+  "UPSTREAM.md",
   // Legacy-package compatibility tests: every old name in it is intentional.
-  'client/packages/cli/__tests__/legacyPackageCompat.test.ts',
+  "client/packages/cli/__tests__/legacyPackageCompat.test.ts",
   // Transcript of a recorded video.
-  'client/www/public/video-previews/captions.vtt',
+  "client/www/public/video-previews/captions.vtt",
 ];
 
 // Lockfiles are only ever changed by the package manager.
 export const LOCKFILE_BASENAMES = [
-  'pnpm-lock.yaml',
-  'package-lock.json',
-  'yarn.lock',
-  'bun.lock',
-  'bun.lockb',
+  "pnpm-lock.yaml",
+  "package-lock.json",
+  "yarn.lock",
+  "bun.lock",
+  "bun.lockb",
 ];
 
 export function isLockfile(file) {
@@ -92,7 +92,7 @@ export function isExcluded(file) {
 }
 
 function toPosix(file) {
-  return file.split(path.sep).join('/').replace(/^\.\//, '');
+  return file.split(path.sep).join("/").replace(/^\.\//, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -101,17 +101,17 @@ function toPosix(file) {
 
 export const LINE_GUARDS = [
   // HTTP header values and user agents sent to the server.
-  { re: /X-Instant-Source/, why: 'X-Instant-Source header value' },
-  { re: /User-Agent|userAgent/, why: 'User-Agent header value' },
-  { re: /instant-cli-version/, why: 'instant-cli-version header' },
+  { re: /X-Instant-Source/, why: "X-Instant-Source header value" },
+  { re: /User-Agent|userAgent/, why: "User-Agent header value" },
+  { re: /instant-cli-version/, why: "instant-cli-version header" },
   // Effect service tags such as 'instant-cli/new/context/authToken'.
-  { re: /Context\.Tag\(|['"`]instant-cli\/new\//, why: 'internal Effect tag' },
+  { re: /Context\.Tag\(|['"`]instant-cli\/new\//, why: "internal Effect tag" },
   // Cross-tab runtime channel name.
-  { re: /BroadcastChannel\(/, why: 'BroadcastChannel name' },
+  { re: /BroadcastChannel\(/, why: "BroadcastChannel name" },
   // Session `versions` keys, read by server/src/instant/reactive/session.clj.
   {
     re: /['"]@instantdb\/[\w-]+['"]\s*:\s*\w*[vV]ersion\b/,
-    why: 'session versions key (wire protocol)',
+    why: "session versions key (wire protocol)",
   },
 ];
 
@@ -123,39 +123,39 @@ export const LINE_GUARDS = [
 export const ALLOWLIST = [
   // Legacy @instantdb/* project detection and aliasing in the CLI.
   [
-    'client/packages/cli/src/context/projectInfo.ts',
+    "client/packages/cli/src/context/projectInfo.ts",
     /^\s*'@instantdb\/[\w-]+',\s*$/,
-    'legacy package detection',
+    "legacy package detection",
   ],
   [
-    'client/packages/cli/src/util/loadConfig.ts',
+    "client/packages/cli/src/util/loadConfig.ts",
     /'@instantdb\/[\w-]+': coreDir|Legacy @instantdb\/\*/,
-    'legacy package aliasing',
+    "legacy package aliasing",
   ],
   [
-    'client/packages/cli/src/util/findConfigCandidates.ts',
+    "client/packages/cli/src/util/findConfigCandidates.ts",
     /Legacy @instantdb\/\*/,
-    'legacy package comment',
+    "legacy package comment",
   ],
   // The old binary name stays as an alias.
   [
-    'client/packages/cli/package.json',
+    "client/packages/cli/package.json",
     /^\s*"instant-cli": "bin\/index\.js"/,
-    'instant-cli binary alias',
+    "instant-cli binary alias",
   ],
   // The dashboard editor loads types from the published upstream core.
   [
-    'client/www/lib/monaco.ts',
+    "client/www/lib/monaco.ts",
     /unpkg\.com\/@instantdb\/core@|upstream @instantdb\/core build/,
-    '@sidekickdb/core is not published yet',
+    "@sidekickdb/core is not published yet",
   ],
   // Instant's history timeline.
-  ['client/www/app/about/content.tsx', /create-instant-app/, 'history'],
+  ["client/www/app/about/content.tsx", /create-instant-app/, "history"],
   // Paths to the unrenamed create-instant-app directory.
   [
-    'client/scripts/publish_packages.clj',
+    "client/scripts/publish_packages.clj",
     /:create-instant-app "\.\/packages\/create-instant-app"/,
-    'directory path',
+    "directory path",
   ],
 ];
 
@@ -167,7 +167,8 @@ for (const [p, re, why] of ALLOWLIST) {
 
 function lineIsProtected(file, line) {
   for (const g of LINE_GUARDS) if (g.re.test(line)) return g.why;
-  for (const a of ALLOW_BY_PATH.get(file) || []) if (a.re.test(line)) return a.why;
+  for (const a of ALLOW_BY_PATH.get(file) || [])
+    if (a.re.test(line)) return a.why;
   return null;
 }
 
@@ -180,28 +181,28 @@ const VERSION = String.raw`(@[\w.^~*<>=-]+)?`;
 // Top-level commands of the CLI (client/packages/cli/src/index.ts) and
 // common flags. `instant-cli <one of these>` is a command invocation.
 export const CLI_SUBCOMMANDS = [
-  'init',
-  'init-without-files',
-  'auth',
-  'app',
-  'webhook',
-  'webhooks',
-  'backup',
-  'login',
-  'logout',
-  'info',
-  'explorer',
-  'push',
-  'pull',
-  'claim',
-  'query',
-  'upload',
-  'genpy',
-  'whoami',
-  '--help',
-  '-h',
-  '--version',
-  '-v',
+  "init",
+  "init-without-files",
+  "auth",
+  "app",
+  "webhook",
+  "webhooks",
+  "backup",
+  "login",
+  "logout",
+  "info",
+  "explorer",
+  "push",
+  "pull",
+  "claim",
+  "query",
+  "upload",
+  "genpy",
+  "whoami",
+  "--help",
+  "-h",
+  "--version",
+  "-v",
 ];
 // Something that is not part of a longer identifier or path.
 const END = String.raw`(?![\w/-])`;
@@ -213,126 +214,133 @@ function scopedReplacer(_m, escaped, name) {
 
 const COMMON_RULES = [
   {
-    id: 'scoped-package',
+    id: "scoped-package",
     // @instantdb/<name>, also the regex-escaped form @instantdb\/<name>.
     re: /@instantdb(\\?\/)([a-z0-9]+(?:-[a-z0-9]+)*)/g,
     to: scopedReplacer,
   },
   {
-    id: 'scope-directory',
+    id: "scope-directory",
     // node_modules/@instantdb (the scope directory itself)
     re: /node_modules\/@instantdb(?=$|[\s'"`/)])/g,
-    to: 'node_modules/@sidekickdb',
+    to: "node_modules/@sidekickdb",
   },
   {
-    id: 'cli-runner-pkg',
+    id: "cli-runner-pkg",
     // pnpm dlx / pnpx / bunx need the binary name because the package
     // ships two binaries (see PR #7).
     re: new RegExp(
       String.raw`\b(pnpm dlx|pnpx|bunx|bun x)\s+instant-cli${VERSION}${END}`,
-      'g',
+      "g",
     ),
-    to: (_m, runner, ver) => `${runner} --package=@sidekickdb/cli${ver || ''} sidekick-cli`,
+    to: (_m, runner, ver) =>
+      `${runner} --package=@sidekickdb/cli${ver || ""} sidekick-cli`,
   },
   {
-    id: 'cli-runner-npx',
+    id: "cli-runner-npx",
     re: new RegExp(
       String.raw`\b(npx|npm exec|npm x)((?:\s+(?:-y|--yes))?)\s+instant-cli${VERSION}${END}`,
-      'g',
+      "g",
     ),
-    to: (_m, runner, flags, ver) => `${runner}${flags} @sidekickdb/cli${ver || ''}`,
+    to: (_m, runner, flags, ver) =>
+      `${runner}${flags} @sidekickdb/cli${ver || ""}`,
   },
   {
-    id: 'cli-local-bin',
+    id: "cli-local-bin",
     // Runs or locates an already-installed binary.
     re: new RegExp(
       String.raw`\b(pnpm exec|yarn exec|bun run|which|command -v)\s+instant-cli${END}`,
-      'g',
+      "g",
     ),
-    to: '$1 sidekick-cli',
+    to: "$1 sidekick-cli",
   },
   {
-    id: 'cli-subcommand',
+    id: "cli-subcommand",
     // `instant-cli <subcommand>` in help text, hints and docs names the
     // installed command. Runner forms were handled by the rules above.
     re: new RegExp(
-      String.raw`(?<![\w@/.=-])instant-cli(?= (?:${CLI_SUBCOMMANDS.join('|')})(?![\w-]))`,
-      'g',
+      String.raw`(?<![\w@/.=-])instant-cli(?= (?:${CLI_SUBCOMMANDS.join("|")})(?![\w-]))`,
+      "g",
     ),
     // Docs, the dashboard and examples address users who do not have the
     // binary installed, so they get the npx form (as PR #7 did there).
-    to: (file) => (USER_FACING.test(file) ? 'npx @sidekickdb/cli' : 'sidekick-cli'),
+    to: (file) =>
+      USER_FACING.test(file) ? "npx @sidekickdb/cli" : "sidekick-cli",
     perFile: true,
   },
   {
-    id: 'cli-program-name',
+    id: "cli-program-name",
     re: /(\.name\(\s*)(['"])instant-cli\2/g,
-    to: '$1$2sidekick-cli$2',
+    to: "$1$2sidekick-cli$2",
   },
   {
-    id: 'tmpdir-prefix',
+    id: "tmpdir-prefix",
     // Temp-directory name prefixes in tests.
     re: /(tmpdir\(\),\s*['"`])(instant-cli|create-instant-app)-/g,
-    to: (_m, pre, name) => `${pre}${name === 'instant-cli' ? 'sidekick-cli' : 'create-sidekick-app'}-`,
+    to: (_m, pre, name) =>
+      `${pre}${name === "instant-cli" ? "sidekick-cli" : "create-sidekick-app"}-`,
   },
   {
-    id: 'scope-path-segment',
+    id: "scope-path-segment",
     // join(dir, 'node_modules', '@instantdb', 'react')
     re: /((['"])node_modules\2,\s*)(['"])@instantdb\3/g,
-    to: '$1$3@sidekickdb$3',
+    to: "$1$3@sidekickdb$3",
   },
   {
-    id: 'cli-install',
+    id: "cli-install",
     // Installing, linking or removing the package by name.
     re: new RegExp(
       String.raw`\b(npm (?:i|install|add|uninstall|remove|rm|link|unlink)|pnpm (?:add|i|install|remove|rm|link|unlink)|yarn (?:add|remove|global add|global remove)|bun (?:add|i|install|remove|rm))((?:\s+--?[\w-]+)*)\s+instant-cli${VERSION}${END}`,
-      'g',
+      "g",
     ),
-    to: (_m, cmd, flags, ver) => `${cmd}${flags} @sidekickdb/cli${ver || ''}`,
+    to: (_m, cmd, flags, ver) => `${cmd}${flags} @sidekickdb/cli${ver || ""}`,
   },
   {
-    id: 'cli-turbo-filter',
-    re: new RegExp(String.raw`(--filter[= ]|turbo prune )(['"]?)instant-cli${END}`, 'g'),
-    to: '$1$2@sidekickdb/cli',
+    id: "cli-turbo-filter",
+    re: new RegExp(
+      String.raw`(--filter[= ]|turbo prune )(['"]?)instant-cli${END}`,
+      "g",
+    ),
+    to: "$1$2@sidekickdb/cli",
   },
   {
-    id: 'cli-module-specifier',
+    id: "cli-module-specifier",
     // import ... from 'instant-cli/ui', import('instant-cli'), require(...)
     re: /(\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+|\b(?:vi|jest)\.mock\(\s*)(['"])instant-cli((?:\/(?!new\/)[^'"]*)?)\2/g,
-    to: '$1$2@sidekickdb/cli$3$2',
+    to: "$1$2@sidekickdb/cli$3$2",
   },
   {
-    id: 'cli-registry-url',
+    id: "cli-registry-url",
     re: new RegExp(
       String.raw`((?:npmjs\.com\/package|unpkg\.com|cdn\.jsdelivr\.net\/npm|img\.shields\.io\/npm\/v)\/)instant-cli${END}`,
-      'g',
+      "g",
     ),
-    to: '$1@sidekickdb/cli',
+    to: "$1@sidekickdb/cli",
   },
   {
-    id: 'create-app-runner',
+    id: "create-app-runner",
     // npm create instant-app / pnpm create instant-app / npm init instant-app
     re: /\b(npm|pnpm|yarn|bun) (create|init) instant-app\b/g,
-    to: '$1 $2 sidekick-app',
+    to: "$1 $2 sidekick-app",
   },
   {
-    id: 'create-app',
+    id: "create-app",
     // create-instant-app everywhere except where it is a path segment
     // (packages/create-instant-app, /docs/create-instant-app, ./create-...)
     re: /(?<![\w/.@:-])create-instant-app(?![\w/-])/g,
-    to: 'create-sidekick-app',
+    to: "create-sidekick-app",
   },
 ];
 
 // Extra rules for package.json files only.
 const PACKAGE_JSON_RULES = [
   {
-    id: 'pkg-name-cli',
+    id: "pkg-name-cli",
     re: /^(\s*"name":\s*)"instant-cli"/,
     to: '$1"@sidekickdb/cli"',
   },
   {
-    id: 'pkg-dep-cli',
+    id: "pkg-dep-cli",
     // "instant-cli": "<version spec>" in a dependency section. The bin alias
     // ("instant-cli": "bin/index.js") is allowlisted and never matches the
     // version-spec lookahead anyway.
@@ -340,23 +348,24 @@ const PACKAGE_JSON_RULES = [
     to: '$1"@sidekickdb/cli"$2"',
   },
   {
-    id: 'pkg-script-bin',
+    id: "pkg-script-bin",
     // "scripts" values that run the installed binary: "... instant-cli push".
     re: /(?<=^\s*"[^"]+":\s*"(?:[^"]*[\s;&|(])?)instant-cli(?=[\s"])/g,
-    to: 'sidekick-cli',
+    to: "sidekick-cli",
   },
   {
-    id: 'pkg-script-key',
+    id: "pkg-script-key",
     // Script names such as "instant-cli-init" (renamed in PR #7).
     re: /^(\s*)"instant-cli-([\w:-]+)":(?=\s*")/,
     to: '$1"sidekick-cli-$2":',
   },
   {
-    id: 'pkg-repo-url',
+    id: "pkg-repo-url",
     // repository / bugs / homepage of our own packages.
     re: /https:\/\/github\.com\/instantdb\/instant(?=[.\/"#])/g,
-    to: 'https://github.com/SidekickDB/sidekick',
-    only: (file) => /^client\/packages\/(?!python\/)[^/]+\/package\.json$/.test(file),
+    to: "https://github.com/SidekickDB/sidekick",
+    only: (file) =>
+      /^client\/packages\/(?!python\/)[^/]+\/package\.json$/.test(file),
   },
 ];
 
@@ -373,7 +382,7 @@ export function isWorkspacePackageJson(file) {
 function workspaceSpecRule(file) {
   if (!isWorkspacePackageJson(file)) return null;
   return {
-    id: 'pkg-workspace-spec',
+    id: "pkg-workspace-spec",
     re: /^(\s*"(?:@sidekickdb\/[\w-]+|create-sidekick-app)"\s*:\s*)"(?!workspace:)[^"]*"/,
     to: '$1"workspace:*"',
   };
@@ -382,9 +391,12 @@ function workspaceSpecRule(file) {
 const USER_FACING = /^(client\/www\/|examples\/)/;
 
 function rulesFor(file) {
-  const rules = COMMON_RULES.map((r) => (r.perFile ? { ...r, to: r.to(file) } : r));
-  if (path.posix.basename(file) === 'package.json') {
-    for (const r of PACKAGE_JSON_RULES) if (!r.only || r.only(file)) rules.push(r);
+  const rules = COMMON_RULES.map((r) =>
+    r.perFile ? { ...r, to: r.to(file) } : r,
+  );
+  if (path.posix.basename(file) === "package.json") {
+    for (const r of PACKAGE_JSON_RULES)
+      if (!r.only || r.only(file)) rules.push(r);
   }
   return rules;
 }
@@ -410,7 +422,7 @@ function packageJsonSections(lines) {
   let section = null;
   // Indentation of top-level keys (upstream uses two spaces).
   const first = lines.find((l) => /^\s+"/.test(l));
-  const ind = first ? first.match(/^\s+/)[0] : '  ';
+  const ind = first ? first.match(/^\s+/)[0] : "  ";
   const open = new RegExp(`^${ind}"([^"]+)":\\s*[{[]\\s*$`);
   const close = new RegExp(`^${ind}[}\\]]`);
   for (const line of lines) {
@@ -427,10 +439,10 @@ function packageJsonSections(lines) {
 }
 
 const DEP_SECTIONS = new Set([
-  'dependencies',
-  'devDependencies',
-  'peerDependencies',
-  'optionalDependencies',
+  "dependencies",
+  "devDependencies",
+  "peerDependencies",
+  "optionalDependencies",
 ]);
 
 export function isBinary(buf) {
@@ -449,15 +461,18 @@ export function normalizeText(file, text) {
   const rules = rulesFor(file);
   const lines = splitLines(text);
   const sections =
-    path.posix.basename(file) === 'package.json' ? packageJsonSections(lines) : null;
+    path.posix.basename(file) === "package.json"
+      ? packageJsonSections(lines)
+      : null;
   const changes = [];
   const out = lines.map((line, i) => {
     if (!/instantdb|instant-cli|instant-app/.test(line)) return line;
     if (lineIsProtected(file, line)) return line;
     const applicable = rules.filter((r) => {
       if (!sections) return true;
-      if (r.id === 'pkg-dep-cli') return DEP_SECTIONS.has(sections[i]);
-      if (r.id === 'pkg-script-bin' || r.id === 'pkg-script-key') return sections[i] === 'scripts';
+      if (r.id === "pkg-dep-cli") return DEP_SECTIONS.has(sections[i]);
+      if (r.id === "pkg-script-bin" || r.id === "pkg-script-key")
+        return sections[i] === "scripts";
       return true;
     });
     const applied = new Set();
@@ -471,9 +486,11 @@ export function normalizeText(file, text) {
       }
       // A JS regex literal cannot contain an unescaped '/', so any
       // '@sidekickdb/' in one was introduced by a rule: escape it.
-      return inRegex ? seg.replace(/(?<!\\)@sidekickdb\//g, '@sidekickdb\\/') : seg;
+      return inRegex
+        ? seg.replace(/(?<!\\)@sidekickdb\//g, "@sidekickdb\\/")
+        : seg;
     };
-    let cur = '';
+    let cur = "";
     let last = 0;
     if (CODE_EXT.test(file) && /instant-cli/.test(line)) {
       for (const m of line.matchAll(REGEX_LITERAL)) {
@@ -484,7 +501,12 @@ export function normalizeText(file, text) {
     }
     cur += apply(line.slice(last), false);
     if (cur !== line) {
-      changes.push({ line: i + 1, rule: [...applied].join('+'), before: line.trimEnd(), after: cur.trimEnd() });
+      changes.push({
+        line: i + 1,
+        rule: [...applied].join("+"),
+        before: line.trimEnd(),
+        after: cur.trimEnd(),
+      });
     }
     return cur;
   });
@@ -496,12 +518,17 @@ export function normalizeText(file, text) {
       if (!DEP_SECTIONS.has(sections[i])) continue;
       const next = out[i].replace(ws.re, ws.to);
       if (next !== out[i]) {
-        changes.push({ line: i + 1, rule: ws.id, before: out[i].trimEnd(), after: next.trimEnd() });
+        changes.push({
+          line: i + 1,
+          rule: ws.id,
+          before: out[i].trimEnd(),
+          after: next.trimEnd(),
+        });
         out[i] = next;
       }
     }
   }
-  return { text: out.join(''), changes };
+  return { text: out.join(""), changes };
 }
 
 // ---------------------------------------------------------------------------
@@ -511,42 +538,45 @@ export function normalizeText(file, text) {
 
 const LEFTOVER_CHECKS = [
   {
-    id: 'unknown-scoped-package',
+    id: "unknown-scoped-package",
     re: /@instantdb\\?\/([a-z0-9][a-z0-9-]*)/g,
     test: (m) => !THIRD_PARTY.has(m[1]) && !SCOPED.has(m[1]),
     hint: (m) =>
       `@instantdb/${m[1]} is not in the rename map. If upstream added a new package, add '${m[1]}' to SCOPED_PACKAGES in scripts/upstream/rename.mjs; if it is third-party, add it to THIRD_PARTY_SCOPED.`,
   },
   {
-    id: 'scoped-package',
+    id: "scoped-package",
     re: /@instantdb\\?\/([a-z0-9][a-z0-9-]*)/g,
     test: (m) => SCOPED.has(m[1]),
-    hint: () => 'old package name in a context the rules do not rewrite',
+    hint: () => "old package name in a context the rules do not rewrite",
   },
   {
-    id: 'bare-scope',
+    id: "bare-scope",
     re: /(['"`])@instantdb\1/g,
     test: () => true,
-    hint: () => "bare '@instantdb' scope: '@sidekickdb' if it means our packages",
+    hint: () =>
+      "bare '@instantdb' scope: '@sidekickdb' if it means our packages",
   },
   {
-    id: 'cli-name',
+    id: "cli-name",
     re: /(?<![\w@/.-])instant-cli(?![\w-])/g,
     test: () => true,
     hint: () =>
-      'instant-cli: use @sidekickdb/cli when naming the package, sidekick-cli when naming the command',
+      "instant-cli: use @sidekickdb/cli when naming the package, sidekick-cli when naming the command",
   },
   {
-    id: 'create-app-name',
+    id: "create-app-name",
     re: /(?<![\w/.@:-])create-instant-app(?![\w/-])/g,
     test: () => true,
-    hint: () => 'create-instant-app: use create-sidekick-app unless it is a path or route',
+    hint: () =>
+      "create-instant-app: use create-sidekick-app unless it is a path or route",
   },
   {
-    id: 'repo-url',
+    id: "repo-url",
     re: /github\.com\/instantdb\/instant(?![\w-])/g,
-    test: (_m, file) => /^client\/packages\/(?!python\/)[^/]+\/package\.json$/.test(file),
-    hint: () => 'package metadata should point at SidekickDB/sidekick',
+    test: (_m, file) =>
+      /^client\/packages\/(?!python\/)[^/]+\/package\.json$/.test(file),
+    hint: () => "package metadata should point at SidekickDB/sidekick",
   },
 ];
 
@@ -558,11 +588,11 @@ export function scanLeftovers(file, text) {
   if (
     /^client\/packages\/(?!python\/)[^/]+\/package\.json$/.test(file) &&
     /"name":\s*"(@sidekickdb\/|create-sidekick-app)/.test(text) &&
-    !text.includes('https://github.com/SidekickDB/sidekick/issues')
+    !text.includes("https://github.com/SidekickDB/sidekick/issues")
   ) {
     found.push({
       line: 1,
-      id: 'package-bugs-field',
+      id: "package-bugs-field",
       text: file,
       hint: 'add "bugs": { "url": "https://github.com/SidekickDB/sidekick/issues" } after "repository" (as in PR #7)',
     });
@@ -573,7 +603,12 @@ export function scanLeftovers(file, text) {
     for (const c of LEFTOVER_CHECKS) {
       for (const m of line.matchAll(c.re)) {
         if (c.test(m, file)) {
-          found.push({ line: i + 1, id: c.id, text: line.trim().slice(0, 200), hint: c.hint(m) });
+          found.push({
+            line: i + 1,
+            id: c.id,
+            text: line.trim().slice(0, 200),
+            hint: c.hint(m),
+          });
         }
       }
     }
