@@ -188,6 +188,8 @@ jobs:
         working-directory: client
         env:
           SIDEKICK_E2E_API_URI: ''
+          SIDEKICK_NETWORK_GUARD_ALLOW: ''
+          TURBO_TELEMETRY_DISABLED: '1'
         run: pnpm run test --continue
 
       - name: Build sandbox
