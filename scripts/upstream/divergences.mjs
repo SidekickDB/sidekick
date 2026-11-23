@@ -119,6 +119,13 @@ export const DIVERGENCES = {
       "at the three OAuth cookie sites, exit-on-startup-error? in -main. A new upstream startup step makes " +
       "runtime_mode_test.clj fail: decide whether self-hosted skips it, then update the recorded count and hash.",
   },
+  "removed-session-counter": {
+    title: "Session-count WebSocket (/dash/session_counts) and its reporter removed",
+    prs: [],
+    resolve:
+      "Keep server/src/instant/session_counter.clj deleted, and the route and the start step in core.clj removed. " +
+      "Take upstream's other changes in those files. server/test/instant/dash/removed_routes_test.clj must pass.",
+  },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",

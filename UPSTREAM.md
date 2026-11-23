@@ -559,6 +559,18 @@ the self-hosted mode skips it.
 a new startup step gets a skip decision and an updated count and hash in the
 test.
 
+### Removed: session-count WebSocket
+
+`server/src/instant/session_counter.clj`, its start in `core.clj` and the route
+`GET /dash/session_counts` in `dash/routes.clj` are removed. SidekickDB has no
+use for that internal reporting endpoint, and nothing in the clients or the
+dashboard calls it. `server/test/instant/dash/removed_routes_test.clj` keeps it
+removed.
+
+**Resolving:** if upstream changes `session_counter.clj`, keep it deleted. If
+upstream changes the route or the start step, keep them removed and take its
+other changes in those files.
+
 ### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16, PR #24)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
