@@ -75,6 +75,16 @@ export const DIVERGENCES = {
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are.",
   },
+  release: {
+    title:
+      "SidekickDB release pipeline: npm trusted publishing and GHCR image workflows, flags-config private",
+    prs: [18],
+    resolve:
+      "Upstream has none of these files except server/flags-config/package.json: keep \"private\": true " +
+      "there and take upstream's other changes. Keep the release workflows' shape (check.mjs enforces it). " +
+      "Take upstream's version.ts; if it names a version SidekickDB already published, bump the patch " +
+      "before releasing (RELEASING.md).",
+  },
   "config-aliases": {
     title:
       "Configuration names: SIDEKICK_* variables and sidekick.* config files accepted next to INSTANT_* / instant.*",
@@ -115,6 +125,7 @@ const PR_CATEGORY = {
   11: "fail-closed",
   14: (file) => (file.startsWith("self-hosting/") ? "selfhost" : "dashboard"),
   16: "own-fixes",
+  18: "release",
   19: "config-aliases",
 };
 
