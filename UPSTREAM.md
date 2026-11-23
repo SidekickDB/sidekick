@@ -656,7 +656,7 @@ compose file, the self-hosted Dockerfiles or the core client API the workload
 uses, keep upstream's change and adapt the harness. Compare a new run only with
 a kept result from the same runner label.
 
-### Two-node smoke test (PR #TBD)
+### Two-node smoke test (PR #37)
 
 `scripts/smoke/two-node/` (`run.mjs`, `smoke.mjs`, `compose.two-node.yml`)
 and `.github/workflows/sidekick-two-node-smoke.yml` boot two server nodes
