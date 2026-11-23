@@ -395,7 +395,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31, PR #34, PR #TBD)
+### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31, PR #34, PR #36)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -431,7 +431,7 @@ The self-hosted stack works without Instant infrastructure.
   Postgres (8890), the server (8888) and nREPL (6005) on `127.0.0.1` only.
   `NREPL_BIND_ADDRESS` stays `0.0.0.0` inside the container so the published
   port reaches nREPL. Upstream publishes all three on all interfaces.
-- PR #TBD: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
+- PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`.
 

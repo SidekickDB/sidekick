@@ -61,7 +61,7 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
-    prs: [4, 14, 21, 31, 34],
+    prs: [4, 14, 21, 31, 34, 36],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
@@ -175,6 +175,7 @@ const PR_CATEGORY = {
   31: "selfhost",
   32: "upstream-fixes",
   34: "selfhost",
+  36: "selfhost",
 };
 
 export function categoryFor(pr, file) {
