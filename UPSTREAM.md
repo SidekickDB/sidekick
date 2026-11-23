@@ -120,19 +120,22 @@ The script:
    remains is shown with diff3 markers (`<<<<<<< SidekickDB`,
    `||||||| last synced upstream`, `>>>>>>> upstream`). Excluded paths such as
    `.github/` get the same markers but no renaming;
-4. keeps files deleted that SidekickDB deleted on purpose (it lists the upstream
+4. keeps SidekickDB's version when upstream's version of a conflicted file is
+   one SidekickDB already had since the last sync. This happens when upstream
+   merges a PR SidekickDB cherry-picked and changed again afterwards;
+5. keeps files deleted that SidekickDB deleted on purpose (it lists the upstream
    commits that changed them, so you can check nothing there is needed);
-5. runs the rename normalizer on every file upstream changed;
-6. regenerates `client/pnpm-lock.yaml` with `pnpm install --ignore-scripts`,
+6. runs the rename normalizer on every file upstream changed;
+7. regenerates `client/pnpm-lock.yaml` with `pnpm install --ignore-scripts`,
    starting from SidekickDB's lockfile, when a workspace `package.json` or the
    lockfile changed. Lockfiles are never edited by hand. A full install is used
    because `pnpm install --lockfile-only` re-resolved hundreds of unrelated
    lines in testing;
-7. runs prettier on the files the normalizer changed, because a rename can make a
+8. runs prettier on the files the normalizer changed, because a rename can make a
    line too long;
-8. lists the remaining conflicts grouped by the divergence that causes them, with
+9. lists the remaining conflicts grouped by the divergence that causes them, with
    how to resolve each (the same text as the table below);
-9. if nothing is left, runs the post-sync checks and commits the merge. Its
+10. if nothing is left, runs the post-sync checks and commits the merge. Its
    message records the upstream commit, the previous sync point, the
    auto-resolved files, the files resolved by hand and the normalizer summary.
 
@@ -266,10 +269,11 @@ trailers) plus one SidekickDB follow-up (`f0c3e113`). Paths:
 `client/packages/react-common/src/useQuery.ts` and their tests.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
-upstream merged the same patch, git usually merges it cleanly. If upstream merged
-a different version, take upstream's and drop ours (and any test of ours that now
-duplicates upstream's). Otherwise keep ours and apply upstream's other changes.
-Re-run the affected tests.
+upstream merged the same patch, git merges it cleanly, and where SidekickDB
+changed the file again later (PR #8 did for #2944's test) `sync.mjs` keeps
+SidekickDB's version. If upstream merged a different version, take upstream's
+and drop ours (and any test of ours that now duplicates upstream's). Otherwise
+keep ours and apply upstream's other changes. Re-run the affected tests.
 
 ### Self-hosting defaults and RustFS (PR #4)
 
