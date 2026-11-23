@@ -379,12 +379,13 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4)
+### Self-hosting defaults and RustFS (PR #4, PR #21)
 
 The self-hosted stack works without Instant infrastructure.
 
 - `self-hosting/`: the object store is RustFS (`rustfs/rustfs`, service
-  `storage`, `STORAGE_*` variables falling back to `MINIO_*`), `createbuckets`
+  `storage`, required `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY`; the old
+  `MINIO_ROOT_*` names are no longer read since PR #21), `createbuckets`
   uses `rustfs/rc` and sets a CORS rule, the server gets
   `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
   server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
@@ -397,9 +398,18 @@ The self-hosted stack works without Instant infrastructure.
 - `client/www/app/docs/self-hosting/vps/page.md`.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
+- PR #21: no nested defaults in the compose files. Compose 2.38 evaluates the
+  inner `:?` of `${A:-${B:?...}}` even when `A` is set, so every required
+  variable is a plain `${VAR:?message}`. `scripts/self-hosting/render-check.mjs`
+  and `.github/workflows/sidekick-self-hosting-check.yml` render the compose
+  files and `swarm.yml` for each way `.env` can be filled, on the runner's
+  Compose and on a pinned current release; `check.mjs` lists the workflow in
+  `SELF_HOSTING_CHECK_WORKFLOWS` with no exception from its rules.
 
-**Resolving:** keep the `storage` service, the `STORAGE_*` variables with their
-fallbacks, the CORS rule, the checksum setting and the healthchecks. In server
+**Resolving:** keep the `storage` service, the required `STORAGE_*` variables
+(plain `${VAR:?message}`, never a nested default), the CORS rule, the checksum
+setting and the healthchecks. Run `node scripts/self-hosting/render-check.mjs`
+after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
 Port upstream's new settings into that form.
 

@@ -69,11 +69,37 @@ would not match the existing volumes.
 - An `.env` copied from an older `.env.example` may still hold the
   placeholders `pleasegenerateapasswordhere` and `pleasegenerateauserhere`.
   They are not blank, so the compose files accept them. Replace them.
+- The storage keys must be named `STORAGE_ACCESS_KEY` and
+  `STORAGE_SECRET_KEY`. The old names `MINIO_ROOT_USER` and
+  `MINIO_ROOT_PASSWORD` are no longer read, and an `.env` that only has them
+  is refused with a message asking to rename them. See
+  [Renaming the storage keys](#renaming-the-storage-keys).
 - The server container now has a memory limit (`SERVER_MEMORY_LIMIT`, default
   `2g`) and the heap is 60% of it. Before, there was no limit and the heap
   could grow to a quarter of the host's memory. On a host with more than about
   5 GB of memory the new default is a smaller heap than you had: raise
   `SERVER_MEMORY_LIMIT` to keep it. See [Server memory](#server-memory).
+
+### Renaming the storage keys
+
+`MINIO_ROOT_USER` is now `STORAGE_ACCESS_KEY`, and `MINIO_ROOT_PASSWORD` is now
+`STORAGE_SECRET_KEY`. Keep the values: they are the credentials your storage
+volume was created with. In the directory with your `.env`:
+
+```sh
+for p in "MINIO_ROOT_USER STORAGE_ACCESS_KEY" "MINIO_ROOT_PASSWORD STORAGE_SECRET_KEY"; do set -- $p; if grep -q "^$1=." .env && ! grep -q "^$2=." .env; then sed -i.bak -e "/^$2=\$/d" -e "s/^$1=/$2=/" .env; fi; done
+```
+
+For each pair, this renames the old line only when the old name has a value
+and the new name does not, and removes an empty line for the new name first,
+so `.env` ends up with one line per key. Running it again changes nothing. It
+keeps a copy as `.env.bak`. Check the result with
+`docker compose config --quiet`.
+
+The compose files used to fall back to the old names with a nested default,
+`${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}`. Compose 2.38 evaluates the
+inner `:?` even when `STORAGE_ACCESS_KEY` is set, so those files did not start
+on it at all. Each key is now read with a plain `${STORAGE_ACCESS_KEY:?...}`.
 
 ## Local development
 
@@ -153,6 +179,6 @@ empty `storage_data` volume, so existing files are not carried over. Copy the
 buckets to the new store with an S3 client before switching, and change
 `S3_ENDPOINT` in `.env` from `http://minio:9000` to `http://storage:9000`.
 The upstream `minio/minio` and `minio/mc` images are no longer on Docker Hub.
-`swarm.yml` cannot fall back to the old names, so it requires
-`STORAGE_SECRET_KEY` (formerly `MINIO_ROOT_PASSWORD`) and refuses to deploy
-without it; set `STORAGE_ACCESS_KEY` too if you had set `MINIO_ROOT_USER`.
+Like the compose files, `swarm.yml` reads only `STORAGE_ACCESS_KEY` and
+`STORAGE_SECRET_KEY` (formerly `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`) and
+refuses to deploy without them.
