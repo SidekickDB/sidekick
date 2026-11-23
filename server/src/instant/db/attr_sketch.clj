@@ -16,6 +16,7 @@
    (java.math BigInteger)
    (java.nio ByteBuffer)
    (java.time Instant)
+   (java.util.concurrent Executors)
    (net.openhft.hashing LongHashFunction)))
 
 (set! *warn-on-reflection* true)
@@ -382,10 +383,23 @@
     (when row
       (record->Sketch row))))
 
+(defonce ^:private lookup-executor
+  ;; lookup* blocks on a read connection and a query. Without an executor,
+  ;; Caffeine runs it on ForkJoinPool/commonPool, which has
+  ;; availableProcessors - 1 workers: one on a 2-CPU host, where every sketch
+  ;; miss in the JVM would queue behind the one in flight (for up to Hikari's
+  ;; connectionTimeout if the read pool is exhausted). The read pool already
+  ;; bounds how many run at once.
+  (Executors/newThreadPerTaskExecutor
+   (-> (Thread/ofVirtual)
+       (.name "attr-sketch-lookup-" 0)
+       (.factory))))
+
 (def lookup-cache
   (cache/make-async
    {:max-size 4096
-    :ttl      (* 1000 60 5)}))
+    :ttl      (* 1000 60 5)
+    :executor lookup-executor}))
 
 (defn lookup* [conn keys]
   (if-not (seq keys)

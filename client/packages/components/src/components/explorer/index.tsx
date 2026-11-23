@@ -11,6 +11,7 @@ import React, {
 import { StyleMe } from '@lib/components/StyleMe';
 import type { HasDefault, WithDefaults, WithOptional } from '@lib/types';
 import { config } from '@lib/config';
+import { requireApiURI, websocketURIFromApiURI } from '@sidekickdb/core';
 import { ExplorerLayout } from './explorer-layout';
 import { useSchemaQuery } from '@lib/hooks/explorer';
 import { useStableDB } from '@lib/hooks/useStableDB';
@@ -112,10 +113,16 @@ const fillPropsWithDefaults = (
   setExplorerState: SetExplorerState,
 ): WithDefaults<ExplorerProps> => {
   const controlled = isControlled(input);
+  const apiURI = requireApiURI(input.apiURI || config.apiURI, {
+    target: '<Explorer>',
+  });
   return {
     ...input,
-    apiURI: input.apiURI || config.apiURI,
-    websocketURI: input.websocketURI || config.websocketURI,
+    apiURI,
+    websocketURI:
+      input.websocketURI ||
+      (input.apiURI ? websocketURIFromApiURI(apiURI) : config.websocketURI) ||
+      websocketURIFromApiURI(apiURI),
     darkMode: input.darkMode === undefined ? false : input.darkMode,
     // In controlled mode, use the provided state (even if null)
     // In uncontrolled mode, use the internal state

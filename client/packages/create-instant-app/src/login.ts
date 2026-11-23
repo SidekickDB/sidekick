@@ -3,8 +3,8 @@ import { Project } from './cli.js';
 import { randomUUID } from 'node:crypto';
 import {
   fetchJson,
-  instantBackendOrigin,
-  instantDashOrigin,
+  requireBackendOrigin,
+  requireDashOrigin,
   ScaffoldMetadata,
 } from './utils/fetch.js';
 import { renderUnwrap, UI } from '@sidekickdb/cli/ui';
@@ -162,7 +162,7 @@ const getAuthToken = async (): Promise<string | null> => {
     return process.env.INSTANT_CLI_AUTH_TOKEN;
   }
 
-  return readAuthToken(instantBackendOrigin).catch(() => null);
+  return readAuthToken(requireBackendOrigin()).catch(() => null);
 };
 
 export type AppTokenResponse = {
@@ -308,6 +308,7 @@ export const tryConnectApp = async (
     );
 
     if (choice === 'login') {
+      const dashOrigin = requireDashOrigin();
       const registerRes = await fetchJson<any>({
         authToken: null,
         method: 'POST',
@@ -316,7 +317,7 @@ export const tryConnectApp = async (
         throw new Error('Failed to register', { cause: e });
       });
       const { secret, ticket } = registerRes;
-      openInBrowser(`${instantDashOrigin}/dash?ticket=${ticket}`);
+      openInBrowser(`${dashOrigin}/dash?ticket=${ticket}`);
 
       const tokenPromise = waitForAuthToken({
         secret: secret,
@@ -414,7 +415,7 @@ async function waitForAuthToken({
     await sleep(1000);
 
     const authCheckRes = await fetch(
-      `${instantBackendOrigin}/dash/cli/auth/check`,
+      `${requireBackendOrigin()}/dash/cli/auth/check`,
       {
         method: 'POST',
         headers: {
@@ -439,5 +440,5 @@ async function waitForAuthToken({
 }
 
 async function saveConfigAuthToken(authToken: string) {
-  return writeAuthToken(instantBackendOrigin, authToken);
+  return writeAuthToken(requireBackendOrigin(), authToken);
 }

@@ -17,6 +17,7 @@ function _testFieldsWithSchema() {
   const schemaDb = init({
     schema: schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   });
   schemaDb.subscribeQuery({ tbl: { $: { fields: ['a'] } } }, (resp) => {
     const item = resp.data?.tbl[0];
@@ -64,6 +65,7 @@ function _testFieldsWithSchema() {
 function _testFieldsNoSchema() {
   const noSchemaDb = init({
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   });
 
   noSchemaDb.subscribeQuery({ tbl: { $: { fields: ['a'] } } }, (resp) => {

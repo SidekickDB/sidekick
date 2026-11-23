@@ -12,6 +12,16 @@ const HttpUrl = Schema.URL.pipe(
   ),
 );
 
+export const missingApiUrlMessage =
+  'No SidekickDB server URL configured. Set the INSTANT_CLI_API_URI ' +
+  'environment variable (for example INSTANT_CLI_API_URI=https://sidekick.example.com) ' +
+  'or add `apiURI` to instant.config.ts. SidekickDB has no default server.';
+
+export const missingDashUrlMessage =
+  'No SidekickDB dashboard URL configured. Set the INSTANT_CLI_DASH_URI ' +
+  'environment variable (for example INSTANT_CLI_DASH_URI=https://dash.sidekick.example.com) ' +
+  'or add `dashURI` to instant.config.ts. SidekickDB has no default dashboard.';
+
 export const getBaseUrl = Effect.gen(function* () {
   const setEnv = yield* Config.string('INSTANT_CLI_API_URI').pipe(
     Config.option,
@@ -37,14 +47,22 @@ export const getBaseUrl = Effect.gen(function* () {
     return instantConfig.apiURI;
   }
 
-  return dev ? 'http://localhost:8888' : 'https://api.instantdb.com';
+  if (dev) {
+    return 'http://localhost:8888';
+  }
+
+  return yield* BadArgsError.make({ message: missingApiUrlMessage });
 });
 
 export const getOAuthCallbackUrl = getBaseUrl.pipe(
   Effect.map(oauthCallbackURL),
 );
 
-export const getDashUrl = Effect.gen(function* () {
+/**
+ * Dashboard URL from INSTANT_CLI_DASH_URI, instant.config.ts or
+ * INSTANT_CLI_DEV, or `Option.none()` when none of them is set.
+ */
+export const getOptionalDashUrl = Effect.gen(function* () {
   const setEnv = yield* Config.string('INSTANT_CLI_DASH_URI').pipe(
     Config.option,
   );
@@ -53,7 +71,7 @@ export const getDashUrl = Effect.gen(function* () {
   );
 
   if (Option.isSome(setEnv)) {
-    return setEnv.value;
+    return Option.some(setEnv.value);
   }
 
   const instantConfig = yield* Effect.tryPromise(readInstantConfigFile);
@@ -66,8 +84,20 @@ export const getDashUrl = Effect.gen(function* () {
         }),
       ),
     );
-    return instantConfig.dashURI;
+    return Option.some(instantConfig.dashURI);
   }
 
-  return dev ? 'http://localhost:3000' : 'https://instantdb.com';
+  if (dev) {
+    return Option.some('http://localhost:3000');
+  }
+
+  return Option.none<string>();
 });
+
+export const getDashUrl = getOptionalDashUrl.pipe(
+  Effect.flatMap((dashUrl) =>
+    Option.isSome(dashUrl)
+      ? Effect.succeed(dashUrl.value)
+      : BadArgsError.make({ message: missingDashUrlMessage }),
+  ),
+);

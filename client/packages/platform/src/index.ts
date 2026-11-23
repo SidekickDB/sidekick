@@ -134,7 +134,6 @@ export {
 } from './backupDownload.ts';
 
 export {
-  DEFAULT_OAUTH_CALLBACK_URL,
   oauthCallbackURL,
   GOOGLE_AUTHORIZATION_ENDPOINT,
   GOOGLE_DISCOVERY_ENDPOINT,

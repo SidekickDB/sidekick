@@ -12,9 +12,17 @@ let currentDevtool: Devtool | undefined;
 export function createDevtool(appId: string, config: StrictDevtoolConfig) {
   currentDevtool?.dispose();
 
+  // There is no default dashboard: without a configured `dashURI` the devtool
+  // is not rendered at all.
+  const src = getDevtoolSrc(appId, config);
+  if (!src) {
+    currentDevtool = undefined;
+    return;
+  }
+
   const iframeContrainer = createIframeContainer(config);
   const toggler = createToggler(config, toggleView);
-  const iframe = createIframe(getDevtoolSrc(appId, config));
+  const iframe = createIframe(src);
 
   function onPostMessage(event: MessageEvent) {
     if (event.source !== iframe.element.contentWindow) return;
@@ -70,11 +78,16 @@ export function createDevtool(appId: string, config: StrictDevtoolConfig) {
   return create();
 }
 
-export function getDevtoolSrc(appId: string, config: StrictDevtoolConfig) {
+export function getDevtoolSrc(
+  appId: string,
+  config: StrictDevtoolConfig,
+): string | null {
   const useLocalDashboard = flags.devBackend || flags.devtoolLocalDashboard;
   const dashURI =
-    config.dashURI ??
-    (useLocalDashboard ? 'http://localhost:3000' : 'https://instantdb.com');
+    config.dashURI ?? (useLocalDashboard ? 'http://localhost:3000' : null);
+  if (dashURI == null) {
+    return null;
+  }
   return `${dashURI.replace(/\/+$/, '')}/_devtool?appId=${appId}`;
 }
 

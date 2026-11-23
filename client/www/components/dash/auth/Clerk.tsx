@@ -13,7 +13,7 @@ import {
 } from '@/components/ui';
 import { messageFromInstantError } from '@/lib/errors';
 import { addClient, findName, updateClient, updateClientMeta } from './shared';
-import { isSelfHosted } from '@/lib/config';
+import config, { isSelfHosted } from '@/lib/config';
 import {
   InstantApp,
   InstantIssue,
@@ -47,7 +47,7 @@ function clerkExampleCode({
 import { init } from "@sidekickdb/react";
 import { useEffect } from "react";
 
-const db = init({ appId: "${appId}" });
+const db = init({ appId: "${appId}", apiURI: "${config.apiURI}" });
 
 function ClerkSignedInComponent() {
   const { getToken, signOut } = useAuth();

@@ -25,6 +25,11 @@ import { execa } from 'execa';
 import { getRules, getSchema } from './utils/appConfig.js';
 import { printAppCreateResult } from './utils/printAppCreateResult.js';
 import { applyBackendConfig } from './backendConfig.js';
+import {
+  instantBackendOrigin,
+  instantDashOrigin,
+  missingBackendOriginMessage,
+} from './utils/fetch.js';
 
 const main = async () => {
   if (
@@ -33,6 +38,12 @@ const main = async () => {
     )
   ) {
     renderTitle();
+
+    // Fail before asking any questions: there is no default server.
+    if (!instantBackendOrigin) {
+      console.error(chalk.red(missingBackendOriginMessage));
+      process.exit(1);
+    }
   }
 
   const theme = await detectTerminalTheme();
@@ -45,12 +56,12 @@ const main = async () => {
 
   const projectDir = await scaffoldBase(project, appDir);
 
-  if (process.env.INSTANT_CLI_API_URI) {
+  if (instantBackendOrigin) {
     applyBackendConfig(
       project.base,
       projectDir,
-      process.env.INSTANT_CLI_API_URI,
-      process.env.INSTANT_CLI_DASH_URI,
+      instantBackendOrigin,
+      instantDashOrigin ?? undefined,
     );
   }
 
@@ -153,7 +164,7 @@ const main = async () => {
 
   To get started:
     1. ${getCodeColors(theme, 'cd ' + appDir)}
-    2. Create a new app on ${chalk.underline('www.instantdb.com')}
+    2. Create a new app on ${chalk.underline(instantDashOrigin ?? 'your SidekickDB dashboard')}
     3. Add your APP_ID and admin token to the .env file
     4. ${getCodeColors(theme, 'uv sync')}
     5. ${getCodeColors(theme, 'uv run python main.py')}
@@ -186,7 +197,7 @@ const main = async () => {
 
   To get started:
     1. ${getCodeColors(theme, 'cd ' + appDir)}
-    2. Create a new app on ${chalk.underline('www.instantdb.com')}
+    2. Create a new app on ${chalk.underline(instantDashOrigin ?? 'your SidekickDB dashboard')}
     3. Add your APP_ID to the .env file
     4. ${getCodeColors(theme, pkgManager + ` run ` + startScript)}
   `);

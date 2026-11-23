@@ -4,7 +4,7 @@ import { jsonFetch } from '@/lib/fetch';
 import { useContext, useEffect, useState } from 'react';
 import { Button } from '../ui';
 import { friendlyErrorMessage, useAuthedFetch } from '@/lib/auth';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 import { messageFromInstantError } from '@/lib/errors';
 import { InstantIssue } from '@sidekickdb/core';
 import { errorToast } from '@/lib/toast';

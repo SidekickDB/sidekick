@@ -9,7 +9,7 @@ import { OrgBilling } from '@/components/dash/org-management/OrgBilling';
 import { OrgManagePage } from '@/components/dash/org-management/OrgManagePage';
 import { Badge, NavTabBar, SmallCopyable } from '@/components/ui';
 import { useAuthedFetch } from '@/lib/auth';
-import config from '@/lib/config';
+import config, { isSelfHosted } from '@/lib/config';
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
 import Head from 'next/head';
 import { parseAsStringEnum, useQueryState } from 'nuqs';
@@ -23,10 +23,12 @@ const OrgSettingsPage: NextPageWithLayout = () => {
   const fetchedDash = useFetchedDash();
   const router = useReadyRouter();
 
-  const [tab, setTab] = useQueryState(
+  const [queryTab, setTab] = useQueryState(
     'tab',
     parseAsStringEnum(['members', 'billing', 'manage']).withDefault('members'),
   );
+  // Self-hosted dashboards have no billing tab.
+  const tab = isSelfHosted && queryTab === 'billing' ? 'members' : queryTab;
   const org = fetchedDash.data.workspace;
 
   const [hideOrgId, setHideOrgId] = useLocalStorage('hide_org_id', false);
@@ -50,7 +52,8 @@ const OrgSettingsPage: NextPageWithLayout = () => {
   }
 
   let tabs = [{ id: 'members', label: 'Members' }];
-  if (isMinRole('collaborator', myRole)) {
+  // Self-hosted dashboards have no billing.
+  if (!isSelfHosted && isMinRole('collaborator', myRole)) {
     tabs.push({ id: 'billing', label: 'Usage & Billing' });
   }
   if (isMinRole('admin', myRole)) {

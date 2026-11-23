@@ -27,6 +27,7 @@ import { init, tx, id } from '@sidekickdb/admin';
 
 const adminDB = init({
   appId: 'my-instant-app-id',
+  apiURI: process.env.INSTANT_API_URI,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
 });
 

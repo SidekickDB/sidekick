@@ -33,6 +33,7 @@ import { init, id } from '@sidekickdb/react-native';
 
 const db = init({
   appId: process.env.NEXT_PUBLIC_APP_ID,
+  apiURI: process.env.NEXT_PUBLIC_INSTANT_API_URI,
 });
 
 function Chat() {

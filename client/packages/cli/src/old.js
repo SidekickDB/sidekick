@@ -14,8 +14,9 @@ import { loadConfig } from './util/loadConfig.ts';
 import { ResolveRenamePrompt } from './util/renamePrompt.ts';
 import version from './version.js';
 import { link } from './logging.ts';
+import { Effect, Option } from 'effect';
+import { getOptionalDashUrl } from './lib/config.ts';
 
-const dev = Boolean(process.env.INSTANT_CLI_DEV);
 const verbose = Boolean(process.env.INSTANT_CLI_VERBOSE);
 
 function error(firstArg, ...rest) {
@@ -27,9 +28,16 @@ const potentialAdminTokenEnvs = {
   short: 'INSTANT_ADMIN_TOKEN',
 };
 
-const instantDashOrigin = dev
-  ? 'http://localhost:3000'
-  : 'https://instantdb.com';
+// No default dashboard: links are only printed when one is configured
+// (INSTANT_CLI_DASH_URI, dashURI in instant.config.ts, or INSTANT_CLI_DEV).
+export async function readDashOrigin() {
+  try {
+    return Option.getOrNull(await Effect.runPromise(getOptionalDashUrl));
+  } catch (_e) {
+    // An invalid dashURI only costs us the links in this message.
+    return null;
+  }
+}
 
 function indexingJobCompletedActionMessage(job) {
   if (job.job_type === 'check-data-type') {
@@ -72,7 +80,7 @@ function formatSamples(triples_samples) {
   });
 }
 
-function createUrl(triple, job) {
+function createUrl(triple, job, dashOrigin) {
   const urlParams = new URLSearchParams({
     s: 'main',
     app: job.app_id,
@@ -80,7 +88,7 @@ function createUrl(triple, job) {
     ns: job.attr_name.split('.')[0],
     where: JSON.stringify(['id', triple.entity_id]),
   });
-  const url = new URL(instantDashOrigin);
+  const url = new URL(dashOrigin);
   url.pathname = '/dash';
   url.search = urlParams.toString();
   return url;
@@ -91,7 +99,7 @@ function padCell(value, width) {
   return trimmed + ' '.repeat(width - trimmed.length);
 }
 
-function indexingJobCompletedMessage(job) {
+function indexingJobCompletedMessage(job, dashOrigin) {
   const actionMessage = indexingJobCompletedActionMessage(job);
   if (job.job_status === 'canceled') {
     return `Canceled ${actionMessage} before it could finish.`;
@@ -114,7 +122,12 @@ function indexingJobCompletedMessage(job) {
           header: 'id',
           width: 37,
           getValue: (triple) =>
-            link(createUrl(triple, job).toString(), triple.entity_id),
+            dashOrigin
+              ? link(
+                  createUrl(triple, job, dashOrigin).toString(),
+                  triple.entity_id,
+                )
+              : triple.entity_id,
         },
         {
           header: label,
@@ -186,6 +199,7 @@ export async function waitForIndexingJobsToFinish(
   authToken,
   apiURI,
 ) {
+  const dashOrigin = await readDashOrigin();
   const spinnerDefferedPromise = deferred();
   const spinner = new UI.Spinner({
     promise: spinnerDefferedPromise.promise,
@@ -221,7 +235,7 @@ export async function waitForIndexingJobsToFinish(
       } else {
         if (!completedIds.has(job.id)) {
           completedIds.add(job.id);
-          const msg = indexingJobCompletedMessage(job);
+          const msg = indexingJobCompletedMessage(job, dashOrigin);
           if (msg) {
             if (job.job_status === 'errored') {
               spinner.addMessage(msg);

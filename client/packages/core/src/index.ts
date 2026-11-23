@@ -135,6 +135,11 @@ import type {
 import { InstantAPIError, type InstantIssue } from './utils/fetch.js';
 import { InstantError } from './InstantError.ts';
 import {
+  MissingApiURIError,
+  requireApiURI,
+  websocketURIFromApiURI,
+} from './endpoints.ts';
+import {
   SSEConnection,
   EventSourceType,
   type EventSourceConstructor,
@@ -189,8 +194,16 @@ export type InstantConfig<
 > = {
   appId: string;
   schema?: S;
+  /**
+   * Websocket URL of your SidekickDB server. Derived from `apiURI` when not
+   * set (`https://host` becomes `wss://host/runtime/session`).
+   */
   websocketURI?: string;
   firstPartyPath?: string;
+  /**
+   * URL of your SidekickDB server, e.g. `https://sidekick.example.com`.
+   * Required: there is no default server, and `init()` throws without it.
+   */
   apiURI?: string;
   devtool?: boolean | DevtoolConfig;
   verbose?: boolean;
@@ -290,13 +303,6 @@ type InstaQLLifecycleState<Schema, Q, UseDates extends boolean = false> =
     };
 
 type UnsubscribeFn = () => void;
-
-// consts
-
-const defaultConfig = {
-  apiURI: 'https://api.instantdb.com',
-  websocketURI: 'wss://api.instantdb.com/runtime/session',
-};
 
 // hmr
 function initSchemaHashStore(): WeakMap<any, string> {
@@ -970,14 +976,21 @@ function schemaChanged(
  * @example
  *  import { init } from "@sidekickdb/core"
  *
- *  const db = init({ appId: "my-app-id" })
+ *  const db = init({
+ *    appId: "my-app-id",
+ *    apiURI: "https://sidekick.example.com",
+ *  })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
  *  import { init } from "@sidekickdb/core"
  *  import schema from ""../instant.schema.ts";
  *
- *  const db = init({ appId: "my-app-id", schema })
+ *  const db = init({
+ *    appId: "my-app-id",
+ *    apiURI: "https://sidekick.example.com",
+ *    schema,
+ *  })
  *
  *  // To learn more: https://instantdb.com/docs/modeling-data
  */
@@ -995,9 +1008,12 @@ function init<
   versions?: { [key: string]: string },
   EventSourceImpl?: any,
 ): InstantCoreDatabase<Schema, UseDates> {
+  const apiURI = requireApiURI(config.apiURI, { target: 'init()' });
   const configStrict = {
     ...config,
     appId: config.appId?.trim(),
+    apiURI,
+    websocketURI: config.websocketURI || websocketURIFromApiURI(apiURI),
     useDateObjects: (config.useDateObjects ?? false) as UseDates,
   };
   const existingClient = globalInstantCoreStore[
@@ -1013,7 +1029,6 @@ function init<
 
   const reactor = new Reactor<RoomsOf<Schema>>(
     {
-      ...defaultConfig,
       ...configStrict,
       cardinalityInference: configStrict.schema ? true : false,
     },
@@ -1114,6 +1129,9 @@ export {
   Streams,
   version,
   InstantError,
+  MissingApiURIError,
+  requireApiURI,
+  websocketURIFromApiURI,
 
   // infinite query
   getInfiniteQueryInitialSnapshot,

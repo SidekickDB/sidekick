@@ -3,7 +3,7 @@ import config, { isSelfHosted, stripeKey } from '@/lib/config';
 import { TokenContext } from '@/lib/contexts';
 import { jsonFetch } from '@/lib/fetch';
 import { useContext, useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 import { messageFromInstantError } from '@/lib/errors';
 import { InstantIssue } from '@sidekickdb/core';
 import { errorToast } from '@/lib/toast';

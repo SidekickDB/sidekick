@@ -45,6 +45,8 @@ const oauthHandler = new OAuthHandler({
   // Be sure the redirectUri matches one of the authorized redirect uris
   // in your OAuth App client config on the Instant dashboard.
   redirectUri: 'https://example.com/oauth/instant/redirect',
+  // URL of your SidekickDB server. Required: there is no default.
+  apiURI: 'https://sidekick.example.com',
 });
 
 export default function Page() {
@@ -75,6 +77,8 @@ const handler = new OAuthHandler({
   // Be sure the redirectUri matches one of the authorized redirect uris
   // in your OAuth App client config on the Instant dashboard.
   redirectUri: 'https://example.com/oauth/instant/redirect',
+  // URL of your SidekickDB server. Required: there is no default.
+  apiURI: 'https://sidekick.example.com',
 });
 
 export default function Page() {
@@ -105,7 +109,10 @@ Setup:
 ```js
 import { PlatformApi } from '@sidekickdb/platform';
 
-const api = new PlatformApi({ auth: { token: 'OAUTH_ACCESS_TOKEN' } });
+const api = new PlatformApi({
+  apiURI: 'https://sidekick.example.com',
+  auth: { token: 'OAUTH_ACCESS_TOKEN' },
+});
 ```
 
 ### getApps

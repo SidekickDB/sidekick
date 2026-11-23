@@ -1,4 +1,4 @@
-import { version as coreVersion } from '@sidekickdb/core';
+import { requireApiURI, version as coreVersion } from '@sidekickdb/core';
 import { pkceVerifier, pkceCodeChallengeOfVerifier } from './crypto.ts';
 import { InstantOAuthError, OAuthScope } from './oauthCommon.ts';
 import version from './version.ts';
@@ -298,8 +298,8 @@ export interface OAuthHandlerConfig {
   clientId: string;
 
   /**
-   * Optional Instant API base-URL.
-   * Defaults to `https://api.instantdb.com`.
+   * URL of your SidekickDB server, e.g. `https://sidekick.example.com`.
+   * Required: there is no default server.
    */
   apiURI?: string | null;
 }
@@ -315,14 +315,15 @@ export class OAuthHandler {
   readonly clientId: string;
 
   /**
-   * Base URL for InstantDB’s REST API.
-   * Defaults to `https://api.instantdb.com`.
+   * Base URL of your SidekickDB server's REST API.
    */
   readonly apiURI: string;
 
   constructor(config: OAuthHandlerConfig) {
     this.redirectUri = config.redirectUri;
-    this.apiURI = config.apiURI ?? 'https://api.instantdb.com';
+    this.apiURI = requireApiURI(config.apiURI, {
+      target: 'new OAuthHandler()',
+    });
     this.clientId = config.clientId;
   }
 
@@ -336,6 +337,7 @@ export class OAuthHandler {
    * const oauthHandler = new OAuthHandler({
    *   clientId: YOUR_CLIENT_ID,
    *   redirectUri: YOUR_REDIRECT_URI,
+   *   apiURI: 'https://sidekick.example.com',
    * });
    *
    * function ConnectToInstant() {
@@ -371,6 +373,7 @@ export class OAuthHandler {
    * const oauthHandler = new OAuthHandler({
    *   clientId: YOUR_CLIENT_ID,
    *   redirectUri: YOUR_REDIRECT_URI,
+   *   apiURI: 'https://sidekick.example.com',
    * })
    *
    * function RedirectPage() {

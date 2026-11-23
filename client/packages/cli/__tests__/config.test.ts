@@ -9,7 +9,14 @@ vi.mock('../src/util/instantConfig.ts', () => ({
   readInstantConfigFile: mocks.readInstantConfigFile,
 }));
 
-import { getDashUrl, getOAuthCallbackUrl } from '../src/lib/config.ts';
+import {
+  getBaseUrl,
+  getDashUrl,
+  getOAuthCallbackUrl,
+  getOptionalDashUrl,
+  missingApiUrlMessage,
+  missingDashUrlMessage,
+} from '../src/lib/config.ts';
 
 beforeEach(() => {
   vi.stubEnv('INSTANT_CLI_API_URI', undefined);
@@ -53,5 +60,78 @@ describe('OAuth callback URL configuration', () => {
     await expect(Effect.runPromise(getOAuthCallbackUrl)).resolves.toBe(
       'https://api.instant.example/runtime/oauth/callback',
     );
+  });
+});
+
+describe('API URL configuration', () => {
+  it('fails with a clear error when no API URL is configured', async () => {
+    await expect(Effect.runPromise(getBaseUrl)).rejects.toThrow(
+      missingApiUrlMessage,
+    );
+    expect(missingApiUrlMessage).toContain('INSTANT_CLI_API_URI');
+    expect(missingApiUrlMessage).toContain('instant.config.ts');
+  });
+
+  it('uses INSTANT_CLI_API_URI unchanged', async () => {
+    vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.env.example/');
+
+    await expect(Effect.runPromise(getBaseUrl)).resolves.toBe(
+      'https://api.env.example/',
+    );
+  });
+
+  it('reads apiURI from instant.config.ts', async () => {
+    mocks.readInstantConfigFile.mockResolvedValue({
+      apiURI: 'https://api.config.example',
+    });
+
+    await expect(Effect.runPromise(getBaseUrl)).resolves.toBe(
+      'https://api.config.example',
+    );
+  });
+
+  it('uses the local server in CLI dev mode', async () => {
+    vi.stubEnv('INSTANT_CLI_DEV', 'true');
+
+    await expect(Effect.runPromise(getBaseUrl)).resolves.toBe(
+      'http://localhost:8888',
+    );
+  });
+});
+
+describe('dashboard URL without configuration', () => {
+  it('fails with a clear error when no dashboard URL is configured', async () => {
+    await expect(Effect.runPromise(getDashUrl)).rejects.toThrow(
+      missingDashUrlMessage,
+    );
+    expect(missingDashUrlMessage).toContain('INSTANT_CLI_DASH_URI');
+  });
+
+  it('returns none from getOptionalDashUrl', async () => {
+    const dashUrl = await Effect.runPromise(getOptionalDashUrl);
+    expect(dashUrl._tag).toBe('None');
+  });
+
+  it('uses the local dashboard in CLI dev mode', async () => {
+    vi.stubEnv('INSTANT_CLI_DEV', 'true');
+
+    await expect(Effect.runPromise(getDashUrl)).resolves.toBe(
+      'http://localhost:3000',
+    );
+  });
+});
+
+describe('indexing job dashboard links', () => {
+  it('reads dashURI from instant.config.ts', async () => {
+    const { readDashOrigin } = await import('../src/old.js');
+    mocks.readInstantConfigFile.mockResolvedValue({
+      dashURI: 'https://dash.config.example',
+    });
+    await expect(readDashOrigin()).resolves.toBe('https://dash.config.example');
+  });
+
+  it('returns null when no dashboard is configured', async () => {
+    const { readDashOrigin } = await import('../src/old.js');
+    await expect(readDashOrigin()).resolves.toBeNull();
   });
 });

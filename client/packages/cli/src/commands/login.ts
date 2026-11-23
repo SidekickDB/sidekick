@@ -20,9 +20,9 @@ export const loginCommand = Effect.fn(function* (
 ) {
   yield* Effect.log("Let's log you in!");
 
+  const dashOrigin = yield* getDashUrl;
   const loginInfo = yield* getLoginTicketAndSecret;
   const { secret, ticket } = loginInfo;
-  const dashOrigin = yield* getDashUrl;
   const loginUrl = `${dashOrigin}/dash?ticket=${ticket}`;
   yield* Effect.log();
   if (isHeadlessEnvironment(opts)) {

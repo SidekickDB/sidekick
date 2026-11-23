@@ -438,14 +438,14 @@ export class InstantSvelteDatabase<
  * @example
  *  import { init } from "@sidekickdb/svelte"
  *
- *  const db = init({ appId: "my-app-id" })
+ *  const db = init({ appId: "my-app-id", apiURI: "https://sidekick.example.com" })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
  *
  *  import { init } from "@sidekickdb/svelte"
  *  import schema from "../instant.schema.ts";
  *
- *  const db = init({ appId: "my-app-id", schema })
+ *  const db = init({ appId: "my-app-id", apiURI: "https://sidekick.example.com", schema })
  */
 export function init<
   Schema extends InstantSchemaDef<any, any, any>,

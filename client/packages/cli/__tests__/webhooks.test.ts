@@ -198,6 +198,7 @@ const run = (effect: any, opts: { yes: boolean }) =>
   );
 
 beforeEach(() => {
+  vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.sidekick.test');
   logs = [];
   state.manager = buildManager();
   state.namespaces = ['posts', 'comments', 'authors'];

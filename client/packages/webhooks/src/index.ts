@@ -4,6 +4,7 @@ import {
   InstantSchemaDef,
   InstantUnknownSchema,
   ResolveAttrs,
+  requireApiURI,
   version as coreVersion,
 } from '@sidekickdb/core';
 
@@ -878,7 +879,7 @@ export class Webhooks<Schema extends InstantSchemaDef<any, any, any>> {
     this.schema = config.schema;
 
     this.#token = config.adminToken || config.token;
-    this.apiURI = config.apiURI || 'https://api.instantdb.com';
+    this.apiURI = requireApiURI(config.apiURI, { target: 'new Webhooks()' });
     this.#jsonFetch = jsonFetch || defaultJsonFetch;
     this.manager = new WebhooksManager<Schema>({
       appId: this.appId,
