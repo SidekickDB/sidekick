@@ -146,7 +146,7 @@ Postgres over the Docker network and needs no published port.
 - `docker-compose.with-caddy.yml` does not publish Postgres.
 - `swarm.yml` does not publish Postgres, because swarm publishes on every
   node's interfaces and ignores a host address. Use
-  `docker exec -it $(docker ps -q -f name=instant_postgres) psql -U instant`
+  `docker exec -it $(docker ps -q -f name=instant_postgres) sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'`
   on the node that runs it. To publish it anyway, deploy with an extra file
   that publishes it on that node, and restrict the port in your provider's
   firewall:

@@ -2115,3 +2115,70 @@
     (testing "two snapshots: the latest"
       (is (= (snapshot {:b 2})
              (session/combine nil (snapshot {:a 1}) (snapshot {:b 2})))))))
+
+(deftest view-rule-fields-refresh-queries-with-fields
+  (with-permissioned-session
+    {:users {:allow {:view "data.handle != 'joe'"}}}
+    (fn [store sess r]
+      (let [q {:users {:$ {:fields ["fullName"]}}}
+            refreshed? (partial refreshed-by? store sess q)]
+        (testing "a field that the query doesn't fetch and the rule doesn't read"
+          (is (not (refreshed? (set-value r "eid-alex" :users/email "alex@example.com")))))
+        (testing "a field that the rule reads"
+          (is (refreshed? (set-value r "eid-alex" :users/handle "alex2"))))
+        (testing "a field that the query fetches"
+          (is (refreshed? (set-value r "eid-alex" :users/fullName "Alex 2"))))
+        (testing "an unread field of a row that the rule hides"
+          (is (not (refreshed? (set-value r "eid-joe-averbukh" :users/email "joe@example.com")))))
+        (testing "a rule field of a hidden row, so the row can appear"
+          (is (refreshed? (set-value r "eid-joe-averbukh" :users/handle "joe2"))))))))
+
+(deftest view-rule-fields-without-query-fields
+  (with-permissioned-session
+    {:users {:allow {:view "data.handle != 'joe'"}}}
+    (fn [store sess r]
+      (testing "a query without :fields still refreshes on any field"
+        (is (refreshed-by? store sess {:users {}}
+                           (set-value r "eid-alex" :users/email "alex@example.com")))))))
+
+(deftest field-rule-fields-refresh-queries-with-fields
+  (with-permissioned-session
+    {:users {:allow {:view "true"}
+             :fields {:email "data.fullName != 'Hidden'"}}}
+    (fn [store sess r]
+      (let [q {:users {:$ {:fields ["email"]}}}
+            refreshed? (partial refreshed-by? store sess q)]
+        (testing "a field that only the field rule reads"
+          (is (refreshed? (set-value r "eid-alex" :users/fullName "Hidden"))))
+        (testing "a field that no rule reads"
+          (is (not (refreshed? (set-value r "eid-alex" :users/createdAt "2020-01-01 00:00:00.000000")))))))))
+
+(deftest ref-rule-paths-refresh-queries-with-fields
+  (with-permissioned-session
+    {:bookshelves {:allow {:view "'alex' in data.ref('users.handle')"}}}
+    (fn [store sess r]
+      (let [q {:bookshelves {:$ {:fields ["order"]}}}
+            refreshed? (partial refreshed-by? store sess q)
+            alex (resolvers/->uuid r "eid-alex")
+            stopa (resolvers/->uuid r "eid-stepan-parunashvili")
+            user-shelves (resolvers/->uuid r :users/bookshelves)
+            shelf (resolvers/->uuid r "eid-nonfiction")]
+        (testing "a field of the row that the rule doesn't read"
+          (is (not (refreshed? (set-value r "eid-nonfiction" :bookshelves/desc "changed")))))
+        (testing "the field at the end of the ref path"
+          (is (refreshed? (set-value r "eid-alex" :users/handle "alex2")))
+          (is (refreshed? (set-value r "eid-alex" :users/handle "alex"))))
+        (testing "another field of a linked entity"
+          (is (not (refreshed? (set-value r "eid-alex" :users/email "alex@example.com")))))
+        (testing "linking an entity on the ref path"
+          (is (refreshed? [stopa user-shelves [[:add-triple stopa user-shelves shelf]]])))
+        (testing "unlinking an entity on the ref path"
+          (is (refreshed? [alex user-shelves [[:retract-triple alex user-shelves shelf]]])))))))
+
+(deftest unnarrowable-rules-refresh-on-any-field
+  (with-permissioned-session
+    {:books {:allow {:view "data['isbn13'] != ''"}}}
+    (fn [store sess r]
+      (testing "a rule that indexes data falls back to every field"
+        (is (refreshed-by? store sess {:books {:$ {:fields ["title"]}}}
+                           (set-value r "eid-catch-and-kill" :books/pageCount 1)))))))

@@ -1,8 +1,10 @@
 services:
   postgres:
     image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+    # SidekickDB: development ports are published on the loopback address
+    # only, because Docker-published ports bypass host firewalls.
     ports:
-      - '8890:5432'
+      - '127.0.0.1:8890:5432'
     environment:
       POSTGRES_PASSWORD: pass
       POSTGRES_USER: instant
@@ -37,13 +39,15 @@ services:
       dockerfile: Dockerfile-dev
     environment:
       DATABASE_URL: "postgresql://instant:pass@postgres:5432/instant"
+      # SidekickDB: nREPL listens on all container interfaces so the published
+      # port reaches it; the port is published on 127.0.0.1 below.
       NREPL_BIND_ADDRESS: "0.0.0.0"
       WAL_HISTORY_STORAGE: "pg"
     volumes:
       - './:/app'
     ports:
-      - '8888:8888'
-      - '6005:6005'
+      - '127.0.0.1:8888:8888'
+      - '127.0.0.1:6005:6005'
     networks:
       - application
 

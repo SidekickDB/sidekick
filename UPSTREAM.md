@@ -362,7 +362,7 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
 changes.
 
-### Upstream fixes taken early (PR #3, PR #10, PR #32)
+### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #35)
 
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
@@ -385,6 +385,13 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   longer throws, fixes instantdb/instant#2779; no `.at()` in infinite queries).
   Paths: `client/packages/core/src/{IndexedDBStorage,infiniteQuery,utils/PersistedObject}.ts`
   and `client/packages/core/__tests__/src/utils/PersistedObject.test.ts`.
+- PR #35: instantdb/instant#2953 (a permission check fetches, and so
+  subscribes to, only the fields its rules read plus `id`; fixes
+  instantdb/instant#2951). Paths:
+  `server/src/instant/{db/cel,db/instaql,model/rule}.clj` and
+  `server/test/instant/{db/cel,db/instaql,db/seeks_permission_helpers,reactive/session}_test.clj`.
+  In `session_test.clj` only upstream's five new tests are added: the helpers
+  above them are byte-identical to the ones #2954 (PR #3) already added.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
@@ -395,7 +402,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31)
+### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31, PR #34, PR #36)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -427,12 +434,22 @@ The self-hosted stack works without Instant infrastructure.
   8890 to `${POSTGRES_BIND_ADDRESS:-127.0.0.1}` and `swarm.yml` has no
   published port (swarm ignores a host address). Upstream publishes
   `8890:5432` on all interfaces in both.
+- PR #34: the development stack `server/docker-compose-dev.yml` publishes
+  Postgres (8890), the server (8888) and nREPL (6005) on `127.0.0.1` only.
+  `NREPL_BIND_ADDRESS` stays `0.0.0.0` inside the container so the published
+  port reaches nREPL. Upstream publishes all three on all interfaces.
+- PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
+  `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
+  `-U instant` and the database `instant`.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
 such as the `SIDEKICK_*` aliases are fine), the CORS rule, the checksum
 setting, the healthchecks and the unpublished Postgres port (127.0.0.1 in
-`docker-compose.yml`, none in `swarm.yml`). Run `node scripts/self-hosting/render-check.mjs`
+`docker-compose.yml`, none in `swarm.yml`), the `127.0.0.1:` prefix on
+every port in `server/docker-compose-dev.yml` and the `pg_dump` in
+`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`. Run
+`node scripts/self-hosting/render-check.mjs`
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
 Port upstream's new settings into that form.

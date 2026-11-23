@@ -50,8 +50,8 @@ export const DIVERGENCES = {
   },
   "upstream-fixes": {
     title:
-      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling) and their follow-ups",
-    prs: [3, 10, 32],
+      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions) and their follow-ups",
+    prs: [3, 10, 32, 35],
     resolve:
       "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
       "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
@@ -60,14 +60,16 @@ export const DIVERGENCES = {
   },
   selfhost: {
     title:
-      "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks",
-    prs: [4, 14, 21, 31],
+      "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
+    prs: [4, 14, 21, 31, 34, 36],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
       "are fine; run scripts/self-hosting/render-check.mjs), the createbuckets " +
       "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION, the healthchecks and the unpublished Postgres port " +
-      "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml). " +
+      "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml), the " +
+      "127.0.0.1: prefix on every port in server/docker-compose-dev.yml, and the " +
+      'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container. ' +
       'In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
@@ -181,6 +183,9 @@ const PR_CATEGORY = {
   30: "security-policy",
   31: "selfhost",
   32: "upstream-fixes",
+  34: "selfhost",
+  35: "upstream-fixes",
+  36: "selfhost",
 };
 
 export function categoryFor(pr, file) {
