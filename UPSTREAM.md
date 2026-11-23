@@ -225,7 +225,7 @@ how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences.mjs`).
 
-### CI lockdown (PR #1, PR #5)
+### CI lockdown (PR #1, PR #5, PR #27)
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -246,6 +246,15 @@ services. SidekickDB releases only through its own two release workflows (PR
 - Job-level `timeout-minutes` on the enabled Clojure and JS jobs (`9819d9de`).
 - PR #5: the `detect_changes` scripts compare against the merge base with `main`
   on a branch's first push.
+- PR #27: `clojure.yml` and `js.yml` run on pushes to `main` and on pull requests
+  (`opened`, `synchronize`, `reopened`) instead of on every push. Upstream's
+  triggers gave a pull request from a fork no server run and a branch of this
+  repository two JS runs. A `concurrency` block cancels the run a new push to a
+  pull request replaces; runs on `main` are never cancelled. The
+  `detect_changes` scripts compare a pull request's base with its head (the
+  whole pull request, not only the latest push), and treat a file list of 300
+  or more as truncated and run everything. A branch without a pull request gets
+  no run.
 
 Every edit is marked `# SidekickDB:` or `// SidekickDB:`.
 
@@ -254,7 +263,9 @@ changes. If upstream changes the condition of a disabled job, put the new
 condition inside `false && (...)`. A new job that publishes, deploys, uses
 secrets or write permissions gets the same treatment with a `# SidekickDB:`
 comment. A new publish-only workflow gets its triggers commented out. Never
-re-enable **Fetch timings**.
+re-enable **Fetch timings**. Keep the `on:` and `concurrency:` blocks of
+`clojure.yml` and `js.yml` as they are here; if upstream adds a trigger, add it
+only if it cannot publish or deploy.
 
 ### JS tests offline in CI behind a network guard (PR #9)
 

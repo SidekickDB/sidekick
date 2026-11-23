@@ -2,9 +2,19 @@
 name: JS CI
 
 on:
+  # SidekickDB: run on main and on pull requests. Upstream ran on every push,
+  # which gave pull requests from forks no run (Clojure) or two runs for a
+  # branch of this repository (JS).
   push:
+    branches: [main]
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+
+# SidekickDB: a new push to a pull request cancels the run it replaces. Runs
+# on main are never cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   detect_changes:
@@ -23,8 +33,14 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          const base = context.payload.before || context.payload.pull_request?.base.sha;
-          const head = context.payload.after || context.payload.pull_request?.head.sha;
+          // SidekickDB: for a pull request, compare the whole pull request (its
+          // base with its head), not only the commits of the latest push. Upstream
+          // preferred `before`/`after`, so a push that touched nothing relevant
+          // skipped the tests and left a green check on a pull request whose
+          // earlier commit had broken them.
+          const pr = context.payload.pull_request;
+          const base = pr ? pr.base.sha : context.payload.before;
+          const head = pr ? pr.head.sha : context.payload.after;
           const owner = context.repo.owner;
           const repo = context.repo.repo;
           // SidekickDB: on the first push of a ref, `before` is all zeros. Upstream
@@ -66,7 +82,13 @@ jobs:
               base,
               head,
             });
-            files = data.files.map((f) => f.filename);
+            files = (data.files || []).map((f) => f.filename);
+            // SidekickDB: the compare API lists at most 300 files, so a large
+            // push (an upstream sync merge) could hide the files that matter.
+            if (files.length >= 300) {
+              console.log('Comparison may be truncated: running everything');
+              files = runEverything;
+            }
           }
 
           const output = {
