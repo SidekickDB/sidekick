@@ -43,6 +43,7 @@
 //
 // Nothing here pushes. Push the branch and open the PR yourself.
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -213,17 +214,22 @@ function unmergedEntries(root) {
   return m;
 }
 
-function normalizedStage(root, stage, file) {
+function normalizedStage(root, stage, file, normalize) {
   const buf = showBlob(`:${stage}:${file}`, root);
   if (buf === null) return null;
   if (isBinary(buf)) return { binary: true, buf };
-  return { binary: false, text: normalizeText(file, buf.toString('utf8')).text };
+  const text = buf.toString('utf8');
+  return { binary: false, text: normalize ? normalizeText(file, text).text : text };
 }
 
-function remergeNormalized(root, file, stages, tmp) {
-  const base = stages.has(1) ? normalizedStage(root, 1, file) : { binary: false, text: '' };
-  const ours = normalizedStage(root, 2, file);
-  const theirs = normalizedStage(root, 3, file);
+// Re-merge one conflicted file from its index stages with `git merge-file
+// --diff3`, after applying the rename to all three sides (normalize=true).
+// Excluded paths (workflows, server, ...) are re-merged without renaming,
+// only to get the same diff3 markers, which show the upstream base.
+function remergeNormalized(root, file, stages, tmp, normalize = true) {
+  const base = stages.has(1) ? normalizedStage(root, 1, file, normalize) : { binary: false, text: '' };
+  const ours = normalizedStage(root, 2, file, normalize);
+  const theirs = normalizedStage(root, 3, file, normalize);
   if (!ours || !theirs || base.binary || ours.binary || theirs.binary) return { status: 'skipped' };
   if (ours.text === theirs.text) {
     fs.writeFileSync(path.join(root, file), ours.text);
@@ -289,13 +295,14 @@ function resolveConflicts({ root, attribution, upstreamFiles }) {
         results.remaining.push({ file, kind: 'modified by SidekickDB, deleted upstream' });
         continue;
       }
-      if (isExcluded(file)) {
-        results.remaining.push({ file, kind: 'content' });
-        continue;
-      }
-      const r = remergeNormalized(root, file, stages, tmp);
+      const normalize = !isExcluded(file);
+      const r = remergeNormalized(root, file, stages, tmp, normalize);
       if (r.status === 'resolved') results.resolved.push({ file, note: r.note });
-      else results.remaining.push({ file, kind: r.status === 'conflict' ? 'content (rename already applied to all sides)' : 'content' });
+      else {
+        const kind =
+          r.status !== 'conflict' ? 'content' : normalize ? 'content; rename already applied to all sides' : 'content';
+        results.remaining.push({ file, kind });
+      }
     }
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
@@ -332,8 +339,26 @@ function lockfileNeeded(root, ours) {
   return changed.some((f) => isWorkspacePackageJson(f) || f === WORKSPACE_LOCKFILE);
 }
 
-function maybeRegenerateLockfile({ root, ours, o }) {
+function workspaceManifestHash(root) {
+  const files = lines(git(['ls-files', '--', 'client/package.json', 'client/*/package.json', 'client/*/*/package.json', 'client/www/_emails/replace-images/package.json'], { cwd: root }))
+    .filter(isWorkspacePackageJson)
+    .sort();
+  const h = crypto.createHash('sha256');
+  for (const f of files) {
+    h.update(f);
+    try {
+      h.update(fs.readFileSync(path.join(root, f)));
+    } catch {
+      h.update('(missing)');
+    }
+  }
+  return h.digest('hex');
+}
+
+function maybeRegenerateLockfile({ root, ours, o, state }) {
   if (!lockfileNeeded(root, ours)) return 'not needed';
+  const hash = workspaceManifestHash(root);
+  if (state.lockHash === hash) return 'up to date';
   const unmerged = [...unmergedEntries(root).keys()];
   if (unmerged.some((f) => isWorkspacePackageJson(f))) return 'deferred: a workspace package.json is still conflicted';
   if (!o.lockfile) return 'needed but skipped (--no-lockfile); run `pnpm install --ignore-scripts` in client/';
@@ -344,6 +369,7 @@ function maybeRegenerateLockfile({ root, ours, o }) {
   }
   regenerateLockfile(root, { mode: o.lockfileOnly ? 'lockfile-only' : 'install', log: say });
   git(['add', '--', WORKSPACE_LOCKFILE], { cwd: root });
+  state.lockHash = hash;
   return 'regenerated';
 }
 
@@ -392,6 +418,9 @@ function commitMessage(state, summary) {
     `Upstream commits merged: ${state.commitCount}`,
     '',
     ...summary,
+    ...(state.handResolved?.length
+      ? [`Resolved by hand: ${state.handResolved.length}`, ...state.handResolved.map((f) => `- ${f}`)]
+      : []),
     '',
     'Merged with scripts/upstream/sync.mjs (see UPSTREAM.md).',
   ].join('\n');
@@ -403,6 +432,9 @@ function finish({ root, o, state, summary }) {
   say('## Post-sync checks');
   printChecks(checks, say);
   if (checks.failures.length) {
+    const files = checks.failures.map((f) => f.match(/^([^\s:]+)[:\s]/)?.[1]).filter(Boolean);
+    const leftForHand = [...new Set([...(state.leftForHand || []), ...files])];
+    fs.writeFileSync(statePath(root), JSON.stringify({ ...state, leftForHand }, null, 2));
     say('');
     say('Not committing: fix the failures above, `git add` the files, then run `node scripts/upstream/sync.mjs --continue`.');
     return 1;
@@ -439,9 +471,11 @@ function summarize(state, parts) {
   }
   if (parts.norm) {
     const n = parts.norm.result.changed.reduce((a, c) => a + c.changes.length, 0);
-    s.push(`Rename normalizer: ${parts.norm.result.changed.length} file(s), ${n} rewrite(s).`);
+    if (n || !parts.continued) s.push(`Rename normalizer: ${parts.norm.result.changed.length} file(s), ${n} rewrite(s).`);
   }
-  if (parts.lock) s.push(`client/pnpm-lock.yaml: ${parts.lock}.`);
+  if (parts.lock && (!parts.continued || parts.lock === 'regenerated')) {
+    s.push(`client/pnpm-lock.yaml: ${parts.lock}${parts.continued ? ' (after hand resolutions)' : ''}.`);
+  }
   return s;
 }
 
@@ -516,7 +550,7 @@ function afterMerge({ o, root, state, attribution, conf }) {
   const norm = normalizeAndStage({ root, files });
   printReport(norm.result, { verbose: true, out: say });
 
-  const lock = maybeRegenerateLockfile({ root, ours: state.ours, o });
+  const lock = maybeRegenerateLockfile({ root, ours: state.ours, o, state });
   say(`client/pnpm-lock.yaml: ${lock}.`);
 
   // Lines the rename made longer may need rewrapping (PR #7 had two).
@@ -536,15 +570,26 @@ function afterMerge({ o, root, state, attribution, conf }) {
     kind: (conf?.remaining || []).find((r) => r.file === file)?.kind || 'content',
   }));
   printRemaining(remaining, attribution);
-  const summary = summarize(state, { conf, norm, lock });
+  const continued = !conf;
+  const summary = [...(state.summary || []), ...summarize(state, { conf, norm, lock, continued })];
+  // Files a person resolves by hand: those left unmerged, plus files the
+  // checks rejected. Once --continue runs, they count as resolved.
+  const next = {
+    ...state,
+    summary,
+    handResolved: continued
+      ? [...new Set([...(state.handResolved || []), ...(state.leftForHand || [])])]
+      : state.handResolved || [],
+    leftForHand: [...new Set([...(continued ? [] : state.leftForHand || []), ...remaining.map((r) => r.file)])],
+  };
   if (o.reportFile) fs.writeFileSync(o.reportFile, report.join('\n') + '\n');
+  fs.writeFileSync(statePath(root), JSON.stringify(next, null, 2));
   if (remaining.length) {
     say('');
     say('Resolve the files above, `git add` them, then run: node scripts/upstream/sync.mjs --continue');
-    fs.writeFileSync(statePath(root), JSON.stringify({ ...state, summary }, null, 2));
     return 2;
   }
-  return finish({ root, o, state, summary: [...(state.summary || []), ...summary] });
+  return finish({ root, o, state: next, summary });
 }
 
 function cont(o, root) {

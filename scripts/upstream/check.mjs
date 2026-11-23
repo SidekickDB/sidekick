@@ -154,7 +154,35 @@ function parseSteps(jobLines) {
 
 const isFalse = (cond) => cond !== null && /^(\$\{\{\s*)?\(?\s*false\b/.test(cond.trim());
 
-export function checkWorkflows(root) {
+/**
+ * Jobs and steps that are disabled in the workflows at `ref` (the SidekickDB
+ * side before a merge). They must stay disabled after it, so a job gated
+ * during one sync is protected in every later one without editing the lists
+ * above.
+ */
+export function disabledAt(ref, root) {
+  const jobs = {};
+  const steps = {};
+  const names = lines(gitTry(['ls-tree', '--name-only', `${ref}:.github/workflows`], { cwd: root }).stdout || '');
+  for (const f of names.filter((n) => /\.ya?ml$/.test(n))) {
+    const r = gitTry(['show', `${ref}:.github/workflows/${f}`], { cwd: root });
+    if (r.status !== 0) continue;
+    const wf = parseWorkflow(r.stdout);
+    jobs[f] = wf.jobs.filter((j) => isFalse(j.if)).map((j) => j.name);
+    steps[f] = wf.jobs
+      .filter((j) => !isFalse(j.if))
+      .flatMap((j) => j.steps.filter((st) => st.name && isFalse(st.if)).map((st) => [j.name, st.name]));
+  }
+  return { jobs, steps };
+}
+
+function union(a, b, key = (x) => JSON.stringify(x)) {
+  const out = new Map();
+  for (const x of [...(a || []), ...(b || [])]) out.set(key(x), x);
+  return [...out.values()];
+}
+
+export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
   const failures = [];
   const warnings = [];
   const dir = path.join(root, '.github/workflows');
@@ -175,12 +203,12 @@ export function checkWorkflows(root) {
       const extra = triggers.filter((t) => t !== 'workflow_dispatch');
       if (extra.length) failures.push(`${rel}: publish-only workflow has triggers besides workflow_dispatch: ${extra.join(', ')}`);
     }
-    for (const name of DISABLED_JOBS[f] || []) {
+    for (const name of union(DISABLED_JOBS[f], learned.jobs[f])) {
       const j = jobs.find((x) => x.name === name);
       if (!j) warnings.push(`${rel}: expected disabled job "${name}" not found (renamed upstream?)`);
       else if (!isFalse(j.if)) failures.push(`${rel}:${j.start}: job "${name}" must stay disabled (if: false && (...)), found if: ${j.if ?? '(none)'}`);
     }
-    for (const [jobName, stepName] of DISABLED_STEPS[f] || []) {
+    for (const [jobName, stepName] of union(DISABLED_STEPS[f], learned.steps[f])) {
       const j = jobs.find((x) => x.name === jobName);
       const s = j?.steps.find((x) => x.name === stepName);
       if (!s) warnings.push(`${rel}: expected disabled step "${stepName}" in job "${jobName}" not found`);
@@ -195,7 +223,12 @@ export function checkWorkflows(root) {
         if (disabledStepLines.has(n) || /^\s*#/.test(text)) continue;
         const code = text.replace(/\s#.*$/, '');
         for (const [re, why] of RISKY) {
-          if (re.test(code)) failures.push(`${rel}:${n}: enabled job "${j.name}" ${why}: ${text.trim().slice(0, 140)}`);
+          if (re.test(code)) {
+            failures.push(
+              `${rel}:${n}: enabled job "${j.name}" ${why}: ${text.trim().slice(0, 140)}\n` +
+                '      -> disable the job with a "# SidekickDB:" comment and `if: false && (<upstream condition>)`',
+            );
+          }
         }
       }
     }
@@ -300,7 +333,7 @@ export function runChecks({ root, base, allowLeftovers = false }) {
   const warnings = [];
   const review = {};
 
-  const wf = checkWorkflows(root);
+  const wf = checkWorkflows(root, disabledAt(base, root));
   failures.push(...wf.failures);
   warnings.push(...wf.warnings);
 
