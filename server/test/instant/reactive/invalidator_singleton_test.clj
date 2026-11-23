@@ -1,6 +1,7 @@
 (ns instant.reactive.invalidator-singleton-test
   (:require
    [clojure.core.async :as a]
+   [clojure.string :as string]
    [clojure.test :as test :refer [deftest is testing]]
    [instant.grouped-queue :as grouped-queue]
    [instant.grpc :as grpc]
@@ -107,6 +108,14 @@
 ;; singleton listener
 
 (deftest singleton-listener-recovers-after-db-outage
+  ;; with-redefs is process-wide, and the test JVM runs background workers
+  ;; from core/start (the custodian, sweepers, ...). While these redefs are
+  ;; in place, those workers also get a nil conn-pool, call select-one and
+  ;; record exceptions. So the select-one stub only answers the listener's
+  ;; slot check, and only invalidator errors are collected: otherwise a
+  ;; custodian tick landing in this window adds "custodian/tick-error" to
+  ;; `errors`, or a background select-one consumes the planned slot-check
+  ;; failure.
   (let [attempts (atom [])
         checks (atom 0)
         kicks (atom 0)
@@ -114,14 +123,18 @@
         release-shutdown (promise)
         reacquired (promise)
         make-wal-opts wal/make-wal-opts
+        select-one sql/select-one
         get-conn-config (with-meta (constantly nil) {:same-as-read-conn true})]
     (with-redefs [aurora/conn-pool (constantly nil)
-                  sql/select-one (fn [& _]
-                                   (when (= 2 (swap! checks inc))
-                                     (throw (ex-info "Postgres connection failed"
-                                                     {}
-                                                     (SQLException. "connection failed"))))
-                                   {:active false})
+                  sql/select-one (fn [tag & args]
+                                   (if (= ::inv/fast-active-slot-check tag)
+                                     (do
+                                       (when (= 2 (swap! checks inc))
+                                         (throw (ex-info "Postgres connection failed"
+                                                         {}
+                                                         (SQLException. "connection failed"))))
+                                       {:active false})
+                                     (apply select-one tag args)))
                   wal/make-wal-opts (fn [opts]
                                      (assoc (make-wal-opts opts)
                                             :stopped (promise)))
@@ -144,7 +157,8 @@
                                                {:completed-chan (a/chan)})
                   inv/broadcast-slot-disconnect (constantly nil)
                   tracer/record-exception-span! (fn [_ {:keys [name]}]
-                                                  (swap! errors conj name))]
+                                                  (when (string/starts-with? name "invalidator/")
+                                                    (swap! errors conj name)))]
       (let [{:keys [shutdown completed-chan]}
             (inv/start-singleton-listener
              {:acquire-slot-interval-ms 10

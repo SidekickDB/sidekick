@@ -10,16 +10,21 @@
    [instant.jdbc.aurora :as aurora]
    [instant.jdbc.sql :as sql]))
 
-;; core/start launches the custodian worker, so an ambient worker would race
-;; these tests (claiming/draining the rows we enqueue). Stop it for the duration
-;; and drive the logic directly, then restart it.
+;; An ambient custodian worker would race these tests (claiming/draining the
+;; rows we enqueue). Stop it for the duration and drive the logic directly, then
+;; restart it only if one was running before. The test runner's core/start does
+;; not launch the worker, so restarting it unconditionally left a worker ticking
+;; for the rest of the test JVM, where it hit other tests' process-wide redefs
+;; (e.g. a nil aurora/conn-pool) and recorded errors into their assertions.
 (use-fixtures :once
   (fn [f]
-    (custodian/stop)
-    (try
-      (f)
-      (finally
-        (custodian/start)))))
+    (let [was-running? (some? @custodian/worker)]
+      (custodian/stop)
+      (try
+        (f)
+        (finally
+          (when was-running?
+            (custodian/start)))))))
 
 ;; ----------
 ;; Helpers
