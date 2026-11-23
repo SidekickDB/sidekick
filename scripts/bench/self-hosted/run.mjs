@@ -169,9 +169,53 @@ function buildImages() {
       stdio: ['ignore', 'inherit', 'inherit'],
       env: { ...process.env, DOCKER_BUILDKIT: '1' },
     });
-    builds[name] = { seconds: Math.round((now() - t0) / 1000) };
+    builds[name] = {
+      seconds: Math.round((now() - t0) / 1000),
+      image_id: localImageId(image),
+    };
   }
   return builds;
+}
+
+function localImageId(image) {
+  const r = tryRun('docker', [
+    'image',
+    'inspect',
+    image,
+    '--format',
+    '{{.Id}}',
+  ]);
+  if (!r.ok) throw new Error(`image ${image} is not present locally`);
+  return r.stdout.trim();
+}
+
+// The server and dashboard images are built locally and must never come from
+// a registry: their tags would resolve to docker.io/sidekick-bench/..., a
+// namespace anyone could register. Only the services that use published
+// images are pulled, `up` runs with --pull never, and every sample checks
+// that the containers run exactly the images built from the commit under
+// test.
+const registryServices = ['postgres', 'storage', 'createbuckets'];
+const localImages = {};
+
+function assertLocalImages() {
+  for (const [service, image] of [
+    ['server', serverImage],
+    ['www', dashboardImage],
+  ]) {
+    const id = containerId(service);
+    const running = run('docker', [
+      'inspect',
+      '--format',
+      '{{.Image}}',
+      id,
+    ]).trim();
+    if (running !== localImages[image]) {
+      throw new Error(
+        `${service} runs ${running}, not the image built for this run (${image} ${localImages[image]})`,
+      );
+    }
+  }
 }
 
 function imageInfo() {
@@ -306,7 +350,7 @@ async function pollUntil(t0, check, timeoutMs) {
 // and the pollers run from the same t0.
 async function startStack(timeoutMs = 360_000) {
   const t0 = now();
-  const up = spawn('docker', [...dcArgs, 'up', '-d'], {
+  const up = spawn('docker', [...dcArgs, 'up', '-d', '--pull', 'never'], {
     cwd: root,
     stdio: ['ignore', 'ignore', 'pipe'],
   });
@@ -505,6 +549,7 @@ async function sample(n) {
   log(`sample ${n}: down -v`);
   tryDc('down', '-v', '--remove-orphans');
   const marks = await startStack();
+  assertLocalImages();
   log(`sample ${n}: ready`, JSON.stringify(marks));
   const phases = serverBootPhases();
 
@@ -555,8 +600,11 @@ log('environment', JSON.stringify(results.environment));
 
 results.env_file = writeEnvFile();
 if (!args['skip-build']) results.builds = buildImages();
-log('pulling images');
-dc('pull', '--ignore-buildable', '--ignore-pull-failures', '--quiet');
+for (const image of [serverImage, dashboardImage]) {
+  localImages[image] = localImageId(image);
+}
+log('pulling images', registryServices.join(', '));
+dc('pull', '--quiet', ...registryServices);
 results.images = imageInfo();
 
 let failed = false;

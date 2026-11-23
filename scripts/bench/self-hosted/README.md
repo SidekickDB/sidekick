@@ -41,6 +41,10 @@ node scripts/bench/self-hosted/run.mjs --samples 5 --out bench-out
    `STORAGE_ACCESS_KEY` was set).
 3. Uses `self-hosting/docker-compose.yml` unchanged, plus `compose.bench.yml`,
    which only publishes the server on `127.0.0.1:8888`.
+   Only postgres, storage and createbuckets are pulled; `up` runs with
+   `--pull never`, and each sample checks that the server and dashboard
+   containers run the image IDs built in step 1 (their local tags would
+   otherwise resolve to Docker Hub).
 4. Per sample (at least 3, default 5):
    - `down -v`, then `up -d` on fresh volumes, and polls every 250 ms:
      server `GET /` (the compose healthcheck target), `/health/system` WAL ok,
