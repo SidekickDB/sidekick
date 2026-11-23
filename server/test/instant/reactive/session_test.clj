@@ -107,7 +107,9 @@
                             rq/instaql-query-reactive!
                             (fn [store {:keys [session-id] :as base-ctx} instaql-query return-type inference?]
                               (let [res (query-reactive store base-ctx instaql-query return-type inference?)]
-                                (swap! *instaql-query-results* assoc-in [session-id instaql-query] res)
+                                ;; Unbound on receive-queue worker threads
+                                (when *instaql-query-results*
+                                  (swap! *instaql-query-results* assoc-in [session-id instaql-query] res))
                                 res))]
                 (try
                   (f store {:socket   socket
@@ -1873,3 +1875,100 @@
             (is (refreshed-by? store sess q [alex user-shelves [[:add-triple alex user-shelves shelf]]])))
           (testing "a field that the rule doesn't read"
             (is (not (refreshed-by? store sess q (set-value r "eid-alex" :users/email "alex@example.com"))))))))))
+
+(defn- read-msg-until
+  "Reads messages until one satisfies `pred`, or returns nil after `timeout-ms`."
+  [socket pred timeout-ms]
+  (let [deadline (+ (System/currentTimeMillis) timeout-ms)]
+    (loop []
+      (let [remaining (- deadline (System/currentTimeMillis))]
+        (when (pos? remaining)
+          (let [ret (ua/<!!-timeout (:ws-conn socket) remaining)]
+            (cond (= :timeout ret) nil
+                  (pred ret) ret
+                  :else (recur))))))))
+
+(deftest timed-out-refresh-keeps-subscriptions-and-redelivers
+  ;; instantdb/instant#2932: a refresh that hits the receive timeout used to
+  ;; remove every query whose recompute it interrupted, and to count queries
+  ;; that finished inside it as delivered, although refresh-ok was never sent.
+  (with-session
+    (fn [store {:keys [socket movies-app-id movies-resolver]}]
+      (let [sess-id (:id socket)
+            q-slow (:kw-q query-1987)
+            q-fast (:kw-q query-robocop)
+            eid (resolvers/->uuid movies-resolver "eid-robocop")
+            title "RoboCop (1987)"
+            query-exists? (fn [q]
+                            (some? (ds/entid @(rs/app-conn store movies-app-id)
+                                             [:instaql-query/session-id+query [sess-id q]])))
+            permissioned-query iq/permissioned-query
+            ;; The first refresh of q-slow blocks inside instaql-query-reactive!
+            ;; until the receive handler times out and interrupts it.
+            slow-calls-left (atom 1)]
+        (blocking-send-msg :init-ok socket {:op :init :app-id movies-app-id})
+        (blocking-send-msg :add-query-ok socket {:op :add-query :q q-slow})
+        (blocking-send-msg :add-query-ok socket {:op :add-query :q q-fast})
+        (with-redefs [flags/throttle-refresh? (constantly false)
+                      flags/handle-receive-timeout (constantly 300)
+                      iq/permissioned-query
+                      (fn [ctx q]
+                        (when (and (= q-slow (:instaql-query ctx))
+                                   (<= 0 (swap! slow-calls-left dec)))
+                          (Thread/sleep 10000))
+                        (permissioned-query ctx q))]
+          (tx/transact! (aurora/conn-pool :write)
+                        (attr-model/get-by-app-id movies-app-id)
+                        movies-app-id
+                        [[:add-triple eid
+                          (resolvers/->uuid movies-resolver :movie/title)
+                          title]])
+          (rs/mark-stale-topics! store movies-app-id 0
+                                 (instant.isn/test-isn 0)
+                                 [(d/pat->coarse-topic [:ea eid])]
+                                 {})
+          (is (= #{q-slow q-fast}
+                 (set (map :instaql-query/query
+                           (rs/get-stale-instaql-queries store movies-app-id sess-id)))))
+
+          (send-msg socket {:op :refresh :session-id sess-id})
+          (let [err (read-msg socket)]
+            (is (= :error (:op err)))
+            (is (= :refresh (-> err :original-event :op))))
+
+          (testing "the refresh is retried and delivers both queries, with the write"
+            (let [refresh-ok (read-msg-until socket
+                                             #(and (= :refresh-ok (:op %))
+                                                   (seq (:computations %)))
+                                             10000)
+                  computations (into {}
+                                     (map (juxt :instaql-query identity))
+                                     (:computations refresh-ok))]
+              (is (some? refresh-ok) "no refresh-ok after the timed-out refresh")
+              (is (= #{q-slow q-fast} (set (keys computations))))
+              (is (some #(= title (nth % 2))
+                        (-> (get computations q-slow)
+                            :instaql-result first :data :datalog-result :join-rows first)))))
+
+          (testing "neither query was removed from the session"
+            (is (query-exists? q-slow))
+            (is (query-exists? q-fast))
+            (is (empty? (rs/get-stale-instaql-queries store movies-app-id sess-id))))
+
+          (testing "later writes still reach the slow query"
+            (tx/transact! (aurora/conn-pool :write)
+                          (attr-model/get-by-app-id movies-app-id)
+                          movies-app-id
+                          [[:add-triple eid
+                            (resolvers/->uuid movies-resolver :movie/title)
+                            "RoboCop (again)"]])
+            (rs/mark-stale-topics! store movies-app-id 0
+                                   (instant.isn/test-isn 0)
+                                   [(d/pat->coarse-topic [:ea eid])]
+                                   {})
+            (send-msg socket {:op :refresh :session-id sess-id})
+            (is (some? (read-msg-until socket
+                                       #(and (= :refresh-ok (:op %))
+                                             (some (comp #{q-slow} :instaql-query)
+                                                   (:computations %)))
+                                       5000)))))))))
