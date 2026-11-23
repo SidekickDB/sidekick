@@ -42,6 +42,8 @@ services:
       start_period: 60s
     environment:
       INSTANT_BACKEND_URL: ${SERVER_URL:? example http://server.localhost}
+      # Shows "Continue with Google" on the login page when set.
+      INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID:-}
     networks:
       - caddy
       - default
