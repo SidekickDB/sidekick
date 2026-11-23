@@ -409,6 +409,43 @@
      {:client-id client-id
       :client-secret (crypt-util/obfuscate client-secret)})))
 
+(defn dashboard-google-oauth-configured?
+  "True when dashboard Google sign-in has a client, from the environment or the
+   config file."
+  []
+  (some? (get-google-oauth-client)))
+
+;; DNS-over-HTTPS resolvers for the SSRF-guarded HTTP client (webhooks, OAuth
+;; discovery and JWKS). INSTANT_DNS_OVER_HTTPS_URLS is a comma-separated list of
+;; DoH endpoints, or "system" to use the system resolver only.
+(def default-dns-over-https-urls
+  ["https://cloudflare-dns.com/dns-query"
+   "https://dns.google/dns-query"])
+
+(defn parse-dns-over-https-urls
+  "nil or blank means the defaults; \"system\" means no DoH (empty vector).
+   Only the literal \"system\" selects the system resolver: a value with no
+   endpoints in it, such as \",\", is rejected instead of silently turning
+   DoH off."
+  [value]
+  (let [value (some-> value string/trim not-empty)]
+    (cond
+      (nil? value) default-dns-over-https-urls
+      (= "system" (string/lower-case value)) []
+      :else (let [urls (->> (string/split value #",")
+                            (map string/trim)
+                            (remove string/blank?)
+                            vec)]
+              (when (empty? urls)
+                (throw (ex-info (str "INSTANT_DNS_OVER_HTTPS_URLS has no DNS-over-HTTPS URL in it: "
+                                     (pr-str value)
+                                     ". Use a comma-separated list of URLs, or \"system\".")
+                                {:value value})))
+              urls))))
+
+(defn dns-over-https-urls []
+  (parse-dns-over-https-urls (System/getenv "INSTANT_DNS_OVER_HTTPS_URLS")))
+
 (defn shared-oauth-clients []
   (-> @config-map :shared-oauth-clients))
 

@@ -3,7 +3,7 @@ services:
     # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
     image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pass}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env; see .env.example}
       POSTGRES_USER: ${POSTGRES_USER:-instant}
       POSTGRES_DB: ${POSTGRES_DB:-instant}
     volumes:
@@ -48,8 +48,8 @@ services:
     image: ${STORAGE_IMAGE:-rustfs/rustfs:1.0.6}
     restart: always
     environment:
-      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
-      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?set STORAGE_ACCESS_KEY (or the older MINIO_ROOT_USER) in .env; see .env.example}}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:?set STORAGE_SECRET_KEY (or the older MINIO_ROOT_PASSWORD) in .env; see .env.example}}
       RUSTFS_ADDRESS: ":9000"
       RUSTFS_CONSOLE_ADDRESS: ":9001"
       RUSTFS_CONSOLE_ENABLE: "true"
@@ -69,8 +69,8 @@ services:
     # buckets. Access still needs a presigned URL.
     image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
-      ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
-      SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
+      ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?set STORAGE_ACCESS_KEY (or the older MINIO_ROOT_USER) in .env; see .env.example}}
+      SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:?set STORAGE_SECRET_KEY (or the older MINIO_ROOT_PASSWORD) in .env; see .env.example}}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     depends_on:
@@ -104,15 +104,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 180s
+    mem_limit: ${SERVER_MEMORY_LIMIT:-2g}
     environment:
+      # JVM flags. Defaults: heap up to 60% of the container memory limit, and
+      # upstream's native-memory bounds (cap on cached NIO buffers, periodic
+      # return of freed native memory). Setting JAVA_OPTS replaces all of them.
+      JAVA_OPTS: "${JAVA_OPTS:--XX:MaxRAMPercentage=60 -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000}"
       WAL_HISTORY_STORAGE: pg
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:-pass}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env; see .env.example}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
       CONNECTION_POOL_SIZE: ${CONNECTION_POOL_SIZE:-20}
       INSTANT_BACKEND_URL: ${INSTANT_BACKEND_URL:-http://localhost:8888}
       INSTANT_DASHBOARD_URL: ${INSTANT_DASHBOARD_URL:-http://localhost:3000}
       INSTANT_SUPERUSER_EMAIL: ${INSTANT_SUPERUSER_EMAIL:-}
       INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID:-}
       INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET: ${INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET:-}
+      # DNS-over-HTTPS resolvers for outbound requests (webhooks, OAuth); "system"
+      # uses the system resolver. Unset means Cloudflare and Google DoH.
+      INSTANT_DNS_OVER_HTTPS_URLS: ${INSTANT_DNS_OVER_HTTPS_URLS:-}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}
@@ -126,8 +134,8 @@ services:
       INSTANT_APP_EMAIL_SENDER_EMAIL: ${INSTANT_APP_EMAIL_SENDER_EMAIL:-}
       INSTANT_TEAM_EMAIL_SENDER_NAME: ${INSTANT_TEAM_EMAIL_SENDER_NAME:-}
       INSTANT_TEAM_EMAIL_SENDER_EMAIL: ${INSTANT_TEAM_EMAIL_SENDER_EMAIL:-}
-      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:-rustfsadmin}}
-      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:-rustfsadmin}}
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?set STORAGE_ACCESS_KEY (or the older MINIO_ROOT_USER) in .env; see .env.example}}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:?set STORAGE_SECRET_KEY (or the older MINIO_ROOT_PASSWORD) in .env; see .env.example}}
       AWS_REGION: ${AWS_REGION:-}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
