@@ -12,6 +12,7 @@ const schema = i.schema({
 
 const db = init({
   appId: 'my-app-id',
+  apiURI: 'http://localhost:8888',
   schema,
 });
 
