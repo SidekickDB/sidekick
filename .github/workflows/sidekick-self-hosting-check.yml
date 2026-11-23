@@ -55,6 +55,15 @@ jobs:
           echo "Runner Compose: $(docker compose version --short)"
           echo "Pinned Compose: $("$COMPOSE_PINNED" version --short)"
 
+      # Runs the storage-key rename command from self-hosting/README.md as
+      # written, under sh, bash, zsh and dash. zsh is not on the runner image.
+      - name: Test the README rename command
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends zsh > /dev/null
+          for s in sh bash zsh dash; do printf '%s: %s\n' "$s" "$(command -v $s)"; done
+          node --test scripts/self-hosting/rename-keys.test.mjs
+
       - name: Render the compose files
         run: |
           node scripts/self-hosting/render-check.mjs \

@@ -84,16 +84,30 @@ would not match the existing volumes.
 
 `MINIO_ROOT_USER` is now `STORAGE_ACCESS_KEY`, and `MINIO_ROOT_PASSWORD` is now
 `STORAGE_SECRET_KEY`. Keep the values: they are the credentials your storage
-volume was created with. In the directory with your `.env`:
+volume was created with. In the directory with your `.env`, run:
 
 ```sh
-for p in "MINIO_ROOT_USER STORAGE_ACCESS_KEY" "MINIO_ROOT_PASSWORD STORAGE_SECRET_KEY"; do set -- $p; if grep -q "^$1=." .env && ! grep -q "^$2=." .env; then sed -i.bak -e "/^$2=\$/d" -e "s/^$1=/$2=/" .env; fi; done
+sh -c '
+set -e
+[ -e .env.before-storage-rename ] || cp -p .env .env.before-storage-rename
+rename() {
+  if grep -q "^$1=." .env && ! grep -q "^$2=." .env; then
+    sed -e "/^$2=\$/d" -e "s/^$1=/$2=/" .env > .env.rename-tmp
+    cat .env.rename-tmp > .env
+    rm .env.rename-tmp
+  fi
+}
+rename MINIO_ROOT_USER STORAGE_ACCESS_KEY
+rename MINIO_ROOT_PASSWORD STORAGE_SECRET_KEY
+'
 ```
 
-For each pair, this renames the old line only when the old name has a value
-and the new name does not, and removes an empty line for the new name first,
-so `.env` ends up with one line per key. Running it again changes nothing. It
-keeps a copy as `.env.bak`. Check the result with
+It runs under `sh` whatever your shell is (zsh, bash, sh, dash). For each
+pair, it renames the old line only when the old name has a value and the new
+name has none, and removes an empty line for the new name first, so `.env`
+ends up with one line per key. Before the first change it copies `.env` to
+`.env.before-storage-rename`, and it never overwrites that copy. Running it
+again changes nothing. `.env` keeps its permissions. Check the result with
 `docker compose config --quiet`.
 
 The compose files used to fall back to the old names with a nested default,
