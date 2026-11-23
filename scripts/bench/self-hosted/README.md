@@ -87,7 +87,8 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
   about how many users a host can serve.
 - Many apps, large apps, large frames, deep permissions, bulk writes,
   pagination, presence, streams, files, backups, sync tables, webhooks,
-  offline clients or SSE. Only WebSocket live queries and single writes.
+  offline clients or SSE. Only WebSocket live queries and single writes are
+  timed; the smoke checks only confirm that presence, streams and SSE work.
 - PostgreSQL internals (WAL bytes, slot lag, query plans, walsender memory),
   GC pauses, metaspace (JDK 26's `GC.heap_info` no longer prints it), native
   memory breakdown (NMT is off), CPU time, disk I/O.
@@ -105,4 +106,6 @@ label and CPU model, and look at the spread, not single values.
 ## Results
 
 Kept baselines are in `results/`, one Markdown and one JSON file per run,
-named after the date and the commit measured.
+named after the date and the commit measured. A Markdown file alone with a
+suffix (such as `2026-11-23-45e4cccb-presence-failure.md`) records a failure
+a run found, with its evidence and fix, rather than a baseline.

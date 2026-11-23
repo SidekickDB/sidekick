@@ -2095,3 +2095,23 @@
                         (-> computation
                             :instaql-result first :data :datalog-result :join-rows first)))
               (is (query-exists? q-fast)))))))))
+
+(deftest combine-refresh-presence
+  ;; A refresh with :edits nil is a full snapshot (a session that just joined);
+  ;; one with :edits is a patch.
+  (let [snapshot (fn [data] {:op :refresh-presence :room-id "r" :data data :edits nil})
+        patch (fn [data edits] {:op :refresh-presence :room-id "r" :data data :edits edits})]
+    (testing "two patches combine into one patch with both edits, in order"
+      (is (= (patch {:b 2} [[:a] [:b]])
+             (session/combine nil (patch {:a 1} [[:a]]) (patch {:b 2} [[:b]])))))
+    (testing "snapshot then patch: a snapshot of the latest data, not the patch alone"
+      (let [combined (session/combine nil (snapshot {:a 1}) (patch {:a 1 :b 2} [[:b]]))]
+        (is (nil? (:edits combined)))
+        (is (= {:a 1 :b 2} (:data combined)))))
+    (testing "patch then snapshot: the snapshot"
+      (let [combined (session/combine nil (patch {:a 1} [[:a]]) (snapshot {:a 1 :b 2}))]
+        (is (nil? (:edits combined)))
+        (is (= {:a 1 :b 2} (:data combined)))))
+    (testing "two snapshots: the latest"
+      (is (= (snapshot {:b 2})
+             (session/combine nil (snapshot {:a 1}) (snapshot {:b 2})))))))
