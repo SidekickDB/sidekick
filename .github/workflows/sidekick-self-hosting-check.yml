@@ -1,0 +1,71 @@
+# SidekickDB: renders the self-hosting compose files for every way a user can
+# fill in .env (scripts/self-hosting/render-check.mjs), on the runner's own
+# Compose and on a pinned current Compose release, so a file that only works
+# on one Compose version cannot be merged. Only `docker compose config` and
+# `docker stack config` run: no containers, images or registries.
+#
+# Read-only: no secrets, no write permissions, nothing is pushed or published.
+name: Self-hosting compose check
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'self-hosting/**'
+      - 'scripts/self-hosting/**'
+      - '.github/workflows/sidekick-self-hosting-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: Render compose files
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # The current Compose release, pinned. Update both lines together, with
+      # the sha256 from that release's docker-compose-linux-x86_64.sha256.
+      COMPOSE_VERSION: v5.8.0
+      COMPOSE_SHA256: b8840f5008c447f41fce0a57ae3adeab42c89b1eb6e6012524bcabbfb4ffbaf6
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Download Compose ${{ env.COMPOSE_VERSION }}
+        run: |
+          dir="$RUNNER_TEMP/compose-$COMPOSE_VERSION"
+          mkdir -p "$dir"
+          curl -fsSL -o "$dir/docker-compose" \
+            "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-x86_64"
+          echo "$COMPOSE_SHA256  $dir/docker-compose" | sha256sum -c -
+          chmod +x "$dir/docker-compose"
+          echo "COMPOSE_PINNED=$dir/docker-compose" >> "$GITHUB_ENV"
+
+      - name: Compose versions
+        run: |
+          echo "Runner Compose: $(docker compose version --short)"
+          echo "Pinned Compose: $("$COMPOSE_PINNED" version --short)"
+
+      # Runs the storage-key rename command from self-hosting/README.md as
+      # written, under sh, bash, zsh and dash. zsh is not on the runner image.
+      - name: Test the README rename command
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends zsh > /dev/null
+          for s in sh bash zsh dash; do printf '%s: %s\n' "$s" "$(command -v $s)"; done
+          node --test scripts/self-hosting/rename-keys.test.mjs
+
+      - name: Render the compose files
+        run: |
+          node scripts/self-hosting/render-check.mjs \
+            --compose "docker compose" \
+            --compose "$COMPOSE_PINNED"

@@ -61,9 +61,11 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks",
-    prs: [4, 14],
+    prs: [4, 14, 21],
     resolve:
-      "Keep the `storage` (RustFS) service, STORAGE_* variables with MINIO_* fallbacks, the createbuckets " +
+      "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
+      "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
+      "are fine; run scripts/self-hosting/render-check.mjs), the createbuckets " +
       'CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION and the healthchecks. In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
@@ -138,6 +140,7 @@ const PR_CATEGORY = {
   18: "release",
   19: "config-aliases",
   20: "bench",
+  21: "selfhost",
 };
 
 export function categoryFor(pr, file) {

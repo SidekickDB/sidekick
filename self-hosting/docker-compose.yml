@@ -51,8 +51,8 @@ services:
     image: ${STORAGE_IMAGE:-rustfs/rustfs:1.0.6}
     restart: always
     environment:
-      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?set STORAGE_ACCESS_KEY (or the older MINIO_ROOT_USER) in .env; see .env.example}}
-      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:?set STORAGE_SECRET_KEY (or the older MINIO_ROOT_PASSWORD) in .env; see .env.example}}
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in .env; an older .env that has MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must rename them to STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY; see .env.example}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY in .env; an older .env that has MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must rename them to STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY; see .env.example}
       RUSTFS_ADDRESS: ":9000"
       RUSTFS_CONSOLE_ADDRESS: ":9001"
       RUSTFS_CONSOLE_ENABLE: "true"
@@ -72,8 +72,8 @@ services:
     # buckets. Access still needs a presigned URL.
     image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
-      ACCESS_KEY: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?set STORAGE_ACCESS_KEY (or the older MINIO_ROOT_USER) in .env; see .env.example}}
-      SECRET_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:?set STORAGE_SECRET_KEY (or the older MINIO_ROOT_PASSWORD) in .env; see .env.example}}
+      ACCESS_KEY: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in .env; an older .env that has MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must rename them to STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY; see .env.example}
+      SECRET_KEY: ${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY in .env; an older .env that has MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must rename them to STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY; see .env.example}
       S3_BUCKET: ${S3_BUCKET:-instant-bucket}
       S3_APP_BACKUPS_BUCKET: ${S3_APP_BACKUPS_BUCKET:-instant-backups}
     depends_on:
@@ -137,8 +137,8 @@ services:
       INSTANT_APP_EMAIL_SENDER_EMAIL: ${SIDEKICK_APP_EMAIL_SENDER_EMAIL:-${INSTANT_APP_EMAIL_SENDER_EMAIL:-}}
       INSTANT_TEAM_EMAIL_SENDER_NAME: ${SIDEKICK_TEAM_EMAIL_SENDER_NAME:-${INSTANT_TEAM_EMAIL_SENDER_NAME:-}}
       INSTANT_TEAM_EMAIL_SENDER_EMAIL: ${SIDEKICK_TEAM_EMAIL_SENDER_EMAIL:-${INSTANT_TEAM_EMAIL_SENDER_EMAIL:-}}
-      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?set STORAGE_ACCESS_KEY (or the older MINIO_ROOT_USER) in .env; see .env.example}}
-      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:-${MINIO_ROOT_PASSWORD:?set STORAGE_SECRET_KEY (or the older MINIO_ROOT_PASSWORD) in .env; see .env.example}}
+      AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in .env; an older .env that has MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must rename them to STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY; see .env.example}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY in .env; an older .env that has MINIO_ROOT_USER and MINIO_ROOT_PASSWORD must rename them to STORAGE_ACCESS_KEY and STORAGE_SECRET_KEY; see .env.example}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-}
