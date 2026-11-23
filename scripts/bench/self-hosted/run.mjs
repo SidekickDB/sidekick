@@ -3,8 +3,13 @@
 // GitHub Actions workflow .github/workflows/sidekick-self-hosted-bench.yml):
 // it builds images, starts and deletes containers and volumes.
 //
-//   node scripts/bench/self-hosted/run.mjs [--samples 5] [--idle-seconds 120]
-//     [--out bench-out] [--skip-build]
+//   node scripts/bench/self-hosted/run.mjs [--samples 3]
+//     [--modes default,self-hosted] [--idle-seconds 120] [--out bench-out]
+//     [--skip-build]
+//
+// --modes lists runtime modes (SIDEKICK_RUNTIME_MODE). With more than one,
+// the samples alternate between them in one job, on the same images and
+// machine, and --samples is per mode (at least 3 each).
 //
 // Each sample:
 //   1. `docker compose down -v`, then `up -d` on fresh volumes (cold start);
@@ -16,7 +21,13 @@
 //      (jcmd 1 GC.heap_info);
 //   4. runs workload.mjs (live queries, writes, time to client-visible update);
 //   5. waits 30 s and records memory again;
-//   6. restarts the server container and times it back to GET / (warm restart).
+//   6. runs smoke.mjs (response headers, presence, streams, SSE) for the mode;
+//   7. restarts the server container and times it back to GET / (warm restart).
+//
+// From the server log of each cold start it also records the start-up phases
+// (container start, "Starting server...", first init step, "Finished
+// initializing") and the duration of every init.finish.<step> span, plus the
+// init.skip.<step> lines.
 //
 // Writes <out>/results.json (environment, config, every sample) and, through
 // summarize.mjs, <out>/summary.md. Exits 1 if a sample failed, including a
@@ -36,7 +47,8 @@ const root = path.resolve(here, '../../..');
 
 const { values: args } = parseArgs({
   options: {
-    samples: { type: 'string', default: '5' },
+    samples: { type: 'string', default: '3' },
+    modes: { type: 'string', default: 'self-hosted' },
     'idle-seconds': { type: 'string', default: '120' },
     'settle-seconds': { type: 'string', default: '30' },
     out: { type: 'string', default: path.join(root, 'bench-out') },
@@ -52,6 +64,17 @@ if (!(samples >= 3)) {
   console.error('--samples must be at least 3: never report a single sample');
   process.exit(2);
 }
+const modes = args.modes
+  .split(',')
+  .map((m) => m.trim())
+  .filter(Boolean);
+if (
+  !modes.length ||
+  modes.some((m) => !['self-hosted', 'default'].includes(m))
+) {
+  console.error('--modes takes self-hosted and/or default, comma-separated');
+  process.exit(2);
+}
 const idleSeconds = Number(args['idle-seconds']);
 const settleSeconds = Number(args['settle-seconds']);
 const out = path.resolve(args.out);
@@ -65,11 +88,12 @@ const composeFiles = [
   path.join(root, 'self-hosting/docker-compose.yml'),
   path.join(here, 'compose.bench.yml'),
 ];
-// Holds generated, throwaway secrets: kept out of <out>, which is uploaded.
-const envFile = path.join(
-  fs.mkdtempSync(path.join(os.tmpdir(), 'sidekick-bench-')),
-  'bench.env',
-);
+// Hold generated, throwaway secrets: kept out of <out>, which is uploaded.
+// One file per runtime mode; envFile is the one the next command uses.
+const envDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sidekick-bench-'));
+const baseEnvFile = path.join(envDir, 'bench.env');
+let envFile = baseEnvFile;
+const envFileFor = (mode) => path.join(envDir, `bench-${mode}.env`);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const now = () => Date.now();
@@ -98,7 +122,7 @@ function tryRun(cmd, argv, opts = {}) {
   return { ok: r.status === 0, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
 }
 
-const dcArgs = [
+const dcArgs = () => [
   'compose',
   '-p',
   project,
@@ -106,8 +130,8 @@ const dcArgs = [
   envFile,
   ...composeFiles.flatMap((f) => ['-f', f]),
 ];
-const dc = (...a) => run('docker', [...dcArgs, ...a]);
-const tryDc = (...a) => tryRun('docker', [...dcArgs, ...a]);
+const dc = (...a) => run('docker', [...dcArgs(), ...a]);
+const tryDc = (...a) => tryRun('docker', [...dcArgs(), ...a]);
 
 function containerId(service) {
   return dc('ps', '-a', '-q', service).trim();
@@ -276,7 +300,7 @@ function writeEnvFile() {
   // "required variable MINIO_ROOT_USER is missing a value". Record that, and
   // then also set the old names to the same values so the run can go on.
   const check = tryDc('config', '--quiet');
-  if (check.ok) return { as_shipped_env_accepted: true };
+  if (check.ok) return writeModeEnvFiles({ as_shipped_env_accepted: true });
   fs.appendFileSync(
     envFile,
     `MINIO_ROOT_USER=${secrets.STORAGE_ACCESS_KEY}\n` +
@@ -289,12 +313,28 @@ function writeEnvFile() {
   log(
     'compose rejected the env file written from .env.example; set MINIO_ROOT_USER/MINIO_ROOT_PASSWORD too',
   );
-  return {
+  return writeModeEnvFiles({
     as_shipped_env_accepted: false,
     as_shipped_env_error: check.stderr.trim().slice(0, 500),
     workaround:
       'MINIO_ROOT_USER and MINIO_ROOT_PASSWORD set to the STORAGE_* values',
-  };
+  });
+}
+
+// The base file plus SIDEKICK_RUNTIME_MODE, one per mode. The compose files
+// default to self-hosted; setting it explicitly records what each sample ran.
+function writeModeEnvFiles(result) {
+  const base = fs.readFileSync(baseEnvFile, 'utf8');
+  for (const mode of modes) {
+    fs.writeFileSync(
+      envFileFor(mode),
+      base + `SIDEKICK_RUNTIME_MODE=${mode}\n`,
+      {
+        mode: 0o600,
+      },
+    );
+  }
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -315,7 +355,7 @@ async function httpOk(url) {
 async function healthAsync(service) {
   try {
     const { stdout: id } = await execFileAsync('docker', [
-      ...dcArgs,
+      ...dcArgs(),
       'ps',
       '-a',
       '-q',
@@ -350,7 +390,7 @@ async function pollUntil(t0, check, timeoutMs, stop = { stopped: false }) {
 // and the pollers run from the same t0.
 async function startStack(timeoutMs = 360_000) {
   const t0 = now();
-  const up = spawn('docker', [...dcArgs, 'up', '-d', '--pull', 'never'], {
+  const up = spawn('docker', [...dcArgs(), 'up', '-d', '--pull', 'never'], {
     cwd: root,
     stdio: ['ignore', 'ignore', 'pipe'],
   });
@@ -415,21 +455,49 @@ async function startStack(timeoutMs = 360_000) {
   return marks;
 }
 
-// Seconds from the server container's start to the main server JVM's start
-// ("Starting server..." is printed after the bootstrap JVM, which applies
-// migrations and the OSS config, exits).
+// Start-up phases and init steps from the server log of the current start:
+// container start, "Starting server..." (after the bootstrap JVM, which
+// applies migrations and the OSS config), the first init step, and
+// "Finished initializing"; plus every init.finish.<step> duration and the
+// init.skip.<step> lines (the tracer prints them as "<ms>ms [init.finish.x]").
+const ANSI = /\x1b\[[0-9;]*m/g;
+
 function serverBootPhases() {
   const id = containerId('server');
   const startedAt = Date.parse(
     run('docker', ['inspect', '--format', '{{.State.StartedAt}}', id]).trim(),
   );
-  const logs = run('docker', ['logs', '--timestamps', id], {
+  const lines = run('docker', ['logs', '--timestamps', id], {
     stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  const line = logs.split('\n').find((l) => l.includes('Starting server...'));
-  const at = line ? Date.parse(line.split(' ')[0]) : NaN;
+  })
+    .replace(ANSI, '')
+    .split('\n');
+  const at = (pred) => {
+    const line = lines.find(pred);
+    const t = line ? Date.parse(line.split(' ')[0]) : NaN;
+    return Number.isFinite(t) ? t : null;
+  };
+  const serverJvm = at((l) => l.includes('Starting server...'));
+  const firstInit = at((l) => /\[init\.(start|skip)\./.test(l));
+  const finished = at((l) => l.includes('Finished initializing'));
+  const steps = {};
+  const skipped = [];
+  for (const l of lines) {
+    const m = l.match(
+      /(\d+(?:\.\d+)?)ms \[init\.(finish|skip)\.([a-z0-9-]+)\]/,
+    );
+    if (!m) continue;
+    if (m[2] === 'skip') skipped.push(m[3]);
+    else steps[m[3]] = Number(m[1]);
+  }
+  const diff = (a, b) => (a !== null && b !== null ? a - b : null);
   return {
-    bootstrap_jvm_ms: Number.isFinite(at) ? at - startedAt : null,
+    bootstrap_jvm_ms: diff(serverJvm, startedAt),
+    server_jvm_to_first_init_ms: diff(firstInit, serverJvm),
+    init_steps_ms: diff(finished, firstInit),
+    container_to_initialized_ms: diff(finished, startedAt),
+    init_finish_ms: steps,
+    init_skipped: [...new Set(skipped)],
   };
 }
 
@@ -556,6 +624,31 @@ function workload() {
   return parsed;
 }
 
+function smoke(mode) {
+  const r = tryRun(
+    process.execPath,
+    [
+      '--experimental-eventsource',
+      path.join(here, 'smoke.mjs'),
+      '--api',
+      apiURI,
+      '--mode',
+      mode,
+    ],
+    { timeout: 180_000 },
+  );
+  const line = r.stdout.trim().split('\n').filter(Boolean).at(-1);
+  try {
+    return JSON.parse(line);
+  } catch {
+    return {
+      mode,
+      ok: false,
+      error: `${r.stderr.trim().slice(-1500)} ${r.stdout.slice(-300)}`,
+    };
+  }
+}
+
 // ---------------------------------------------------------------------------
 
 function saveLogs(label) {
@@ -563,17 +656,20 @@ function saveLogs(label) {
   fs.writeFileSync(path.join(out, `logs-${label}.txt`), r.stdout + r.stderr);
 }
 
-async function sample(n) {
-  log(`sample ${n}: down -v`);
+async function sample(n, mode) {
+  envFile = envFileFor(mode);
+  log(`sample ${n} (${mode}): down -v`);
   tryDc('down', '-v', '--remove-orphans');
   const marks = await startStack();
   assertLocalImages();
   log(`sample ${n}: ready`, JSON.stringify(marks));
-  const phases = serverBootPhases();
 
   log(`sample ${n}: idle ${idleSeconds} s`);
   await sleep(idleSeconds * 1000);
   const idle = await memorySnapshot();
+  // Read after the idle wait: span lines are exported asynchronously and can
+  // follow "Finished initializing" in the log.
+  const phases = serverBootPhases();
 
   log(`sample ${n}: workload`);
   const work = workload();
@@ -583,6 +679,13 @@ async function sample(n) {
 
   await sleep(settleSeconds * 1000);
   const after = await memorySnapshot();
+
+  log(`sample ${n}: smoke`);
+  const smokeResult = smoke(mode);
+  log(
+    `sample ${n}: smoke ${smokeResult.ok ? 'ok' : 'FAILED'}`,
+    JSON.stringify(smokeResult.checks ?? smokeResult.error),
+  );
 
   log(`sample ${n}: restart server`);
   const r0 = now();
@@ -595,6 +698,8 @@ async function sample(n) {
 
   return {
     sample: n,
+    mode,
+    smoke: smokeResult,
     cold_start: { ...marks, ...phases },
     idle,
     workload: work,
@@ -605,6 +710,7 @@ async function sample(n) {
 
 const config = {
   samples,
+  modes,
   idle_seconds: idleSeconds,
   settle_seconds: settleSeconds,
   subscribers: Number(args.subscribers),
@@ -633,13 +739,20 @@ for (const image of [serverImage, dashboardImage]) {
 results.images = imageInfo();
 
 let failed = false;
-for (let n = 1; n <= samples; n++) {
+// Alternate the modes: with default,self-hosted the order is d, s, d, s, ...
+for (let n = 1; n <= samples * modes.length; n++) {
+  const mode = modes[(n - 1) % modes.length];
   try {
-    results.samples.push(await sample(n));
+    const result = await sample(n, mode);
+    results.samples.push(result);
+    if (!result.smoke?.ok) {
+      failed = true;
+      saveLogs(`sample-${n}-smoke`);
+    }
   } catch (e) {
     failed = true;
     log(`sample ${n} failed:`, e.message);
-    results.samples.push({ sample: n, error: e.message });
+    results.samples.push({ sample: n, mode, error: e.message });
     saveLogs(`sample-${n}`);
   }
   fs.writeFileSync(
@@ -649,7 +762,7 @@ for (let n = 1; n <= samples; n++) {
 }
 saveLogs('last');
 tryDc('down', '-v', '--remove-orphans');
-fs.rmSync(envFile, { force: true });
+fs.rmSync(envDir, { recursive: true, force: true });
 
 fs.writeFileSync(path.join(out, 'summary.md'), summarize(results));
 log(`wrote ${out}/results.json and ${out}/summary.md`);

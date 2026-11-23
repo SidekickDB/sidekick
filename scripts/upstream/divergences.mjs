@@ -103,7 +103,7 @@ export const DIVERGENCES = {
   bench: {
     title:
       "Self-hosted stack benchmark: harness in scripts/bench/self-hosted and a read-only workflow",
-    prs: [20],
+    prs: [20, 23],
     resolve:
       "Upstream has none of these files. If upstream changes self-hosting/docker-compose.yml, " +
       "server/Dockerfile.self-hosted, client/Dockerfile.www or @sidekickdb/core's init()/subscribeQuery " +
@@ -151,6 +151,7 @@ const PR_CATEGORY = {
   20: "bench",
   21: "selfhost",
   22: "runtime-mode",
+  23: "bench",
 };
 
 export function categoryFor(pr, file) {
