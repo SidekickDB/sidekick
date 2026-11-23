@@ -13,6 +13,16 @@ if (!e2eApiURI) {
   );
 }
 
+// SidekickDB: the Node network guard does not cover the browser, so Chromium
+// gets resolver rules: every host name except localhost and the e2e host fails
+// to resolve. IP literals are not resolved and so are not covered.
+const e2eHost = e2eApiURI ? new URL(e2eApiURI).hostname : '';
+const hostResolverRules = [
+  'MAP * ~NOTFOUND',
+  'EXCLUDE localhost',
+  ...(e2eHost && !/^[\d.]+$|^\[/.test(e2eHost) ? [`EXCLUDE ${e2eHost}`] : []),
+].join(', ');
+
 export default defineConfig({
   test: {
     projects: [
@@ -31,7 +41,11 @@ export default defineConfig({
           },
           browser: {
             enabled: true,
-            provider: playwright(),
+            provider: playwright({
+              launchOptions: {
+                args: [`--host-resolver-rules=${hostResolverRules}`],
+              },
+            }),
             screenshotFailures: false,
             headless: true,
             instances: [{ browser: 'chromium' }],

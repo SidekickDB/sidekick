@@ -58,6 +58,8 @@ export function makeE2ETest<Schema extends InstantSchemaDef<any, any, any>>({
         apiURI: apiUrl,
         websocketURI,
         schema,
+        // SidekickDB: never load the devtool iframe from a dashboard host.
+        devtool: false,
       });
       (db as any)._testApp = app;
       await use(db);
