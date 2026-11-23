@@ -545,3 +545,33 @@ test("push: ${{ ... }} counts as an image push outside the release workflow", ()
   );
   failsWith(r, 'enabled job "images" pushes images');
 });
+
+test("the self-hosted benchmark workflow stays read-only", () => {
+  const file = "sidekick-self-hosted-bench.yml";
+  const r0 = withWorkflows();
+  assert.ok(
+    !r0.warnings.some((w) => w.includes(file)),
+    r0.warnings.join("\n"),
+  );
+  const r1 = withWorkflows((d) =>
+    edit(d, file, "  contents: read\n", "  contents: read\n  packages: write\n"),
+  );
+  assert.ok(
+    r1.failures.some(
+      (f) => f.includes(file) && f.includes("write permission"),
+    ),
+    r1.failures.join("\n"),
+  );
+  const r2 = withWorkflows((d) =>
+    edit(
+      d,
+      file,
+      "  workflow_dispatch:\n",
+      "  schedule:\n    - cron: '0 3 * * *'\n  workflow_dispatch:\n",
+    ),
+  );
+  assert.ok(
+    r2.failures.some((f) => f.includes(file) && f.includes("schedule")),
+    r2.failures.join("\n"),
+  );
+});

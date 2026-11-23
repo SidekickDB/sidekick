@@ -535,6 +535,22 @@ upstream's other changes. Take upstream's `version.ts`; if it names a version
 SidekickDB already published, bump to the next unused patch before the next
 release.
 
+### Self-hosted stack benchmark (PR #20)
+
+`scripts/bench/self-hosted/` (`run.mjs`, `workload.mjs`, `summarize.mjs`,
+`compose.bench.yml`, kept results in `results/`) and
+`.github/workflows/sidekick-self-hosted-bench.yml` measure the single-node
+stack in `self-hosting/docker-compose.yml`: start-up time, per-service and
+server JVM memory, and a small live-query workload. See the README there for
+what is and is not measured. The workflow is read-only (`contents: read`, no
+secrets), runs on demand and on pull requests that change the harness, and
+`check.mjs` lists it in `BENCH_WORKFLOWS` without any exception from its rules.
+
+**Resolving:** upstream has none of these files. When upstream changes the
+compose file, the self-hosted Dockerfiles or the core client API the workload
+uses, keep upstream's change and adapt the harness. Compare a new run only with
+a kept result from the same runner label.
+
 ### Upstream sync tooling (this file's PR)
 
 `UPSTREAM.md` and `scripts/upstream/`. Upstream has neither, so they never
