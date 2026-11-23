@@ -100,3 +100,23 @@
                   (constantly ["INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL"])]
       (is (some #(re-find #"INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL is not set" %)
                 (config/startup-warnings))))))
+
+(deftest dashboard-google-oauth-configured-test
+  (with-redefs [config/get-google-oauth-client (constantly nil)]
+    (is (false? (config/dashboard-google-oauth-configured?))))
+  (with-redefs [config/get-google-oauth-client (constantly {:client-id "id"})]
+    (is (true? (config/dashboard-google-oauth-configured?)))))
+
+(deftest parse-dns-over-https-urls-test
+  (testing "unset or blank uses the defaults"
+    (is (= config/default-dns-over-https-urls (config/parse-dns-over-https-urls nil)))
+    (is (= config/default-dns-over-https-urls (config/parse-dns-over-https-urls "  "))))
+  (testing "system means the system resolver only"
+    (is (= [] (config/parse-dns-over-https-urls "system")))
+    (is (= [] (config/parse-dns-over-https-urls " SYSTEM "))))
+  (testing "a comma-separated list of endpoints"
+    (is (= ["https://doh.example.com/dns-query"]
+           (config/parse-dns-over-https-urls "https://doh.example.com/dns-query")))
+    (is (= ["https://a.example/dns-query" "https://b.example/dns-query"]
+           (config/parse-dns-over-https-urls
+            " https://a.example/dns-query, ,https://b.example/dns-query ")))))

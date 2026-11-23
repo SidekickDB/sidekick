@@ -238,3 +238,42 @@
               "a body over the cap is rejected even without Content-Length"))
         (finally
           (.close server))))))
+
+(defn- loopback? [^java.net.InetAddress ip]
+  (.isLoopbackAddress ip))
+
+(deftest resolve-hostname-uses-system-dns-without-doh
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)]
+    (try
+      (is (every? loopback? (webhook-sender/resolve-hostname executor [] "localhost")))
+      (is (seq (webhook-sender/resolve-hostname executor [] "localhost")))
+      (finally
+        (.shutdownNow executor)))))
+
+(deftest resolve-hostname-falls-back-to-system-dns-when-doh-fails
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)
+        ;; Nothing listens on port 1, so the DoH lookup fails fast.
+        clients (webhook-sender/make-dns-clients executor ["http://127.0.0.1:1/dns-query"])]
+    (try
+      (let [ips (webhook-sender/resolve-hostname executor clients "localhost")]
+        (is (seq ips))
+        (is (every? loopback? ips)))
+      (finally
+        (.shutdownNow executor)))))
+
+(deftest system-dns-resolver-still-filters-bad-ips
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)
+        dns (webhook-sender/make-dns-resolver executor [])]
+    (try
+      (is (empty? (.lookup dns "localhost")))
+      (finally
+        (.shutdownNow executor)))))
+
+(deftest invalid-dns-over-https-url-is-rejected
+  (let [executor (java.util.concurrent.Executors/newVirtualThreadPerTaskExecutor)]
+    (try
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                            #"INSTANT_DNS_OVER_HTTPS_URLS"
+                            (webhook-sender/make-dns-clients executor ["not a url"])))
+      (finally
+        (.shutdownNow executor)))))

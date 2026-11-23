@@ -13,8 +13,8 @@
    (java.nio ByteBuffer)
    (java.nio.charset StandardCharsets)
    (java.time Duration Instant)
-   (java.util Collection)
-   (java.util.concurrent Callable ExecutorService TimeUnit)
+   (java.util ArrayList Collection List)
+   (java.util.concurrent Callable ExecutionException ExecutorService TimeUnit)
    (java.util.function Predicate)
    (javax.net.ssl SSLException)
    (okhttp3 ConnectionPool Dispatcher Dns FormBody$Builder Headers HttpUrl MediaType OkHttpClient OkHttpClient$Builder Request$Builder RequestBody Response)
@@ -37,13 +37,17 @@
            :t t)))
 
 (defn make-dns-client ^DnsOverHttps [executor url]
-  (.. (DnsOverHttps$Builder.)
-      (client (.. (OkHttpClient$Builder.)
-                  (dispatcher (Dispatcher. executor))
-                  (callTimeout 10 TimeUnit/SECONDS)
-                  (build)))
-      (url (HttpUrl/parse url))
-      (build)))
+  (let [parsed-url (HttpUrl/parse url)]
+    (when-not parsed-url
+      (throw (ex-info (str "Invalid DNS-over-HTTPS URL in INSTANT_DNS_OVER_HTTPS_URLS: " url)
+                      {:url url})))
+    (.. (DnsOverHttps$Builder.)
+        (client (.. (OkHttpClient$Builder.)
+                    (dispatcher (Dispatcher. executor))
+                    (callTimeout 10 TimeUnit/SECONDS)
+                    (build)))
+        (url parsed-url)
+        (build))))
 
 (defn race-dns-resolve [^ExecutorService executor clients hostname]
   (tracer/with-span! {:name "webhook-sender/race-dns-resolve"
@@ -62,20 +66,43 @@
                                  (test [_ inet-ip]
                                    (smokescreen/bad-ip? inet-ip))))
 
+(defn system-dns-lookup ^List [hostname]
+  (Dns/.lookup Dns/SYSTEM hostname))
+
+(defn resolve-hostname
+  "Resolves with the DoH clients, or with the system resolver when there are
+   none. Falls back to the system resolver when every DoH lookup fails, e.g.
+   when the DoH endpoints are unreachable."
+  ^List [^ExecutorService executor dns-clients hostname]
+  (if (empty? dns-clients)
+    (system-dns-lookup hostname)
+    (try
+      (race-dns-resolve executor dns-clients hostname)
+      (catch ExecutionException e
+        (tracer/record-exception-span! e {:name "webhook-sender/dns-over-https-failed"
+                                          :attributes {:hostname hostname}})
+        (system-dns-lookup hostname)))))
+
+(defn make-dns-clients [executor urls]
+  (mapv (fn [url]
+          {:tag (or (some-> (HttpUrl/parse url) HttpUrl/.host) url)
+           :resolver (make-dns-client executor url)})
+        urls))
+
 (defn make-dns-resolver
   "Creates a custom DNS resolver that defends against SSRF, where a
-   malicious user attempts to make requests to internal resources."
-  [executor]
-  (let [dns-clients [{:tag :cloudflare
-                      :resolver (make-dns-client executor "https://cloudflare-dns.com/dns-query")}
-                     {:tag :google
-                      :resolver (make-dns-client executor "https://dns.google/dns-query")}]]
-    (reify Dns
-      (lookup [_ hostname]
-        (let [ips (race-dns-resolve executor dns-clients hostname)]
-          ;; Mutates in place (dns resolver returns an ArrayList)
-          (Collection/.removeIf ips bad-ip?)
-          ips)))))
+   malicious user attempts to make requests to internal resources.
+   The resolvers come from config/dns-over-https-urls."
+  ([executor]
+   (make-dns-resolver executor (config/dns-over-https-urls)))
+  ([executor urls]
+   (let [dns-clients (make-dns-clients executor urls)]
+     (reify Dns
+       (lookup [_ hostname]
+         ;; Copy: the system resolver can return an immutable list.
+         (let [ips (ArrayList. ^Collection (resolve-hostname executor dns-clients hostname))]
+           (Collection/.removeIf ips bad-ip?)
+           ips))))))
 
 (defn make-client ^OkHttpClient []
   (let [executor (ua/make-virtual-thread-executor)

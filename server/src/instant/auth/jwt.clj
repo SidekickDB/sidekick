@@ -1,6 +1,7 @@
 (ns instant.auth.jwt
   (:require
    [chime.core :as chime-core]
+   [instant.config :as config]
    [instant.util.cache :as cache]
    [instant.util.exception :as ex]
    [instant.util.json :as json]
@@ -150,11 +151,15 @@
 
 (defn start []
   (tracer/record-info! {:name "jwk/start-cert-cache"})
-  (try
-    ;; Initialize with Google
-    (refresh-cached-keys "https://www.googleapis.com/oauth2/v3/certs")
-    (catch Exception e
-      (tracer/record-exception-span! e {:name "jwk/start-error"})))
+  ;; Warms the cache for Google sign-in; the cache otherwise fetches on first
+  ;; use. Skipped when dashboard Google sign-in is not configured, so servers
+  ;; without it do not contact Google at boot.
+  (when (config/dashboard-google-oauth-configured?)
+    (try
+      ;; Initialize with Google
+      (refresh-cached-keys "https://www.googleapis.com/oauth2/v3/certs")
+      (catch Exception e
+        (tracer/record-exception-span! e {:name "jwk/start-error"}))))
   (tracer/record-info! {:name "jwk/start-cert-refresh"})
   (def schedule
     (chime-core/chime-at
