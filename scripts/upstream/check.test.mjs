@@ -366,3 +366,33 @@ test("a publish job re-enabled with `(false) ||` or `${{ false }} ||` fails", ()
     );
   }
 });
+
+test("any write permission or write-all in an enabled job or at workflow level fails", () => {
+  const top = withWorkflows((d) =>
+    edit(d, "js.yml", "jobs:\n", "permissions: write-all\n\njobs:\n"),
+  );
+  assert.ok(
+    top.failures.some((f) => f.includes("workflow-level setting asks for every write permission (write-all)")),
+    top.failures.join("\n"),
+  );
+  assert.equal(top.failures.length, 1, top.failures.join("\n"));
+  for (const scope of ["actions", "pull-requests", "deployments", "pages", "attestations", "statuses", "issues"]) {
+    const r = withWorkflows((d) =>
+      fs.appendFileSync(
+        path.join(d, "python.yml"),
+        `\n  cache-warm:\n    runs-on: ubuntu-latest\n    permissions:\n      ${scope}: write\n    steps:\n      - run: echo hi\n`,
+      ),
+    );
+    assert.ok(
+      r.failures.some((f) => f.includes('enabled job "cache-warm" asks for a write permission')),
+      `${scope}\n${r.failures.join("\n")}`,
+    );
+  }
+  const quoted = withWorkflows((d) =>
+    fs.appendFileSync(
+      path.join(d, "python.yml"),
+      "\n  q:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: 'write'\n    steps:\n      - run: echo hi\n",
+    ),
+  );
+  assert.ok(quoted.failures.some((f) => f.includes('"q" asks for a write permission')), quoted.failures.join("\n"));
+});

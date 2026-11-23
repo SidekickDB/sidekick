@@ -104,9 +104,17 @@ export const KNOWN_WORKFLOWS = [
 // Things an enabled job must not do.
 const RISKY = [
   [/\$\{\{\s*secrets\.(?!GITHUB_TOKEN\b)/, "uses a repository secret"],
-  [/id-token:\s*write/, "id-token: write (OIDC publishing/deploys)"],
-  [/packages:\s*write/, "packages: write"],
-  [/contents:\s*write/, "contents: write"],
+  [
+    /\bid-token:\s*['"]?write(?![\w-])/,
+    "id-token: write (OIDC publishing/deploys)",
+  ],
+  // Any other write scope: contents, packages, actions, pull-requests,
+  // deployments, pages, attestations, statuses, issues, ...
+  [
+    /\b(?!id-token\b)[a-z-]+:\s*['"]?write(?![\w-])/,
+    "asks for a write permission",
+  ],
+  [/\bwrite-all\b/, "asks for every write permission (write-all)"],
   [
     /\b(?:npm|pnpm|yarn) publish\b|publish_packages|make publish/,
     "publishes packages",
