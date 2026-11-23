@@ -177,12 +177,17 @@
 
 (defonce process-chan (atom (a/chan (a/sliding-buffer 10))))
 
+;; False until start runs. The self-hosted runtime mode skips start, and then
+;; nothing would read process-chan, so queueing is a no-op.
+(defonce started? (atom false))
+
 (defn queue-for-testing [ctx permissioned-query-fn o]
   (let [query-hash (forms-hash o)]
-    (when (worth-testing? ctx o query-hash)
+    (when (and @started? (worth-testing? ctx o query-hash))
       (a/put! @process-chan [ctx permissioned-query-fn o query-hash]))))
 
 (defn start []
+  (reset! started? true)
   (reset! process-chan (a/chan (a/sliding-buffer 10)))
   (a/go
     (loop []
@@ -194,6 +199,7 @@
       (recur))))
 
 (defn stop []
+  (reset! started? false)
   (a/close! @process-chan))
 
 (defn restart []

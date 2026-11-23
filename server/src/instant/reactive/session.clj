@@ -189,7 +189,7 @@
                              :auth            auth
                              :attrs           attrs
                              :app-status      {:status (name (app-model/get-status app-id))}}
-                      (config/dev?)
+                      (config/dev-only?)
                       ;; Lets development tools verify which backend accepted
                       ;; the WebSocket when multiple local servers are running.
                       (assoc :server-hostname @config/hostname

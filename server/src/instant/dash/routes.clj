@@ -371,6 +371,12 @@
 (defn admin-sunset-cancel-subscriptions-post [req]
   (let [{:keys [email]} (req->auth-user! req)]
     (assert-admin-email! email)
+    (when (config/self-hosted?)
+      (ex/throw-validation-err!
+       :cancel-subscriptions
+       nil
+       [{:message (str "Cancelling Stripe subscriptions in bulk is not available "
+                       "on a self-hosted server.")}]))
     (response/ok (sunset/cancel-all-subscriptions!))))
 
 (defn admin-top-get [req]
@@ -925,7 +931,7 @@
     (-> (response/found redirect-url)
         (response/set-cookie oauth-cookie-name cookie {:http-only true
                                                        ;; Don't require https in dev
-                                                       :secure (not= :dev (config/get-env))
+                                                       :secure (config/secure-cookies?)
                                                        :expires cookie-expires
                                                        ;; matches everything under the subdirectory
                                                        :path "/dash/oauth"

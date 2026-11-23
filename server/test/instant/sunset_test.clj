@@ -296,3 +296,21 @@
         (is (= [{:subscription-id "sub_active"
                  :metadata {"cancel-reason" "sunset"}}]
                @calls))))))
+
+(deftest cancel-subscriptions-refused-on-self-hosted-servers
+  (let [cancelled (atom 0)]
+    (with-redefs [http-util/req->auth-user!
+                  (constantly {:id (random-uuid) :email "admin@example.com"})
+                  dash-routes/assert-admin-email! (constantly nil)
+                  sunset/cancel-all-subscriptions! (fn [] (swap! cancelled inc) {:cancelled 0})]
+      (testing "self-hosted: refused before anything is cancelled"
+        (with-redefs [config/self-hosted? (constantly true)]
+          (let [err (instant-ex-data
+                     (dash-routes/admin-sunset-cancel-subscriptions-post {}))]
+            (is (= ::ex/validation-failed (::ex/type err)))
+            (is (string/includes? (::ex/message err) "self-hosted")))
+          (is (= 0 @cancelled))))
+      (testing "default mode: unchanged"
+        (with-redefs [config/self-hosted? (constantly false)]
+          (is (= 200 (:status (dash-routes/admin-sunset-cancel-subscriptions-post {}))))
+          (is (= 1 @cancelled)))))))

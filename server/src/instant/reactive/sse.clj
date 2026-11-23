@@ -56,7 +56,7 @@
 
 (defn get-handle-locally? [^UUID machine-id]
   (and (= machine-id config/machine-id)
-       (if (config/dev?)
+       (if (config/dev-only?)
          ;; In dev, send half the requests to ourself through hazelcast
          ;; so we test both paths while developing.
          (= (rand-int 2) 1)

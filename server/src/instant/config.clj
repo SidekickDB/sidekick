@@ -53,6 +53,61 @@
 
 (defn test? [] (= :test (get-env)))
 
+;; SidekickDB runtime mode. INSTANT_RUNTIME_MODE (or SIDEKICK_RUNTIME_MODE,
+;; which wins) is "self-hosted" or "default". The self-hosting compose files
+;; and server/Dockerfile.self-hosted set "self-hosted"; anything else that
+;; starts the server, including development and the tests, leaves it unset,
+;; which means "default": today's behaviour. get-env is not affected, so a
+;; self-hosted server still runs as :dev and none of the :prod or :staging
+;; (AWS) paths switch on. See server/test/instant/runtime_mode_test.clj.
+(def runtime-modes #{"self-hosted" "default"})
+
+(defn runtime-mode-value
+  "The configured runtime mode, trimmed and lower-cased, or nil when unset."
+  []
+  (some-> (env/getenv "INSTANT_RUNTIME_MODE") string/trim not-empty string/lower-case))
+
+(defn self-hosted?
+  "True in the self-hosted runtime mode."
+  []
+  (= "self-hosted" (runtime-mode-value)))
+
+(defn dev-only?
+  "True for behaviour meant only for developing the server itself: :dev, but
+   not a self-hosted server, which also runs as :dev."
+  []
+  (and (dev?) (not (self-hosted?))))
+
+(defn runtime-mode-errors
+  "Problems with the runtime mode setting, as messages. Empty when it is fine."
+  []
+  (let [v (runtime-mode-value)]
+    (cond
+      (and v (not (contains? runtime-modes v)))
+      [(str (env/describe "INSTANT_RUNTIME_MODE") " is \"" v "\". "
+            "Use \"self-hosted\" or \"default\", or leave it unset.")]
+
+      (and (= "self-hosted" v) (#{:prod :staging} (get-env)))
+      [(str (env/describe "INSTANT_RUNTIME_MODE") " is \"self-hosted\", "
+            "which cannot be combined with PRODUCTION=true or STAGING=true.")]
+
+      :else [])))
+
+(defn exit-on-startup-error?
+  "Whether a startup error stops the process. Outside :dev it always does;
+   in :dev only when the runtime mode is set to something other than
+   \"default\" (a self-hosted server, or an invalid setting)."
+  []
+  (or (not= :dev (get-env))
+      (not (contains? #{nil "default"} (runtime-mode-value)))))
+
+(defn nrepl-enabled?
+  "nREPL starts in the default mode, and in the self-hosted mode only when
+   INSTANT_NREPL (or SIDEKICK_NREPL) is \"true\"."
+  []
+  (or (not (self-hosted?))
+      (= "true" (some-> (env/getenv "INSTANT_NREPL") string/trim string/lower-case))))
+
 (defn using-swarm? []
   (some? (System/getenv "SWARM_SERVICE_NAME")))
 
@@ -547,6 +602,15 @@
         :staging "https://api-staging.instantdb.com"
         (str "http://localhost:" (get-server-port)))))
 
+(defn secure-cookies?
+  "Whether cookies the server sets are marked Secure. Upstream: outside :dev.
+   Self-hosted: when the server is reached over https (INSTANT_BACKEND_URL),
+   so a plain-http deployment keeps working."
+  []
+  (if (self-hosted?)
+    (string/starts-with? (string/lower-case (str server-origin)) "https:")
+    (not= :dev (get-env))))
+
 (defn get-nrepl-port []
   (or (env-integer "NREPL_PORT") 6005))
 
@@ -589,6 +653,8 @@
          :webhook-config 2)))
 
 (defn init []
+  (when-let [errors (seq (runtime-mode-errors))]
+    (throw (ex-info (string/join " " errors) {:runtime-mode (runtime-mode-value)})))
   ;; instantiate the config-map so we can fail early if it's not
   ;; valid
   (let [config @config-map]

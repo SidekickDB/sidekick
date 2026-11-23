@@ -403,6 +403,71 @@ for (const cmd of composes) {
     }
   }
 
+  // The runtime mode defaults to self-hosted in every compose file, and both
+  // names work.
+  for (const file of [
+    'docker-compose.yml',
+    'docker-compose.with-caddy.yml',
+    'docker-compose.local.yml',
+  ]) {
+    const secrets = {
+      POSTGRES_PASSWORD: PG,
+      STORAGE_ACCESS_KEY: AK,
+      STORAGE_SECRET_KEY: SK,
+    };
+    for (const [name, values, want] of [
+      [
+        'runtime mode: neither set',
+        { SIDEKICK_RUNTIME_MODE: '', INSTANT_RUNTIME_MODE: '' },
+        'self-hosted',
+      ],
+      [
+        'runtime mode: only SIDEKICK_RUNTIME_MODE',
+        { SIDEKICK_RUNTIME_MODE: 'default', INSTANT_RUNTIME_MODE: '' },
+        'default',
+      ],
+      [
+        'runtime mode: only INSTANT_RUNTIME_MODE',
+        { SIDEKICK_RUNTIME_MODE: '', INSTANT_RUNTIME_MODE: 'default' },
+        'default',
+      ],
+      [
+        'runtime mode: both set, SIDEKICK wins',
+        {
+          SIDEKICK_RUNTIME_MODE: 'self-hosted',
+          INSTANT_RUNTIME_MODE: 'default',
+        },
+        'self-hosted',
+      ],
+    ]) {
+      const r = renderCompose(
+        cmd,
+        file,
+        envFile(`${file}-${name.replace(/\W+/g, '_')}`, {
+          ...secrets,
+          ...values,
+        }),
+      );
+      const problems = [];
+      if (!r.ok)
+        problems.push(`did not render: ${r.stderr.trim().split('\n').at(-1)}`);
+      else {
+        const got = envOf(r.config, 'server').INSTANT_RUNTIME_MODE;
+        if (got !== want)
+          problems.push(
+            `server INSTANT_RUNTIME_MODE is ${JSON.stringify(got)}, expected "${want}"`,
+          );
+      }
+      record(
+        label,
+        file,
+        name,
+        problems,
+        r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+      );
+    }
+  }
+
   // Informational: the bare nested ":-" form. The compose files rely on it
   // for the SIDEKICK_* aliases, which the cases above assert. What Compose
   // 2.38 rejects is a required ":?" inside a default, which no file uses.
@@ -447,6 +512,7 @@ for (const cmd of composes) {
     p1.push(`did not render: ${set.stderr.trim().split('\n').at(-1)}`);
   else {
     for (const want of [
+      'INSTANT_RUNTIME_MODE: self-hosted',
       `RUSTFS_ACCESS_KEY: ${AK}`,
       `AWS_SECRET_ACCESS_KEY: ${SK}`,
       `:${PG}@`,

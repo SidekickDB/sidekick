@@ -189,7 +189,7 @@
   "Adds the responding server's identity in development. This is useful when
    running multiple local servers or verifying that a proxy reached its target."
   [handler]
-  (if-not (config/dev?)
+  (if-not (config/dev-only?)
     handler
     (fn [request]
       (update (handler request)
@@ -418,13 +418,27 @@
     (fn []
       (@(resolve 'instant.core/shutdown-hook))))))
 
+(def self-hosted-skipped-init-steps
+  "Startup steps that the self-hosted runtime mode skips: Instant Cloud
+   operations and analytics. See runtime_mode_test.clj, which also fails on a
+   step it does not know, so each new upstream step gets a decision."
+  #{:sunset :app-proxy :join-room-logger :hint-testing})
+
+(defn skip-init-step? [operation]
+  (or (and (config/self-hosted?)
+           (contains? self-hosted-skipped-init-steps operation))
+      (and (= :nrepl operation)
+           (not (config/nrepl-enabled?)))))
+
 (defmacro with-log-init [operation & body]
-  `(do
-     (tracer/record-info! {:name (format "init.start.%s" (name ~operation))})
-     (tracer/with-span! {:name (format "init.finish.%s" (name ~operation))}
-       ;; Don't let ourselves be the parent of any child spans
-       (tracer/with-new-trace-root
-         ~@body))))
+  `(if (skip-init-step? ~operation)
+     (tracer/record-info! {:name (format "init.skip.%s" (name ~operation))})
+     (do
+       (tracer/record-info! {:name (format "init.start.%s" (name ~operation))})
+       (tracer/with-span! {:name (format "init.finish.%s" (name ~operation))}
+         ;; Don't let ourselves be the parent of any child spans
+         (tracer/with-new-trace-root
+           ~@body)))))
 
 (defn -main [& _args]
   (try
@@ -552,7 +566,7 @@
     (catch Throwable t
       (log/error t "Error in startup")
       (when (and (not= (System/getenv "EXIT_ON_ERROR") "false")
-                 (not= :dev (config/get-env)))
+                 (config/exit-on-startup-error?))
         (log/info "Exiting")
         (System/exit 1)))))
 

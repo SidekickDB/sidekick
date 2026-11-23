@@ -513,6 +513,40 @@ lookup. When upstream adds a variable: on the server read it with
 is needed. When upstream adds an `instant.*` file kind to the CLI, add it to
 `LEGACY_CONFIG_FILE` in `findConfigCandidates.ts`.
 
+### Self-hosted runtime mode (PR #22)
+
+`INSTANT_RUNTIME_MODE` / `SIDEKICK_RUNTIME_MODE` = `self-hosted` | `default`
+(`config.clj`: `runtime-mode-value`, `self-hosted?`, `dev-only?`,
+`runtime-mode-errors`, `exit-on-startup-error?`, `nrepl-enabled?`,
+`secure-cookies?`). `get-env` is unchanged, so a self-hosted server still runs
+as `:dev`. The compose files and `server/Dockerfile.self-hosted` set
+`self-hosted`; a bare server start, the tests and upstream's own images stay
+`default`.
+
+Changes outside `config.clj`, each one small on purpose:
+
+- `core.clj`: `with-log-init` skips the steps in
+  `self-hosted-skipped-init-steps` (sunset, app-proxy, join-room-logger,
+  hint-testing) and nREPL unless enabled; the startup-error exit uses
+  `exit-on-startup-error?`; `wrap-dev-server-info` uses `dev-only?`.
+- `(config/dev?)` became `(config/dev-only?)` in `reactive/sse.clj`,
+  `reactive/session.clj` and `model/app_stream.clj`.
+- The three OAuth cookie sites (`runtime/routes.clj`, `oauth_apps/routes.clj`,
+  `dash/routes.clj`) use `secure-cookies?`.
+- `db/hint_testing.clj`: queueing is a no-op until `start` runs.
+- `dash/routes.clj`: `admin-sunset-cancel-subscriptions-post` refuses in the
+  self-hosted mode.
+
+`server/test/instant/runtime_mode_test.clj` covers all of it. It records the
+set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
+step upstream adds or removes fails the test until someone decides whether
+the self-hosted mode skips it.
+
+**Resolving:** keep the helpers and the call sites above. A new upstream
+`(config/dev?)` check that is a development hook becomes `(config/dev-only?)`;
+a new startup step gets a skip decision and an updated count and hash in the
+test.
+
 ### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
