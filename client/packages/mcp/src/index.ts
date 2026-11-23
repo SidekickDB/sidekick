@@ -38,7 +38,12 @@ import { KeyConfig } from './crypto.ts';
 import { PlatformApi } from '@sidekickdb/platform';
 import indexHtml from './index.html.ts';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
-import { handleQuery, handleTransact } from './tools.ts';
+import {
+  handleQuery,
+  handleTransact,
+  missingApiURLMessage,
+  setApiURL,
+} from './tools.ts';
 
 // Helpers
 // -----------
@@ -306,7 +311,14 @@ async function startStdio() {
     process.exit(1);
   }
 
-  const api = new PlatformApi({ auth: { token: accessToken } });
+  const apiURI = apiUrl || process.env.INSTANT_API_URL;
+  if (!apiURI) {
+    console.error(missingApiURLMessage);
+    process.exit(1);
+  }
+  setApiURL(apiURI);
+
+  const api = new PlatformApi({ apiURI, auth: { token: accessToken } });
 
   const server = createMCPServer();
   registerTools(server, api);
@@ -336,9 +348,12 @@ async function startSse() {
 
   const tracer = trace.getTracer('mcp-server');
 
+  const apiURI = ensureEnv('INSTANT_API_URL');
+
   const db = init({
     adminToken: ensureEnv('INSTANT_ADMIN_TOKEN'),
     appId: ensureEnv('INSTANT_APP_ID'),
+    apiURI,
     schema,
     disableValidation: true,
   });
@@ -347,6 +362,7 @@ async function startSse() {
     clientId: ensureEnv('INSTANT_OAUTH_CLIENT_ID'),
     clientSecret: ensureEnv('INSTANT_OAUTH_CLIENT_SECRET'),
     serverOrigin: ensureEnv('SERVER_ORIGIN'),
+    apiURI,
   };
 
   const keyConfig: KeyConfig = JSON.parse(ensureEnv('INSTANT_AES_KEY'));
@@ -441,6 +457,7 @@ async function startSse() {
         const tokens = await tokensOfBearerToken(db, req.auth!.token);
 
         const api = new PlatformApi({
+          apiURI: oauthConfig.apiURI,
           auth: makeApiAuth(oauthConfig, keyConfig, db, tokens.instantToken),
         });
 
@@ -519,6 +536,7 @@ async function startSse() {
         const tokens = await tokensOfBearerToken(db, req.auth!.token);
 
         const api = new PlatformApi({
+          apiURI: oauthConfig.apiURI,
           auth: makeApiAuth(oauthConfig, keyConfig, db, tokens.instantToken),
         });
 

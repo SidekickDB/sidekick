@@ -11,13 +11,13 @@ if (devBackend && isBrowser) {
   }
 }
 
-export const config = {
-  apiURI: getLocal('devBackend')
-    ? `http://localhost:${localPort}`
-    : `https://api.instantdb.com`,
+// There is no default server: outside of local development (the devBackend
+// flag), the Explorer must be given an `apiURI`.
+export const config: { apiURI?: string; websocketURI?: string } = {
+  apiURI: getLocal('devBackend') ? `http://localhost:${localPort}` : undefined,
   websocketURI: getLocal('devBackend')
     ? `ws://localhost:${localPort}/runtime/session`
-    : `wss://api.instantdb.com/runtime/session`,
+    : undefined,
 };
 
 export const isTouchDevice =

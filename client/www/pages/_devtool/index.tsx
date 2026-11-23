@@ -494,7 +494,13 @@ function DevtoolContent({
   return (
     <>
       {tab === 'explorer' ? (
-        <Explorer useShadowDOM={false} adminToken={adminToken} appId={appId} />
+        <Explorer
+          useShadowDOM={false}
+          adminToken={adminToken}
+          appId={appId}
+          apiURI={config.apiURI}
+          websocketURI={config.websocketURI}
+        />
       ) : tab === 'sandbox' ? (
         <div className="w-full min-w-[960px]">
           <Sandbox

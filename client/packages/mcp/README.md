@@ -41,7 +41,7 @@ For more editor-specific instructions, see [the public docs](https://www.instant
 
 If you haven't already, make sure to get a [personal access token from your Instant dashboard](https://www.instantdb.com/dash?s=personal-access-tokens).
 
-Run the server in stdio mode with `npx -y @sidekickdb/mcp --token <token>`.
+Run the server in stdio mode with `npx -y @sidekickdb/mcp --token <token> --api-url <your-sidekick-server-url>` (or set `INSTANT_API_URL`). The server URL is required: there is no default server.
 
 For more editor-specific instructions, see [the public docs](https://www.instantdb.com/docs/using-llms).
 

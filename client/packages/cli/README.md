@@ -23,8 +23,12 @@
 Welcome to [Instant's](http://instantdb.com) command line tool. You can create apps, write schema, and push permissions.
 
 ```javascript
+INSTANT_CLI_API_URI=https://sidekick.example.com \
+INSTANT_CLI_DASH_URI=https://dash.sidekick.example.com \
 npx @sidekickdb/cli init
 ```
+
+There is no default server: set `INSTANT_CLI_API_URI` (or `apiURI` in `instant.config.ts`) to your SidekickDB server, and `INSTANT_CLI_DASH_URI` (or `dashURI`) to its dashboard for commands such as `login`.
 
 ## Get Started
 

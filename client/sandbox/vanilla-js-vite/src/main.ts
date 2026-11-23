@@ -3,13 +3,16 @@ import { init as initAdmin } from '@sidekickdb/admin';
 import { User, init } from '@sidekickdb/core';
 
 const APP_ID = import.meta.env.VITE_INSTANT_APP_ID;
+const localPort = import.meta.env.VITE_LOCAL_SERVER_PORT || '8888';
+const apiURI = `http://localhost:${localPort}`;
 const db = init({
   appId: APP_ID,
+  apiURI,
 });
 
 // Required and initialize admin. This checks that the library
 // builds correctly in browser-only environments.
-initAdmin({ appId: import.meta.env.VITE_INSTANT_APP_ID! });
+initAdmin({ appId: import.meta.env.VITE_INSTANT_APP_ID!, apiURI });
 
 const appEl = document.querySelector<HTMLDivElement>('#app')!;
 

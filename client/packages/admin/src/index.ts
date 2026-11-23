@@ -11,6 +11,8 @@ import {
   version as coreVersion,
   InstantAPIError,
   setInstantWarningsEnabled,
+  requireApiURI,
+  MissingApiURIError,
   type InstantIssue,
   type TransactionChunk,
   type AuthToken,
@@ -148,6 +150,10 @@ export type InstantConfig<
 > = {
   appId: string;
   adminToken?: string;
+  /**
+   * URL of your SidekickDB server, e.g. `https://sidekick.example.com`.
+   * Required: there is no default server, and `init()` throws without it.
+   */
   apiURI?: string;
   schema?: Schema;
   useDateObjects: UseDates;
@@ -175,13 +181,7 @@ type DebugTransactResult = {
   'all-checks-ok?': boolean;
 };
 
-function configWithDefaults(config: Config): FilledConfig {
-  const defaultConfig = {
-    apiURI: 'https://api.instantdb.com',
-  };
-  const r = { ...defaultConfig, ...config };
-  return r;
-}
+const requireApiURIOpts = { target: 'init() in @sidekickdb/admin' };
 
 function instantConfigWithDefaults<
   Schema extends InstantSchemaDef<any, any, any>,
@@ -189,14 +189,10 @@ function instantConfigWithDefaults<
 >(
   config: InstantConfig<Schema, UseDates>,
 ): InstantConfigFilled<Schema, UseDates> {
-  const defaultConfig = {
-    apiURI: 'https://api.instantdb.com',
+  return {
+    ...config,
+    apiURI: requireApiURI(config.apiURI, requireApiURIOpts),
   };
-  const r = { ...defaultConfig, ...config };
-  if (!r.apiURI) {
-    r.apiURI = defaultConfig.apiURI;
-  }
-  return r;
 }
 
 function withImpersonation(
@@ -394,7 +390,8 @@ function makeEventSourceWrapper(opts: {
  *
  *  const db = init({
  *    appId: process.env.INSTANT_APP_ID!,
- *    adminToken: process.env.INSTANT_APP_ADMIN_TOKEN
+ *    adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
+ *    apiURI: process.env.INSTANT_API_URI!,
  *  })
  *
  *  // You can also provide a schema for type safety and editor autocomplete!
@@ -405,6 +402,7 @@ function makeEventSourceWrapper(opts: {
  *  const db = init({
  *    appId: process.env.INSTANT_APP_ID!,
  *    adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
+ *    apiURI: process.env.INSTANT_API_URI!,
  *    schema,
  *  })
  *  // To learn more: https://instantdb.com/docs/modeling-data
@@ -1135,7 +1133,11 @@ function createLogger(
  * Visit https://instantdb.com/dash to get your `appId` and `adminToken` :)
  *
  * @example
- *  const db = init({ appId: "my-app-id", adminToken: "my-admin-token" })
+ *  const db = init({
+ *    appId: "my-app-id",
+ *    adminToken: "my-admin-token",
+ *    apiURI: "https://sidekick.example.com",
+ *  })
  */
 class InstantAdminDatabase<
   Schema extends InstantSchemaDef<any, any, any>,
@@ -1676,6 +1678,8 @@ export {
   type ValidQuery,
   type Query,
   InstantError,
+  MissingApiURIError,
+  requireApiURI,
 
   // query types
   type QueryResponse,

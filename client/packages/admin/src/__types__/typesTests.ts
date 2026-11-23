@@ -14,6 +14,7 @@ async function _testUseDatesTest() {
   const db = init({
     schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
     useDateObjects: true,
   });
 
@@ -35,6 +36,7 @@ async function _testUseDatesFalseTest() {
   const db = init({
     schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
     useDateObjects: false,
   });
 
@@ -56,6 +58,7 @@ async function _testUseDatesUndefinedTest() {
   const db = init({
     schema,
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   });
 
   const data = await db.query({ tbl: {} });
@@ -75,6 +78,7 @@ async function _testUseDatesUndefinedTest() {
 async function _testDataNoSchema() {
   const db = init({
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   });
 
   const data = await db.query({ tbl: {} });
@@ -89,6 +93,7 @@ async function _testSubscribe() {
   // No useDateObjects
   init({
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
     schema,
   }).subscribeQuery({ tbl: {} }, (payload) => {
     if (payload.type === 'ok') {
@@ -106,6 +111,7 @@ async function _testSubscribe() {
   // UseDateObjects
   init({
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
     schema,
     useDateObjects: true,
   }).subscribeQuery({ tbl: {} }, (payload) => {
@@ -124,6 +130,7 @@ async function _testSubscribe() {
   // No schema
   init({
     appId: '123',
+    apiURI: 'https://sidekick.example.com',
   }).subscribeQuery({ tbl: {} }, (payload) => {
     if (payload.type === 'ok') {
       const item = payload.data.tbl[0];
