@@ -634,7 +634,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -660,9 +660,17 @@ other changes in those files.
   the two queued refreshes is a snapshot; it used to send only the patch, so
   a session that had just joined could miss the peers already in the room.
   Test `combine-refresh-presence` in `session_test.clj`.
+- PR #44: `server/dev-postgres/Dockerfile` gets an entrypoint,
+  `sidekick-entrypoint.sh`, that starts Postgres with
+  `output_plugin_libraries=pgoutput,test_decoding,wal2json`. PostgreSQL 17.12
+  refuses an output plugin that is not in that list, and the server's
+  replication slots use `wal2json`, so without it the server never starts
+  against an image built from the current `postgres:17`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
-then take upstream's version. Take upstream's new tests as they are.
+then take upstream's version. Take upstream's new tests as they are. For the
+Postgres image, drop the entrypoint only if upstream's image allows `wal2json`
+some other way; check by starting the self-hosting stack.
 
 ### Release pipeline (PR #18, PR #39, PR #40, PR #42)
 
