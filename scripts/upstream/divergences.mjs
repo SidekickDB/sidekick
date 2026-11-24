@@ -158,10 +158,11 @@ export const DIVERGENCES = {
   },
   "readme-header": {
     title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
-    prs: [38],
+    prs: [38, 48],
     resolve:
       "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
-      "the logo, the Discord and stars badges or the instantdb.com link row. Take upstream's changes below it.",
+      "the logo, the Discord and stars badges or the instantdb.com link row. Keep the two diagrams on their " +
+      "relative paths under client/www/public/readmes/, not instantdb.com. Take upstream's other changes below it.",
   },
   rename: {
     title:
@@ -214,6 +215,7 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
+  48: "readme-header",
 };
 
 export function categoryFor(pr, file) {
