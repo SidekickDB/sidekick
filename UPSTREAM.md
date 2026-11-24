@@ -366,7 +366,7 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
 changes.
 
-### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #35, PR #TBD)
+### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #35, PR #52)
 
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
@@ -396,7 +396,7 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `server/test/instant/{db/cel,db/instaql,db/seeks_permission_helpers,reactive/session}_test.clj`.
   In `session_test.clj` only upstream's five new tests are added: the helpers
   above them are byte-identical to the ones #2954 (PR #3) already added.
-- PR #TBD: instantdb/instant#2956 (the Explorer row editor keeps a number
+- PR #52: instantdb/instant#2956 (the Explorer row editor keeps a number
   written with an exponent, such as `1e6`). Paths:
   `client/packages/components/src/components/explorer/edit-row-dialog.tsx`
   and its new test `explorer/__tests__/edit-row-dialog.test.ts`. Upstream's
