@@ -65,17 +65,20 @@ export const projectBaseConfig = {
   'tanstack-start-with-tanstack-query': {
     appIdEnvName: 'VITE_INSTANT_APP_ID',
     backendConfigFiles: [clientDb(), adminDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'bun-react': {
     appIdEnvName: 'BUN_PUBLIC_INSTANT_APP_ID',
     backendConfigFiles: [clientDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'solidjs-vite': {
     appIdEnvName: 'VITE_INSTANT_APP_ID',
     backendConfigFiles: [clientDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   sveltekit: {
     appIdEnvName: 'VITE_INSTANT_APP_ID',
@@ -90,12 +93,14 @@ export const projectBaseConfig = {
   'vercel-ai-sdk': {
     appIdEnvName: 'NEXT_PUBLIC_INSTANT_APP_ID',
     backendConfigFiles: [clientDb(), adminDb('initAdmin')],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'ai-chat': {
     appIdEnvName: 'NEXT_PUBLIC_INSTANT_APP_ID',
     backendConfigFiles: [clientDb(), adminDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'python-script': {
     appIdEnvName: 'INSTANT_APP_ID',
