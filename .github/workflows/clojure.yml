@@ -159,7 +159,8 @@ jobs:
 
     services:
       postgres:
-        image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+        # SidekickDB: its own build of server/dev-postgres, not upstream's image.
+        image: ghcr.io/sidekickdb/postgresql:postgresql-17-pg-hint-plan
         ports:
           - 5432:5432
         env:
