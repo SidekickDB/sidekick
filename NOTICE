@@ -1,0 +1,17 @@
+SidekickDB
+https://github.com/SidekickDB/sidekick
+
+SidekickDB is a modified version of InstantDB
+(https://github.com/instantdb/instant), which was created by Instant
+(https://instantdb.com) and its contributors and is licensed under the
+Apache License, Version 2.0. A copy of the license is in LICENSE.md.
+
+SidekickDB is an independent continuation of that code. It is not
+affiliated with or endorsed by Instant. "Instant" and "InstantDB" are used
+here only to say where the code comes from.
+
+Files in this repository have been changed from the original. The changes
+are listed in UPSTREAM.md under "Intentional divergences", are marked with
+"SidekickDB:" comments in the files where the format allows a comment, and
+are recorded in the git history, which also keeps the original authors of
+every upstream commit.

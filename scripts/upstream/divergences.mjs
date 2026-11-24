@@ -144,6 +144,13 @@ export const DIVERGENCES = {
     prs: [30],
     resolve: "Upstream has no SECURITY.md. If it adds one, keep SidekickDB's.",
   },
+  notice: {
+    title: "SidekickDB's NOTICE file (attribution to InstantDB, statement of changes)",
+    prs: [41],
+    resolve:
+      "Upstream has no NOTICE. If it adds one, keep its attribution notices and SidekickDB's text in the " +
+      "same file (Apache-2.0 section 4(d)).",
+  },
   "readme-header": {
     title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
     prs: [38],
@@ -197,6 +204,7 @@ const PR_CATEGORY = {
   38: "readme-header",
   39: "release",
   40: "release",
+  41: "notice",
 };
 
 export function categoryFor(pr, file) {
