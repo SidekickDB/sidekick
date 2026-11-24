@@ -2,7 +2,7 @@
 services:
   postgres:
     # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
-    image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
+    image: ${POSTGRES_IMAGE:-ghcr.io/sidekickdb/postgresql:postgresql-17-pg-hint-plan}
     # SidekickDB: Postgres is not published. Swarm publishes a port on every
     # node's interfaces and ignores a host IP, and published ports bypass host
     # firewalls such as ufw. See README.md to publish it anyway.
@@ -34,7 +34,7 @@ services:
       - "-c"
       - "random_page_cost=1.1"
   www:
-    image: "${DASHBOARD_IMAGE:-ghcr.io/instantdb/dashboard:latest}"
+    image: "${DASHBOARD_IMAGE:-ghcr.io/sidekickdb/dashboard:latest}"
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/dash').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 10s
@@ -109,7 +109,7 @@ services:
         max_attempts: 20
 
   server:
-    image: "${SERVER_IMAGE:-ghcr.io/instantdb/server:latest}"
+    image: "${SERVER_IMAGE:-ghcr.io/sidekickdb/server:latest}"
     networks:
       - caddy
       - default

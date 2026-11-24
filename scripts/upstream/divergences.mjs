@@ -61,7 +61,7 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
-    prs: [4, 14, 21, 31, 34, 36],
+    prs: [4, 14, 21, 31, 34, 36, 43],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
@@ -70,6 +70,8 @@ export const DIVERGENCES = {
       "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml), the " +
       "127.0.0.1: prefix on every port in server/docker-compose-dev.yml, and the " +
       'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container. ' +
+      "Keep the ghcr.io/sidekickdb image defaults in the compose files, swarm.yml and the clojure.yml " +
+      "Postgres service; if upstream changes an image tag, release that tag from SidekickDB first. " +
       'In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
   },
@@ -206,6 +208,7 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
+  43: "selfhost",
 };
 
 export function categoryFor(pr, file) {
