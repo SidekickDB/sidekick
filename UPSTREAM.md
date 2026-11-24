@@ -601,7 +601,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16, PR #24, PR #TBD)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16, PR #24, PR #49)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -616,7 +616,7 @@ other changes in those files.
   the two queued refreshes is a snapshot; it used to send only the patch, so
   a session that had just joined could miss the peers already in the room.
   Test `combine-refresh-presence` in `session_test.clj`.
-- PR #TBD: the hourly refresh of cached signing keys in
+- PR #49: the hourly refresh of cached signing keys in
   `server/src/instant/auth/jwt.clj` uses `doseq`; upstream's `for` built a
   lazy seq that was thrown away, so the refresh never ran. Test
   `scheduled-refresh-refreshes-expiring-keys` in

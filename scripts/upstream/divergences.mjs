@@ -76,7 +76,7 @@ export const DIVERGENCES = {
   "own-fixes": {
     title:
       "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool, presence refresh combine keeps snapshots, signing-key refresh runs",
-    prs: [6, 8, 16, 24],
+    prs: [6, 8, 16, 24, 49],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are.",
@@ -206,6 +206,7 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
+  49: "own-fixes",
 };
 
 export function categoryFor(pr, file) {
