@@ -125,6 +125,20 @@ The compose files used to fall back to the old names with a nested default,
 inner `:?` even when `STORAGE_ACCESS_KEY` is set, so those files did not start
 on it at all. Each key is now read with a plain `${STORAGE_ACCESS_KEY:?...}`.
 
+## Images
+
+The compose files and `swarm.yml` pull SidekickDB's images from
+`ghcr.io/sidekickdb`: `server` and `dashboard` (tag `latest`) and `postgresql`
+(Postgres 17 with `pg_hint_plan` and `wal2json`). They are public, so no login
+is needed. To stay on one release, set a version tag in `.env`:
+
+```
+SERVER_IMAGE=ghcr.io/sidekickdb/server:v2.0.0
+DASHBOARD_IMAGE=ghcr.io/sidekickdb/dashboard:v2.0.0
+```
+
+Each image has the licence in `/licenses/`.
+
 ## Local development
 
 `docker-compose.local.yml` is for local development only. It builds the server

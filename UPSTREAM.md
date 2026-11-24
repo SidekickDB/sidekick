@@ -410,7 +410,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36)
+### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36, PR #43)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -470,14 +470,20 @@ The self-hosted stack works without Instant infrastructure.
   `-U instant` and the database `instant`. The intro paragraph says nothing
   needs substituting, and the step 2 comment no longer names the database
   `instant`.
+- PR #43: the compose files, `swarm.yml` and `.env.example` default to
+  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
+  `ghcr.io/instantdb/*`, and the Postgres service of
+  `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
 such as the `SIDEKICK_*` aliases are fine), the CORS rule, the checksum
 setting, the healthchecks and the unpublished Postgres port (127.0.0.1 in
 `docker-compose.yml`, none in `swarm.yml`), the `127.0.0.1:` prefix on
-every port in `server/docker-compose-dev.yml` and the `pg_dump` in
-`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`. Run
+every port in `server/docker-compose-dev.yml`, the `pg_dump` in
+`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`, and the
+`ghcr.io/sidekickdb` image defaults (if upstream changes an image tag, release
+the same tag from SidekickDB first). Run
 `node scripts/self-hosting/render-check.mjs`
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
