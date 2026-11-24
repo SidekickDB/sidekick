@@ -47,7 +47,7 @@
             (let [{pat-id :id pat-token :token}
                   (instant-personal-access-token-model/create!
                    {:user-id (:id u) :name "test-pat"})]
-              (try
+               (try
                 (let [resp (get-app app pat-token)]
                   (is (= (str (:id app)) (-> resp :body :app :id))))
                 (finally
@@ -72,31 +72,39 @@
     (fn [u]
       (with-empty-app (:id u)
         (fn [app]
-          (let [send-transfer (fn [dest-email]
+          ;; The transfer endpoints take a personal access token, not a
+          ;; refresh token.
+          (let [{pat-id :id pat-token :token}
+                (instant-personal-access-token-model/create!
+                 {:user-id (:id u) :name "test-pat"})
+                send-transfer (fn [dest-email]
                                 (request {:method :post
                                           :url (str "/superadmin/apps/" (:id app) "/transfers/send")
-                                          :headers {"authorization" (str "Bearer " (:refresh-token u))}
+                                          :headers {"authorization" (str "Bearer " pat-token)}
                                           :body {:dest_email dest-email}}))]
+            (try
+              (testing "with only Resend configured, Resend gets the invite"
+                (let [sent (atom nil)
+                      dest-email (random-email)]
+                  (with-redefs [config/email-send-enabled? (constantly true)
+                                config/email-provider (constantly nil)
+                                config/resend-send-enabled? (constantly true)
+                                config/sendgrid-send-enabled? (constantly false)
+                                config/postmark-send-enabled? (constantly false)
+                                config/team-email-sender (constantly {:name "Team" :email "teams@example.com"})
+                                config/dashboard-origin (constantly "https://dash.example.com")
+                                resend/send! #(reset! sent %)]
+                    (is (= 200 (:status (send-transfer dest-email)))))
+                  (is (= {:name "Team" :email "teams@example.com"} (:from @sent)))
+                  (is (= [{:email dest-email}] (:to @sent)))
+                  (is (re-find #"https://dash\.example\.com/dash\?s=invites" (:html @sent)))
+                  (is (not (re-find #"instantdb\.com" (:html @sent))))))
 
-            (testing "with only Resend configured, Resend gets the invite"
-              (let [sent (atom nil)
-                    dest-email (random-email)]
+              (testing "without a team sender the invite is refused"
                 (with-redefs [config/email-send-enabled? (constantly true)
-                              config/email-provider (constantly nil)
-                              config/resend-send-enabled? (constantly true)
-                              config/sendgrid-send-enabled? (constantly false)
-                              config/postmark-send-enabled? (constantly false)
-                              config/team-email-sender (constantly {:name "Team" :email "teams@example.com"})
-                              config/dashboard-origin (constantly "https://dash.example.com")
-                              resend/send! #(reset! sent %)]
-                  (is (= 200 (:status (send-transfer dest-email)))))
-                (is (= {:name "Team" :email "teams@example.com"} (:from @sent)))
-                (is (= [{:email dest-email}] (:to @sent)))
-                (is (re-find #"https://dash\.example\.com/dash\?s=invites" (:html @sent)))
-                (is (not (re-find #"instantdb\.com" (:html @sent))))))
-
-            (testing "without a team sender the invite is refused"
-              (with-redefs [config/email-send-enabled? (constantly true)
-                            config/team-email-sender (constantly {:name "Team" :email nil})]
-                (is (thrown-with-msg? ExceptionInfo #"status 500"
-                                      (send-transfer (random-email))))))))))))
+                              config/team-email-sender (constantly {:name "Team" :email nil})]
+                  (is (thrown-with-msg? ExceptionInfo #"status 500"
+                                        (send-transfer (random-email))))))
+              (finally
+                (instant-personal-access-token-model/delete-by-id!
+                 {:id pat-id :user-id (:id u)})))))))))
