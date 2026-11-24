@@ -60,8 +60,8 @@ export const DIVERGENCES = {
   },
   selfhost: {
     title:
-      "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
-    prs: [4, 14, 21, 31, 34, 36],
+      "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, required secrets, JVM memory defaults, Google prefetch only when configured, DoH setting, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
+    prs: [4, 13, 14, 21, 31, 34, 36],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
@@ -69,14 +69,24 @@ export const DIVERGENCES = {
       "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION, the healthchecks and the unpublished Postgres port " +
       "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml), the " +
       "127.0.0.1: prefix on every port in server/docker-compose-dev.yml, and the " +
-      'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container. ' +
+      'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container ' +
+      "(and its intro paragraph that says nothing needs substituting). " +
       'In server config keep "no default ' +
-      "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form.",
+      "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form. " +
+      "Keep the required POSTGRES_PASSWORD, mem_limit and the default JAVA_OPTS (PR #13). In jwt.clj and " +
+      "oauth.clj keep the dashboard-google-oauth-configured? condition around the boot prefetch; in config.clj " +
+      "and webhook_sender.clj keep INSTANT_DNS_OVER_HTTPS_URLS and no system-resolver fallback after a failed " +
+      "DoH lookup.",
   },
   "own-fixes": {
     title:
+<<<<<<< HEAD
       "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image",
     prs: [6, 8, 16, 24, 44],
+=======
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots",
+    prs: [6, 8, 12, 16, 24],
+>>>>>>> origin/main
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
@@ -154,15 +164,16 @@ export const DIVERGENCES = {
   },
   "readme-header": {
     title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
-    prs: [38],
+    prs: [38, 48],
     resolve:
       "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
-      "the logo, the Discord and stars badges or the instantdb.com link row. Take upstream's changes below it.",
+      "the logo, the Discord and stars badges or the instantdb.com link row. Keep the two diagrams on their " +
+      "relative paths under client/www/public/readmes/, not instantdb.com. Take upstream's other changes below it.",
   },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
-    prs: [7],
+    prs: [7, 17],
     resolve:
       "The sync already re-merged this file with the rename applied to all three sides, so what remains is " +
       "a real edit on both sides: keep both intents, written with SidekickDB names. Never hand-edit " +
@@ -184,8 +195,11 @@ const PR_CATEGORY = {
   9: "js-test-guard",
   10: "upstream-fixes",
   11: "fail-closed",
+  12: "own-fixes",
+  13: "selfhost",
   14: (file) => (file.startsWith("self-hosting/") ? "selfhost" : "dashboard"),
   16: "own-fixes",
+  17: "rename",
   18: "release",
   19: "config-aliases",
   20: "bench",
@@ -207,7 +221,11 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
+<<<<<<< HEAD
   44: "own-fixes",
+=======
+  48: "readme-header",
+>>>>>>> origin/main
 };
 
 export function categoryFor(pr, file) {

@@ -21,6 +21,8 @@ on:
     paths:
       - 'self-hosting/**'
       - 'server/Dockerfile.self-hosted'
+      - 'server/deps.edn'
+      - 'server/src/instant/config.clj'
       - 'server/src/instant/reactive/ephemeral.clj'
       - 'server/src/instant/reactive/invalidator.clj'
       - 'server/src/instant/util/hazelcast.clj'
@@ -94,7 +96,7 @@ jobs:
           cache-from: |
             type=gha,scope=two-node-smoke-server
             type=gha,scope=server-amd64
-          cache-to: type=gha,scope=two-node-smoke-server,mode=max
+          cache-to: type=gha,scope=two-node-smoke-server,mode=min
 
       - name: Run the two-node smoke test
         env:

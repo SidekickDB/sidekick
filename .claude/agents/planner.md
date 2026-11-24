@@ -22,8 +22,8 @@ nothing else can do it:
 - Notes: size (S, M, L), risks, what it depends on.
 
 Set Status `Backlog` (or `Owner` when only the owner can decide or do it), an
-Area and a Priority. If it waits on another card, the first line is
-`Blocked by: <card title>`.
+Area and a Priority. If it waits on another card, a
+`Blocked by: <card title>` line goes at the top.
 
 **Before adding, look for a duplicate** and extend that card instead.
 

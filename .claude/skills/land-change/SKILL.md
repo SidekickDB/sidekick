@@ -65,8 +65,8 @@ messages or comments. Put the PR link in the card.
 
 ## 5. Checks and review
 
-- `gh pr checks <n> --watch`. Fix red checks; do not re-run until green without
-  understanding the failure.
+- `gh pr checks <n> -R SidekickDB/sidekick --watch`. Fix red checks; do not
+  re-run until green without understanding the failure.
 - Get an independent review of the exact head commit from the `reviewer` agent.
   Give it the pull request number and the card's "Done when", not your
   reasoning. A new push needs a new review.
