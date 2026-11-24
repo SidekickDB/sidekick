@@ -17,13 +17,14 @@ FATAL: database files are incompatible with server
 DETAIL: The data directory was initialized by PostgreSQL version 16, which is not compatible with this version 17.x.
 ```
 
+<!-- SidekickDB: every command reads the user and database from the container, so nothing needs substituting. -->
+
 Run this migration **once**, using dump/restore. The commands below assume the
-default `docker-compose.yml`, the user `instant`, and the database `instant`.
+default `docker-compose.yml` and read the user and database from the `postgres`
+container's `POSTGRES_USER` / `POSTGRES_DB`, so there is nothing to substitute.
 If your deployment uses a different compose file or project name, add the same
 `-f`/`-p` options to **every** `docker compose` command below, including the one
 nested inside the volume-lookup in step 2 and the ones in the rollback notes.
-Wherever you see `instant`, substitute the `POSTGRES_USER` / `POSTGRES_DB`
-values you configured.
 
 ### 1. Dump the database while still on PostgreSQL 16
 
@@ -83,7 +84,7 @@ volume.
 # verified above:
 docker volume rm "$PG_VOLUME"
 docker compose up -d --wait postgres
-# --wait blocks until the fresh, empty `instant` database is healthy
+# --wait blocks until the fresh, empty database is healthy
 ```
 
 ### 3. Restore the dump

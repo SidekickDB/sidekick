@@ -229,7 +229,7 @@ how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences.mjs`).
 
-### CI lockdown (PR #1, PR #5, PR #27)
+### CI lockdown (PR #1, PR #5, PR #27, PR #54)
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -260,6 +260,10 @@ services. SidekickDB releases only through its own two release workflows (PR
   or more (or a missing list) as truncated and run everything. A branch without
   a pull request gets no run, so PR #5's first-push comparison is now reached
   only by the first push of `main`; it is kept to keep the diff small.
+- PR #54: `clojure.yml` has a job `clj-check-result` that always runs and
+  fails unless the `clj-check` matrix passed or was skipped. The ruleset on
+  `main` requires it; the matrix itself reports under a different name per
+  shard and cannot be required.
 
 Every edit is marked `# SidekickDB:` or `// SidekickDB:`.
 
@@ -406,7 +410,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #21, PR #31, PR #34, PR #36, PR #43)
+### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36, PR #43)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -423,6 +427,25 @@ The self-hosted stack works without Instant infrastructure.
   `postmark.clj`, `sendgrid.clj` (no `instantdb.com` sender or reply-to
   defaults), and their tests.
 - `client/www/app/docs/self-hosting/vps/page.md`.
+- PR #13: no well-known credentials. `POSTGRES_PASSWORD`,
+  `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY` are required in
+  `docker-compose.yml`, `docker-compose.with-caddy.yml` and `swarm.yml` (no
+  `pass` or `rustfsadmin` fallback), `.env.example` leaves them blank, and
+  `deploy-swarm.sh` requires its secrets and URLs from the environment
+  (no `changeme` placeholders). `docker-compose.local.yml` keeps its
+  defaults and binds every port to `127.0.0.1`. The server gets
+  `mem_limit: ${SERVER_MEMORY_LIMIT:-2g}` (a memory limit in `swarm.yml`)
+  and a default `JAVA_OPTS` (`-XX:MaxRAMPercentage=60` plus the two native
+  memory flags upstream set in `server/docker-compose.yml`).
+- PR #13, server: `auth/jwt.clj` and `auth/oauth.clj` prefetch Google's JWKS
+  and discovery document at boot only when
+  `config/dashboard-google-oauth-configured?`; both still fetch on first use.
+  `config.clj` reads `INSTANT_DNS_OVER_HTTPS_URLS` (`parse-dns-over-https-urls`:
+  a comma-separated list of DoH endpoints, or `system`; unset means Cloudflare
+  and Google; an invalid value fails at startup). `webhook_sender.clj` takes
+  its resolvers from that setting; a failed DoH lookup never falls back to the
+  system resolver, which is used only with `system`. Tests in `jwt_test.clj`,
+  `oauth_test.clj`, `config_test.clj` and `webhook_sender_test.clj`.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
 - PR #21: no required `:?` inside a default in the compose files. Compose 2.38
@@ -444,7 +467,9 @@ The self-hosted stack works without Instant infrastructure.
   port reaches nREPL. Upstream publishes all three on all interfaces.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
-  `-U instant` and the database `instant`.
+  `-U instant` and the database `instant`. The intro paragraph says nothing
+  needs substituting, and the step 2 comment no longer names the database
+  `instant`.
 - PR #43: the compose files, `swarm.yml` and `.env.example` default to
   `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
   `ghcr.io/instantdb/*`, and the Postgres service of
@@ -463,8 +488,16 @@ the same tag from SidekickDB first). Run
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
 Port upstream's new settings into that form.
+Keep the required `POSTGRES_PASSWORD` and the memory and `JAVA_OPTS` defaults
+(PR #13); if upstream changes its JVM flags in `server/docker-compose.yml`,
+consider the same change in the default `JAVA_OPTS`. In `jwt.clj` and
+`oauth.clj` keep the `dashboard-google-oauth-configured?` condition around the
+boot prefetch and take upstream's other changes. In `config.clj` and
+`webhook_sender.clj` keep `INSTANT_DNS_OVER_HTTPS_URLS` and keep a failed DoH
+lookup final (no system fallback); if upstream changes the resolvers, port
+the change into that form.
 
-### JS package rename (PR #7)
+### JS package rename (PR #7, PR #17)
 
 | Upstream | SidekickDB |
 |---|---|
@@ -506,8 +539,8 @@ Replaying the normalizer over the tree before PR #7 reproduces PR #7 exactly in
 are edits it is not meant to make: the added `bugs` fields, the CLI's
 legacy-compat code and its new test, two prettier rewraps, and prose that names
 the CLI. One place PR #7 missed, the escaped `@instantdb\/react` in
-`client/www/recipes.ts`, is fixed in its own PR; until it merges, `--all --check`
-on `main` reports exactly that file.
+`client/www/recipes.ts`, is fixed in PR #17 (its two regexes match
+`@sidekickdb\/react`); since then `--all --check` on `main` reports no files.
 
 Path forms are renamed only for our packages: `node_modules/@instantdb/react`
 and `join(..., 'node_modules', '@instantdb', 'react')` become `@sidekickdb`;
@@ -607,13 +640,24 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16, PR #24)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
   `server/test/instant/reactive/session_test.clj` (PR #6),
   `server/test/instant/custodian_test.clj` and
   `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8).
+- PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
+  the receive timeout no longer removes the session's queries.
+  `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
+  recompute keeps its query, the queries of a failed or cancelled refresh
+  are marked stale with their result hash retracted
+  (`rs/mark-refresh-failed!`), and the refresh is retried after 500 ms, 1 s
+  and 2 s with jitter (flag `:refresh-retry-delays-ms`). A query whose
+  refresh is cancelled `:refresh-timeout-limit` (3) times in a row is
+  removed and the client gets an error shaped like a failed `add-query`.
+  Tests in `server/test/instant/reactive/session_test.clj` and
+  `store_test.clj`. Keep ours unless upstream fixes #2932 itself.
 - PR #16: `server/src/instant/db/attr_sketch.clj` loads attr sketches on its
   own virtual-thread executor instead of `ForkJoinPool.commonPool()`, with
   `server/test/instant/db/attr_sketch_lookup_test.clj`.
@@ -622,9 +666,17 @@ other changes in those files.
   the two queued refreshes is a snapshot; it used to send only the patch, so
   a session that had just joined could miss the peers already in the room.
   Test `combine-refresh-presence` in `session_test.clj`.
+- PR #44: `server/dev-postgres/Dockerfile` gets an entrypoint,
+  `sidekick-entrypoint.sh`, that starts Postgres with
+  `output_plugin_libraries=pgoutput,test_decoding,wal2json`. PostgreSQL 17.12
+  refuses an output plugin that is not in that list, and the server's
+  replication slots use `wal2json`, so without it the server never starts
+  against an image built from the current `postgres:17`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
-then take upstream's version. Take upstream's new tests as they are.
+then take upstream's version. Take upstream's new tests as they are. For the
+Postgres image, drop the entrypoint only if upstream's image allows `wal2json`
+some other way; check by starting the self-hosting stack.
 
 ### Release pipeline (PR #18, PR #39, PR #40, PR #42)
 
@@ -701,14 +753,18 @@ vulnerability reporting on `SidekickDB/sidekick`.
 **Resolving:** upstream has no `SECURITY.md`. If it adds one, keep
 SidekickDB's.
 
-### README header (PR #38)
+### README header (PR #38, PR #48)
 
 `README.md`: the top of the file is SidekickDB's plain-text header (name, one
 line on what it is, the relation to Instant, a link to this file). Upstream's
 logo, Discord and stars badges and row of instantdb.com links are removed.
+The two diagrams further down (`compression.svg`, `architecture.svg`) load
+from upstream's own copies in `client/www/public/readmes/` by relative path,
+not from instantdb.com.
 
 **Resolving:** keep SidekickDB's header and do not take back the logo, badges
-or link row. Take upstream's changes below the header.
+or link row. Keep the relative diagram paths. Take upstream's other changes
+below the header.
 
 ### NOTICE file (PR #41)
 

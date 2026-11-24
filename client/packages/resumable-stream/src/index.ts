@@ -105,13 +105,13 @@ function skipCharactersTransformer(skipCharacters: number) {
 /**
  * Reads an environment variable that can be set under its SidekickDB name
  * (`SIDEKICK_APP_ID`) or its older name (`INSTANT_APP_ID`). The SidekickDB name
- * wins; an empty value counts as unset.
+ * wins; a blank value counts as unset.
  */
 function readEnv(sidekickName: string): string | undefined {
-  return (
-    process.env[sidekickName] ||
-    process.env[sidekickName.replace('SIDEKICK_', 'INSTANT_')]
-  );
+  return [
+    process.env[sidekickName],
+    process.env[sidekickName.replace('SIDEKICK_', 'INSTANT_')],
+  ].find((v) => v?.trim());
 }
 
 export function createResumableStreamContext(
