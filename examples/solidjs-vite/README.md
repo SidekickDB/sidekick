@@ -1,4 +1,4 @@
-# Welcome to your InstantDB Solid + Vite app
+# Welcome to your SidekickDB Solid + Vite app
 
 To install dependencies:
 `npm install`

@@ -27,7 +27,7 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen
           name="index"
-          options={{ headerShown: true, headerTitle: "My Instant App" }}
+          options={{ headerShown: true, headerTitle: "My SidekickDB App" }}
         />
         <Stack.Screen name="+not-found" />
       </Stack>

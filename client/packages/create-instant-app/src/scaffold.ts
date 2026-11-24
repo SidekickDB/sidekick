@@ -96,7 +96,7 @@ enable-pre-post-scripts=true`,
     );
   }
 
-  // overwrite the "expo-template" and "My Instant App"
+  // overwrite the "expo-template" and "My SidekickDB App"
   if (cliResults.base === 'expo') {
     const slugifiedName = slugify.default(appDir);
     replaceTextInFile(
@@ -111,7 +111,7 @@ enable-pre-post-scripts=true`,
     );
     replaceTextInFile(
       path.join(projectDir, 'app/_layout.tsx'),
-      '"My Instant App"',
+      '"My SidekickDB App"',
       `"${appDir}"`,
     );
   }

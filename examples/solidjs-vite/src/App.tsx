@@ -140,7 +140,7 @@ function Welcome() {
   return (
     <div class="bg-white p-6 rounded-lg border border-neutral-200 shadow flex justify-center flex-col gap-2">
       <h2 class="tracking-wide text-[#F54A00] text-2xl text-center">
-        Solid + Vite + Instant DB
+        Solid + Vite + SidekickDB
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 grow gap-2">
         <a
@@ -161,11 +161,7 @@ function Welcome() {
           rel="noopener noreferrer"
           class="border shadow flex flex-col py-8 gap-2 hover:bg-neutral-100 items-center justify-center font-semibold border-neutral-200 rounded"
         >
-          <img
-            src="https://www.instantdb.com/img/icon/logo-512.svg"
-            width={34}
-          />
-          Instant Docs
+          SidekickDB Docs
         </a>
       </div>
     </div>

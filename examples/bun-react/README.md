@@ -1,4 +1,4 @@
-# Welcome to your InstantDB Bun + React app 👋
+# Welcome to your SidekickDB Bun + React app 👋
 
 To run the development server:
 `bun run dev`
