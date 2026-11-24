@@ -23,16 +23,19 @@ async function startHosted(apiURL: string) {
   return error.mock.calls.flat().map(String).join('\n');
 }
 
+// Importing the whole server is slow on a cold CI runner.
+const timeout = 30_000;
+
 describe('MCP hosted server configuration', () => {
   test('fails when INSTANT_API_URL is missing', async () => {
     expect(await startHosted('')).toContain(
       'Missing environment variable INSTANT_API_URL',
     );
-  });
+  }, timeout);
 
   test('fails the same way when INSTANT_API_URL is blank', async () => {
     expect(await startHosted('   ')).toContain(
       'Missing environment variable INSTANT_API_URL',
     );
-  });
+  }, timeout);
 });
