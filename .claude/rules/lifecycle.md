@@ -38,5 +38,6 @@ new card.
 4. A card is Done only when its "Done when" is observably true, not when the
    pull request is merged.
 5. A card that turns out wrong or not worth doing is archived by the owner,
-   or on the owner's word, with one line saying why. Archiving is a normal
-   outcome.
+   or on the owner's word, with one line saying why. The one exception: the
+   planner archives a duplicate it has merged into another card. Archiving is
+   a normal outcome.

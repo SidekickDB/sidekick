@@ -42,6 +42,7 @@ import {
   handleQuery,
   handleTransact,
   missingApiURLMessage,
+  resolveApiURL,
   setApiURL,
 } from './tools.ts';
 
@@ -311,7 +312,7 @@ async function startStdio() {
     process.exit(1);
   }
 
-  const apiURI = apiUrl || process.env.INSTANT_API_URL;
+  const apiURI = resolveApiURL(apiUrl);
   if (!apiURI) {
     console.error(missingApiURLMessage);
     process.exit(1);
@@ -330,7 +331,8 @@ async function startStdio() {
 
 function ensureEnv(key: string): string {
   const v = process.env[key];
-  if (!v) {
+  // SidekickDB: a blank value counts as missing.
+  if (!v?.trim()) {
     throw new Error(`Missing environment variable ${key}`);
   }
   return v;
