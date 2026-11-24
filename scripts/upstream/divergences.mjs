@@ -141,7 +141,7 @@ export const DIVERGENCES = {
   },
   "removed-ws-playground": {
     title: "Debug WebSocket playground (/dash/ws_playground) removed",
-    prs: [], // #TBD: PR number
+    prs: [51],
     resolve:
       "Keep ws-playground-get, id-atom and the route removed from dash/routes.clj. Take upstream's other " +
       "changes in that file. server/test/instant/dash/removed_routes_test.clj must pass.",
@@ -213,7 +213,7 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
-  // #TBD: <PR number>: "removed-ws-playground",
+  51: "removed-ws-playground",
 };
 
 export function categoryFor(pr, file) {

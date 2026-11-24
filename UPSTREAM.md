@@ -601,7 +601,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### Removed: WebSocket playground (PR #TBD)
+### Removed: WebSocket playground (PR #51)
 
 The unused inherited debug endpoint `GET /dash/ws_playground` and its handler
 (`ws-playground-get`, `id-atom`) are removed from `dash/routes.clj`, together
