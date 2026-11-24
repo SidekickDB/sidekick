@@ -229,7 +229,7 @@ how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences.mjs`).
 
-### CI lockdown (PR #1, PR #5, PR #27)
+### CI lockdown (PR #1, PR #5, PR #27, PR #54)
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -260,6 +260,10 @@ services. SidekickDB releases only through its own two release workflows (PR
   or more (or a missing list) as truncated and run everything. A branch without
   a pull request gets no run, so PR #5's first-push comparison is now reached
   only by the first push of `main`; it is kept to keep the diff small.
+- PR #54: `clojure.yml` has a job `clj-check-result` that always runs and
+  fails unless the `clj-check` matrix passed or was skipped. The ruleset on
+  `main` requires it; the matrix itself reports under a different name per
+  shard and cannot be required.
 
 Every edit is marked `# SidekickDB:` or `// SidekickDB:`.
 
@@ -630,7 +634,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #49)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -656,6 +660,12 @@ other changes in those files.
   the two queued refreshes is a snapshot; it used to send only the patch, so
   a session that had just joined could miss the peers already in the room.
   Test `combine-refresh-presence` in `session_test.clj`.
+- PR #44: `server/dev-postgres/Dockerfile` gets an entrypoint,
+  `sidekick-entrypoint.sh`, that starts Postgres with
+  `output_plugin_libraries=pgoutput,test_decoding,wal2json`. PostgreSQL 17.12
+  refuses an output plugin that is not in that list, and the server's
+  replication slots use `wal2json`, so without it the server never starts
+  against an image built from the current `postgres:17`.
 - PR #49: the hourly refresh of cached signing keys in
   `server/src/instant/auth/jwt.clj` uses `doseq`; upstream's `for` built a
   lazy seq that was thrown away, so the refresh never ran. Test
@@ -663,7 +673,9 @@ other changes in those files.
   `server/test/instant/auth/jwt_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
-then take upstream's version. Take upstream's new tests as they are.
+then take upstream's version. Take upstream's new tests as they are. For the
+Postgres image, drop the entrypoint only if upstream's image allows `wal2json`
+some other way; check by starting the self-hosting stack.
 
 ### Release pipeline (PR #18, PR #39, PR #40, PR #42)
 

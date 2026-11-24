@@ -10,12 +10,13 @@ export const DIVERGENCES = {
   "ci-lockdown": {
     title:
       "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base, runs on main and pull requests only",
-    prs: [1, 5, 27],
+    prs: [1, 5, 27, 54],
     resolve:
       'Keep every line marked "# SidekickDB:" / "// SidekickDB:". Take upstream\'s other changes. ' +
       "A new or changed publish/deploy job gets `if: false && (<upstream condition>)`; a new publish-only " +
       'workflow gets its triggers commented out (workflow_dispatch only). Never re-enable "Fetch timings". ' +
-      "Then run scripts/upstream/check.mjs.",
+      "Keep the clj-check-result job in clojure.yml (the ruleset on main requires it); if upstream renames " +
+      "clj-check, update its `needs`. Then run scripts/upstream/check.mjs.",
   },
   "js-test-guard": {
     title:
@@ -80,11 +81,12 @@ export const DIVERGENCES = {
   },
   "own-fixes": {
     title:
-      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, signing-key refresh runs",
-    prs: [6, 8, 12, 16, 24, 49],
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image, signing-key refresh runs",
+    prs: [6, 8, 12, 16, 24, 44, 49],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
-      "upstream's new tests as they are.",
+      "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
+      "unless upstream's image allows wal2json another way (start the self-hosting stack to check).",
   },
   release: {
     title:
@@ -215,7 +217,9 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
+  44: "own-fixes",
   48: "readme-header",
+  54: "ci-lockdown",
   49: "own-fixes",
 };
 

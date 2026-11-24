@@ -14,6 +14,28 @@ describe('MCP server URL configuration', () => {
     );
   });
 
+  test('treats a blank INSTANT_API_URL as unset', async () => {
+    vi.stubEnv('INSTANT_API_URL', '   ');
+    const { getApiURL } = await import('../src/tools.ts');
+    expect(() => getApiURL()).toThrow(
+      'No SidekickDB server URL configured. Pass --api-url to the MCP server or set the INSTANT_API_URL environment variable',
+    );
+  });
+
+  test('treats a blank --api-url as unset', async () => {
+    vi.stubEnv('INSTANT_API_URL', '');
+    const { getApiURL, resolveApiURL, setApiURL } = await import(
+      '../src/tools.ts'
+    );
+    expect(resolveApiURL('  ')).toBeUndefined();
+    setApiURL('  ');
+    expect(() => getApiURL()).toThrow('No SidekickDB server URL configured.');
+
+    vi.stubEnv('INSTANT_API_URL', 'http://localhost:8888');
+    expect(resolveApiURL('  ')).toBe('http://localhost:8888');
+    expect(getApiURL()).toBe('http://localhost:8888');
+  });
+
   test('reads INSTANT_API_URL', async () => {
     vi.stubEnv('INSTANT_API_URL', 'http://localhost:8888');
     const { getApiURL } = await import('../src/tools.ts');

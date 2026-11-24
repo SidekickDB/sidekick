@@ -32,7 +32,8 @@ export const getBaseUrl = Effect.gen(function* () {
     Config.withDefault(false),
   );
 
-  if (Option.isSome(setEnv)) {
+  // SidekickDB: a blank value counts as unset.
+  if (Option.isSome(setEnv) && setEnv.value.trim() !== '') {
     return setEnv.value;
   }
 
@@ -72,7 +73,8 @@ export const getOptionalDashUrl = Effect.gen(function* () {
     Config.withDefault(false),
   );
 
-  if (Option.isSome(setEnv)) {
+  // SidekickDB: a blank value counts as unset.
+  if (Option.isSome(setEnv) && setEnv.value.trim() !== '') {
     return Option.some(setEnv.value);
   }
 
