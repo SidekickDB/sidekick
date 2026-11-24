@@ -57,8 +57,8 @@ Use the `land-change` skill. In short:
   that contacts a third party are the owner's.
 - Server (Clojure) tests run in CI; there is no JVM on the maintainer's
   machine. An upstream sync follows the steps in `UPSTREAM.md`, with the
-  Clojure tests left to CI. The benchmark workflow takes 35 to 60 minutes: batch changes to its
-  harness.
+  Clojure tests left to CI. The benchmark workflow takes 35 to 60 minutes:
+  batch changes to its harness.
 - Every intentional difference from upstream is recorded in `UPSTREAM.md` and
   `scripts/upstream/divergences.mjs`, and marked `SidekickDB:` in a comment
   where the file format allows one.
