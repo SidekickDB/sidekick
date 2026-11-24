@@ -106,7 +106,15 @@ export const projectBaseConfig = {
 
 export type ProjectBase = keyof typeof projectBaseConfig;
 
-export const projectBases = Object.keys(projectBaseConfig) as ProjectBase[];
+// SidekickDB: the Python starter is not offered and not bundled. It installs
+// Instant's `instantdb` package from PyPI, and SidekickDB releases no Python
+// SDK. Its entry above stays, so the code that handles it merges cleanly with
+// upstream.
+const unavailableProjectBases: ProjectBase[] = ['python-script'];
+
+export const projectBases = (
+  Object.keys(projectBaseConfig) as ProjectBase[]
+).filter((base) => !unavailableProjectBases.includes(base));
 
 export const bundledProjectBases = projectBases.filter(
   (base) => projectBaseConfig[base].bundled,

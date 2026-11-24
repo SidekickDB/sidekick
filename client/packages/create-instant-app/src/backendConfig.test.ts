@@ -4,7 +4,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { applyBackendConfig, websocketURIFromAPIURI } from './backendConfig.js';
-import { projectBaseConfig, projectBases } from './projectBase.js';
+import {
+  bundledProjectBases,
+  projectBaseConfig,
+  projectBases,
+} from './projectBase.js';
 
 const tempDirs: string[] = [];
 const examplesDir = path.resolve(
@@ -156,6 +160,13 @@ describe('applyBackendConfig', () => {
 });
 
 describe('project base backend config', () => {
+  // SidekickDB: the Python starter installs Instant's PyPI package.
+  it('does not offer or bundle the Python starter', () => {
+    expect(projectBases).not.toContain('python-script');
+    expect(bundledProjectBases).not.toContain('python-script');
+    expect(projectBaseConfig['python-script']).toBeDefined();
+  });
+
   it.each(projectBases)('%s matches its example template', (base) => {
     for (const file of projectBaseConfig[base].backendConfigFiles) {
       const contents = fs.readFileSync(
