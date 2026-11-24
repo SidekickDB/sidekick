@@ -21,6 +21,10 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean
 
+# SidekickDB: allow the wal2json output plugin (see sidekick-entrypoint.sh).
+COPY sidekick-entrypoint.sh /usr/local/bin/
+ENTRYPOINT ["sidekick-entrypoint.sh"]
+
 CMD ["postgres", \
        "-c", "wal_level=logical", \
        "-c", "max_replication_slots=4", \
