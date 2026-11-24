@@ -37,6 +37,25 @@ test("the checked-in version is releasable", () => {
   assert.doesNotThrow(() => checkVersion(readVersion()));
 });
 
+// SidekickDB has its own version line, so an upstream sync can raise a server
+// minimum above it without touching version.ts.
+test("the checked-in version is above every version minimum in the server", () => {
+  const server = path.resolve(CLIENT_DIR, "../server/src/instant");
+  const mins = ["reactive/session.clj", "dash/routes.clj"].flatMap((f) =>
+    [
+      ...fs
+        .readFileSync(path.join(server, f), "utf8")
+        .matchAll(/\(def (\S*min-version)\s+\(semver\/parse "v?(\d+)\.(\d+)\.(\d+)"\)\)/g),
+    ].map((m) => ({ name: `${f} ${m[1]}`, parts: m.slice(2).map(Number) })),
+  );
+  assert.equal(mins.length, 4, "expected the four known minimums; update this test if the server changed");
+  const ours = parseVersion(readVersion());
+  for (const { name, parts } of mins) {
+    const i = [0, 1, 2].find((k) => ours[k] !== parts[k]);
+    assert.ok(i !== undefined && ours[i] > parts[i], `${ours.join(".")} must be above ${name} ${parts.join(".")}`);
+  }
+});
+
 test("the repo's publishable packages are the expected 17, in dependency order", () => {
   const pkgs = listPackages();
   const names = pkgs.map((p) => p.name);
