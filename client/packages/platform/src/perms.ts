@@ -10,7 +10,7 @@ export function generatePermsTypescriptFile(
       ? JSON.stringify(permsCode, null, 2)
       : `{
   /**
-   * Welcome to Instant's permission system!
+   * Welcome to SidekickDB's permission system!
    * Right now your rules are empty. To start filling them in, check out the docs:
    * https://www.instantdb.com/docs/permissions
    *

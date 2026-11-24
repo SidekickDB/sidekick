@@ -84,7 +84,7 @@ export const printRedErrors = Effect.catchAllCause((cause) =>
     if (theError instanceof InstantHttpError) {
       if (theError?.message) {
         yield* Effect.logError(
-          'Error making request to Instant API: ' + theError.message,
+          'Error making request to SidekickDB API: ' + theError.message,
         );
       }
       if (Array.isArray(theError?.hint?.errors)) {

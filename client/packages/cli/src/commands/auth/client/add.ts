@@ -202,7 +202,7 @@ const printGoogleDevCredentialsClient = Effect.fn(function* ({
       [
         `Google OAuth client created: ${client.client_name}`,
         `App type: ${appType}`,
-        `Credentials: Instant dev credentials`,
+        `Credentials: shared dev credentials`,
         `ID: ${client.id}`,
         '',
         'No Google Console setup required.',

@@ -129,7 +129,7 @@ const updateGoogleToDevCredentials = Effect.fn(function* (
     boxen(
       [
         `Google OAuth client updated: ${response.client.client_name}`,
-        'Credentials: Instant dev credentials',
+        'Credentials: shared dev credentials',
         `ID: ${response.client.id}`,
         '',
         'No Google Console setup required.',
@@ -164,7 +164,7 @@ const selectGoogleUpdateMode = Effect.fn(function* ({
         options: [
           { label: 'Custom Google credentials', value: 'custom' },
           {
-            label: 'Instant dev credentials' + chalk.dim(' (current)'),
+            label: 'shared dev credentials' + chalk.dim(' (current)'),
             value: 'none',
           },
         ],
@@ -186,7 +186,7 @@ const selectGoogleUpdateMode = Effect.fn(function* ({
     options.push(
       {
         label:
-          'Switch to Instant dev credentials' +
+          'Switch to shared dev credentials' +
           chalk.dim(' (localhost and Expo, no Google setup)'),
         value: 'dev',
       },
@@ -254,7 +254,7 @@ const resolveGoogleUpdateMode = Effect.fn(function* ({
   ) {
     return yield* BadArgsError.make({
       message:
-        'Must specify both --client-id and --client-secret when switching from Instant dev credentials to custom credentials with --yes.',
+        'Must specify both --client-id and --client-secret when switching from shared dev credentials to custom credentials with --yes.',
     });
   }
 
@@ -360,7 +360,7 @@ const updateGoogleCustomCredentials = Effect.fn(function* ({
   ];
 
   if (switchingFromShared) {
-    lines.push('', 'This client no longer uses Instant dev credentials.');
+    lines.push('', 'This client no longer uses shared dev credentials.');
   }
   if (isWeb && redirectTo) {
     lines.push(
@@ -396,7 +396,7 @@ const handleGoogleUpdate = Effect.fn(function* (
     yield* Effect.log(
       `\nCurrent mode: ${
         switchingFromShared
-          ? chalk.bold('Instant dev credentials')
+          ? chalk.bold('shared dev credentials')
           : 'custom credentials'
       }`,
     );

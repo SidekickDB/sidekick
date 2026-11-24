@@ -48,7 +48,7 @@ import type { InstantRules } from "@sidekickdb/core";
 
 const rules = {
   /**
-   * Welcome to Instant's permission system!
+   * Welcome to SidekickDB's permission system!
    * Right now your rules are empty. To start filling them in, check out the docs:
    * https://www.instantdb.com/docs/permissions
    *

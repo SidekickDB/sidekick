@@ -291,7 +291,7 @@ export const tryConnectApp = async (
         promptText: 'You are not logged in.',
         options: [
           {
-            label: 'Login to your Instant account',
+            label: 'Login to your SidekickDB account',
             value: 'login',
           },
           {

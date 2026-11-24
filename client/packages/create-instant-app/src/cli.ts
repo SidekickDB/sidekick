@@ -70,8 +70,8 @@ export const runCli = async (): Promise<Project> => {
   const results = defaultOptions;
 
   const program = new Command()
-    .name('Create Instant App')
-    .description('A CLI for creating web/mobile applications with InstantDB')
+    .name('create-sidekick-app')
+    .description('A CLI for creating web/mobile applications with SidekickDB')
     .argument(
       '[dir]',
       'The name of the application, as well as the name of the directory to create',
@@ -133,13 +133,13 @@ export const runCli = async (): Promise<Project> => {
     .addOption(
       new Option(
         '--ai',
-        'Create a new InstantDB app based off of a prompt. (requires Claude Code)',
+        'Create a new SidekickDB app based off of a prompt. (requires Claude Code)',
       ),
     )
     .addOption(
       new Option(
         '-a --app <app-id>',
-        'Link to an existing InstantDB app by ID (requires login or --token)',
+        'Link to an existing SidekickDB app by ID (requires login or --token)',
       ),
     )
     .addOption(
