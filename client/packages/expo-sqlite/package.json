@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/expo-sqlite",
   "version": "0.0.0",
-  "description": "Expo SQLite interface for Instant DB",
+  "description": "Expo SQLite interface for SidekickDB",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/expo-sqlite",
   "repository": {

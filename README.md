@@ -5,13 +5,13 @@ SidekickDB is a realtime database with a sync engine that you can host yourself.
 
 SidekickDB is an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant. See [UPSTREAM.md](./UPSTREAM.md) for where the code comes from and what differs.
 
-Instant is the best backend for AI-coded apps. You get auth, permissions, storage, presence, and streams — everything you need to ship apps your users will love.
+SidekickDB gives your app a database it can use from the client. You get auth, permissions, storage, presence, and streams.
 
-You write [relational queries](https://www.instantdb.com/docs/instaql) in the shape of the data you want and Instant handles all the data fetching, permission checking, and offline caching. When you [change data](https://www.instantdb.com/docs/instaml), optimistic updates and rollbacks are handled for you as well. Plus, every query is multiplayer by default.
+You write [relational queries](./client/www/app/docs/instaql/page.md) in the shape of the data you want, and SidekickDB handles the data fetching, permission checking, and offline caching. When you [change data](./client/www/app/docs/instaml/page.md), optimistic updates and rollbacks are handled for you as well. Every query is multiplayer by default.
 
-We also support [ephemeral](https://www.instantdb.com/docs/presence-and-topics) updates, like cursors, or who's online. Currently we have SDKs for [Javascript](https://www.instantdb.com/docs/start-vanilla), [React](https://www.instantdb.com/docs/), and [React Native](https://www.instantdb.com/docs/start-rn).
+[Ephemeral](./client/www/app/docs/presence-and-topics/page.md) updates, like cursors or who's online, are supported too. There are SDKs for [JavaScript](./client/www/app/docs/start-vanilla/page.md), [React](./client/www/app/docs/page.md), [React Native](./client/www/app/docs/start-rn/page.md), [Vue](./client/www/app/docs/start-vue/page.md), [Svelte](./client/www/app/docs/start-svelte/page.md) and [SolidJS](./client/www/app/docs/start-solidjs/page.md).
 
-How does it look? Here's a barebones chat app in about 12 lines:
+Here is a barebones chat app in about 12 lines:
 
 ```javascript
 // ༼ つ ◕_◕ ༽つ Real-time Chat
@@ -42,43 +42,28 @@ function Chat() {
 }
 ```
 
-Want to see for yourself? <a href="https://instantdb.com/tutorial">try a demo in your browser.</a>
+## Why a database on the client
 
-## Motivation
+Most apps start with the server: databases, caches, ORMs and endpoints. Then comes client-side code: stores, selectors and mutators. Then optimistic updates, offline support and realtime, each with its own machinery. Every new feature goes through the same steps again.
 
-Writing modern apps is full of schleps. Most of the time you start with the server: stand up databases, caches, ORMs, and endpoints. Then you write client-side code: stores, selectors, mutators. Finally you paint a screen. If you add multiplayer you need to think about stateful servers, and if you support offline mode, you need to think about IndexedDB and transaction queues.
-
-To make things worse, whenever you add a new feature, you go through the same song and dance over and over again: add models, write endpoints, stores, selectors, and finally the UI.
-
-Could it be better?
-
-In 2021, **we realized that most of the schleps we face as UI engineers are actually database problems in disguise.** (We got into greater detail [in this essay](https://instantdb.com/essays/next_firebase))
+InstantDB's authors saw that most of this work is a database problem in disguise, and SidekickDB keeps their design.
 
 <!-- SidekickDB: diagrams load from the copies in this repository, not from instantdb.com. -->
 <p align="center">
-  <a href="#">
-    <img alt="Shows how Instant compresses schleps" src="./client/www/public/readmes/compression.svg">
-  </a>
+  <img alt="How a client-side database replaces stores, selectors, endpoints and caches" src="./client/www/public/readmes/compression.svg">
 </p>
 
-If you had a database on the client, you wouldn't need to think about stores, selectors, endpoints, or local caches: just write queries. If these queries were multiplayer by default, you wouldn't have to worry about stateful servers. And if your database supported rollback, you'd get optimistic updates for free.
-
-So we built Instant. Instant gives you a database you can use in the client, so you can focus on what’s important: building a great UX for your users, and doing it quickly.
+With a database on the client you do not need stores, selectors, endpoints or local caches: you write queries. If queries are multiplayer by default, you do not think about stateful servers. If the database supports rollback, you get optimistic updates for free.
 
 ## Architectural Overview
 
-Here's how Instant works at a high level:
-
-<!-- SidekickDB: diagram loads from the copy in this repository, not from instantdb.com. -->
 <p align="center">
-  <a href="#">
-    <img alt="Shows how Instant compresses schleps" src="./client/www/public/readmes/architecture.svg">
-  </a>
+  <img alt="Architecture: clients with a local triple store, a sync server, and Postgres" src="./client/www/public/readmes/architecture.svg">
 </p>
 
-Under the hood, we store all user data as triples in one big Postgres database. A multi-tenant setup lets us offer a free tier that never pauses.
+All user data is stored as triples in one Postgres database.
 
-A sync server written in Clojure talks to Postgres. We wrote a query engine that understands datalog and [InstaQL](https://www.instantdb.com/docs/instaql), a relational language that looks a lot like GraphQL:
+A sync server written in Clojure talks to Postgres. Its query engine understands datalog and [InstaQL](./client/www/app/docs/instaql/page.md), a relational language that looks a lot like GraphQL:
 
 ```javascript
 // give me all users, their posts and comments
@@ -92,20 +77,20 @@ A sync server written in Clojure talks to Postgres. We wrote a query engine that
 }
 ```
 
-Taking inspiration from [Asana’s WorldStore](https://asana.com/inside-asana/worldstore-distributed-caching-reactivity-part-1) and [Figma’s LiveGraph](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/#syncing-object-properties), we tail postgres’ WAL to detect novelty and invalidate relevant queries.
+Taking inspiration from [Asana’s WorldStore](https://asana.com/inside-asana/worldstore-distributed-caching-reactivity-part-1) and [Figma’s LiveGraph](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/#syncing-object-properties), the server tails Postgres’ WAL to detect novelty and invalidate the queries that are affected.
 
-For the frontend, we wrote a client-side triple store. The SDK handles persisting a cache of recent queries to IndexedDB on web, and AsyncStorage in React Native.
+On the frontend there is a client-side triple store. The SDK persists a cache of recent queries to IndexedDB on web, and AsyncStorage in React Native.
 
 All data goes through a permission system powered by Google's [CEL library](https://github.com/google/cel-java).
 
 ## Getting Started
 
-The easiest way to get started with Instant is by signing up on [instantdb.com](https://instantdb.com). [You can create a functional app in 5 minutes or less](https://instantdb.com/docs).
+SidekickDB is self-hosted. [`self-hosting/README.md`](./self-hosting/README.md) starts the server, the dashboard, Postgres and object storage with Docker Compose, from the images on `ghcr.io/sidekickdb`.
 
-If you have any questions, you can jump in on our [discord](https://discord.com/invite/VU53p7uQcE).
+The documentation is in this repository under [`client/www/app/docs`](./client/www/app/docs/page.md). [`RELEASING.md`](./RELEASING.md) says what is released and where.
+
+Questions and bug reports go to [GitHub issues](https://github.com/SidekickDB/sidekick/issues). Report a vulnerability as [`SECURITY.md`](./SECURITY.md) describes, not in an issue.
 
 ## Contributing
 
-You can start by joining our [discord](https://discord.com/invite/VU53p7uQcE) and introducing yourself. Even if you don't contribute code, we always love feedback.
-
-If you want to make changes, start by reading the [`client`](./client/) and [`server`](./server/) READMEs. There you'll find instructions to start Instant locally.
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md). To run SidekickDB locally, start with the [`client`](./client/) and [`server`](./server/) READMEs.

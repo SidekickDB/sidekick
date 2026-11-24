@@ -2,7 +2,7 @@
   "name": "@sidekickdb/cli",
   "type": "module",
   "version": "0.0.0",
-  "description": "Instant's CLI",
+  "description": "SidekickDB's CLI",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/cli",
   "repository": {

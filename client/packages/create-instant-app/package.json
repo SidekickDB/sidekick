@@ -1,7 +1,7 @@
 {
   "name": "create-sidekick-app",
   "version": "0.0.0",
-  "description": "Scaffold a new web/mobile app with InstantDB",
+  "description": "Scaffold a new web/mobile app with SidekickDB",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/create-instant-app",
   "repository": {
     "type": "git",

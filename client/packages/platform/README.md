@@ -1,36 +1,20 @@
-<p align="center">
-  <a href="https://instantdb.com">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">@sidekickdb/platform</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo, badges and links. -->
 
-<p align="center">
-  <a
-    href="https://discord.com/invite/VU53p7uQcE" >
-    <img height=20 src="https://img.shields.io/discord/1031957483243188235" />
-  </a>
-  <img src="https://img.shields.io/github/stars/instantdb/instant" alt="stars">
-</p>
+# @sidekickdb/platform
 
-<p align="center">
-   <a href="https://www.instantdb.com/docs/backend">Get Started</a> ·
-   <a href="https://instantdb.com/examples">Examples</a> ·
-   <a href="https://www.instantdb.com/docs/backend">Docs</a> ·
-   <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
-<p>
+Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant.
 
-Welcome to [Instant's](http://instantdb.com) platform SDK.
+Welcome to SidekickDB's platform SDK.
 
-The Platform SDK allows you to manage apps on behalf of an Instant user.
+The Platform SDK allows you to manage apps on behalf of an SidekickDB user.
 
 # Usage
 
 ## OAuth flow
 
-You'll need an OAuth access token to make request on the Instant user's behalf. The platform SDK includes helpers for performing the OAuth flow in the `OAuthHandler` class.
+You'll need an OAuth access token to make request on the SidekickDB user's behalf. The platform SDK includes helpers for performing the OAuth flow in the `OAuthHandler` class.
 
-Go to the [OAuth Apps page of the dashboard](https://www.instantdb.com/dash?s=main&t=oauth-apps) to create a new OAuth client id.
+Go to the OAuth Apps page of your dashboard to create a new OAuth client id.
 
 First you'll need to create a page that you can redirect to complete the OAuth flow. It should live on the same domain as the page where you're originating the OAuth flow:
 
@@ -40,10 +24,10 @@ import { OAuthHandler } from '@sidekickdb/platform';
 import { useEffect } from 'react';
 
 const oauthHandler = new OAuthHandler({
-  // https://www.instantdb.com/dash?s=main&t=oauth-apps
+  // from the OAuth Apps page of your dashboard
   clientId: 'YOUR_CLIENT_ID',
   // Be sure the redirectUri matches one of the authorized redirect uris
-  // in your OAuth App client config on the Instant dashboard.
+  // in your OAuth App client config on the SidekickDB dashboard.
   redirectUri: 'https://example.com/oauth/instant/redirect',
   // URL of your SidekickDB server. Required: there is no default.
   apiURI: 'https://sidekick.example.com',
@@ -72,10 +56,10 @@ import { OAuthHandler } from '@sidekickdb/platform';
 const scopes = ['apps-write'];
 
 const handler = new OAuthHandler({
-  // https://www.instantdb.com/dash?s=main&t=oauth-apps
+  // from the OAuth Apps page of your dashboard
   clientId: 'YOUR_CLIENT_ID',
   // Be sure the redirectUri matches one of the authorized redirect uris
-  // in your OAuth App client config on the Instant dashboard.
+  // in your OAuth App client config on the SidekickDB dashboard.
   redirectUri: 'https://example.com/oauth/instant/redirect',
   // URL of your SidekickDB server. Required: there is no default.
   apiURI: 'https://sidekick.example.com',
@@ -93,12 +77,12 @@ export default function Page() {
   };
 
   return (
-    <button onClick={handleConnect}>Connect to your Instant Account</button>
+    <button onClick={handleConnect}>Connect to your SidekickDB Account</button>
   );
 }
 ```
 
-The client-only flow described here uses PKCE and does not support refresh tokens. For a server-based flow that supports refresh tokens, see the [Platform OAuth docs](https://www.instantdb.com/docs/auth/platform-oauth).
+The client-only flow described here uses PKCE and does not support refresh tokens. For a server-based flow that supports refresh tokens, see the [Platform OAuth docs](https://github.com/SidekickDB/sidekick/blob/main/client/www/app/docs/auth/platform-oauth/page.md).
 
 ## Making API requests
 
@@ -459,4 +443,4 @@ This is useful when parsing a schema that the user manually edited or pulled wit
 
 # Questions?
 
-If you have any questions, feel free to drop us a line on our [Discord](https://discord.com/invite/VU53p7uQcE)
+If you have any questions, feel free to open an issue on [GitHub](https://github.com/SidekickDB/sidekick/issues).

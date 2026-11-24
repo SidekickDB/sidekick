@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/admin",
   "version": "0.0.0",
-  "description": "Admin SDK for Instant DB",
+  "description": "Admin SDK for SidekickDB",
   "license": "Apache-2.0",
   "type": "module",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/admin",
