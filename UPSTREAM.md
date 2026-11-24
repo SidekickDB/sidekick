@@ -658,7 +658,7 @@ that only it used. Nothing in the clients or the dashboard calls it.
 **Resolving:** if upstream changes the handler or the route, keep them removed
 and take its other changes in the file.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49, PR #63)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -695,6 +695,14 @@ and take its other changes in the file.
   lazy seq that was thrown away, so the refresh never ran. Test
   `scheduled-refresh-refreshes-expiring-keys` in
   `server/test/instant/auth/jwt_test.clj`.
+- PR #63: team invites (`dash/routes.clj`, `team-member-invite-email` and
+  `team-member-invite-send-post`) and app-transfer invites
+  (`superadmin/routes.clj`, `transfer-app-invite-email` and
+  `app-transfer-send-invite-post`) are structured letters sent with
+  `email-router/send-structured!`, after `email-router/assert-sender!` and
+  before the invite is stored. Upstream calls `postmark/send!`, which sends
+  nothing without a Postmark token, and gives the transfer invite the sender
+  `teams@pm.instantdb.com` and a link to instantdb.com.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the

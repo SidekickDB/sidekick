@@ -1278,12 +1278,16 @@
                 :org (:title (org-model/get-by-id! {:id foreign-key}))
                 :app (:title (app-model/get-by-id! {:id foreign-key})))
         invite-url (str (config/dashboard-origin) "/dash?s=invites")]
-    {:from (str sender-name " <" sender-email ">")
-     :to invitee-email
+    ;; SidekickDB: a structured letter for email-router, so the invite goes
+    ;; through whichever provider is configured. Upstream builds a Postmark
+    ;; request and calls postmark/send! directly.
+    {:from {:name sender-name
+            :email sender-email}
+     :to [{:email invitee-email}]
      :subject (str "[Instant] You've been invited to collaborate on " title)
      :reply-to sender-email
      :html
-     (postmark/standard-body
+     (email/standard-body
       (h/html
        [:p [:strong "Hey there!"]]
        [:p
@@ -1330,16 +1334,20 @@
         invitee-email (ex/get-param! req [:body :invitee-email] email/coerce)
         role (ex/get-param! req [:body :role] string-util/coerce-non-blank-str)]
     (assert-valid-member-role! role)
-    (member-invites-model/create! {:type type
-                                   :foreign-key foreign-key
-                                   :inviter-id inviter-id
-                                   :email invitee-email
-                                   :role role})
-    (postmark/send!
-     (team-member-invite-email {:inviter-id inviter-id
-                                :invitee-email invitee-email
-                                :foreign-key foreign-key
-                                :type type}))
+    ;; SidekickDB: check the sender before the invite is stored, and send
+    ;; through email-router (upstream: postmark/send!), so that a server with
+    ;; only Resend or SendGrid configured sends the invite too.
+    (let [letter (team-member-invite-email {:inviter-id inviter-id
+                                            :invitee-email invitee-email
+                                            :foreign-key foreign-key
+                                            :type type})]
+      (email-router/assert-sender! letter)
+      (member-invites-model/create! {:type type
+                                     :foreign-key foreign-key
+                                     :inviter-id inviter-id
+                                     :email invitee-email
+                                     :role role})
+      (email-router/send-structured! letter))
     (response/ok {})))
 
 (defn team-member-invite-accept-post [req]

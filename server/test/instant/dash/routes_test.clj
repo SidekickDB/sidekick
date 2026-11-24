@@ -18,6 +18,7 @@
    [instant.model.instant-stripe-customer :as stripe-customer-model]
    [instant.model.org-members :as org-members]
    [instant.postmark :as postmark]
+   [instant.resend :as resend]
    [instant.model.app-members :as app-members]
    [instant.runtime.magic-code-auth :as magic-code-auth]
    [instant.stripe :as stripe]
@@ -1408,3 +1409,45 @@
                   (is (nil? (:client_secret row)))
                   (is (nil? (:redirect_to row)))
                   (is (true? (:use_shared_credentials row))))))))))))
+
+;; SidekickDB: the team invite goes through email-router, so a server with
+;; only Resend or SendGrid configured sends it too. Upstream calls
+;; postmark/send! directly, which does nothing without a Postmark token.
+(deftest team-invite-email-goes-through-the-email-router
+  (with-user
+    (fn [u]
+      (with-org
+        (:id u)
+        (fn [org]
+          (let [send-invite (fn [invitee-email]
+                              (http/post (str config/server-origin "/dash/orgs/" (:id org) "/invite/send")
+                                         {:throw-exceptions false
+                                          :headers {:Authorization (str "Bearer " (:refresh-token u))
+                                                    :Content-Type "application/json"}
+                                          :body (->json {:invitee-email invitee-email
+                                                         :role "admin"})}))
+                invite-for (fn [invitee-email]
+                             (sql/select-one (aurora/conn-pool :read)
+                                             ["select * from org_member_invites where invitee_email = ?" invitee-email]))]
+
+            (testing "with only Resend configured, Resend gets the invite"
+              (let [sent (atom nil)
+                    invitee-email (random-email)]
+                (with-redefs [config/email-send-enabled? (constantly true)
+                              config/email-provider (constantly nil)
+                              config/resend-send-enabled? (constantly true)
+                              config/sendgrid-send-enabled? (constantly false)
+                              config/postmark-send-enabled? (constantly false)
+                              config/team-email-sender (constantly {:name "Team" :email "teams@example.com"})
+                              resend/send! #(reset! sent %)]
+                  (is (= 200 (:status (send-invite invitee-email)))))
+                (is (= {:name "Team" :email "teams@example.com"} (:from @sent)))
+                (is (= [{:email invitee-email}] (:to @sent)))
+                (is (some? (invite-for invitee-email)))))
+
+            (testing "without a team sender the invite is refused and not stored"
+              (let [invitee-email (random-email)]
+                (with-redefs [config/email-send-enabled? (constantly true)
+                              config/team-email-sender (constantly {:name "Team" :email nil})]
+                  (is (= 500 (:status (send-invite invitee-email)))))
+                (is (nil? (invite-for invitee-email)))))))))))
