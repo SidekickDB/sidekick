@@ -640,7 +640,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -672,6 +672,11 @@ other changes in those files.
   refuses an output plugin that is not in that list, and the server's
   replication slots use `wal2json`, so without it the server never starts
   against an image built from the current `postgres:17`.
+- PR #49: the hourly refresh of cached signing keys in
+  `server/src/instant/auth/jwt.clj` uses `doseq`; upstream's `for` built a
+  lazy seq that was thrown away, so the refresh never ran. Test
+  `scheduled-refresh-refreshes-expiring-keys` in
+  `server/test/instant/auth/jwt_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the

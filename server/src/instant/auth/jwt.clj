@@ -166,7 +166,9 @@
      (-> (chime-core/periodic-seq (Instant/now) (Duration/ofHours 1))
          rest)
      (fn [_time]
-       (for [[endpoint {:keys [expires]}] (cache/as-map keys-cache)
+       ;; SidekickDB: doseq, not for. The lazy seq from `for` was discarded,
+       ;; so the hourly refresh never ran.
+       (doseq [[endpoint {:keys [expires]}] (cache/as-map keys-cache)
              :when (> 65 (.toMinutes (Duration/between (Instant/now) expires)))]
          (tracer/with-span! {:name "jwk/updating-certs"
                              :endpoint endpoint}
