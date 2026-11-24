@@ -80,13 +80,8 @@ export const DIVERGENCES = {
   },
   "own-fixes": {
     title:
-<<<<<<< HEAD
-      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image",
-    prs: [6, 8, 16, 24, 44],
-=======
-      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots",
-    prs: [6, 8, 12, 16, 24],
->>>>>>> origin/main
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image",
+    prs: [6, 8, 12, 16, 24, 44],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
@@ -221,11 +216,8 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
-<<<<<<< HEAD
   44: "own-fixes",
-=======
   48: "readme-header",
->>>>>>> origin/main
 };
 
 export function categoryFor(pr, file) {

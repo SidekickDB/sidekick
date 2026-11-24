@@ -630,11 +630,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-<<<<<<< HEAD
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #16, PR #24, PR #44)
-=======
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24)
->>>>>>> origin/main
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
