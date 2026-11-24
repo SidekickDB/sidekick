@@ -700,9 +700,13 @@ SidekickDB's.
 `README.md`: the top of the file is SidekickDB's plain-text header (name, one
 line on what it is, the relation to Instant, a link to this file). Upstream's
 logo, Discord and stars badges and row of instantdb.com links are removed.
+The two diagrams further down (`compression.svg`, `architecture.svg`) load
+from upstream's own copies in `client/www/public/readmes/` by relative path,
+not from instantdb.com.
 
 **Resolving:** keep SidekickDB's header and do not take back the logo, badges
-or link row. Take upstream's changes below the header.
+or link row. Keep the relative diagram paths. Take upstream's other changes
+below the header.
 
 ### NOTICE file (PR #41)
 
