@@ -159,7 +159,8 @@ jobs:
 
     services:
       postgres:
-        image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+        # SidekickDB: its own build of server/dev-postgres, not upstream's image.
+        image: ghcr.io/sidekickdb/postgresql:postgresql-17-pg-hint-plan
         ports:
           - 5432:5432
         env:
@@ -280,6 +281,26 @@ jobs:
           ~/.deps.clj
         key: cljdeps-${{ hashFiles('server/deps.edn') }}
 
+
+  # SidekickDB: one check that stands for the whole clj-check matrix. The
+  # matrix reports as "clj-check (0)" to "clj-check (4)" when it runs and as
+  # "clj-check" when it is skipped, so no single name can be a required check.
+  # This job always runs and fails unless every shard passed or the tests were
+  # skipped because nothing they cover changed.
+  clj-check-result:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [ detect_changes, clj-check ]
+    if: always()
+    steps:
+    - name: Server tests passed or were not needed
+      env:
+        DETECT_CHANGES: ${{ needs.detect_changes.result }}
+        CLJ_CHECK: ${{ needs.clj-check.result }}
+      run: |
+        echo "detect_changes: $DETECT_CHANGES, clj-check: $CLJ_CHECK"
+        [ "$DETECT_CHANGES" = success ] || exit 1
+        [ "$CLJ_CHECK" = success ] || [ "$CLJ_CHECK" = skipped ]
 
   clj-build-check:
     # SidekickDB: job timeout so a hung run cannot bill up to the 6h default.

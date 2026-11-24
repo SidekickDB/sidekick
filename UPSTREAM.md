@@ -229,7 +229,7 @@ how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences.mjs`).
 
-### CI lockdown (PR #1, PR #5, PR #27)
+### CI lockdown (PR #1, PR #5, PR #27, PR #54)
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -260,6 +260,10 @@ services. SidekickDB releases only through its own two release workflows (PR
   or more (or a missing list) as truncated and run everything. A branch without
   a pull request gets no run, so PR #5's first-push comparison is now reached
   only by the first push of `main`; it is kept to keep the diff small.
+- PR #54: `clojure.yml` has a job `clj-check-result` that always runs and
+  fails unless the `clj-check` matrix passed or was skipped. The ruleset on
+  `main` requires it; the matrix itself reports under a different name per
+  shard and cannot be required.
 
 Every edit is marked `# SidekickDB:` or `// SidekickDB:`.
 
@@ -413,7 +417,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36)
+### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36, PR #43)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -473,14 +477,20 @@ The self-hosted stack works without Instant infrastructure.
   `-U instant` and the database `instant`. The intro paragraph says nothing
   needs substituting, and the step 2 comment no longer names the database
   `instant`.
+- PR #43: the compose files, `swarm.yml` and `.env.example` default to
+  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
+  `ghcr.io/instantdb/*`, and the Postgres service of
+  `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
 such as the `SIDEKICK_*` aliases are fine), the CORS rule, the checksum
 setting, the healthchecks and the unpublished Postgres port (127.0.0.1 in
 `docker-compose.yml`, none in `swarm.yml`), the `127.0.0.1:` prefix on
-every port in `server/docker-compose-dev.yml` and the `pg_dump` in
-`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`. Run
+every port in `server/docker-compose-dev.yml`, the `pg_dump` in
+`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`, and the
+`ghcr.io/sidekickdb` image defaults (if upstream changes an image tag, release
+the same tag from SidekickDB first). Run
 `node scripts/self-hosting/render-check.mjs`
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
@@ -637,7 +647,18 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24)
+### Removed: WebSocket playground (PR #51)
+
+The unused inherited debug endpoint `GET /dash/ws_playground` and its handler
+(`ws-playground-get`, `id-atom`) are removed from `dash/routes.clj`, together
+with the `instant.lib.ring.websocket` require and the `WebSocketChannel` import
+that only it used. Nothing in the clients or the dashboard calls it.
+`server/test/instant/dash/removed_routes_test.clj` keeps it removed.
+
+**Resolving:** if upstream changes the handler or the route, keep them removed
+and take its other changes in the file.
+
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -663,9 +684,22 @@ other changes in those files.
   the two queued refreshes is a snapshot; it used to send only the patch, so
   a session that had just joined could miss the peers already in the room.
   Test `combine-refresh-presence` in `session_test.clj`.
+- PR #44: `server/dev-postgres/Dockerfile` gets an entrypoint,
+  `sidekick-entrypoint.sh`, that starts Postgres with
+  `output_plugin_libraries=pgoutput,test_decoding,wal2json`. PostgreSQL 17.12
+  refuses an output plugin that is not in that list, and the server's
+  replication slots use `wal2json`, so without it the server never starts
+  against an image built from the current `postgres:17`.
+- PR #49: the hourly refresh of cached signing keys in
+  `server/src/instant/auth/jwt.clj` uses `doseq`; upstream's `for` built a
+  lazy seq that was thrown away, so the refresh never ran. Test
+  `scheduled-refresh-refreshes-expiring-keys` in
+  `server/test/instant/auth/jwt_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
-then take upstream's version. Take upstream's new tests as they are.
+then take upstream's version. Take upstream's new tests as they are. For the
+Postgres image, drop the entrypoint only if upstream's image allows `wal2json`
+some other way; check by starting the self-hosting stack.
 
 ### Release pipeline (PR #18, PR #39, PR #40, PR #42)
 
