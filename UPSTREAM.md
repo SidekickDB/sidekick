@@ -616,7 +616,7 @@ other changes in those files.
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are.
 
-### Release pipeline (PR #18)
+### Release pipeline (PR #18, PR #39)
 
 - `.github/workflows/sidekick-release-npm.yml` and
   `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
@@ -628,12 +628,14 @@ then take upstream's version. Take upstream's new tests as they are.
   publishes from a job that installs nothing.
 - `client/scripts/sidekick-release-npm.mjs` and its test; `RELEASING.md`.
 - `server/flags-config/package.json`: `"private": true`.
+- `client/packages/mcp/package.json`: `"private": true`. The MCP server is
+  outside SidekickDB's scope and is not published.
 - `client/packages/version/src/version.ts` stays upstream's: SidekickDB keeps
   upstream's version numbering (see `RELEASING.md`, version rules).
 
 **Resolving:** upstream has none of these files except
-`server/flags-config/package.json`; keep `"private": true` there and take
-upstream's other changes. Take upstream's `version.ts`; if it names a version
+`server/flags-config/package.json` and `client/packages/mcp/package.json`;
+keep `"private": true` in both and take upstream's other changes. Take upstream's `version.ts`; if it names a version
 SidekickDB already published, bump to the next unused patch before the next
 release.
 

@@ -37,10 +37,12 @@ test("the checked-in version is releasable", () => {
   assert.doesNotThrow(() => checkVersion(readVersion()));
 });
 
-test("the repo's publishable packages are the expected 18, in dependency order", () => {
+test("the repo's publishable packages are the expected 17, in dependency order", () => {
   const pkgs = listPackages();
   const names = pkgs.map((p) => p.name);
-  assert.equal(names.length, 18);
+  assert.equal(names.length, 17);
+  // The MCP server is outside SidekickDB's scope and is not published.
+  assert.ok(!names.includes("@sidekickdb/mcp"));
   assert.ok(names.includes("create-sidekick-app"));
   assert.ok(names.every((n) => n === "create-sidekick-app" || n.startsWith("@sidekickdb/")));
   const pos = (n) => names.indexOf(n);

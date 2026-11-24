@@ -1,5 +1,6 @@
 {
   "name": "@sidekickdb/mcp",
+  "private": true,
   "version": "0.0.0",
   "description": "Model Context Protocol (MCP) server for managing Instant apps, schemas, and permissions!",
   "license": "Apache-2.0",

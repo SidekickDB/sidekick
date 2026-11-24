@@ -5,7 +5,7 @@ started by hand from `main`:
 
 | What | Workflow | Where | Credential |
 |---|---|---|---|
-| 18 npm packages: `@sidekickdb/{admin, cli, components, core, expo-sqlite, mcp, platform, react, react-common, react-native, react-native-mmkv, resumable-stream, solidjs, svelte, version, vue, webhooks}` and `create-sidekick-app` | `.github/workflows/sidekick-release-npm.yml` | npmjs.com | npm trusted publishing (GitHub OIDC), no npm token |
+| 17 npm packages: `@sidekickdb/{admin, cli, components, core, expo-sqlite, platform, react, react-common, react-native, react-native-mmkv, resumable-stream, solidjs, svelte, version, vue, webhooks}` and `create-sidekick-app` | `.github/workflows/sidekick-release-npm.yml` | npmjs.com | npm trusted publishing (GitHub OIDC), no npm token |
 | `ghcr.io/sidekickdb/server`, `ghcr.io/sidekickdb/dashboard`, `ghcr.io/sidekickdb/postgresql` (linux/amd64 + linux/arm64) | `.github/workflows/sidekick-release-images.yml` | GitHub Container Registry | the workflow's `GITHUB_TOKEN` |
 
 There are no npm tokens in this repository or its secrets, and none should be
@@ -59,7 +59,7 @@ The script skips names that already exist (`create-sidekick-app` does) and
 publishes only a `package.json` and a README for the others, with
 `--access public`. npm asks for 2FA itself: a one-time code, or a browser link.
 If the browser page offers to skip 2FA for a few minutes, accepting it saves
-entering a code for each of the 17 packages. Re-running is safe.
+entering a code for each of the 16 packages. Re-running is safe.
 
 ### 3. Trust the release workflow
 
@@ -76,7 +76,7 @@ npm trust github <package> --repository SidekickDB/sidekick \
 ```
 
 npm asks for 2FA on the first call and offers to skip it for 5 minutes, which
-covers all 18. A package that already has a trusted publisher fails; the script
+covers all 17. A package that already has a trusted publisher fails; the script
 lists failures at the end. Check one with `npm trust list @sidekickdb/core`.
 
 Equivalent by hand: npmjs.com → package → **Settings** → **Trusted publishing**
@@ -99,7 +99,7 @@ repository.
 ## Releasing npm packages
 
 1. Open a PR that changes `client/packages/version/src/version.ts` to the new
-   version and merge it. All 18 packages are published with that version.
+   version and merge it. All 17 packages are published with that version.
 2. Actions → **Release npm packages (SidekickDB)** → Run workflow, branch
    `main`, `dry_run` checked (the default). The build job runs first; then
    approve the `npm-release` deployment for the publish job, which runs
