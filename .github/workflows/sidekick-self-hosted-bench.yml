@@ -10,6 +10,11 @@
 # file. A pull request that changes only results/ does not start it; on one
 # that also changes the harness, every push runs it, because GitHub matches
 # the paths against the whole pull request.
+#
+# A pull request run is a check that the harness still works, not a baseline:
+# one runtime mode, a short idle wait, and a server image built with the
+# layer cache of the image release workflow. A baseline is a run started by
+# hand, which builds cold and uses the inputs below.
 name: Self-hosted benchmark
 
 on:
@@ -49,8 +54,10 @@ jobs:
     env:
       BENCH_RUNNER_LABEL: ubuntu-24.04
       SAMPLES: ${{ inputs.samples || '3' }}
-      MODES: ${{ inputs.modes || 'default,self-hosted' }}
-      IDLE_SECONDS: ${{ inputs.idle_seconds || '120' }}
+      # A pull request gets the short profile; a run started by hand gets
+      # its inputs.
+      MODES: ${{ github.event_name == 'pull_request' && 'self-hosted' || inputs.modes || 'default,self-hosted' }}
+      IDLE_SECONDS: ${{ github.event_name == 'pull_request' && '20' || inputs.idle_seconds || '120' }}
       # The commit under test: the PR head, not GitHub's merge commit.
       GITHUB_SHA_UNDER_TEST: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
@@ -108,9 +115,44 @@ jobs:
           echo "--- A set to empty, B unset (expect the error)"
           env -u B A= docker compose -f "$dir/compose.yml" config 2>&1 | grep -E 'X:|error|need' || true
 
+      # Pull requests only: build both images here and hand them to the
+      # harness, which then skips its own cold build and its build timing.
+      # The server build reads the layer cache the image release workflow
+      # wrote (never written here), which saves the dependency download. The
+      # dashboard build has no cache: nearly all of its time is the build of
+      # the sources, which a layer cache cannot skip.
+      - name: Set up Docker Buildx
+        if: github.event_name == 'pull_request'
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build the server image from cache
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ./server
+          file: ./server/Dockerfile.self-hosted
+          load: true
+          push: false
+          provenance: false
+          tags: sidekick-bench/server:local
+          cache-from: type=gha,scope=server-amd64
+
+      - name: Build the dashboard image
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ./client
+          file: ./client/Dockerfile.www
+          load: true
+          push: false
+          provenance: false
+          tags: sidekick-bench/dashboard:local
+
       - name: Run the benchmark
+        env:
+          SKIP_BUILD: ${{ github.event_name == 'pull_request' && '--skip-build' || '' }}
         run: |
-          node scripts/bench/self-hosted/run.mjs \
+          node scripts/bench/self-hosted/run.mjs $SKIP_BUILD \
             --samples "$SAMPLES" \
             --modes "$MODES" \
             --idle-seconds "$IDLE_SECONDS" \

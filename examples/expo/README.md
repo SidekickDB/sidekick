@@ -1,6 +1,6 @@
-# Welcome to your InstantDB Expo app 👋
+# Welcome to your SidekickDB Expo app 👋
 
-[InstantDB Docs](https://www.instantdb.com/docs)
+[SidekickDB Docs](https://www.instantdb.com/docs)
 [Expo Docs](https://docs.expo.dev/)
 
 This is an Expo project scaffolded with create-sidekick-app.

@@ -4,7 +4,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { applyBackendConfig, websocketURIFromAPIURI } from './backendConfig.js';
-import { projectBaseConfig, projectBases } from './projectBase.js';
+import {
+  bundledProjectBases,
+  projectBaseConfig,
+  projectBases,
+} from './projectBase.js';
 
 const tempDirs: string[] = [];
 const examplesDir = path.resolve(
@@ -156,6 +160,22 @@ describe('applyBackendConfig', () => {
 });
 
 describe('project base backend config', () => {
+  // SidekickDB: these starters depend on Instant's package or services.
+  it.each(['python-script', 'vercel-ai-sdk'] as const)(
+    'does not offer or bundle %s',
+    (base) => {
+      expect(projectBases).not.toContain(base);
+      expect(bundledProjectBases).not.toContain(base);
+      expect(projectBaseConfig[base]).toBeDefined();
+    },
+  );
+
+  // SidekickDB: a base that is offered but not bundled would be downloaded
+  // at run time. This fails when an upstream merge adds one.
+  it('bundles every base it offers', () => {
+    expect(bundledProjectBases).toEqual(projectBases);
+  });
+
   it.each(projectBases)('%s matches its example template', (base) => {
     for (const file of projectBaseConfig[base].backendConfigFiles) {
       const contents = fs.readFileSync(

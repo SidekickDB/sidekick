@@ -96,7 +96,7 @@ enable-pre-post-scripts=true`,
     );
   }
 
-  // overwrite the "expo-template" and "My Instant App"
+  // overwrite the "expo-template" and "My SidekickDB App"
   if (cliResults.base === 'expo') {
     const slugifiedName = slugify.default(appDir);
     replaceTextInFile(
@@ -111,7 +111,7 @@ enable-pre-post-scripts=true`,
     );
     replaceTextInFile(
       path.join(projectDir, 'app/_layout.tsx'),
-      '"My Instant App"',
+      '"My SidekickDB App"',
       `"${appDir}"`,
     );
   }
@@ -136,7 +136,10 @@ const scaffoldWithTiged = async ({
   projectDir: string;
   baseTemplateName: string;
 }) => {
-  const repoPath = `instantdb/instant/examples/${baseTemplateName}`;
+  // SidekickDB: every starter is bundled (projectBase.ts), so this fallback is
+  // only reached when a bundled template is missing. It then fetches
+  // SidekickDB's own example, never upstream's.
+  const repoPath = `SidekickDB/sidekick/examples/${baseTemplateName}`;
   const tigedInstance = tiged(repoPath, { mode: 'tar', disableCache: true });
   await tigedInstance.clone(projectDir);
 };

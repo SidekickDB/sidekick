@@ -1,7 +1,7 @@
 services:
   postgres:
     # Needs Postgres 17 with the pg_hint_plan and wal2json extensions.
-    image: ${POSTGRES_IMAGE:-ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan}
+    image: ${POSTGRES_IMAGE:-ghcr.io/sidekickdb/postgresql:postgresql-17-pg-hint-plan}
     # SidekickDB: published on 127.0.0.1 only, because Docker-published ports
     # bypass host firewalls such as ufw. Set POSTGRES_BIND_ADDRESS to publish
     # on another address; see README.md.
@@ -35,7 +35,7 @@ services:
     depends_on:
       server:
         condition: service_healthy
-    image: "${DASHBOARD_IMAGE:-ghcr.io/instantdb/dashboard:latest}"
+    image: "${DASHBOARD_IMAGE:-ghcr.io/sidekickdb/dashboard:latest}"
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/dash').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 10s
@@ -99,7 +99,7 @@ services:
         condition: service_healthy
       createbuckets:
         condition: service_completed_successfully
-    image: "${SERVER_IMAGE:-ghcr.io/instantdb/server:latest}"
+    image: "${SERVER_IMAGE:-ghcr.io/sidekickdb/server:latest}"
     healthcheck:
       # Liveness only: the web server starts last during boot. Not /health/system,
       # which reports a shared wal-errors row that a crashed process can leave

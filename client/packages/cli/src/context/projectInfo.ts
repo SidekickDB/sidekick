@@ -70,21 +70,22 @@ const getProjectInfo = (
       catch: () =>
         new ProjectInfoError({
           message:
-            "We couldn't find an Instant SDK. Install one, or run `init`",
+            "We couldn't find a SidekickDB SDK. Install one, or run `init`",
         }),
     });
 
-    yield* Effect.log('Checking for an Instant SDK...');
+    yield* Effect.log('Checking for a SidekickDB SDK...');
     let moduleName = getInstantModuleName(pkgJson);
     if (!moduleName && !coerce) {
       return yield* new ProjectInfoError({
-        message: "We couldn't find an Instant SDK. Install one, or run `init`",
+        message:
+          "We couldn't find a SidekickDB SDK. Install one, or run `init`",
       });
     }
 
     if (!moduleName && coerce) {
       yield* Effect.log(
-        "Couldn't find an Instant SDK in your package.json, let's install one!",
+        "Couldn't find a SidekickDB SDK in your package.json, let's install one!",
       );
     } else {
       yield* Effect.log(
@@ -113,7 +114,7 @@ const getProjectInfo = (
         if (yes) {
           return yield* BadArgsError.make({
             message:
-              '--yes was provided without a package specification and no Instant SDK was found',
+              '--yes was provided without a package specification and no SidekickDB SDK was found',
           });
         }
         moduleName = yield* runUIEffect(

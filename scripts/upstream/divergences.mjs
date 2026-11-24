@@ -51,8 +51,8 @@ export const DIVERGENCES = {
   },
   "upstream-fixes": {
     title:
-      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions) and their follow-ups",
-    prs: [3, 10, 32, 35],
+      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions, Explorer exponent numbers) and their follow-ups",
+    prs: [3, 10, 32, 35, 52],
     resolve:
       "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
       "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
@@ -62,7 +62,7 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, required secrets, JVM memory defaults, Google prefetch only when configured, DoH setting, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
-    prs: [4, 13, 14, 21, 31, 34, 36],
+    prs: [4, 13, 14, 21, 31, 34, 36, 43],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
@@ -72,6 +72,8 @@ export const DIVERGENCES = {
       "127.0.0.1: prefix on every port in server/docker-compose-dev.yml, and the " +
       'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container ' +
       "(and its intro paragraph that says nothing needs substituting). " +
+      "Keep the ghcr.io/sidekickdb image defaults in the compose files, swarm.yml and the clojure.yml " +
+      "Postgres service; if upstream changes an image tag, release that tag from SidekickDB first. " +
       'In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form. " +
       "Keep the required POSTGRES_PASSWORD, mem_limit and the default JAVA_OPTS (PR #13). In jwt.clj and " +
@@ -81,12 +83,32 @@ export const DIVERGENCES = {
   },
   "own-fixes": {
     title:
-      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image",
-    prs: [6, 8, 12, 16, 24, 44],
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image, signing-key refresh runs",
+    prs: [6, 8, 12, 16, 24, 44, 49],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
       "unless upstream's image allows wal2json another way (start the self-hosting stack to check).",
+  },
+  "bundled-starters": {
+    title:
+      "create-sidekick-app bundles every starter it offers and does not offer vercel-ai-sdk; the download fallback points at SidekickDB's repository; bun-react without lockfile",
+    prs: [60],
+    resolve:
+      "Keep `bundled: true` on every offered base in create-instant-app/src/projectBase.ts, also on a base upstream " +
+      "adds, and keep SidekickDB/sidekick as the repository in scaffold.ts. Keep examples/bun-react on " +
+      "`latest` and without bun.lock; if upstream changes that lockfile, delete it again. Keep vercel-ai-sdk in " +
+      "unavailableProjectBases (it calls api.instantdb.com and needs Instant's platform API) and the " +
+      "User-Agent edit in examples/ai-chat/src/lib/mockModel.ts.",
+  },
+  "python-starter": {
+    title: "create-sidekick-app does not offer or bundle the Python starter; docs say the Python SDK is Instant's",
+    prs: [58],
+    resolve:
+      "Keep unavailableProjectBases in create-instant-app/src/projectBase.ts with python-script in it, and no " +
+      "--python option or menu entry in cli.ts. Take upstream's other changes to the Python handling as they " +
+      "are (it stays unreachable). Keep the Python docs page out of docsNavigation.js and keep its note. If " +
+      "upstream adds another starter that installs a package SidekickDB does not release, add it to the list.",
   },
   release: {
     title:
@@ -146,6 +168,13 @@ export const DIVERGENCES = {
       "Keep server/src/instant/session_counter.clj deleted, and the route and the start step in core.clj removed. " +
       "Take upstream's other changes in those files. server/test/instant/dash/removed_routes_test.clj must pass.",
   },
+  "removed-ws-playground": {
+    title: "Debug WebSocket playground (/dash/ws_playground) removed",
+    prs: [51],
+    resolve:
+      "Keep ws-playground-get, id-atom and the route removed from dash/routes.clj. Take upstream's other " +
+      "changes in that file. server/test/instant/dash/removed_routes_test.clj must pass.",
+  },
   "security-policy": {
     title: "SidekickDB's own security policy (SECURITY.md)",
     prs: [30],
@@ -158,13 +187,30 @@ export const DIVERGENCES = {
       "Upstream has no NOTICE. If it adds one, keep its attribution notices and SidekickDB's text in the " +
       "same file (Apache-2.0 section 4(d)).",
   },
+  brand: {
+    title:
+      "Brand: README body, package READMEs and descriptions, self-hosting/client/server README headers, CONTRIBUTING.md and the text the CLI and create-sidekick-app print present the project as SidekickDB",
+    prs: [56, 61, 62],
+    resolve:
+      "Keep SidekickDB's text: no Instant logo, badges, Discord or instantdb.com links, the name SidekickDB in " +
+      "prose, docs links to client/www/app/docs in this repository. When upstream changes what a README says " +
+      "(a new API, a new SDK, a changed command), write that change into SidekickDB's text by hand. In a " +
+      "package.json keep SidekickDB's description and take upstream's other changes. Identifiers in code " +
+      "samples (Instant-Signature, instant.schema.ts, InstantError) stay upstream's. Printed text in " +
+      "client/packages/cli/src and create-instant-app/src: keep SidekickDB's wording and the plain-text title " +
+      "in utils/title.ts; give a string upstream adds the same treatment, and update the tests that assert it. " +
+      "Starters under examples/ that create-sidekick-app offers and client/www/lib/intern/instant-rules.md: " +
+      "keep SidekickDB in prose and titles, no image from instantdb.com, no Python SDK in the rules; after " +
+      "editing the rules file copy it to create-instant-app/template/rules/AGENTS.md (check.mjs compares them).",
+  },
   "readme-header": {
     title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
     prs: [38, 48],
     resolve:
       "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
       "the logo, the Discord and stars badges or the instantdb.com link row. Keep the two diagrams on their " +
-      "relative paths under client/www/public/readmes/, not instantdb.com. Take upstream's other changes below it.",
+      "relative paths under client/www/public/readmes/, not instantdb.com. The text below the header is " +
+      "SidekickDB's too since PR #56 (see brand).",
   },
   rename: {
     title:
@@ -217,9 +263,18 @@ const PR_CATEGORY = {
   40: "release",
   41: "notice",
   42: "release",
+  43: "selfhost",
   44: "own-fixes",
   48: "readme-header",
   54: "ci-lockdown",
+  49: "own-fixes",
+  51: "removed-ws-playground",
+  52: "upstream-fixes",
+  56: "brand",
+  58: "python-starter",
+  60: "bundled-starters",
+  61: "brand",
+  62: "brand",
 };
 
 export function categoryFor(pr, file) {

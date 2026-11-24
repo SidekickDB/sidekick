@@ -1,4 +1,4 @@
-# Welcome to your InstantDB SvelteKit app
+# Welcome to your SidekickDB SvelteKit app
 
 To install dependencies:
 `npm install`

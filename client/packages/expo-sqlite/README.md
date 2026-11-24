@@ -1,26 +1,10 @@
-<p align="center">
-  <a href="https://instantdb.com">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">@sidekickdb/expo-sqlite</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo, badges and links. -->
 
-<p align="center">
-  <a
-    href="https://discord.com/invite/VU53p7uQcE" >
-    <img height=20 src="https://img.shields.io/discord/1031957483243188235" />
-  </a>
-  <img src="https://img.shields.io/github/stars/instantdb/instant" alt="stars">
-</p>
+# @sidekickdb/expo-sqlite
 
-<p align="center">
-   <a href="https://www.instantdb.com/docs/start-rn">Get Started</a> ·
-   <a href="https://instantdb.com/examples">Examples</a> ·
-   <a href="https://www.instantdb.com/docs/start-rn">Docs</a> ·
-   <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
-</p>
+Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant.
 
-Welcome to [Instant's](https://instantdb.com) Expo SQLite interface.
+Welcome to SidekickDB's Expo SQLite interface.
 
 ## Usage
 
@@ -31,7 +15,7 @@ npx create-expo-app instant-rn-demo
 cd instant-rn-demo
 ```
 
-### Install instant
+### Install SidekickDB
 
 ```shell
 npm i @sidekickdb/react-native @sidekickdb/expo-sqlite
@@ -79,8 +63,8 @@ function Chat() {
 
 # Get Started
 
-Follow the [getting started](https://www.instantdb.com/docs/start-rn) tutorial to set up a live React Native app in under 5 minutes!
+Follow the [getting started](https://github.com/SidekickDB/sidekick/blob/main/client/www/app/docs/start-rn/page.md) tutorial to set up a live React Native app in under 5 minutes!
 
 # Questions?
 
-If you have any questions, feel free to drop us a line on our [Discord](https://discord.com/invite/VU53p7uQcE)
+If you have any questions, feel free to open an issue on [GitHub](https://github.com/SidekickDB/sidekick/issues).

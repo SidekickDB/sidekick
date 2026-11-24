@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/resumable-stream",
   "version": "0.0.0",
-  "description": "Instant's drop-in replacement for Vercel's resumable-stream package.",
+  "description": "SidekickDB's drop-in replacement for Vercel's resumable-stream package.",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/resumable-stream",
   "repository": {

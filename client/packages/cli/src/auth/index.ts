@@ -9,7 +9,7 @@ const LOCAL_API_URI = 'http://localhost:8888';
 function normalizeApiURI(apiURI: string) {
   const url = new URL(apiURI);
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new Error('Instant API URI must use http:// or https://');
+    throw new Error('SidekickDB API URI must use http:// or https://');
   }
 
   url.search = '';

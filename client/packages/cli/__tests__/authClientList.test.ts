@@ -70,8 +70,8 @@ describe('auth client list', () => {
     const output = logs.join('\n');
     expect(output).toContain('google-shared');
     expect(output).toContain('App type: web');
-    expect(output).toContain('Credentials: Instant dev credentials');
-    expect(output).toContain('Client id: managed by Instant');
+    expect(output).toContain('Credentials: shared dev credentials');
+    expect(output).toContain('Client id: managed by the server');
     expect(output).toContain(
       'Redirect URL: localhost and Expo allowed automatically',
     );

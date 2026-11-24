@@ -65,17 +65,20 @@ export const projectBaseConfig = {
   'tanstack-start-with-tanstack-query': {
     appIdEnvName: 'VITE_INSTANT_APP_ID',
     backendConfigFiles: [clientDb(), adminDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'bun-react': {
     appIdEnvName: 'BUN_PUBLIC_INSTANT_APP_ID',
     backendConfigFiles: [clientDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'solidjs-vite': {
     appIdEnvName: 'VITE_INSTANT_APP_ID',
     backendConfigFiles: [clientDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   sveltekit: {
     appIdEnvName: 'VITE_INSTANT_APP_ID',
@@ -95,7 +98,8 @@ export const projectBaseConfig = {
   'ai-chat': {
     appIdEnvName: 'NEXT_PUBLIC_INSTANT_APP_ID',
     backendConfigFiles: [clientDb(), adminDb()],
-    bundled: false,
+    // SidekickDB: bundled, so that no starter is downloaded at run time.
+    bundled: true,
   },
   'python-script': {
     appIdEnvName: 'INSTANT_APP_ID',
@@ -106,7 +110,21 @@ export const projectBaseConfig = {
 
 export type ProjectBase = keyof typeof projectBaseConfig;
 
-export const projectBases = Object.keys(projectBaseConfig) as ProjectBase[];
+// SidekickDB: starters that are not offered and not bundled. Their entries
+// above stay, so the code that handles them merges cleanly with upstream.
+// - python-script installs Instant's `instantdb` package from PyPI, and
+//   SidekickDB releases no Python SDK.
+// - vercel-ai-sdk is built on Instant's hosted services: without a model key
+//   it sends the prompt to api.instantdb.com, and its preview creates apps
+//   through the platform API with no server URL.
+const unavailableProjectBases: ProjectBase[] = [
+  'python-script',
+  'vercel-ai-sdk',
+];
+
+export const projectBases = (
+  Object.keys(projectBaseConfig) as ProjectBase[]
+).filter((base) => !unavailableProjectBases.includes(base));
 
 export const bundledProjectBases = projectBases.filter(
   (base) => projectBaseConfig[base].bundled,

@@ -1,6 +1,6 @@
-# Welcome to your InstantDB NextJS app 👋
+# Welcome to your SidekickDB NextJS app 👋
 
-[InstantDB Docs](https://www.instantdb.com/docs)
+[SidekickDB Docs](https://www.instantdb.com/docs)
 [NextJS Docs](https://nextjs.org/docs)
 
 This is a NextJS project scaffolded with create-sidekick-app.

@@ -1,11 +1,8 @@
-<p align="center">
-  <a href="#">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">instant-server</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo. -->
 
-This houses Instant's backend. Let’s get you started!
+# SidekickDB server
+
+This houses SidekickDB's backend. Let’s get you started!
 
 # Development
 

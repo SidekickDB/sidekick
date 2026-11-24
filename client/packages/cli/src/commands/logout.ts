@@ -13,7 +13,7 @@ export const logoutCommand = Effect.fn(function* () {
         Effect.log(
           chalk.green(
             removed
-              ? 'Successfully logged out from Instant!'
+              ? 'Successfully logged out from SidekickDB!'
               : 'You were already logged out!',
           ),
         ),

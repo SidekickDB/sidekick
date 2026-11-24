@@ -370,7 +370,7 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
 changes.
 
-### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #35)
+### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #35, PR #52)
 
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
@@ -400,6 +400,13 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `server/test/instant/{db/cel,db/instaql,db/seeks_permission_helpers,reactive/session}_test.clj`.
   In `session_test.clj` only upstream's five new tests are added: the helpers
   above them are byte-identical to the ones #2954 (PR #3) already added.
+- PR #52: instantdb/instant#2956 (the Explorer row editor keeps a number
+  written with an exponent, such as `1e6`). Paths:
+  `client/packages/components/src/components/explorer/edit-row-dialog.tsx`
+  and its new test `explorer/__tests__/edit-row-dialog.test.ts`. Upstream's
+  `test:ci` script in `client/packages/components/package.json` is left out:
+  SidekickDB already has it (higher up in `scripts`). When upstream merges
+  #2956, keep a single `test:ci` there.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
@@ -410,7 +417,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36)
+### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36, PR #43)
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -470,14 +477,20 @@ The self-hosted stack works without Instant infrastructure.
   `-U instant` and the database `instant`. The intro paragraph says nothing
   needs substituting, and the step 2 comment no longer names the database
   `instant`.
+- PR #43: the compose files, `swarm.yml` and `.env.example` default to
+  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
+  `ghcr.io/instantdb/*`, and the Postgres service of
+  `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
 such as the `SIDEKICK_*` aliases are fine), the CORS rule, the checksum
 setting, the healthchecks and the unpublished Postgres port (127.0.0.1 in
 `docker-compose.yml`, none in `swarm.yml`), the `127.0.0.1:` prefix on
-every port in `server/docker-compose-dev.yml` and the `pg_dump` in
-`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`. Run
+every port in `server/docker-compose-dev.yml`, the `pg_dump` in
+`UPGRADE_DB.md` that reads `POSTGRES_USER` and `POSTGRES_DB`, and the
+`ghcr.io/sidekickdb` image defaults (if upstream changes an image tag, release
+the same tag from SidekickDB first). Run
 `node scripts/self-hosting/render-check.mjs`
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
@@ -634,7 +647,18 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44)
+### Removed: WebSocket playground (PR #51)
+
+The unused inherited debug endpoint `GET /dash/ws_playground` and its handler
+(`ws-playground-get`, `id-atom`) are removed from `dash/routes.clj`, together
+with the `instant.lib.ring.websocket` require and the `WebSocketChannel` import
+that only it used. Nothing in the clients or the dashboard calls it.
+`server/test/instant/dash/removed_routes_test.clj` keeps it removed.
+
+**Resolving:** if upstream changes the handler or the route, keep them removed
+and take its other changes in the file.
+
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -666,6 +690,11 @@ other changes in those files.
   refuses an output plugin that is not in that list, and the server's
   replication slots use `wal2json`, so without it the server never starts
   against an image built from the current `postgres:17`.
+- PR #49: the hourly refresh of cached signing keys in
+  `server/src/instant/auth/jwt.clj` uses `doseq`; upstream's `for` built a
+  lazy seq that was thrown away, so the refresh never ran. Test
+  `scheduled-refresh-refreshes-expiring-keys` in
+  `server/test/instant/auth/jwt_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
@@ -757,8 +786,101 @@ from upstream's own copies in `client/www/public/readmes/` by relative path,
 not from instantdb.com.
 
 **Resolving:** keep SidekickDB's header and do not take back the logo, badges
-or link row. Keep the relative diagram paths. Take upstream's other changes
-below the header.
+or link row. Keep the relative diagram paths. The text below the header is
+SidekickDB's too since PR #56 (next section).
+
+### No Python starter (PR #58)
+
+SidekickDB releases no Python SDK. `create-sidekick-app` therefore does not
+offer or bundle the `python-script` starter, which installs Instant's
+`instantdb` package from PyPI:
+
+- `client/packages/create-instant-app/src/projectBase.ts`: the base is in
+  `unavailableProjectBases` and filtered out of `projectBases` and
+  `bundledProjectBases`. Its config entry and the Python handling in
+  `index.ts` and `backendConfig.ts` stay as upstream wrote them.
+- `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
+  mapping or menu entry.
+- `client/www/data/docsNavigation.js`: no entry for the Python page.
+  `client/www/app/docs/start-python/page.md` has a note that it describes
+  Instant's package, and no scaffold command; `docs/backend/page.md` says the
+  same in one sentence.
+
+**Resolving:** keep the list, the missing option and the docs note. Take
+upstream's changes to the Python handling as they are; it stays unreachable.
+If upstream adds another starter that installs a package SidekickDB does not
+release, add it to `unavailableProjectBases`.
+
+### Starters come with the package (PR #60)
+
+`create-sidekick-app` downloads no starter at run time:
+
+- `client/packages/create-instant-app/src/projectBase.ts`: every offered base
+  is `bundled: true`. Upstream bundles some and clones the rest from
+  `instantdb/instant` when the tool runs.
+- `client/packages/create-instant-app/src/scaffold.ts`: the download
+  fallback, reached only when a bundled template is missing, uses
+  `SidekickDB/sidekick`.
+- `examples/bun-react`: `@sidekickdb/react` is `latest`, and `bun.lock` is
+  deleted: it resolved upstream's packages, and the tool deletes lockfiles
+  from a new project anyway.
+- `vercel-ai-sdk` is in `unavailableProjectBases` next to `python-script`
+  (PR #58): not offered and not bundled. The starter is built on Instant's
+  hosted services: without a model key it sends the user's prompt to
+  `api.instantdb.com/examples/mma`, and its preview creates apps through the
+  platform API without a server URL. The example itself is unchanged.
+- `examples/ai-chat/src/lib/mockModel.ts`: the `User-Agent` of its Wikipedia
+  requests names SidekickDB's repository, not Instant.
+
+**Resolving:** keep every base bundled, including a base upstream adds, and
+keep SidekickDB's repository in the fallback (a unit test fails when an
+offered base is not bundled). Keep `bun-react` on `latest` and delete
+`bun.lock` again if upstream changes it. Keep `vercel-ai-sdk` unavailable
+until the example works against a SidekickDB server with no request to an
+Instant-owned host; keep the `User-Agent` edit in `ai-chat`.
+
+### Brand: READMEs, package descriptions, CLI text and starters (PR #56, PR #61, PR #62)
+
+What a visitor of the repository or of a package's npm page reads presents the
+project as SidekickDB:
+
+- `README.md`: the body is SidekickDB's own text. It links to the docs pages
+  in `client/www/app/docs`, names self-hosting as the way to get started and
+  credits InstantDB's authors for the design.
+- `client/packages/*/README.md` of the 17 published packages: a plain-text
+  header (package name, one line on the relation to InstantDB) instead of
+  Instant's logo, badges and link row; docs links to this repository;
+  "SidekickDB" for "Instant" in prose. Code samples and identifiers
+  (`Instant-Signature`, `instant.schema.ts`, `InstantError`) are unchanged.
+- `client/packages/*/package.json` of the same packages: `description`.
+- `self-hosting/README.md`, `client/README.md`, `server/README.md`: title and
+  first lines.
+- `CONTRIBUTING.md`: SidekickDB's own; upstream has none.
+- PR #61: what `sidekick-cli` and `create-sidekick-app` print.
+  `create-instant-app/src/utils/title.ts` shows a plain-text title, not
+  upstream's logo banner. Printed strings in `client/packages/cli/src` and
+  `create-instant-app/src` say "SidekickDB"; text that named a server feature
+  says what it is ("shared dev credentials", "managed by the server", "Server
+  verified"). The welcome comment `platform/src/perms.ts` writes into a new
+  permissions file is changed too. Identifiers, `X-Instant-*` headers, the
+  `instant-cli` alias, generated file names and docs links are upstream's.
+- PR #62: what `create-sidekick-app` writes into a new project. The 11
+  starters it offers (under `examples/`) say "SidekickDB" in READMEs, page
+  titles, UI text and comments, and six of them no longer load Instant's logo
+  from www.instantdb.com. The Expo title is "My SidekickDB App" in the starter
+  and in `create-instant-app/src/scaffold.ts`, which replaces it. The agent
+  rules (`client/www/lib/intern/instant-rules.md` and its identical copy
+  `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
+  mention the Python SDK.
+
+**Resolving:** keep SidekickDB's text. When upstream changes what a README
+says (a new API, a new SDK, a changed command), write that change into
+SidekickDB's text by hand. In a `package.json` keep SidekickDB's `description`
+and take upstream's other changes. For printed text keep SidekickDB's wording,
+give a string upstream adds the same treatment, and update the tests that
+assert it. In the starters and the rules file keep SidekickDB's name and add no
+image from instantdb.com; copy the rules file to its template copy after
+every edit.
 
 ### NOTICE file (PR #41)
 

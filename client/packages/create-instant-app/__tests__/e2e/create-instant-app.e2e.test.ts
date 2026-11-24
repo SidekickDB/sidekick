@@ -155,7 +155,8 @@ describe.concurrent('create-sidekick-app e2e', { timeout: 120_000 }, () => {
       }
     });
 
-    it('scaffolds with --python flag', async () => {
+    // SidekickDB: the Python starter is not offered (see projectBase.ts).
+    it('rejects the --python flag', async () => {
       const t = await createTestDir();
       try {
         const result = await runCreateInstantApp(
@@ -163,29 +164,8 @@ describe.concurrent('create-sidekick-app e2e', { timeout: 120_000 }, () => {
           { cwd: t.dir },
         );
 
-        expect(result.exitCode).toBe(0);
-
-        const projectDir = join(t.dir, 'python-app');
-        const files = await readdir(projectDir);
-        expect(files).toContain('pyproject.toml');
-        expect(files).toContain('main.py');
-        expect(files).toContain('instant.schema.ts');
-        expect(files).toContain('instant.perms.ts');
-
-        const envContents = await readFile(join(projectDir, '.env'), 'utf-8');
-        expect(envContents).toMatch(/^INSTANT_APP_ID=.+/m);
-        expect(envContents).toMatch(/^INSTANT_APP_ADMIN_TOKEN=.+/m);
-
-        const pyproject = await readFile(
-          join(projectDir, 'pyproject.toml'),
-          'utf-8',
-        );
-        expect(pyproject).toMatch(/^name = "python-app"$/m);
-
-        const output = result.stdout + result.stderr;
-        expect(output).toMatch(/uv sync/);
-        expect(output).toMatch(/uv run python main\.py/);
-        expect(output).toMatch(/npx @sidekickdb\/cli push/);
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stdout + result.stderr).toMatch(/unknown option/);
       } finally {
         await t.cleanup();
       }

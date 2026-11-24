@@ -6,9 +6,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { getUnverifiedUserFromInstantCookie } from '@sidekickdb/react/nextjs';
 
 export const metadata: Metadata = {
-  title: 'AI Chat with Instant Streams',
+  title: 'AI Chat with SidekickDB Streams',
   description:
-    'Resumable AI chat using InstantDB Streams and the Vercel AI SDK',
+    'Resumable AI chat using SidekickDB Streams and the Vercel AI SDK',
 };
 
 export default async function RootLayout({

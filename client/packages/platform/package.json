@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/platform",
   "version": "0.0.0",
-  "description": "Instant's platform package for managing Instant apps.",
+  "description": "SidekickDB's platform package for managing SidekickDB apps.",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/platform",
   "repository": {

@@ -26,6 +26,12 @@
   (testing "the session counter namespace is not on the classpath"
     (is (nil? (io/resource "instant/session_counter.clj")))))
 
+(deftest ws-playground-route-is-gone
+  (testing "GET /dash/ws_playground matches no route"
+    (is (nil? (dash-routes/routes {:request-method :get
+                                   :uri "/dash/ws_playground"
+                                   :headers {}})))))
+
 (deftest no-source-holds-the-removed-key
   (let [uuid-re #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
         files (->> (file-seq (io/file "src"))

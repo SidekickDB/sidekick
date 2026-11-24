@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/core",
   "version": "0.0.0",
-  "description": "Instant's core local abstraction",
+  "description": "SidekickDB's core local abstraction",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/core",
   "repository": {

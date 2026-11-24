@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/react-native-mmkv",
   "version": "0.0.0",
-  "description": "React Native MMKV interface for Instant DB",
+  "description": "React Native MMKV interface for SidekickDB",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/react-native-mmkv",
   "repository": {

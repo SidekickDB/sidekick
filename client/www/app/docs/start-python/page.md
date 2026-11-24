@@ -5,6 +5,12 @@ nextjs:
     description: 'How to use Instant from Python with the admin SDK.'
 ---
 
+{% callout type="note" %}
+SidekickDB does not release a Python SDK. This page describes `instantdb`,
+the package published by Instant, and is kept for reference.
+`create-sidekick-app` has no Python starter.
+{% /callout %}
+
 Instant offers a Python Admin SDK with an API that mirrors our JavaScript
 Admin SDK. If you read the JS docs, you can mentally substitute Python syntax
 and write working code.
@@ -18,18 +24,6 @@ pip install instantdb
 ```
 
 Python 3.10+ is required.
-
-To scaffold a new project:
-
-```shell {% showCopy=true %}
-npx create-sidekick-app --python my-app
-cd my-app
-uv sync
-```
-
-This creates a starter script with a `.env`, `main.py`,
-`instant.schema.ts`, and `instant.perms.ts`. Schema and permission files are included so you can manage
-your app with the Instant CLI.
 
 ## Usage
 

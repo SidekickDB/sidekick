@@ -1,6 +1,8 @@
-# Self Hosting InstantDB
+<!-- SidekickDB: title and docs link point at this repository, not at instantdb.com. -->
 
-Documentation for self hosting is available at [www.instantdb.com/docs/self-hosting](https://instantdb.com/docs/self-hosting)
+# Self-hosting SidekickDB
+
+The self-hosting guides are in this repository: [overview](../client/www/app/docs/self-hosting/page.md), [VPS](../client/www/app/docs/self-hosting/vps/page.md), [AWS](../client/www/app/docs/self-hosting/aws/page.md) and [migrating](../client/www/app/docs/self-hosting/migrate/page.md). Where a guide and this file disagree, this file is right for SidekickDB: the guides are inherited and still name upstream's images in places.
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
 
@@ -124,6 +126,20 @@ The compose files used to fall back to the old names with a nested default,
 `${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}`. Compose 2.38 evaluates the
 inner `:?` even when `STORAGE_ACCESS_KEY` is set, so those files did not start
 on it at all. Each key is now read with a plain `${STORAGE_ACCESS_KEY:?...}`.
+
+## Images
+
+The compose files and `swarm.yml` pull SidekickDB's images from
+`ghcr.io/sidekickdb`: `server` and `dashboard` (tag `latest`) and `postgresql`
+(Postgres 17 with `pg_hint_plan` and `wal2json`). They are public, so no login
+is needed. To stay on one release, set a version tag in `.env`:
+
+```
+SERVER_IMAGE=ghcr.io/sidekickdb/server:v2.0.0
+DASHBOARD_IMAGE=ghcr.io/sidekickdb/dashboard:v2.0.0
+```
+
+Each image has the licence in `/licenses/`.
 
 ## Local development
 

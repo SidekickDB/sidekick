@@ -39,13 +39,13 @@ export const authClientListCmd = Effect.fn(function* (
       yield* Effect.log(`  App type: ${clientAppType}`);
     }
     yield* Effect.log(
-      `  Credentials: ${client.use_shared_credentials ? 'Instant dev credentials' : 'custom'}`,
+      `  Credentials: ${client.use_shared_credentials ? 'shared dev credentials' : 'custom'}`,
     );
     yield* Effect.log(`  ID: ${client.id}`);
     yield* Effect.log(
       `  Client id: ${
         client.use_shared_credentials
-          ? 'managed by Instant'
+          ? 'managed by the server'
           : formatValue(client.client_id)
       }`,
     );
