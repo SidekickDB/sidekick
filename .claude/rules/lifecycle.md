@@ -43,7 +43,7 @@ cards, and only after it has reviewed the proposal.
 
    | Verdict | When | What happens |
    |---|---|---|
-   | Add | Checked defect or follow-up inside work the owner already agreed to | The planner adds a Backlog card |
+   | Add | Checked defect or follow-up inside work the owner already agreed to | The planner adds the card, status Backlog |
    | Merge | An existing card covers it | The planner extends that card, no new card |
    | Drop | Not true, speculative, or too small to be a card | No card; one line saying why goes back to the proposer |
    | Escalate | See below | No card until the owner answers |
