@@ -16,6 +16,24 @@ describe('resumable stream server URL configuration', () => {
     );
   });
 
+  test('treats a blank SIDEKICK_API_URI as unset', () => {
+    vi.stubEnv('INSTANT_API_URI', '');
+    vi.stubEnv('SIDEKICK_API_URI', '   ');
+    expect(() =>
+      createResumableStreamContext({ appId: 'app-id', adminToken: 'token' }),
+    ).toThrow(
+      "No SidekickDB server URL configured. Pass `apiURI` to createResumableStreamContext() or set the SIDEKICK_API_URI environment variable, for example apiURI: 'https://sidekick.example.com'. SidekickDB has no default server.",
+    );
+  });
+
+  test('a blank SIDEKICK_API_URI does not hide INSTANT_API_URI', () => {
+    vi.stubEnv('INSTANT_API_URI', 'https://sidekick.example.com');
+    vi.stubEnv('SIDEKICK_API_URI', '   ');
+    expect(() =>
+      createResumableStreamContext({ appId: 'app-id', adminToken: 'token' }),
+    ).not.toThrow();
+  });
+
   test('names the app id and admin token variables when they are missing', () => {
     for (const name of [
       'SIDEKICK_APP_ID',
