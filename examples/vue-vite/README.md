@@ -1,4 +1,4 @@
-# Welcome to your InstantDB Vue + Vite app
+# Welcome to your SidekickDB Vue + Vite app
 
 To install dependencies:
 `npm install`

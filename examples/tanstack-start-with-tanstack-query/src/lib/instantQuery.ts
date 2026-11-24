@@ -10,7 +10,7 @@ import { clientDb } from "./db";
 import { InstaQLResponse } from "@sidekickdb/admin";
 
 /**
- * Run an InstantDB query and keep it updated in TanStack query.
+ * Run a SidekickDB query and keep it updated in TanStack query.
  * Uses JSON.stringify(query) as the query key
  * @example
  * ```ts
@@ -52,7 +52,7 @@ export const useInstantQuery = <Q extends ValidQuery<Q, typeof schema>>(
 };
 
 /**
- * Run an InstantDB query using suspense and keep it updated in TanStack query.
+ * Run a SidekickDB query using suspense and keep it updated in TanStack query.
  * Uses JSON.stringify(query) as the query key
  * Data will always be defined.
  * @example

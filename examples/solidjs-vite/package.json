@@ -1,7 +1,7 @@
 {
   "name": "solidjs-vite",
   "version": "0.1.0",
-  "description": "InstantDB + Solid + Vite example",
+  "description": "SidekickDB + Solid + Vite example",
   "type": "module",
   "scripts": {
     "start": "vite",

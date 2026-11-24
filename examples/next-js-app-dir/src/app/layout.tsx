@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Create Instant App',
-  description: 'Instant DB Starter App',
+  title: 'Create SidekickDB App',
+  description: 'SidekickDB Starter App',
 };
 
 export default function RootLayout({
