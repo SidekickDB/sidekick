@@ -47,7 +47,7 @@
             (let [{pat-id :id pat-token :token}
                   (instant-personal-access-token-model/create!
                    {:user-id (:id u) :name "test-pat"})]
-               (try
+              (try
                 (let [resp (get-app app pat-token)]
                   (is (= (str (:id app)) (-> resp :body :app :id))))
                 (finally
