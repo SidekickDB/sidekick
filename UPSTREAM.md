@@ -616,7 +616,7 @@ other changes in those files.
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are.
 
-### Release pipeline (PR #18, PR #39)
+### Release pipeline (PR #18, PR #39, PR #40)
 
 - `.github/workflows/sidekick-release-npm.yml` and
   `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
@@ -630,14 +630,16 @@ then take upstream's version. Take upstream's new tests as they are.
 - `server/flags-config/package.json`: `"private": true`.
 - `client/packages/mcp/package.json`: `"private": true`. The MCP server is
   outside SidekickDB's scope and is not published.
-- `client/packages/version/src/version.ts` stays upstream's: SidekickDB keeps
-  upstream's version numbering (see `RELEASING.md`, version rules).
+- `client/packages/version/src/version.ts` is SidekickDB's: its own version
+  line, starting at `v2.0.0` (see `RELEASING.md`, version rules).
 
 **Resolving:** upstream has none of these files except
 `server/flags-config/package.json` and `client/packages/mcp/package.json`;
-keep `"private": true` in both and take upstream's other changes. Take upstream's `version.ts`; if it names a version
-SidekickDB already published, bump to the next unused patch before the next
-release.
+keep `"private": true` in both and take upstream's other changes. In
+`version.ts` keep SidekickDB's version, not upstream's. Then run
+`node --test client/scripts/sidekick-release-npm.test.mjs`: it fails if
+upstream raised a server version minimum above SidekickDB's version; raise
+`version.ts` above that minimum in that case.
 
 ### Self-hosted stack benchmark (PR #20, PR #23)
 
@@ -716,6 +718,7 @@ for the person reviewing the sync PR.
 | Wire `versions` keys unchanged | `check.mjs` fails if a session `versions` key (`'@instantdb/<pkg>': version` in `client/packages/*/src`) disappears or appears under `@sidekickdb/` |
 | Rename leftovers | `check.mjs` fails if a changed file still needs the normalizer or has a leftover (an old name the rules do not rewrite and the allowlist does not cover) |
 | LLM rules copies | `client/www/lib/intern/instant-rules.md` and `client/packages/create-instant-app/template/rules/AGENTS.md` must stay byte-identical |
+| SidekickDB's version is above the server's version minimums | `node --test client/scripts/sidekick-release-npm.test.mjs` |
 | Conflict markers | none left in changed files |
 | Licence and attribution | `LICENSE.md` unchanged; this file still accurate |
 

@@ -84,12 +84,12 @@ export const DIVERGENCES = {
   release: {
     title:
       "SidekickDB release pipeline: npm trusted publishing and GHCR image workflows, flags-config and mcp private",
-    prs: [18, 39],
+    prs: [18, 39, 40],
     resolve:
       "Upstream has none of these files except server/flags-config/package.json and " +
       "client/packages/mcp/package.json: keep \"private\": true in both and take upstream's other changes. Keep the release workflows' shape (check.mjs enforces it). " +
-      "Take upstream's version.ts; if it names a version SidekickDB already published, bump the patch " +
-      "before releasing (RELEASING.md).",
+      "Keep SidekickDB's version in version.ts, not upstream's. Then run client/scripts/sidekick-release-npm.test.mjs: " +
+      "if upstream raised a server version minimum above it, raise version.ts above that minimum (RELEASING.md).",
   },
   "config-aliases": {
     title:
@@ -196,6 +196,7 @@ const PR_CATEGORY = {
   37: "two-node-smoke",
   38: "readme-header",
   39: "release",
+  40: "release",
 };
 
 export function categoryFor(pr, file) {

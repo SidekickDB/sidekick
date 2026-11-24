@@ -129,9 +129,16 @@ every package is already published fails and asks for a version bump.
   versions, so such clients silently lose batched messages, skip-attrs and
   presence patches. `scripts/sidekick-release-npm.mjs`
   refuses other versions.
-- SidekickDB keeps upstream's numbering line (`version.ts` comes from upstream
-  and moves with upstream syncs). If an upstream sync brings a version
-  SidekickDB already published, bump to the next unused patch before releasing.
+- SidekickDB has its own version line, starting at `v2.0.0`. `version.ts` is
+  SidekickDB's and does not follow upstream's version: at an upstream sync,
+  keep SidekickDB's value.
+- The version must stay above every minimum the server compares client
+  versions against (`server/src/instant/reactive/session.clj` and
+  `cli-min-version` in `server/src/instant/dash/routes.clj`). An upstream sync
+  can raise one. `scripts/sidekick-release-npm.test.mjs` reads them from the
+  server source and fails if the checked-in version is not above all of them;
+  the release workflow runs that test before it builds. If it fails, raise
+  `version.ts` above the new minimum.
 
 ## Releasing images
 
@@ -141,7 +148,7 @@ Actions → **Release Docker images (SidekickDB)** → Run workflow, branch `mai
   and pushes nothing.
 - `push` checked: pushes `<sha>-amd64` / `<sha>-arm64`, then publishes
   multi-arch tags: `latest` and `<sha>` for server and dashboard (plus
-  `version`, for example `v1.0.67`, when given), and
+  `version`, for example `v2.0.0`, when given), and
   `postgresql-17-pg-hint-plan` and `<sha>` for postgresql. The per-arch tags
   stay in the public packages next to the multi-arch ones.
 
@@ -151,7 +158,7 @@ build job before it builds anything.
 
 ```sh
 gh workflow run sidekick-release-images.yml -R SidekickDB/sidekick --ref main \
-  -f push=true -f version=v1.0.67
+  -f push=true -f version=v2.0.0
 ```
 
 The self-hosting compose files still default to `ghcr.io/instantdb/*` images.
