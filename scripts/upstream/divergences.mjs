@@ -51,8 +51,8 @@ export const DIVERGENCES = {
   },
   "upstream-fixes": {
     title:
-      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions) and their follow-ups",
-    prs: [3, 10, 32, 35],
+      "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions, Explorer exponent numbers) and their follow-ups",
+    prs: [3, 10, 32, 35, 52],
     resolve:
       "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
       "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
@@ -244,6 +244,7 @@ const PR_CATEGORY = {
   54: "ci-lockdown",
   49: "own-fixes",
   51: "removed-ws-playground",
+  52: "upstream-fixes",
   56: "brand",
 };
 
