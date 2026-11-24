@@ -28,10 +28,12 @@ planner" in `.claude/rules/lifecycle.md`:
   more than three cards from one request; or you are not sure it is worth
   doing. Do not add it. Return the question, the facts and your
   recommendation, so the session that called you can ask the owner. Add the
-  card only when you are told the owner said yes.
+  card only when you are called again with the proposal, your earlier report
+  and the owner's yes; you keep no memory between calls.
 
-A P0 is added at once and named first in your report. When unsure between
-Add and Escalate, escalate.
+You add a P0 at once, also when you would otherwise escalate, Area Security
+included, and name it first in your report so the owner hears in the same
+turn. For anything else, when unsure between Add and Escalate, escalate.
 
 **New card.** A card built on an unverified claim is worse than no card.
 Write it so that someone who has read nothing else can do it:

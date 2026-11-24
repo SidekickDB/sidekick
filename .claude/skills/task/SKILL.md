@@ -1,6 +1,6 @@
 ---
 name: task
-description: Work with the SidekickDB task board (GitHub org project 1), the only source of tasks. Use to see what to work on, start or finish a card, change its status, or record new work, a bug or a follow-up as a card.
+description: Work with the SidekickDB task board (GitHub org project 1), the only source of tasks. Use to see what to work on, start or finish a card, change its status, or (planner only) add a card. Everyone else proposes new work, a bug or a follow-up to the planner agent.
 ---
 
 # Task board
@@ -62,7 +62,8 @@ command:
 gh project item-create 1 --owner SidekickDB --title "<title>" --body "<body>" --format json
 ```
 
-Then set Status `Backlog`, an Area and a Priority as above.
+Then set Status (`Backlog` or `Owner`), an Area and a Priority with the
+commands under "Move a card".
 
 The body must stand on its own. Someone who has read nothing else must be able
 to do the task from it:

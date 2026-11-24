@@ -19,15 +19,15 @@ same card.
 | Step | Board status | Who | Leaves the step when |
 |---|---|---|---|
 | 1. Idea | none yet | anyone | told to the planner |
-| 2. Plan | none yet → Backlog | planner | the proposal is reviewed, escalated if needed, and the card has Context, Task, Done when, with facts checked in the code |
+| 2. Plan | none yet → Backlog or Owner | planner | the proposal is reviewed, escalated if needed, and the card has Context, Task, Done when, with facts checked in the code |
 | 3. Approve | Owner or Backlog → Ready | owner | the owner moves it to Ready (or archives it) |
 | 4. Build | In progress | implementer | pull request open, checks green, link on the card |
 | 5. Review | In progress | reviewer | APPROVE for the current head commit; any new push needs a new review |
 | 6. Merge | In progress → Done | owner says, implementer runs | merge commit on `main` and "Done when" on the card checked to be true |
 
 Cards with status **Owner** are decisions or actions only the owner can take;
-they skip steps 4 to 6 unless the decision creates follow-up work, which is a
-new card.
+they skip steps 4 to 6 unless the decision creates follow-up work, which is
+proposed to the planner.
 
 ## New cards go through the planner
 
@@ -59,12 +59,16 @@ cards, and only after it has reviewed the proposal.
    - leaves the planner unsure that it is worth doing.
 
    The planner returns the question with its recommendation; the session
-   that called it puts the question to the owner. On a yes the planner adds
-   the card (Backlog, or Owner when it stays the owner's to do). On a no,
-   nothing is added.
+   that called it puts the question to the owner. On a yes that session
+   calls the planner again with the proposal, the planner's earlier report
+   and the owner's answer, and the planner adds the card (Backlog, or Owner
+   when it stays the owner's to do). On a no, nothing is added. An agent
+   that cannot call the planner itself puts the proposal in its report.
 
-A P0 (harms users or the project's standing now) is added at once and
-reported to the owner in the same turn.
+The planner adds a P0 (harms users or the project's standing now) at once,
+also when it would otherwise escalate, Area Security included, and names it
+first in its report so the owner hears in the same turn. Nobody else adds a
+P0 either.
 
 ## Rules
 
