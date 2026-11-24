@@ -175,6 +175,18 @@ export const DIVERGENCES = {
       "Keep ws-playground-get, id-atom and the route removed from dash/routes.clj. Take upstream's other " +
       "changes in that file. server/test/instant/dash/removed_routes_test.clj must pass.",
   },
+  "removed-sunset": {
+    title: "Wind-down (sunset) of Instant Cloud removed from the server",
+    prs: [64],
+    resolve:
+      "Keep sunset.clj and sunset_test.clj deleted. Delete again whatever upstream adds for the wind-down: " +
+      "anything reading the flags sunset-stage, sunset-app-creation-allowed-emails or final-backup-status, the " +
+      "/dash/sunset routes, sign-up, app-creation, claiming or checkout gates tied to the stage, " +
+      "paid-features-free, the sunset field and effective_status of the dashboard responses, the cancel reason " +
+      "sunset. Take upstream's other changes in these files, including anything about the per-app status " +
+      "(apps.status, app-status-changed), backups and flags. removed_routes_test.clj, app_status_test.clj and " +
+      "runtime_mode_test.clj must pass, and `git grep -n -i sunset -- server/src` must print nothing.",
+  },
   "security-policy": {
     title: "SidekickDB's own security policy (SECURITY.md)",
     prs: [30],
@@ -276,6 +288,7 @@ const PR_CATEGORY = {
   61: "brand",
   62: "brand",
   63: "own-fixes",
+  64: "removed-sunset",
 };
 
 export function categoryFor(pr, file) {

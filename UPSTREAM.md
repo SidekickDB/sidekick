@@ -645,6 +645,39 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
+### Removed: wind-down (sunset) stage (PR #64)
+
+Upstream built a global wind-down of Instant Cloud into the server: a stage
+(`signups-closed`, `read-only`, `disabled`) read from the `sunset-stage` flag
+of the config app, which closes sign-ups, app creation and checkout and then
+makes every app read-only or unreadable. SidekickDB removed it from the server;
+no code reads that flag, so setting it has no effect.
+
+- Deleted: `server/src/instant/sunset.clj`, `server/test/instant/sunset_test.clj`.
+- `flags.clj`: the sunset section. `model/app.clj`: `get-status` is the app's
+  own status; no `apply-sunset-stage`, no gate in `create!`. `model/org.clj`
+  and `model/instant_subscription.clj`: no `paid-features-free`.
+- `dash/routes.clj`: no `/dash/sunset` routes, no sign-up, app-creation,
+  claiming or checkout gate tied to the stage, no `sunset` block and no
+  `effective_status` in the dashboard responses.
+- `util/exception.clj` (three error types), `backup.clj` (final-backup step),
+  `core.clj` (startup step), `stripe.clj`, `stripe_webhook.clj` and
+  `reactive/store.clj` (helpers only the wind-down used).
+- Tests: `server/test/instant/app_status_test.clj` (new),
+  `dash/removed_routes_test.clj`, `runtime_mode_test.clj`.
+
+The per-app status (`apps.status`, `set-status!`, `assert-write-allowed!`,
+`assert-read-allowed!`, the `app-status-changed` event), backups and the flags
+machinery are upstream's and stay.
+
+**Resolving:** keep the two files deleted and delete again whatever upstream
+adds for the wind-down (readers of `sunset-stage`,
+`sunset-app-creation-allowed-emails` or `final-backup-status`, `/dash/sunset`
+routes, gates tied to the stage, `paid-features-free`, the `sunset` field of
+the dashboard responses, the cancel reason `sunset`). Take upstream's other
+changes in these files. The three tests above must pass and
+`git grep -n -i sunset -- server/src` must print nothing.
+
 ### Removed: WebSocket playground (PR #51)
 
 The unused inherited debug endpoint `GET /dash/ws_playground` and its handler
