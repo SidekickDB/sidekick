@@ -8,11 +8,10 @@ nextjs:
 You can use Instant on the server as well! This can be especially useful for
 running scripts, custom auth flows, or sensitive application logic.
 
-We currently offer two server-side SDKs:
-
-- **JavaScript:** `@sidekickdb/admin` — the focus of this page.
-- **Python:** `instantdb` — see [Getting started with Python](/docs/start-python)
-  for the equivalent surface in Python.
+The server-side SDK is `@sidekickdb/admin` for JavaScript, the focus of this
+page. SidekickDB does not release a Python SDK; Instant's `instantdb` package
+is described in [Getting started with Python](/docs/start-python) for
+reference.
 
 ## Admin SDK
 

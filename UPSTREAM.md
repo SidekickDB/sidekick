@@ -789,6 +789,28 @@ not from instantdb.com.
 or link row. Keep the relative diagram paths. The text below the header is
 SidekickDB's too since PR #56 (next section).
 
+### No Python starter (PR #58)
+
+SidekickDB releases no Python SDK. `create-sidekick-app` therefore does not
+offer or bundle the `python-script` starter, which installs Instant's
+`instantdb` package from PyPI:
+
+- `client/packages/create-instant-app/src/projectBase.ts`: the base is in
+  `unavailableProjectBases` and filtered out of `projectBases` and
+  `bundledProjectBases`. Its config entry and the Python handling in
+  `index.ts` and `backendConfig.ts` stay as upstream wrote them.
+- `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
+  mapping or menu entry.
+- `client/www/data/docsNavigation.js`: no entry for the Python page.
+  `client/www/app/docs/start-python/page.md` has a note that it describes
+  Instant's package, and no scaffold command; `docs/backend/page.md` says the
+  same in one sentence.
+
+**Resolving:** keep the list, the missing option and the docs note. Take
+upstream's changes to the Python handling as they are; it stays unreachable.
+If upstream adds another starter that installs a package SidekickDB does not
+release, add it to `unavailableProjectBases`.
+
 ### Brand: READMEs and package descriptions (PR #56)
 
 What a visitor of the repository or of a package's npm page reads presents the

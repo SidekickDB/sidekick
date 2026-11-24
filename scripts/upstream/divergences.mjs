@@ -90,6 +90,15 @@ export const DIVERGENCES = {
       "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
       "unless upstream's image allows wal2json another way (start the self-hosting stack to check).",
   },
+  "python-starter": {
+    title: "create-sidekick-app does not offer or bundle the Python starter; docs say the Python SDK is Instant's",
+    prs: [58],
+    resolve:
+      "Keep unavailableProjectBases in create-instant-app/src/projectBase.ts with python-script in it, and no " +
+      "--python option or menu entry in cli.ts. Take upstream's other changes to the Python handling as they " +
+      "are (it stays unreachable). Keep the Python docs page out of docsNavigation.js and keep its note. If " +
+      "upstream adds another starter that installs a package SidekickDB does not release, add it to the list.",
+  },
   release: {
     title:
       "SidekickDB release pipeline: npm trusted publishing and GHCR image workflows, flags-config and mcp private",
@@ -246,6 +255,7 @@ const PR_CATEGORY = {
   51: "removed-ws-playground",
   52: "upstream-fixes",
   56: "brand",
+  58: "python-starter",
 };
 
 export function categoryFor(pr, file) {
