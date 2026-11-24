@@ -768,8 +768,31 @@ from upstream's own copies in `client/www/public/readmes/` by relative path,
 not from instantdb.com.
 
 **Resolving:** keep SidekickDB's header and do not take back the logo, badges
-or link row. Keep the relative diagram paths. Take upstream's other changes
-below the header.
+or link row. Keep the relative diagram paths. The text below the header is
+SidekickDB's too since PR #56 (next section).
+
+### Brand: READMEs and package descriptions (PR #56)
+
+What a visitor of the repository or of a package's npm page reads presents the
+project as SidekickDB:
+
+- `README.md`: the body is SidekickDB's own text. It links to the docs pages
+  in `client/www/app/docs`, names self-hosting as the way to get started and
+  credits InstantDB's authors for the design.
+- `client/packages/*/README.md` of the 17 published packages: a plain-text
+  header (package name, one line on the relation to InstantDB) instead of
+  Instant's logo, badges and link row; docs links to this repository;
+  "SidekickDB" for "Instant" in prose. Code samples and identifiers
+  (`Instant-Signature`, `instant.schema.ts`, `InstantError`) are unchanged.
+- `client/packages/*/package.json` of the same packages: `description`.
+- `self-hosting/README.md`, `client/README.md`, `server/README.md`: title and
+  first lines.
+- `CONTRIBUTING.md`: SidekickDB's own; upstream has none.
+
+**Resolving:** keep SidekickDB's text. When upstream changes what a README
+says (a new API, a new SDK, a changed command), write that change into
+SidekickDB's text by hand. In a `package.json` keep SidekickDB's `description`
+and take upstream's other changes.
 
 ### NOTICE file (PR #41)
 
