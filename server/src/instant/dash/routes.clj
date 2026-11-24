@@ -25,7 +25,6 @@
             [instant.intern.metrics :as metrics]
             [instant.isn :as isn]
             [instant.jdbc.aurora :as aurora]
-            [instant.lib.ring.websocket :as ws]
             [instant.machine-summaries :as machine-summaries]
             [instant.model.app :as app-model]
             [instant.model.app-admin-token :as app-admin-token-model]
@@ -99,7 +98,6 @@
   (:import
    (com.github.luben.zstd ZstdInputStream)
    (com.stripe.model.checkout Session)
-   (io.undertow.websockets.core WebSocketChannel)
    (java.io BufferedReader BufferedWriter InputStreamReader OutputStreamWriter PipedInputStream PipedOutputStream)
    (java.nio ByteBuffer)
    (java.nio.charset StandardCharsets)
@@ -2412,45 +2410,6 @@
                        :source  (posthog/extract-source req)})
     (response/ok res)))
 
-;; -------------
-;; WS playground
-
-(def id-atom (atom 0))
-(defn ws-playground-get
-  "This is a simple websocket playground, to play with undertow's websocket behavior.
-
-   To try it out,
-   ```bash
-   brew install websocat
-   websocat ws://localhost:8888/dash/ws_playground
-   hi
-   break
-   ```"
-  [_]
-  (let [id (swap! id-atom inc)]
-    {:undertow/websocket
-     {:on-open (fn [{:keys [channel]}]
-                 (tracer/with-span! {:name "ws-play/on-open" :attributes {:id id}}
-                   (ws/send-json! nil (format "[%s] ok" id) channel)))
-      :on-message (fn [{:keys [^WebSocketChannel channel data]}]
-                    (tracer/with-span! {:name "ws-play/on-message" :attributes {:id id :data data}}
-                      (condp = (string/trim data)
-                        "break"
-                        (tracer/with-span! {:name "ws-play/break" :attributes {:id id}}
-                          (.close channel))
-                        "throw-err"
-                        (tracer/with-span! {:name "ws-play/throw-err" :attributes {:id id}}
-                          (do (.close channel)
-                              (ws/send-json! nil "this can't send" channel)))
-                        (ws/send-json! nil (format "[%s] received %s" id data) channel))))
-
-      :on-close (fn [_]
-                  (tracer/record-info! {:name  "ws-play/on-close" :attributes {:id id}}))
-      :on-close-message (fn [_]
-                          (tracer/record-info! {:name  "ws-play/on-close-message" :attributes {:id id}}))
-      :on-error (fn [_]
-                  (tracer/record-info! {:name  "ws-play/on-error" :attributes {:id id}}))}}))
-
 (defn signout [req]
   (let [_user (req->auth-user! req) ;; just calling this for the error handling
         token (http-util/req->bearer-token! req)]
@@ -2884,7 +2843,7 @@
   (GET "/dash/orgs/:org_id/billing" [] org-get-billing)
   (POST "/dash/orgs/:org_id/rename" [] org-rename-post)
 
-  (GET "/dash/ws_playground" [] ws-playground-get)
+  ;; SidekickDB: the debug WebSocket playground route is removed, see UPSTREAM.md.
 
   (POST "/dash/signout" [] signout)
 
