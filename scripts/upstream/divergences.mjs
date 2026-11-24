@@ -75,7 +75,7 @@ export const DIVERGENCES = {
   },
   "own-fixes": {
     title:
-      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool, presence refresh combine keeps snapshots",
+      "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, attr-sketch loads off the common pool, presence refresh combine keeps snapshots, signing-key refresh runs",
     prs: [6, 8, 16, 24],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
