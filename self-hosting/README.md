@@ -217,10 +217,9 @@ stops the server at startup with a message naming the variable.
 
 In the self-hosted mode:
 
-- Startup skips four Instant Cloud jobs: the `sunset` and `app-proxy` flag
-  listeners (Instant's wind-down and backend-migration tools), the
-  join-room analytics logger, and the Postgres hint-plan experiment.
-  `POST /dash/sunset/cancel_subscriptions` is refused.
+- Startup skips three Instant Cloud jobs: the `app-proxy` flag listener
+  (Instant's backend-migration tool), the join-room analytics logger, and the
+  Postgres hint-plan experiment.
 - nREPL (port 6005 inside the container, bound to `127.0.0.1`) does not start
   unless `SIDEKICK_NREPL=true`.
 - Behaviour meant for developing the server is off: SSE requests and stream

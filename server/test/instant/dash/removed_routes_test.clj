@@ -32,6 +32,20 @@
                                    :uri "/dash/ws_playground"
                                    :headers {}})))))
 
+;; The wind-down ("sunset") of Instant Cloud: its operator endpoints and its
+;; namespace are removed.
+(deftest sunset-routes-are-gone
+  (doseq [[method uri] [[:get "/dash/sunset"]
+                        [:post "/dash/sunset"]
+                        [:get "/dash/sunset/billing"]
+                        [:post "/dash/sunset/cancel_subscriptions"]]]
+    (testing (str (name method) " " uri " matches no route")
+      (is (nil? (dash-routes/routes {:request-method method
+                                     :uri uri
+                                     :headers {}})))))
+  (testing "the sunset namespace is not on the classpath"
+    (is (nil? (io/resource "instant/sunset.clj")))))
+
 (deftest no-source-holds-the-removed-key
   (let [uuid-re #"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
         files (->> (file-seq (io/file "src"))

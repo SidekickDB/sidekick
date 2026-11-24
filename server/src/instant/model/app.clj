@@ -66,8 +66,6 @@
 (defn create!
   ([params] (create! (aurora/conn-pool :write) params))
   ([conn {:keys [id title creator-id org-id admin-token]}]
-   (when (flags/sunset-stage-at-least? :read-only)
-     (ex/throw-app-creation-disabled!))
    (let [query {:with [[:app_insert
                         {:insert-into :apps
                          :values [{:id id
@@ -292,7 +290,6 @@
                                  [:= nil :a.deletion-marked-at]
                                  [:= nil :a.org_id]
                                  [:or
-                                  [:= :?paid-features-free true]
                                   [:= :2 :sub.subscription_type_id]
                                   [:< :m.created_at :?free-teams-cutoff]]]}]}))
 
@@ -300,7 +297,6 @@
   ([params] (get-all-for-user (aurora/conn-pool :read) params))
   ([conn {:keys [user-id]}]
    (let [params {:user-id user-id
-                 :paid-features-free (flags/paid-features-free?)
                  :free-teams-cutoff config/free-teams-cutoff}
          query (uhsql/formatp all-for-user-q params)]
      (sql/select ::get-all-for-user conn query))))
@@ -340,37 +336,17 @@
 
 (def statuses #{:active :read-only :disabled})
 
-(def status-severity {:active 0 :read-only 1 :disabled 2})
-
 (defn coerce-status [x]
   (when (or (string? x) (keyword? x))
     (statuses (keyword x))))
 
-(defn get-own-status
-  "The app's own status column, ignoring the global sunset stage."
+(defn get-status
+  "Cached app record -> status keyword; no SQL on hot paths."
   [app-id]
   (or (some-> (get-by-id {:id app-id})
               :status
               keyword)
       :active))
-
-(defn apply-sunset-stage
-  "Effective status: the more restrictive of the app's own status and the
-   global sunset stage. Only stages that map to an app status overlay
-   (:read-only, :disabled); :none and :signups-closed leave apps alone.
-   The config app always keeps its own status so the flag system can
-   never lock itself out."
-  [app-id own-status]
-  (let [stage (flags/sunset-stage)]
-    (if (or (not (statuses stage))
-            (= app-id config/instant-config-app-id))
-      own-status
-      (max-key status-severity own-status stage))))
-
-(defn get-status
-  "Cached app record + sunset stage -> status keyword; no SQL on hot paths."
-  [app-id]
-  (apply-sunset-stage app-id (get-own-status app-id)))
 
 (defn assert-write-allowed!
   "Authoritative write check, called from the base transaction layer."

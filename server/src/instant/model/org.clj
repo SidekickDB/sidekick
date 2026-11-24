@@ -1,7 +1,6 @@
 (ns instant.model.org
   (:require
    [instant.config :as config]
-   [instant.flags :as flags]
    [instant.jdbc.aurora :as aurora]
    [instant.jdbc.sql :as sql]
    [instant.model.app :as app-model]
@@ -67,7 +66,6 @@
                                                    [:= :m.user-id :?user-id]
                                                    [:= nil :a.deletion-marked-at]
                                                    [:or
-                                                    [:= :?paid-features-free true]
                                                     [:< :m.created_at :?free-teams-cutoff]
                                                     [:= :org-s.subscription_type_id [:inline plans/STARTUP_SUBSCRIPTION_TYPE]]
                                                     [:= :app-s.subscription_type_id [:inline plans/PRO_SUBSCRIPTION_TYPE]]]]}]
@@ -81,7 +79,6 @@
   ([params] (get-all-for-user (aurora/conn-pool :read) params))
   ([conn {:keys [user-id]}]
    (let [params {:user-id user-id
-                 :paid-features-free (flags/paid-features-free?)
                  :free-teams-cutoff config/free-teams-cutoff}
          query (uhsql/formatp all-for-user-q params)]
      (sql/select ::get-all-for-user conn query))))
@@ -107,7 +104,6 @@
                                            [:= :o.id :?org-id]
                                            [:= nil :a.deletion-marked-at]
                                            [:or
-                                            [:= :?paid-features-free true]
                                             [:< :m.created_at :?free-teams-cutoff]
                                             [:= :org-s.subscription_type_id [:inline plans/STARTUP_SUBSCRIPTION_TYPE]]
                                             [:= :app-s.subscription_type_id [:inline plans/PRO_SUBSCRIPTION_TYPE]]]]}]}))
@@ -117,7 +113,6 @@
   ([conn {:keys [user-id org-id]}]
    (let [params {:user-id user-id
                  :org-id org-id
-                 :paid-features-free (flags/paid-features-free?)
                  :free-teams-cutoff config/free-teams-cutoff}
          query (uhsql/formatp apps-for-org-q params)]
      (sql/select ::apps-for-org conn query))))
@@ -208,7 +203,6 @@
                                                    [:= :m.user-id :?user-id]
                                                    [:= nil :a.deletion-marked-at]
                                                    [:or
-                                                    [:= :?paid-features-free true]
                                                     [:< :m.created_at :?free-teams-cutoff]
                                                     [:= :org-s.subscription_type_id [:inline plans/STARTUP_SUBSCRIPTION_TYPE]]
                                                     [:= :app-s.subscription_type_id [:inline plans/PRO_SUBSCRIPTION_TYPE]]]]
@@ -224,7 +218,6 @@
   ([conn {:keys [org-id user-id]}]
    (let [params {:user-id user-id
                  :org-id org-id
-                 :paid-features-free (flags/paid-features-free?)
                  :free-teams-cutoff config/free-teams-cutoff}
          query (uhsql/formatp org-for-user-q params)]
      (-> (sql/select-one ::get-org-for-user! conn query)
