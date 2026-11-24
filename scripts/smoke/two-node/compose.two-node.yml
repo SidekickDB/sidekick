@@ -1,0 +1,30 @@
+# Applied on top of self-hosting/docker-compose.yml, unchanged otherwise:
+# turns its single server into two nodes that find each other the way the
+# replicas of self-hosting/swarm.yml do. See README.md for what differs from a
+# real swarm.
+services:
+  server:
+    # swarm.yml runs two replicas of one service.
+    deploy:
+      replicas: 2
+    # One loopback port per node, so the smoke test can pick the node each
+    # client talks to. run.mjs reads which port each container got.
+    ports:
+      - "127.0.0.1:8881-8882:8888"
+    environment:
+      # Turns on the swarm branch of instant.reactive.ephemeral/init-hz: it
+      # resolves tasks.<SWARM_SERVICE_NAME> and gives Hazelcast every address
+      # as a TCP/IP member on port 5701.
+      SWARM_SERVICE_NAME: server
+    networks:
+      default:
+        # Swarm answers tasks.server with every replica's address. Docker's
+        # embedded DNS does the same for a network alias that several
+        # containers share.
+        aliases:
+          - tasks.server
+    volumes:
+      # Replaces the shared server_config volume. swarm.yml mounts one
+      # override.edn, created once, into every replica as a secret; run.mjs
+      # generates it once the same way and mounts it read-only into both nodes.
+      - ${SMOKE_CONFIG_DIR:?run.mjs sets SMOKE_CONFIG_DIR}:/app/resources/config:ro

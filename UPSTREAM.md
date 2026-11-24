@@ -656,6 +656,26 @@ compose file, the self-hosted Dockerfiles or the core client API the workload
 uses, keep upstream's change and adapt the harness. Compare a new run only with
 a kept result from the same runner label.
 
+### Two-node smoke test (PR #37)
+
+`scripts/smoke/two-node/` (`run.mjs`, `smoke.mjs`, `compose.two-node.yml`)
+and `.github/workflows/sidekick-two-node-smoke.yml` boot two server nodes
+against one Postgres with `self-hosting/docker-compose.yml` and an override
+that sets `SWARM_SERVICE_NAME=server`, a shared `tasks.server` network alias
+and one shared `override.edn`, so the nodes find each other through the same
+`init-hz` swarm branch as the replicas of `swarm.yml`. It checks that a write
+on one node reaches a subscriber on the other, in both directions, and that
+presence is shared. The README there says what is and is not the same as a
+swarm deployment. The workflow is read-only (`contents: read`, no secrets; the
+image is built with `push: false` and loaded locally), runs on demand and on
+pull requests that change self-hosting or clustering files, and `check.mjs`
+lists it in `TWO_NODE_SMOKE_WORKFLOWS` without any exception from its rules.
+
+**Resolving:** upstream has none of these files. When upstream changes the
+compose file, `swarm.yml`, the self-hosted Dockerfile or how `init-hz` in
+`server/src/instant/reactive/ephemeral.clj` discovers peers, keep upstream's
+change and adapt the override or `run.mjs`.
+
 ### Security policy (PR #30)
 
 `SECURITY.md`: SidekickDB's own policy, reports through GitHub private
