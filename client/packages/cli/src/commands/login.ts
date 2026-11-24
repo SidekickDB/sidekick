@@ -31,7 +31,7 @@ export const loginCommand = Effect.fn(function* (
     const ok = yield* promptOk(
       {
         promptText:
-          'This will open your Instant dashboard in your browser, OK to proceed?',
+          'This will open your SidekickDB dashboard in your browser, OK to proceed?',
       },
       true,
     );
@@ -49,7 +49,7 @@ export const loginCommand = Effect.fn(function* (
   const { token, email } = result;
   if (opts.print) {
     yield* Effect.log(
-      chalk.red('[Do not share] Your Instant auth token:', token),
+      chalk.red('[Do not share] Your SidekickDB auth token:', token),
     );
   } else {
     yield* saveConfigAuthToken(token);

@@ -193,7 +193,7 @@ describe('google', () => {
       useSharedCredentials: false,
     });
     expect(logs.join('\n')).toContain(
-      'This client no longer uses Instant dev credentials.',
+      'This client no longer uses shared dev credentials.',
     );
   });
 
@@ -208,7 +208,7 @@ describe('google', () => {
 
     expect(prompts).toHaveLength(0);
     expect(logs.join('\n')).toContain(
-      'Must specify both --client-id and --client-secret when switching from Instant dev credentials to custom credentials with --yes.',
+      'Must specify both --client-id and --client-secret when switching from shared dev credentials to custom credentials with --yes.',
     );
     expect(updatedClients).toHaveLength(0);
   });
@@ -231,7 +231,7 @@ describe('google', () => {
       redirectTo: null,
     });
     const output = logs.join('\n');
-    expect(output).toContain('Credentials: Instant dev credentials');
+    expect(output).toContain('Credentials: shared dev credentials');
     expect(output).toContain('Ready for production? Run:');
     expect(output).toContain(
       'sidekick-cli auth client update --name google-web',
@@ -308,7 +308,7 @@ describe('google', () => {
         value: 'custom',
       },
       {
-        label: expect.stringContaining('Instant dev credentials'),
+        label: expect.stringContaining('shared dev credentials'),
         value: 'none',
       },
     ]);

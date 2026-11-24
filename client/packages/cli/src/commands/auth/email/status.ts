@@ -130,7 +130,7 @@ export const emailStatusCmd = Effect.fn(function* (
       '\n' +
         boxen(
           [
-            `Instant verified: ${formatVerified(verification.instant['verified?'])}`,
+            `Server verified: ${formatVerified(verification.instant['verified?'])}`,
             `Postmark verified: ${formatVerified(verification.verification?.Confirmed)}`,
           ].join('\n'),
           {

@@ -121,11 +121,11 @@ const auth = program
   .description('Manage authentication for your app');
 const app = program
   .command('app')
-  .description('Manage individual InstantDB apps');
+  .description('Manage individual SidekickDB apps');
 
 export const appListDef = app
   .command('list')
-  .description('List apps on your Instant account')
+  .description('List apps on your SidekickDB account')
   .option('--json', 'Output apps as JSON')
   .action(async (opts) => {
     return runCommandEffect(
@@ -142,7 +142,7 @@ export const appListDef = app
 
 export const appDeleteDef = app
   .command('delete')
-  .description('Delete an app from your Instant account')
+  .description('Delete an app from your SidekickDB account')
   .option(
     '-a --app <app-id>',
     'App ID to delete. Defaults to *_INSTANT_APP_ID in .env',
@@ -888,7 +888,7 @@ export const loginDef = program
 
 program
   .command('logout')
-  .description('Log out of your Instant account')
+  .description('Log out of your SidekickDB account')
   .action(async () => {
     return runCommandEffect(
       logoutCommand().pipe(Effect.provide(BaseLayerLive)),
@@ -1058,7 +1058,7 @@ Environment Variables:
 
 export const claimDef = program
   .command('claim')
-  .description('Transfer a temporary app into your Instant account')
+  .description('Transfer a temporary app into your SidekickDB account')
   .option(
     '-a --app <app-id>',
     'App to claim. Defaults to *_INSTANT_APP_ID in .env',

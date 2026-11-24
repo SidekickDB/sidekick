@@ -15,6 +15,8 @@ export const verifyCmd = Effect.fn(function* (
     verificationInfo.instant['verified?'] &&
     verificationInfo.verification?.Confirmed
   ) {
-    yield* Effect.log('Verification successful for both Postmark and Instant!');
+    yield* Effect.log(
+      'Verification successful for both Postmark and the server!',
+    );
   }
 });

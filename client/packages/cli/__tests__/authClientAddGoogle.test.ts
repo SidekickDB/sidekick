@@ -264,7 +264,7 @@ describe('web: dev credentials', () => {
     expect(addedClients[0].clientSecret).toBeUndefined();
     expect(addedClients[0].redirectTo).toBeUndefined();
     const output = logs.join('\n');
-    expect(output).toContain('Credentials: Instant dev credentials');
+    expect(output).toContain('Credentials: shared dev credentials');
     expect(output).toContain('No Google Console setup required');
     expect(output).toContain('Ready for production? Run:');
     expect(output).not.toContain('For production');
@@ -287,7 +287,7 @@ describe('web: dev credentials', () => {
     expect(addedClients[0].clientSecret).toBeUndefined();
     expect(addedClients[0].redirectTo).toBeUndefined();
     const output = logs.join('\n');
-    expect(output).toContain('Credentials: Instant dev credentials');
+    expect(output).toContain('Credentials: shared dev credentials');
     expect(output).toContain('No Google Console setup required');
     expect(output).toContain(
       'sidekick-cli auth client update --name google-web',

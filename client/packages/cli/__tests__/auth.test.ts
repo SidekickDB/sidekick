@@ -53,7 +53,7 @@ describe('backend-scoped auth tokens', () => {
 
   it('rejects non-HTTP URLs', async () => {
     await expect(readAuthToken('ftp://example.com')).rejects.toThrow(
-      'Instant API URI must use http:// or https://',
+      'SidekickDB API URI must use http:// or https://',
     );
   });
 
