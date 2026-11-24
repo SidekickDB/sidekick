@@ -811,6 +811,23 @@ upstream's changes to the Python handling as they are; it stays unreachable.
 If upstream adds another starter that installs a package SidekickDB does not
 release, add it to `unavailableProjectBases`.
 
+### Starters come with the package (PR #60)
+
+`create-sidekick-app` downloads no starter at run time:
+
+- `client/packages/create-instant-app/src/projectBase.ts`: every base is
+  `bundled: true`. Upstream bundles some and clones the rest from
+  `instantdb/instant` when the tool runs.
+- `client/packages/create-instant-app/src/scaffold.ts`: the download
+  fallback, reached only when a bundled template is missing, uses
+  `SidekickDB/sidekick`.
+- `examples/bun-react`: `@sidekickdb/react` is `latest`, and `bun.lock` is
+  deleted (it resolved upstream's packages; no other example has a lockfile).
+
+**Resolving:** keep every base bundled, including a base upstream adds, and
+keep SidekickDB's repository in the fallback. Keep `bun-react` on `latest`
+and delete `bun.lock` again if upstream changes it.
+
 ### Brand: READMEs and package descriptions (PR #56)
 
 What a visitor of the repository or of a package's npm page reads presents the
