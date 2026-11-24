@@ -640,6 +640,17 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
+### Removed: WebSocket playground (PR #51)
+
+The unused inherited debug endpoint `GET /dash/ws_playground` and its handler
+(`ws-playground-get`, `id-atom`) are removed from `dash/routes.clj`, together
+with the `instant.lib.ring.websocket` require and the `WebSocketChannel` import
+that only it used. Nothing in the clients or the dashboard calls it.
+`server/test/instant/dash/removed_routes_test.clj` keeps it removed.
+
+**Resolving:** if upstream changes the handler or the route, keep them removed
+and take its other changes in the file.
+
 ### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49)
 
 - Tests that hung or flaked on 2-vCPU CI runners:

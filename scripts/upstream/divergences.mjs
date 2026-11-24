@@ -148,6 +148,13 @@ export const DIVERGENCES = {
       "Keep server/src/instant/session_counter.clj deleted, and the route and the start step in core.clj removed. " +
       "Take upstream's other changes in those files. server/test/instant/dash/removed_routes_test.clj must pass.",
   },
+  "removed-ws-playground": {
+    title: "Debug WebSocket playground (/dash/ws_playground) removed",
+    prs: [51],
+    resolve:
+      "Keep ws-playground-get, id-atom and the route removed from dash/routes.clj. Take upstream's other " +
+      "changes in that file. server/test/instant/dash/removed_routes_test.clj must pass.",
+  },
   "security-policy": {
     title: "SidekickDB's own security policy (SECURITY.md)",
     prs: [30],
@@ -236,6 +243,7 @@ const PR_CATEGORY = {
   48: "readme-header",
   54: "ci-lockdown",
   49: "own-fixes",
+  51: "removed-ws-playground",
   56: "brand",
 };
 
