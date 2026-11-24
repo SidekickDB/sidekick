@@ -144,6 +144,13 @@ export const DIVERGENCES = {
     prs: [30],
     resolve: "Upstream has no SECURITY.md. If it adds one, keep SidekickDB's.",
   },
+  "readme-header": {
+    title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
+    prs: [38],
+    resolve:
+      "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
+      "the logo, the Discord and stars badges or the instantdb.com link row. Take upstream's changes below it.",
+  },
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
@@ -187,6 +194,7 @@ const PR_CATEGORY = {
   35: "upstream-fixes",
   36: "selfhost",
   37: "two-node-smoke",
+  38: "readme-header",
 };
 
 export function categoryFor(pr, file) {

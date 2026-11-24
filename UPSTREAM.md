@@ -684,6 +684,15 @@ vulnerability reporting on `SidekickDB/sidekick`.
 **Resolving:** upstream has no `SECURITY.md`. If it adds one, keep
 SidekickDB's.
 
+### README header (PR #38)
+
+`README.md`: the top of the file is SidekickDB's plain-text header (name, one
+line on what it is, the relation to Instant, a link to this file). Upstream's
+logo, Discord and stars badges and row of instantdb.com links are removed.
+
+**Resolving:** keep SidekickDB's header and do not take back the logo, badges
+or link row. Take upstream's changes below the header.
+
 ### Upstream sync tooling (this file's PR)
 
 `UPSTREAM.md` and `scripts/upstream/`. Upstream has neither, so they never
