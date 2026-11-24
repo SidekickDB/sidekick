@@ -187,6 +187,41 @@ function plan() {
 
 export const MANIFEST = "manifest.json";
 
+// Apache-2.0 section 4(a): everyone who gets a package gets the licence. The
+// packages have no copy of their own, so the repository's files go into each
+// tarball at pack time and are removed again afterwards.
+export const LICENCE_FILES = ["LICENSE.md", "NOTICE"];
+
+// Nothing is copied when a package has a file of its own under one of these
+// names, so removeLicenceFiles only ever deletes copies.
+export function addLicenceFiles(pkgs, root = path.resolve(CLIENT_DIR, "..")) {
+  for (const p of pkgs)
+    for (const f of LICENCE_FILES)
+      if (fs.existsSync(path.join(p.dir, f)))
+        throw new Error(`${path.join(p.dir, f)} already exists`);
+  for (const p of pkgs) {
+    for (const f of LICENCE_FILES)
+      fs.copyFileSync(path.join(root, f), path.join(p.dir, f));
+    // A package with a "files" list packs only what the list names.
+    const json = JSON.parse(fs.readFileSync(p.file, "utf8"));
+    if (json.files) {
+      json.files = [...json.files, ...LICENCE_FILES];
+      fs.writeFileSync(p.file, JSON.stringify(json, null, 2) + "\n");
+    }
+  }
+}
+
+export function removeLicenceFiles(pkgs) {
+  for (const p of pkgs) {
+    for (const f of LICENCE_FILES) fs.rmSync(path.join(p.dir, f), { force: true });
+    const json = JSON.parse(fs.readFileSync(p.file, "utf8"));
+    if (json.files) {
+      json.files = json.files.filter((f) => !LICENCE_FILES.includes(f));
+      fs.writeFileSync(p.file, JSON.stringify(json, null, 2) + "\n");
+    }
+  }
+}
+
 // Build job (no publish rights): stamp the version, build, pack every package
 // into `out` and write the manifest the publish job checks.
 function pack({ out }) {
@@ -195,7 +230,10 @@ function pack({ out }) {
   fs.mkdirSync(out, { recursive: true });
   if (fs.readdirSync(out).length) throw new Error(`${out} is not empty`);
   setVersions(pkgs, version);
+  let licenceFilesAdded = false;
   try {
+    addLicenceFiles(pkgs);
+    licenceFilesAdded = true;
     run("pnpm", ["run", "build-packages"]);
     const packages = [];
     for (const p of pkgs) {
@@ -213,20 +251,25 @@ function pack({ out }) {
       JSON.stringify({ version, packages }, null, 2) + "\n",
     );
   } finally {
+    if (licenceFilesAdded) removeLicenceFiles(pkgs);
     setVersions(pkgs, "0.0.0");
   }
 }
 
+// The name and version inside a tarball, and the paths of its files.
 function tarballManifest(tgz) {
   const r = run("tar", ["-xzOf", tgz, "package/package.json"], {
     capture: true,
   });
-  return JSON.parse(r.stdout);
+  const { name, version } = JSON.parse(r.stdout);
+  const list = run("tar", ["-tzf", tgz], { capture: true });
+  return { name, version, entries: list.stdout.split("\n").filter(Boolean) };
 }
 
 // Check the build job's output against this checkout. The artifact is data
 // only: the expected names, order and version come from the repository, and
-// every tarball must carry exactly that name and version.
+// every tarball must carry exactly that name and version, and the licence
+// files.
 export function verifyArtifact(dir, { version, names }, readTarball) {
   const m = JSON.parse(fs.readFileSync(path.join(dir, MANIFEST), "utf8"));
   if (m.version !== version)
@@ -249,6 +292,9 @@ export function verifyArtifact(dir, { version, names }, readTarball) {
       throw new Error(
         `${p.file} contains ${pj.name}@${pj.version}, expected ${p.name}@${version}`,
       );
+    for (const f of LICENCE_FILES)
+      if (!(pj.entries || []).includes(`package/${f}`))
+        throw new Error(`${p.file} has no ${f}`);
     return { name: p.name, tgz };
   });
 }

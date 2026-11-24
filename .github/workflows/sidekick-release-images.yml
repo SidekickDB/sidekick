@@ -92,11 +92,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Apache-2.0 section 4(a): everyone who gets an image gets the licence.
+      # The Dockerfiles are upstream's and their build contexts do not hold
+      # the repository's licence files, so a copy of the Dockerfile gets one
+      # more step that takes them from a second build context.
+      - name: Add the licence files to the build
+        env:
+          DOCKERFILE: ${{ matrix.file }}
+        run: |
+          mkdir "$RUNNER_TEMP/licences"
+          cp LICENSE.md NOTICE "$RUNNER_TEMP/licences/"
+          cp "$DOCKERFILE" "$RUNNER_TEMP/Dockerfile"
+          printf '\nCOPY --from=licences LICENSE.md NOTICE /licenses/\n' >> "$RUNNER_TEMP/Dockerfile"
+
       - name: Build image
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: ${{ matrix.context }}
-          file: ${{ matrix.file }}
+          file: ${{ runner.temp }}/Dockerfile
+          build-contexts: |
+            licences=${{ runner.temp }}/licences
           platforms: linux/${{ matrix.arch }}
           push: ${{ inputs.push }}
           provenance: false
