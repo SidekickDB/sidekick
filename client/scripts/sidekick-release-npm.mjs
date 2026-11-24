@@ -192,13 +192,16 @@ export const MANIFEST = "manifest.json";
 // tarball at pack time and are removed again afterwards.
 export const LICENCE_FILES = ["LICENSE.md", "NOTICE"];
 
+// Nothing is copied when a package has a file of its own under one of these
+// names, so removeLicenceFiles only ever deletes copies.
 export function addLicenceFiles(pkgs, root = path.resolve(CLIENT_DIR, "..")) {
+  for (const p of pkgs)
+    for (const f of LICENCE_FILES)
+      if (fs.existsSync(path.join(p.dir, f)))
+        throw new Error(`${path.join(p.dir, f)} already exists`);
   for (const p of pkgs) {
-    for (const f of LICENCE_FILES) {
-      const to = path.join(p.dir, f);
-      if (fs.existsSync(to)) throw new Error(`${to} already exists`);
-      fs.copyFileSync(path.join(root, f), to);
-    }
+    for (const f of LICENCE_FILES)
+      fs.copyFileSync(path.join(root, f), path.join(p.dir, f));
     // A package with a "files" list packs only what the list names.
     const json = JSON.parse(fs.readFileSync(p.file, "utf8"));
     if (json.files) {
@@ -227,8 +230,10 @@ function pack({ out }) {
   fs.mkdirSync(out, { recursive: true });
   if (fs.readdirSync(out).length) throw new Error(`${out} is not empty`);
   setVersions(pkgs, version);
+  let licenceFilesAdded = false;
   try {
     addLicenceFiles(pkgs);
+    licenceFilesAdded = true;
     run("pnpm", ["run", "build-packages"]);
     const packages = [];
     for (const p of pkgs) {
@@ -246,7 +251,7 @@ function pack({ out }) {
       JSON.stringify({ version, packages }, null, 2) + "\n",
     );
   } finally {
-    removeLicenceFiles(pkgs);
+    if (licenceFilesAdded) removeLicenceFiles(pkgs);
     setVersions(pkgs, "0.0.0");
   }
 }

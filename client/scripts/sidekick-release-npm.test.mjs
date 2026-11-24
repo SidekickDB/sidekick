@@ -126,8 +126,13 @@ test("the licence files go into each package for packing and come out again", ()
       assert.equal(fs.readFileSync(path.join(p.dir, f), "utf8"), f);
   assert.equal(JSON.parse(fs.readFileSync(plain.file, "utf8")).files, undefined);
   assert.deepEqual(JSON.parse(fs.readFileSync(listed.file, "utf8")).files, ["dist", ...LICENCE_FILES]);
-  // A package's own file is never overwritten.
-  assert.throws(() => addLicenceFiles([plain], root), /already exists/);
+  // A package's own file stops the whole step before anything is copied.
+  const own = pkg("own", { name: "own" });
+  fs.writeFileSync(path.join(own.dir, "NOTICE"), "its own");
+  const fresh = pkg("fresh", { name: "fresh" });
+  assert.throws(() => addLicenceFiles([fresh, own], root), /own\/NOTICE already exists/);
+  assert.deepEqual(fs.readdirSync(fresh.dir), ["package.json"]);
+  assert.equal(fs.readFileSync(path.join(own.dir, "NOTICE"), "utf8"), "its own");
 
   removeLicenceFiles([plain, listed]);
   for (const p of [plain, listed]) assert.deepEqual(fs.readdirSync(p.dir), ["package.json"]);
