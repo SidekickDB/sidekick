@@ -1,29 +1,9 @@
-<p align="center">
-  <a href="https://instantdb.com/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://instantdb.com/readmes/logo_with_text_dark_mode.svg">
-      <img alt="Shows the Instant logo" src="https://instantdb.com/readmes/logo_with_text_light_mode.svg">
-    </picture>
-  </a>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo, badges and links. -->
+# SidekickDB
 
-<p align="center">
-  <a 
-    href="https://discord.com/invite/VU53p7uQcE" >
-    <img height=20 src="https://img.shields.io/discord/1031957483243188235" />
-  </a>
-  <a href="#">
-    <img src="https://img.shields.io/github/stars/instantdb/instant" alt="stars">
-  </a>
-</p>
+SidekickDB is a realtime database with a sync engine that you can host yourself.
 
-<p align="center">
-   <a href="https://instantdb.com/docs">Get Started</a> · 
-   <a href="https://instantdb.com/examples">Examples</a> · 
-   <a href="https://instantdb.com/tutorial">Try the Demo</a> · 
-   <a href="https://instantdb.com/docs">Docs</a> · 
-   <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
-<p>
+SidekickDB is an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant. See [UPSTREAM.md](./UPSTREAM.md) for where the code comes from and what differs.
 
 Instant is the best backend for AI-coded apps. You get auth, permissions, storage, presence, and streams — everything you need to ship apps your users will love.
 
