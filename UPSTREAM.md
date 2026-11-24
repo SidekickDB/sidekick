@@ -822,11 +822,19 @@ release, add it to `unavailableProjectBases`.
   fallback, reached only when a bundled template is missing, uses
   `SidekickDB/sidekick`.
 - `examples/bun-react`: `@sidekickdb/react` is `latest`, and `bun.lock` is
-  deleted (it resolved upstream's packages; no other example has a lockfile).
+  deleted: it resolved upstream's packages, and the tool deletes lockfiles
+  from a new project anyway.
+- `examples/vercel-ai-sdk/src/lib/mockModel.ts`: without a model key upstream
+  sends the user's prompt to `api.instantdb.com/examples/mma`. SidekickDB's
+  copy sends nothing and answers with how to set a key.
+- `examples/ai-chat/src/lib/mockModel.ts`: the `User-Agent` of its Wikipedia
+  requests names SidekickDB's repository, not Instant.
 
 **Resolving:** keep every base bundled, including a base upstream adds, and
-keep SidekickDB's repository in the fallback. Keep `bun-react` on `latest`
-and delete `bun.lock` again if upstream changes it.
+keep SidekickDB's repository in the fallback (a unit test fails when an
+offered base is not bundled). Keep `bun-react` on `latest` and delete
+`bun.lock` again if upstream changes it. Keep the two `mockModel.ts` edits: no
+starter may send requests to an Instant-owned host or name Instant as contact.
 
 ### Brand: READMEs and package descriptions (PR #56)
 

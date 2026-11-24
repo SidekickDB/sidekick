@@ -167,6 +167,12 @@ describe('project base backend config', () => {
     expect(projectBaseConfig['python-script']).toBeDefined();
   });
 
+  // SidekickDB: a base that is offered but not bundled would be downloaded
+  // at run time. This fails when an upstream merge adds one.
+  it('bundles every base it offers', () => {
+    expect(bundledProjectBases).toEqual(projectBases);
+  });
+
   it.each(projectBases)('%s matches its example template', (base) => {
     for (const file of projectBaseConfig[base].backendConfigFiles) {
       const contents = fs.readFileSync(

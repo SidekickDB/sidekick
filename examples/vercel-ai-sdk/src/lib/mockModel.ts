@@ -2,9 +2,9 @@ import { LanguageModelV3, LanguageModelV3StreamPart } from '@ai-sdk/provider';
 import { simulateReadableStream } from 'ai';
 
 /**
- * Creates a mock language model instance that fetches code from a stored
- * example server. Returns the model and a promise that resolves to the
- * matched prompt once the model has been called.
+ * Creates a mock language model instance that is used when no model key is
+ * set. Returns the model and a promise that resolves to the matched prompt
+ * (always null here) once the model has been called.
  */
 export function createMockModel(): {
   model: LanguageModelV3;
@@ -26,24 +26,17 @@ export function createMockModel(): {
         ? lastMessage.content[0].text
         : 'Default prompt';
 
-    try {
-      const resp = await fetch('https://api.instantdb.com/examples/mma', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userText }),
-      });
-
-      if (!resp.ok) {
-        throw new Error(`Failed to fetch code: ${resp.statusText}`);
-      }
-
-      const { code, prompt: actualPrompt } = await resp.json();
-      resolvePrompt(actualPrompt ?? null);
-      return '```tsx\n' + code + '\n```';
-    } catch (error) {
-      resolvePrompt(null);
-      throw error;
-    }
+    // SidekickDB: upstream sends the prompt to an example server run by
+    // Instant and returns stored code from it. SidekickDB has no such server,
+    // so without a model key the starter says how to set one and sends the
+    // prompt nowhere.
+    void userText;
+    resolvePrompt(null);
+    return [
+      'No AI model is configured, so nothing was generated.',
+      '',
+      'Set `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` in `.env` (and `AI_MODEL` to pick a model), then restart the dev server.',
+    ].join('\n');
   }
 
   const mockUsage = {
