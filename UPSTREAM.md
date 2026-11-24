@@ -839,7 +839,7 @@ offered base is not bundled). Keep `bun-react` on `latest` and delete
 until the example works against a SidekickDB server with no request to an
 Instant-owned host; keep the `User-Agent` edit in `ai-chat`.
 
-### Brand: READMEs and package descriptions (PR #56)
+### Brand: READMEs, package descriptions and CLI text (PR #56, PR #61)
 
 What a visitor of the repository or of a package's npm page reads presents the
 project as SidekickDB:
@@ -856,11 +856,21 @@ project as SidekickDB:
 - `self-hosting/README.md`, `client/README.md`, `server/README.md`: title and
   first lines.
 - `CONTRIBUTING.md`: SidekickDB's own; upstream has none.
+- PR #61: what `sidekick-cli` and `create-sidekick-app` print.
+  `create-instant-app/src/utils/title.ts` shows a plain-text title, not
+  upstream's logo banner. Printed strings in `client/packages/cli/src` and
+  `create-instant-app/src` say "SidekickDB"; text that named a server feature
+  says what it is ("shared dev credentials", "managed by the server", "Server
+  verified"). The welcome comment `platform/src/perms.ts` writes into a new
+  permissions file is changed too. Identifiers, `X-Instant-*` headers, the
+  `instant-cli` alias, generated file names and docs links are upstream's.
 
 **Resolving:** keep SidekickDB's text. When upstream changes what a README
 says (a new API, a new SDK, a changed command), write that change into
 SidekickDB's text by hand. In a `package.json` keep SidekickDB's `description`
-and take upstream's other changes.
+and take upstream's other changes. For printed text keep SidekickDB's wording,
+give a string upstream adds the same treatment, and update the tests that
+assert it.
 
 ### NOTICE file (PR #41)
 
