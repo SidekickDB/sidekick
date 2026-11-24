@@ -620,7 +620,7 @@ other changes in those files.
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are.
 
-### Release pipeline (PR #18, PR #39, PR #40)
+### Release pipeline (PR #18, PR #39, PR #40, PR #42)
 
 - `.github/workflows/sidekick-release-npm.yml` and
   `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
@@ -636,6 +636,9 @@ then take upstream's version. Take upstream's new tests as they are.
   outside SidekickDB's scope and is not published.
 - `client/packages/version/src/version.ts` is SidekickDB's: its own version
   line, starting at `v2.0.0` (see `RELEASING.md`, version rules).
+- The released npm tarballs and images carry `LICENSE.md` and `NOTICE`. Both
+  are added at release time by SidekickDB's own script and workflow; no
+  package directory and no Dockerfile is changed for it.
 
 **Resolving:** upstream has none of these files except
 `server/flags-config/package.json` and `client/packages/mcp/package.json`;

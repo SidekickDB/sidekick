@@ -18,10 +18,13 @@ publish credential:
 
 - `build` (`contents: read` only): installs, builds and packs the packages
   (`sidekick-release-npm.mjs pack`) and uploads the tarballs with a manifest.
+  Packing copies the repository's `LICENSE.md` and `NOTICE` into every package
+  and removes them again afterwards, so each tarball carries both.
 - `publish` (`id-token: write`, `npm-release` environment): no install and no
   build. It checks out only the release script, the package manifests and
   `version.ts`, checks the downloaded tarballs against them (version, names,
-  order, file list, and the name and version inside each tarball) and runs
+  order, file list, the name and version inside each tarball, and that each
+  tarball has `LICENSE.md` and `NOTICE`) and runs
   `npm publish` (`sidekick-release-npm.mjs publish-tarballs`).
 
 ## One-time setup (repository owner)
@@ -151,6 +154,12 @@ Actions → **Release Docker images (SidekickDB)** → Run workflow, branch `mai
   `version`, for example `v2.0.0`, when given), and
   `postgresql-17-pg-hint-plan` and `<sha>` for postgresql. The per-arch tags
   stay in the public packages next to the multi-arch ones.
+
+Every image has the repository's `LICENSE.md` and `NOTICE` in `/licenses/`.
+The Dockerfiles are upstream's and are not changed for this: the workflow
+builds from a copy of the Dockerfile with one more `COPY` step at the end.
+Check a pushed image with
+`docker run --rm --entrypoint ls ghcr.io/sidekickdb/server /licenses`.
 
 A push needs two approvals of the `image-release` environment: one for the
 build matrix and one for the manifest job. A malformed `version` fails every

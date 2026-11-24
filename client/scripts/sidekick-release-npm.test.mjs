@@ -7,13 +7,16 @@ import path from "node:path";
 import { test } from "node:test";
 
 import {
+  addLicenceFiles,
   checkNames,
   checkVersion,
   CLIENT_DIR,
+  LICENCE_FILES,
   listPackages,
   orderPackages,
   parseVersion,
   readVersion,
+  removeLicenceFiles,
   RELEASE_ENVIRONMENT,
   RELEASE_WORKFLOW,
   MANIFEST,
@@ -103,6 +106,42 @@ test("the trust settings match the release workflow", () => {
   assert.match(withToken[0], new RegExp(`^    environment: ${RELEASE_ENVIRONMENT}$`, "m"));
 });
 
+test("the licence files go into each package for packing and come out again", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-licence-"));
+  for (const f of LICENCE_FILES) fs.writeFileSync(path.join(root, f), f);
+  const pkg = (name, json) => {
+    const dir = path.join(root, name);
+    fs.mkdirSync(dir);
+    const file = path.join(dir, "package.json");
+    fs.writeFileSync(file, JSON.stringify(json, null, 2) + "\n");
+    return { dir, file };
+  };
+  const plain = pkg("plain", { name: "plain" });
+  const listed = pkg("listed", { name: "listed", files: ["dist"] });
+  const before = [plain, listed].map((p) => fs.readFileSync(p.file, "utf8"));
+
+  addLicenceFiles([plain, listed], root);
+  for (const p of [plain, listed])
+    for (const f of LICENCE_FILES)
+      assert.equal(fs.readFileSync(path.join(p.dir, f), "utf8"), f);
+  assert.equal(JSON.parse(fs.readFileSync(plain.file, "utf8")).files, undefined);
+  assert.deepEqual(JSON.parse(fs.readFileSync(listed.file, "utf8")).files, ["dist", ...LICENCE_FILES]);
+  // A package's own file is never overwritten.
+  assert.throws(() => addLicenceFiles([plain], root), /already exists/);
+
+  removeLicenceFiles([plain, listed]);
+  for (const p of [plain, listed]) assert.deepEqual(fs.readdirSync(p.dir), ["package.json"]);
+  assert.deepEqual(
+    [plain, listed].map((p) => fs.readFileSync(p.file, "utf8")),
+    before,
+  );
+});
+
+test("the repository has the licence files the packages ship", () => {
+  for (const f of LICENCE_FILES)
+    assert.ok(fs.existsSync(path.join(CLIENT_DIR, "..", f)), f);
+});
+
 function artifact(files, manifest) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sk-artifact-"));
   for (const f of files) fs.writeFileSync(path.join(dir, f), "");
@@ -121,10 +160,25 @@ test("the publish job accepts only the artifact this checkout expects", () => {
     ],
   };
   const inside = (map) => (tgz) => map[path.basename(tgz)];
+  const entries = ["package/package.json", "package/LICENSE.md", "package/NOTICE"];
   const ok = inside({
-    [files[0]]: { name: "@sidekickdb/version", version: "1.0.68" },
-    [files[1]]: { name: "@sidekickdb/core", version: "1.0.68" },
+    [files[0]]: { name: "@sidekickdb/version", version: "1.0.68", entries },
+    [files[1]]: { name: "@sidekickdb/core", version: "1.0.68", entries },
   });
+  for (const missing of ["package/LICENSE.md", "package/NOTICE"]) {
+    const without = inside({
+      [files[0]]: { name: "@sidekickdb/version", version: "1.0.68", entries },
+      [files[1]]: {
+        name: "@sidekickdb/core",
+        version: "1.0.68",
+        entries: entries.filter((e) => e !== missing),
+      },
+    });
+    assert.throws(
+      () => verifyArtifact(artifact(files, good), expect, without),
+      (e) => e.message === `sidekickdb-core-1.0.68.tgz has no ${missing.slice(8)}`,
+    );
+  }
   const items = verifyArtifact(artifact(files, good), expect, ok);
   assert.deepEqual(items.map((i) => i.name), expect.names);
 
@@ -143,8 +197,8 @@ test("the publish job accepts only the artifact this checkout expects", () => {
   assert.throws(
     () =>
       verifyArtifact(artifact(files, good), expect, inside({
-        [files[0]]: { name: "@sidekickdb/version", version: "1.0.68" },
-        [files[1]]: { name: "@sidekickdb/admin", version: "1.0.68" },
+        [files[0]]: { name: "@sidekickdb/version", version: "1.0.68", entries },
+        [files[1]]: { name: "@sidekickdb/admin", version: "1.0.68", entries },
       })),
     /contains @sidekickdb\/admin@1\.0\.68, expected @sidekickdb\/core@1\.0\.68/,
   );
