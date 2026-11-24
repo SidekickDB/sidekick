@@ -54,9 +54,10 @@ Could it be better?
 
 In 2021, **we realized that most of the schleps we face as UI engineers are actually database problems in disguise.** (We got into greater detail [in this essay](https://instantdb.com/essays/next_firebase))
 
+<!-- SidekickDB: diagrams load from the copies in this repository, not from instantdb.com. -->
 <p align="center">
   <a href="#">
-    <img alt="Shows how Instant compresses schleps" src="https://instantdb.com/readmes/compression.svg">
+    <img alt="Shows how Instant compresses schleps" src="./client/www/public/readmes/compression.svg">
   </a>
 </p>
 
@@ -68,9 +69,10 @@ So we built Instant. Instant gives you a database you can use in the client, so 
 
 Here's how Instant works at a high level:
 
+<!-- SidekickDB: diagram loads from the copy in this repository, not from instantdb.com. -->
 <p align="center">
   <a href="#">
-    <img alt="Shows how Instant compresses schleps" src="https://instantdb.com/readmes/architecture.svg">
+    <img alt="Shows how Instant compresses schleps" src="./client/www/public/readmes/architecture.svg">
   </a>
 </p>
 

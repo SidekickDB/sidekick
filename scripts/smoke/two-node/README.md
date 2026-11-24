@@ -30,8 +30,9 @@ On GitHub: **Actions → Two-node smoke test → Run workflow**. The `restart`
 input also restarts node A after the first pass and runs the checks again.
 It also runs on pull requests that change `self-hosting/`, the server's
 clustering code (`server/src/instant/reactive/ephemeral.clj`,
-`reactive/invalidator.clj`, `util/hazelcast.clj`, `grpc*.clj`), the
-self-hosted Dockerfile, the shared client helper
+`reactive/invalidator.clj`, `util/hazelcast.clj`, `grpc*.clj`, `config.clj`),
+`server/deps.edn` (Hazelcast and gRPC versions), the self-hosted Dockerfile,
+the shared client helper
 (`scripts/bench/self-hosted/client.mjs`), this directory or the workflow. The job summary
 shows the result; the artifact has `result.json` and every container's log.
 

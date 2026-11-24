@@ -33,8 +33,8 @@ gh project item-edit --id <PVTI_…> --project-id <project id> \
 ```
 
 - Start: `In progress`.
-- Pull request open: stay `In progress`, add a `PR: <link>` line as the very
-  first line of the body (above `Blocked by:` if there is one).
+- Pull request open: stay `In progress`, add a `PR: <link>` line at the top
+  of the body (above `Blocked by:` if there is one).
 - Merged and the card's "Done when" checked to be true: `Done`.
 
 ## Edit a card's text
@@ -85,8 +85,8 @@ the facts down. Check the facts in the code before writing them.
 ## Archive a card
 
 Archiving is the owner's decision, except for a duplicate you have merged into
-another card. Write the reason as the first line of the body
-(`Archived: <reason>`), then:
+another card. Write the reason as the very first line of the body
+(`Archived: <reason>`, above `PR:` and `Blocked by:`), then:
 
 ```sh
 gh project item-archive 1 --owner SidekickDB --id <PVTI_…>
