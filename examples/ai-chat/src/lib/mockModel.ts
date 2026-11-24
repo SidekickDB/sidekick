@@ -3,7 +3,9 @@ import { simulateReadableStream } from 'ai';
 import { NodeHtmlMarkdown } from 'node-html-markdown';
 
 const wikiHeaders = {
-  'User-Agent': 'InstantDB-ChatExample/1.0 (https://instantdb.com)',
+  // SidekickDB: do not name Instant as the contact for these requests.
+  'User-Agent':
+    'SidekickDB-ChatExample/1.0 (https://github.com/SidekickDB/sidekick)',
 };
 
 async function fetchJson(url: string): Promise<unknown> {

@@ -160,11 +160,20 @@ describe('applyBackendConfig', () => {
 });
 
 describe('project base backend config', () => {
-  // SidekickDB: the Python starter installs Instant's PyPI package.
-  it('does not offer or bundle the Python starter', () => {
-    expect(projectBases).not.toContain('python-script');
-    expect(bundledProjectBases).not.toContain('python-script');
-    expect(projectBaseConfig['python-script']).toBeDefined();
+  // SidekickDB: these starters depend on Instant's package or services.
+  it.each(['python-script', 'vercel-ai-sdk'] as const)(
+    'does not offer or bundle %s',
+    (base) => {
+      expect(projectBases).not.toContain(base);
+      expect(bundledProjectBases).not.toContain(base);
+      expect(projectBaseConfig[base]).toBeDefined();
+    },
+  );
+
+  // SidekickDB: a base that is offered but not bundled would be downloaded
+  // at run time. This fails when an upstream merge adds one.
+  it('bundles every base it offers', () => {
+    expect(bundledProjectBases).toEqual(projectBases);
   });
 
   it.each(projectBases)('%s matches its example template', (base) => {
