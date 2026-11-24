@@ -1,9 +1,11 @@
 (ns instant.superadmin.routes-test
   (:require
    [clojure.test :refer [deftest is testing]]
+   [instant.config :as config]
    [instant.core :as core]
-   [instant.fixtures :refer [with-empty-app with-user]]
+   [instant.fixtures :refer [random-email with-empty-app with-user]]
    [instant.model.instant-personal-access-token :as instant-personal-access-token-model]
+   [instant.resend :as resend]
    [instant.util.coll :as coll]
    [instant.util.json :refer [->json <-json]]
    [instant.util.tracer :as tracer])
@@ -61,3 +63,40 @@
               (fn [other]
                 (is (thrown-with-msg? ExceptionInfo #"status 400"
                                       (get-app app (:refresh-token other))))))))))))
+
+;; SidekickDB: the transfer invite uses this server's team sender and
+;; dashboard URL and goes through email-router. Upstream sends it with
+;; postmark/send! from teams@pm.instantdb.com with a link to instantdb.com.
+(deftest app-transfer-invite-uses-the-configured-sender-and-provider
+  (with-user
+    (fn [u]
+      (with-empty-app (:id u)
+        (fn [app]
+          (let [send-transfer (fn [dest-email]
+                                (request {:method :post
+                                          :url (str "/superadmin/apps/" (:id app) "/transfers/send")
+                                          :headers {"authorization" (str "Bearer " (:refresh-token u))}
+                                          :body {:dest_email dest-email}}))]
+
+            (testing "with only Resend configured, Resend gets the invite"
+              (let [sent (atom nil)
+                    dest-email (random-email)]
+                (with-redefs [config/email-send-enabled? (constantly true)
+                              config/email-provider (constantly nil)
+                              config/resend-send-enabled? (constantly true)
+                              config/sendgrid-send-enabled? (constantly false)
+                              config/postmark-send-enabled? (constantly false)
+                              config/team-email-sender (constantly {:name "Team" :email "teams@example.com"})
+                              config/dashboard-origin (constantly "https://dash.example.com")
+                              resend/send! #(reset! sent %)]
+                  (is (= 200 (:status (send-transfer dest-email)))))
+                (is (= {:name "Team" :email "teams@example.com"} (:from @sent)))
+                (is (= [{:email dest-email}] (:to @sent)))
+                (is (re-find #"https://dash\.example\.com/dash\?s=invites" (:html @sent)))
+                (is (not (re-find #"instantdb\.com" (:html @sent))))))
+
+            (testing "without a team sender the invite is refused"
+              (with-redefs [config/email-send-enabled? (constantly true)
+                            config/team-email-sender (constantly {:name "Team" :email nil})]
+                (is (thrown-with-msg? ExceptionInfo #"status 500"
+                                      (send-transfer (random-email))))))))))))

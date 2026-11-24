@@ -2,7 +2,9 @@
   (:require [clojure.walk :as w]
             [compojure.core :as compojure :refer [defroutes DELETE GET POST]]
             [hiccup2.core :as h]
+            [instant.config :as config]
             [instant.db.model.attr :as attr-model]
+            [instant.email-router :as email-router]
             [instant.model.app :as app-model]
             [instant.model.instant-personal-access-token :as instant-personal-access-token-model]
             [instant.model.instant-user :as instant-user-model]
@@ -11,7 +13,6 @@
             [instant.model.org :as org-model]
             [instant.model.rule :as rule-model]
             [instant.model.schema :as schema-model]
-            [instant.postmark :as postmark]
             [instant.util.email :as email]
             [instant.util.exception :as ex]
             [instant.util.http :as http-util]
@@ -211,20 +212,26 @@
 ;; ---------
 ;; Transfers
 
+;; SidekickDB: the sender and the link come from this server's configuration
+;; (upstream: teams@pm.instantdb.com and instantdb.com/dash), and the letter
+;; is structured for email-router.
 (defn transfer-app-invite-email [inviter-user app invitee-email]
-  (let [title "Instant"]
-    {:from (str title " <teams@pm.instantdb.com>")
-     :to invitee-email
+  (let [{sender-name :name sender-email :email} (config/team-email-sender)
+        invite-url (str (config/dashboard-origin) "/dash?s=invites")]
+    {:from {:name sender-name
+            :email sender-email}
+     :to [{:email invitee-email}]
      :subject (str "[Instant] You've been asked to take ownership of " (:title app))
+     :reply-to sender-email
      :html
-     (postmark/standard-body
+     (email/standard-body
       (h/html
        [:p [:strong "Hey there!"]]
        [:p
         (:email inviter-user) " invited you to become the new owner of " (:title app) "."]
        [:p
         "Navigate to "
-        [:a {:href "https://instantdb.com/dash?s=invites"} "Instant"]
+        [:a {:href invite-url} "Instant"]
         " to accept the invite."]
        [:p
         "Note: This invite will expire in 3 days. If you "
@@ -235,14 +242,17 @@
         invitee-email (ex/get-param! req [:body :dest_email] email/coerce)
         {app-id :id} app
         {user-id :id} user
+        ;; SidekickDB: check the sender before the invite is stored, and send
+        ;; through email-router (upstream: postmark/send!).
+        letter (transfer-app-invite-email user app invitee-email)
+        _ (email-router/assert-sender! letter)
         {invite-id :id} (member-invites-model/create!
                          {:type :app
                           :foreign-key app-id
                           :inviter-id user-id
                           :email invitee-email
                           :role "creator"})]
-    (postmark/send!
-     (transfer-app-invite-email user app invitee-email))
+    (email-router/send-structured! letter)
     (response/ok {:id invite-id})))
 
 (defn app-transfer-revoke-post [req]
