@@ -229,7 +229,7 @@ how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences.mjs`).
 
-### CI lockdown (PR #1, PR #5, PR #27, PR #45)
+### CI lockdown (PR #1, PR #5, PR #27, PR #54)
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -260,7 +260,7 @@ services. SidekickDB releases only through its own two release workflows (PR
   or more (or a missing list) as truncated and run everything. A branch without
   a pull request gets no run, so PR #5's first-push comparison is now reached
   only by the first push of `main`; it is kept to keep the diff small.
-- PR #45: `clojure.yml` has a job `clj-check-result` that always runs and
+- PR #54: `clojure.yml` has a job `clj-check-result` that always runs and
   fails unless the `clj-check` matrix passed or was skipped. The ruleset on
   `main` requires it; the matrix itself reports under a different name per
   shard and cannot be required.
