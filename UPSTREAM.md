@@ -16,17 +16,18 @@ too, so every upstream commit keeps its author and message.
 
 [`LICENSE.md`](LICENSE.md) is upstream's Apache-2.0 licence, unchanged. Upstream
 ships no `NOTICE` file. SidekickDB adds its own [`NOTICE`](NOTICE), which names
-the original work and says that files were changed. SidekickDB's own changes are listed under
-[Intentional divergences](#intentional-divergences) below, and each one is in the
-git history with the pull request that made it.
+the original work and says that files were changed. SidekickDB's own changes
+are listed under [Intentional divergences](#intentional-divergences) below, and
+each one is in the git history with the pull request that made it.
 
 Section 4(b) of the licence asks that modified files carry prominent notices
 stating that they were changed. SidekickDB has not added per-file notices so
-far: the changes are stated in `NOTICE`, documented here, marked with
-`SidekickDB:` comments where the file format allows one, and are in the git
-history (every file's log shows which commits are SidekickDB's). Whether per-file notices should be added
-is an open decision for the maintainers; this is a description of the current
-state, not legal advice.
+far: `NOTICE` says that files were changed, the intentional changes are
+documented here and many of them carry a `SidekickDB:` comment, and every
+change is in the git history (every file's log shows which commits are
+SidekickDB's). Files changed only by the mechanical package rename carry no
+marker. Whether per-file notices should be added is an open decision for the
+maintainers; this is a description of the current state, not legal advice.
 
 ## How the fork relates to upstream
 

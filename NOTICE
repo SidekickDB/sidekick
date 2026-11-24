@@ -10,8 +10,9 @@ SidekickDB is an independent continuation of that code. It is not
 affiliated with or endorsed by Instant. "Instant" and "InstantDB" are used
 here only to say where the code comes from.
 
-Files in this repository have been changed from the original. The changes
-are listed in UPSTREAM.md under "Intentional divergences", are marked with
-"SidekickDB:" comments in the files where the format allows a comment, and
-are recorded in the git history, which also keeps the original authors of
-every upstream commit.
+Files in this repository have been changed from the original. The
+intentional changes are listed in UPSTREAM.md under "Intentional
+divergences", and many of them are marked with a "SidekickDB:" comment in
+the file. Mechanical renames (the package scope and package names) are not
+marked in the files. Every change is recorded in the git history, which
+also keeps the original authors of every upstream commit.
