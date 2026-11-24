@@ -23,11 +23,12 @@ each one is in the git history with the pull request that made it.
 Section 4(b) of the licence asks that modified files carry prominent notices
 stating that they were changed. SidekickDB has not added per-file notices so
 far: `NOTICE` says that files were changed, the intentional changes are
-documented here and many of them carry a `SidekickDB:` comment, and every
-change is in the git history (every file's log shows which commits are
-SidekickDB's). Files changed only by the mechanical package rename carry no
-marker. Whether per-file notices should be added is an open decision for the
-maintainers; this is a description of the current state, not legal advice.
+documented here, and every change is in the git history (every file's log
+shows which commits are SidekickDB's). Some changes carry a `SidekickDB:`
+comment; most changed files carry no marker, including every file changed only
+by the package or configuration rename. Whether per-file notices should be
+added is an open decision for the maintainers; this is a description of the
+current state, not legal advice.
 
 ## How the fork relates to upstream
 
