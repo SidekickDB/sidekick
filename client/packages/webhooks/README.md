@@ -362,7 +362,7 @@ Each event's `attempts` array records, per attempt: HTTP status, response body (
 
 ## `manager.getEvent(webhookId, isn)`
 
-Fetches a single event by its `isn` (SidekickDB Sequence Number).
+Fetches a single event by its `isn` (Instant Sequence Number).
 
 ```ts
 const event = await db.webhooks.manager.getEvent(webhook.id, isn);

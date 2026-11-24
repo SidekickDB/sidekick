@@ -6,7 +6,7 @@ Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent con
 
 Welcome to SidekickDB's platform SDK.
 
-The Platform SDK allows you to manage apps on behalf of an SidekickDB user.
+The Platform SDK allows you to manage apps on behalf of a SidekickDB user.
 
 # Usage
 

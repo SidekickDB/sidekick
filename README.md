@@ -85,7 +85,7 @@ All data goes through a permission system powered by Google's [CEL library](http
 
 ## Getting Started
 
-SidekickDB is self-hosted. [`self-hosting/README.md`](./self-hosting/README.md) starts the server, the dashboard, Postgres and object storage with Docker Compose, from the images on `ghcr.io/sidekickdb`.
+SidekickDB is self-hosted. [`self-hosting/README.md`](./self-hosting/README.md) starts the stack with Docker Compose: the server, dashboard and Postgres images from `ghcr.io/sidekickdb`, plus RustFS for object storage.
 
 The documentation is in this repository under [`client/www/app/docs`](./client/www/app/docs/page.md). [`RELEASING.md`](./RELEASING.md) says what is released and where.
 

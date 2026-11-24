@@ -4,7 +4,7 @@
 
 Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant.
 
-This is a package all SidekickDB client packages depend on to get the version.
+This is a package all SidekickDB client packages can depend on to get the version.
 
 # Get Started
 
