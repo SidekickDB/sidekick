@@ -48,10 +48,15 @@ clear it otherwise.
 
 ## Add a card
 
-New work is always a new **Backlog** card (or **Owner**, when only the owner
-can decide or do it); the owner moves it to Ready. For
-more than a quick note, hand the idea to the `planner` agent, which checks the
-facts and writes the card.
+Only the `planner` agent adds cards. Everyone else hands the proposal to the
+planner (what, where, why) and never runs `gh project item-create`. The
+planner reviews it first: add, merge into an existing card, drop, or escalate
+to the owner. The rules are under "New cards go through the planner" in
+`.claude/rules/lifecycle.md`.
+
+A new card is **Backlog** (or **Owner**, when the owner said yes and it stays
+the owner's to decide or do); the owner moves it to Ready. The planner's
+command:
 
 ```sh
 gh project item-create 1 --owner SidekickDB --title "<title>" --body "<body>" --format json
@@ -100,3 +105,4 @@ Archived cards can be restored; nothing is deleted.
   asks. The repository is public; cards are not.
 - Quote or summarise an Area **Security** card anywhere outside the board.
 - Start a card that is not Ready.
+- Add a card unless you are the planner and have reviewed the proposal.

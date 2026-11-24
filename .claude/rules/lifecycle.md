@@ -7,8 +7,8 @@ One board, four roles, six steps. Nothing else.
 | Role | Who | Does | Never |
 |---|---|---|---|
 | Owner | the maintainer | Decides what is worth doing, moves cards to Ready, says when to merge, does releases and settings | |
-| Planner | `planner` agent | Turns ideas, bugs and findings into cards that stand on their own; checks facts; proposes priority, order and what to archive | Writes code, moves a card to Ready, archives anything but a merged duplicate |
-| Implementer | the working agent | Takes one Ready card, makes the change, opens the pull request | Reviews its own work, merges without the owner's word |
+| Planner | `planner` agent | Reviews every proposed card and is the only one who adds cards; checks facts; escalates to the owner; proposes priority, order and what to archive | Writes code, moves a card to Ready, archives anything but a merged duplicate, adds a card that should have been escalated |
+| Implementer | the working agent | Takes one Ready card, makes the change, opens the pull request | Reviews its own work, merges without the owner's word, adds cards |
 | Reviewer | `reviewer` agent | Reviews the exact head commit of a pull request in a temporary worktree | Edits, pushes, comments on GitHub, merges |
 
 One agent can hold different roles on different cards, never two roles on the
@@ -19,7 +19,7 @@ same card.
 | Step | Board status | Who | Leaves the step when |
 |---|---|---|---|
 | 1. Idea | none yet | anyone | told to the planner |
-| 2. Plan | Backlog | planner | the card has Context, Task, Done when, with facts checked in the code |
+| 2. Plan | none yet → Backlog | planner | the proposal is reviewed, escalated if needed, and the card has Context, Task, Done when, with facts checked in the code |
 | 3. Approve | Owner or Backlog → Ready | owner | the owner moves it to Ready (or archives it) |
 | 4. Build | In progress | implementer | pull request open, checks green, link on the card |
 | 5. Review | In progress | reviewer | APPROVE for the current head commit; any new push needs a new review |
@@ -29,12 +29,50 @@ Cards with status **Owner** are decisions or actions only the owner can take;
 they skip steps 4 to 6 unless the decision creates follow-up work, which is a
 new card.
 
+## New cards go through the planner
+
+Nobody adds a card to the board directly. Only the `planner` agent creates
+cards, and only after it has reviewed the proposal.
+
+1. **Propose.** Whoever finds new work, a bug or a follow-up tells the
+   planner: what, where (file:line or command output), why it matters. No
+   card yet, and no note anywhere else.
+2. **Review.** The planner checks the facts, looks for a duplicate, and asks:
+   is it true, does anyone need it, is it one piece of work? It ends with one
+   verdict:
+
+   | Verdict | When | What happens |
+   |---|---|---|
+   | Add | Checked defect or follow-up inside work the owner already agreed to | The planner adds a Backlog card |
+   | Merge | An existing card covers it | The planner extends that card, no new card |
+   | Drop | Not true, speculative, or too small to be a card | No card; one line saying why goes back to the proposer |
+   | Escalate | See below | No card until the owner answers |
+
+3. **Escalate** to the owner, before adding anything, when the proposal:
+   - needs a decision or action only the owner can take (scope, brand,
+     release, settings, money, anything that contacts a third party);
+   - changes what the project is or does for its users, as opposed to
+     repairing agreed behaviour;
+   - is in Area Security;
+   - would become more than three cards from one request (for example
+     splitting a large card): the owner sees the list first;
+   - leaves the planner unsure that it is worth doing.
+
+   The planner returns the question with its recommendation; the session
+   that called it puts the question to the owner. On a yes the planner adds
+   the card (Backlog, or Owner when it stays the owner's to do). On a no,
+   nothing is added.
+
+A P0 (harms users or the project's standing now) is added at once and
+reported to the owner in the same turn.
+
 ## Rules
 
-1. No work without a card; no card without a check of its facts.
+1. No work without a card; no card without the planner's review of its
+   facts.
 2. One card in progress at a time.
 3. A review finding is fixed in the same pull request if it belongs to the
-   card. Anything else becomes a new Backlog card.
+   card. Anything else is proposed to the planner.
 4. A card is Done only when its "Done when" is observably true, not when the
    pull request is merged.
 5. A card that turns out wrong or not worth doing is archived by the owner,
