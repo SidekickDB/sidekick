@@ -69,7 +69,8 @@ export const DIVERGENCES = {
       "CORS rule, AWS_REQUEST_CHECKSUM_CALCULATION, the healthchecks and the unpublished Postgres port " +
       "(${POSTGRES_BIND_ADDRESS:-127.0.0.1}:8890 in docker-compose.yml, no ports in swarm.yml), the " +
       "127.0.0.1: prefix on every port in server/docker-compose-dev.yml, and the " +
-      'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container. ' +
+      'UPGRADE_DB.md pg_dump that reads "$POSTGRES_USER" and "$POSTGRES_DB" from the container ' +
+      "(and its intro paragraph that says nothing needs substituting). " +
       'In server config keep "no default ' +
       "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form. " +
       "Keep the required POSTGRES_PASSWORD, mem_limit and the default JAVA_OPTS (PR #13). In jwt.clj and " +
