@@ -167,13 +167,25 @@ export const DIVERGENCES = {
       "Upstream has no NOTICE. If it adds one, keep its attribution notices and SidekickDB's text in the " +
       "same file (Apache-2.0 section 4(d)).",
   },
+  brand: {
+    title:
+      "Brand: README body, package READMEs and descriptions, self-hosting/client/server README headers and CONTRIBUTING.md present the project as SidekickDB",
+    prs: [56],
+    resolve:
+      "Keep SidekickDB's text: no Instant logo, badges, Discord or instantdb.com links, the name SidekickDB in " +
+      "prose, docs links to client/www/app/docs in this repository. When upstream changes what a README says " +
+      "(a new API, a new SDK, a changed command), write that change into SidekickDB's text by hand. In a " +
+      "package.json keep SidekickDB's description and take upstream's other changes. Identifiers in code " +
+      "samples (Instant-Signature, instant.schema.ts, InstantError) stay upstream's.",
+  },
   "readme-header": {
     title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
     prs: [38, 48],
     resolve:
       "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
       "the logo, the Discord and stars badges or the instantdb.com link row. Keep the two diagrams on their " +
-      "relative paths under client/www/public/readmes/, not instantdb.com. Take upstream's other changes below it.",
+      "relative paths under client/www/public/readmes/, not instantdb.com. The text below the header is " +
+      "SidekickDB's too since PR #56 (see brand).",
   },
   rename: {
     title:
@@ -233,6 +245,7 @@ const PR_CATEGORY = {
   49: "own-fixes",
   51: "removed-ws-playground",
   52: "upstream-fixes",
+  56: "brand",
 };
 
 export function categoryFor(pr, file) {

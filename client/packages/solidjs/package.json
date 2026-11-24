@@ -2,7 +2,7 @@
   "name": "@sidekickdb/solidjs",
   "type": "module",
   "version": "0.0.0",
-  "description": "SolidJS client for InstantDB",
+  "description": "SolidJS client for SidekickDB",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

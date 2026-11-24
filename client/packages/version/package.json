@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/version",
   "version": "0.0.0",
-  "description": "Instant's shared version package",
+  "description": "SidekickDB's shared version package",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/version",
   "repository": {

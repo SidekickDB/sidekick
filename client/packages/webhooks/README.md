@@ -1,35 +1,19 @@
-<p align="center">
-  <a href="https://instantdb.com">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">@sidekickdb/webhooks</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo, badges and links. -->
 
-<p align="center">
-  <a
-    href="https://discord.com/invite/VU53p7uQcE" >
-    <img height=20 src="https://img.shields.io/discord/1031957483243188235" alt="Discord members" />
-  </a>
-  <img src="https://img.shields.io/github/stars/instantdb/instant" alt="stars">
-</p>
+# @sidekickdb/webhooks
 
-<p align="center">
-   <a href="https://www.instantdb.com/docs/webhooks">Get Started</a> ·
-   <a href="https://instantdb.com/examples">Examples</a> ·
-   <a href="https://www.instantdb.com/docs/webhooks">Docs</a> ·
-   <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
-</p>
+Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant.
 
-Welcome to [Instant's](http://instantdb.com) webhooks library.
+Welcome to SidekickDB's webhooks library.
 
-This package gives you the building blocks for working with Instant webhooks: verifying incoming requests, dispatching records to typed handlers, and managing webhook subscriptions and their delivery history.
+This package gives you the building blocks for working with SidekickDB webhooks: verifying incoming requests, dispatching records to typed handlers, and managing webhook subscriptions and their delivery history.
 
 # Where to use this
 
 The `Webhooks` class is re-exported from a few places. Use whichever fits your setup:
 
 - **From `@sidekickdb/admin`** — most apps. `db.webhooks` is wired up for you. An admin token is only required if you also want to manage webhooks (`db.webhooks.manager.*`); the receiving side (`processRequest` / `validate`) works without one.
-- **From `@sidekickdb/platform`** — building on top of Instant on behalf of other users. `api.webhooks(appId)` returns a `Webhooks` instance, and the platform SDK transparently refreshes the OAuth token for manager calls. Auth is only required if you'll use `manager.*`.
+- **From `@sidekickdb/platform`** — building on top of SidekickDB on behalf of other users. `api.webhooks(appId)` returns a `Webhooks` instance, and the platform SDK transparently refreshes the OAuth token for manager calls. Auth is only required if you'll use `manager.*`.
 - **Standalone from `@sidekickdb/webhooks`** — useful if you don't want to pull in the rest of the admin SDK. Again, no admin token is needed unless you'll call `manager.*`.
 
 ## From the admin SDK
@@ -155,7 +139,7 @@ Options:
 
 Handler resolution is most-specific-wins: `namespace` + `action` → that namespace's `$default` → top-level `$default`. Records with no matching handler are skipped.
 
-Handlers run concurrently. `processRequest` resolves once all of them settle. If any handler rejects, the call rejects — return a non-2xx response so Instant retries the event.
+Handlers run concurrently. `processRequest` resolves once all of them settle. If any handler rejects, the call rejects — return a non-2xx response so SidekickDB retries the event.
 
 ## `processNodeRequest(handlers, req, opts?)`
 
@@ -225,7 +209,7 @@ export class WebhooksController {
 }
 ```
 
-If the adapter detects that an upstream parser turned the body into an object, it re-serializes it and tries anyway — but if the bytes don't match what Instant signed, you'll get a targeted error telling you to switch the route off the JSON parser.
+If the adapter detects that an upstream parser turned the body into an object, it re-serializes it and tries anyway — but if the bytes don't match what SidekickDB signed, you'll get a targeted error telling you to switch the route off the JSON parser.
 
 ## `processPayload(handlers, payload)`
 
@@ -237,7 +221,7 @@ const payload = await db.webhooks.fetchPayloads(body);
 await db.webhooks.processPayload(handlers, payload);
 ```
 
-Same resolution rules and concurrency model as `processRequest`: handlers run in parallel, and if any of them rejects the call rejects too — return a non-2xx response so Instant retries the event. If you'd rather have a per-handler failure not fail the whole batch, wrap that handler's body in `try`/`catch`.
+Same resolution rules and concurrency model as `processRequest`: handlers run in parallel, and if any of them rejects the call rejects too — return a non-2xx response so SidekickDB retries the event. If you'd rather have a per-handler failure not fail the whole batch, wrap that handler's body in `try`/`catch`.
 
 ## `validate(signatureHeader, body, opts?)`
 
@@ -352,7 +336,7 @@ await db.webhooks.manager.disable(webhook.id, {
 });
 ```
 
-Instant also disables webhooks automatically after repeated delivery failures.
+SidekickDB also disables webhooks automatically after repeated delivery failures.
 
 ## `manager.listEvents(webhookId, opts?)`
 
@@ -405,4 +389,4 @@ Rate-limited per event — calling it twice in quick succession returns a valida
 
 # Questions?
 
-If you have any questions, feel free to drop us a line on our [Discord](https://discord.com/invite/VU53p7uQcE)
+If you have any questions, feel free to open an issue on [GitHub](https://github.com/SidekickDB/sidekick/issues).

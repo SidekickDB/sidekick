@@ -1,11 +1,8 @@
-<p align="center">
-  <a href="#">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">instant-client</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo. -->
 
-This houses Instant's javascript monorepo! Here's the lay of the land:
+# SidekickDB client
+
+This houses SidekickDB's javascript monorepo! Here's the lay of the land:
 
 1. [`www/`](./www/)
    1. This is a nextjs app. It’s the frontend for [instantdb.com](https://instantdb.com), including the dashboard and docs.

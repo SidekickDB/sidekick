@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/webhooks",
   "version": "0.0.0",
-  "description": "Webhook handlers for Instant DB",
+  "description": "Webhook handlers for SidekickDB",
   "license": "Apache-2.0",
   "type": "module",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/webhooks",

@@ -1,30 +1,14 @@
-<p align="center">
-  <a href="https://instantdb.com">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">@sidekickdb/resumable-stream</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo, badges and links. -->
 
-<p align="center">
-  <a
-    href="https://discord.com/invite/VU53p7uQcE" >
-    <img height=20 src="https://img.shields.io/discord/1031957483243188235" alt="Discord members" />
-  </a>
-  <img src="https://img.shields.io/github/stars/instantdb/instant" alt="stars">
-</p>
+# @sidekickdb/resumable-stream
 
-<p align="center">
-   <a href="https://www.instantdb.com/docs/start-vanilla">Get Started</a> ·
-   <a href="https://instantdb.com/examples">Examples</a> ·
-   <a href="https://www.instantdb.com/docs/start-vanilla">Docs</a> ·
-   <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
-</p>
+Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant.
 
-Welcome to [Instant's](http://instantdb.com) resumable-stream library.
+Welcome to SidekickDB's resumable-stream library.
 
-This is a drop-in replacement for Vercel's resumable-stream library using InstantDB streams.
+This is a drop-in replacement for Vercel's resumable-stream library using SidekickDB streams.
 
-Instant's streams have no dependency on Redis and they never expire.
+SidekickDB's streams have no dependency on Redis and they never expire.
 
 ## Usage
 
@@ -111,4 +95,4 @@ export async function GET(
 
 # Questions?
 
-If you have any questions, feel free to drop us a line on our [Discord](https://discord.com/invite/VU53p7uQcE)
+If you have any questions, feel free to open an issue on [GitHub](https://github.com/SidekickDB/sidekick/issues).

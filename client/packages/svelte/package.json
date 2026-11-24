@@ -2,7 +2,7 @@
   "name": "@sidekickdb/svelte",
   "type": "module",
   "version": "0.0.0",
-  "description": "Svelte client for InstantDB",
+  "description": "Svelte client for SidekickDB",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/svelte",
   "repository": {

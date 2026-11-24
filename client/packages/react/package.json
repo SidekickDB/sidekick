@@ -1,7 +1,7 @@
 {
   "name": "@sidekickdb/react",
   "version": "0.0.0",
-  "description": "Instant DB for React",
+  "description": "SidekickDB for React",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/react",
   "repository": {
