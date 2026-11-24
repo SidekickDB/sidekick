@@ -13,8 +13,16 @@ export function setApiURL(apiURL: string) {
   configuredApiURL = apiURL;
 }
 
+/**
+ * SidekickDB: the first of `apiURL` and INSTANT_API_URL that is set, or
+ * undefined. A blank value counts as unset.
+ */
+export function resolveApiURL(apiURL: string | undefined): string | undefined {
+  return [apiURL, process.env.INSTANT_API_URL].find((v) => v?.trim());
+}
+
 export function getApiURL(): string {
-  const apiURL = configuredApiURL || process.env.INSTANT_API_URL;
+  const apiURL = resolveApiURL(configuredApiURL);
   if (!apiURL) {
     throw new Error(missingApiURLMessage);
   }

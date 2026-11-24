@@ -170,9 +170,11 @@ gh workflow run sidekick-release-images.yml -R SidekickDB/sidekick --ref main \
   -f push=true -f version=v2.0.0
 ```
 
-The self-hosting compose files still default to `ghcr.io/instantdb/*` images.
-Switch their defaults (and the self-hosting docs) to `ghcr.io/sidekickdb/*`
-after the first image release is public.
+The self-hosting compose files default to these images: `latest` of server
+and dashboard, and `postgresql-17-pg-hint-plan` of postgresql. A release that
+moves `latest` is what a self-hoster gets on the next `docker compose pull`.
+The server CI (`.github/workflows/clojure.yml`) runs its tests against the
+postgresql image too.
 
 ## Guard rails
 
