@@ -6,6 +6,7 @@
    [instant.config :as config]
    [instant.util.cache :as cache])
   (:import
+   (java.lang AutoCloseable)
    (java.time Instant)
    (java.time.temporal ChronoUnit)))
 
