@@ -38,9 +38,11 @@ not Markdown files, not TODO comments, not notes from earlier sessions. Use the
    names.
 2. One card at a time across all agents. Never work in parallel.
 3. Move the card as you go and put the pull request link in it.
-4. New work, a bug, a follow-up: add a Backlog card that stands on its own
-   (Context, Task, Done when). Do not fix it in passing and do not record it
-   anywhere else.
+4. New work, a bug, a follow-up: propose it to the `planner` agent. Do not
+   add the card yourself, do not fix it in passing and do not record it
+   anywhere else. The planner reviews it, escalates to the owner when needed,
+   and adds the card only if it makes sense ("New cards go through the
+   planner" in `.claude/rules/lifecycle.md`).
 5. Cards are private drafts on purpose. Do not convert a card to an issue
    unless the owner asks. Cards in Area **Security** are confidential: never
    convert them and never quote them in a commit, pull request, issue, comment

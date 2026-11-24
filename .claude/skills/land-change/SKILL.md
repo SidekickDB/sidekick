@@ -19,7 +19,7 @@ Never commit to `main`.
 ## 2. Change
 
 - Smallest change that does the card. No drive-by cleanups; new findings become
-  Backlog cards (`task` skill).
+  proposals to the `planner` agent, which decides whether they are cards.
 - Inherited (upstream) files: keep the edit small and mark it with a
   `SidekickDB:` comment saying why, where the format allows comments.
 - An intentional difference from upstream is recorded in two places:

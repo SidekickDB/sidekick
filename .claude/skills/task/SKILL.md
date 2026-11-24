@@ -1,6 +1,6 @@
 ---
 name: task
-description: Work with the SidekickDB task board (GitHub org project 1), the only source of tasks. Use to see what to work on, start or finish a card, change its status, or record new work, a bug or a follow-up as a card.
+description: Work with the SidekickDB task board (GitHub org project 1), the only source of tasks. Use to see what to work on, start or finish a card, change its status, or (planner only) add a card. Everyone else proposes new work, a bug or a follow-up to the planner agent.
 ---
 
 # Task board
@@ -48,16 +48,22 @@ clear it otherwise.
 
 ## Add a card
 
-New work is always a new **Backlog** card (or **Owner**, when only the owner
-can decide or do it); the owner moves it to Ready. For
-more than a quick note, hand the idea to the `planner` agent, which checks the
-facts and writes the card.
+Only the `planner` agent adds cards. Everyone else hands the proposal to the
+planner (what, where, why) and never runs `gh project item-create`. The
+planner reviews it first: add, merge into an existing card, drop, or escalate
+to the owner. The rules are under "New cards go through the planner" in
+`.claude/rules/lifecycle.md`.
+
+A new card is **Backlog** (or **Owner**, when the owner said yes and it stays
+the owner's to decide or do); the owner moves it to Ready. The planner's
+command:
 
 ```sh
 gh project item-create 1 --owner SidekickDB --title "<title>" --body "<body>" --format json
 ```
 
-Then set Status `Backlog`, an Area and a Priority as above.
+Then set Status (`Backlog` or `Owner`), an Area and a Priority with the
+commands under "Move a card".
 
 The body must stand on its own. Someone who has read nothing else must be able
 to do the task from it:
@@ -100,3 +106,4 @@ Archived cards can be restored; nothing is deleted.
   asks. The repository is public; cards are not.
 - Quote or summarise an Area **Security** card anywhere outside the board.
 - Start a card that is not Ready.
+- Add a card unless you are the planner and have reviewed the proposal.
