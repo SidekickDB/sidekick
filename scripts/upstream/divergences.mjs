@@ -92,13 +92,14 @@ export const DIVERGENCES = {
   },
   "bundled-starters": {
     title:
-      "create-sidekick-app bundles every starter; the download fallback points at SidekickDB's repository; bun-react without lockfile",
+      "create-sidekick-app bundles every starter it offers and does not offer vercel-ai-sdk; the download fallback points at SidekickDB's repository; bun-react without lockfile",
     prs: [60],
     resolve:
-      "Keep `bundled: true` on every base in create-instant-app/src/projectBase.ts, also on a base upstream " +
+      "Keep `bundled: true` on every offered base in create-instant-app/src/projectBase.ts, also on a base upstream " +
       "adds, and keep SidekickDB/sidekick as the repository in scaffold.ts. Keep examples/bun-react on " +
-      "`latest` and without bun.lock; if upstream changes that lockfile, delete it again. Keep the mockModel.ts " +
-      "edits in examples/vercel-ai-sdk (no request to api.instantdb.com) and examples/ai-chat (User-Agent).",
+      "`latest` and without bun.lock; if upstream changes that lockfile, delete it again. Keep vercel-ai-sdk in " +
+      "unavailableProjectBases (it calls api.instantdb.com and needs Instant's platform API) and the " +
+      "User-Agent edit in examples/ai-chat/src/lib/mockModel.ts.",
   },
   "python-starter": {
     title: "create-sidekick-app does not offer or bundle the Python starter; docs say the Python SDK is Instant's",

@@ -303,11 +303,8 @@ export const runCli = async (): Promise<Project> => {
                 label: 'Vite: Vue',
                 secondary: true,
               },
-              {
-                value: 'vercel-ai-sdk',
-                label: 'Vercel AI SDK App Builder + SSR',
-                secondary: true,
-              },
+              // SidekickDB: no vercel-ai-sdk entry, see unavailableProjectBases
+              // in projectBase.ts.
               {
                 value: 'ai-chat',
                 label: 'Vercel AI SDK Chat App',

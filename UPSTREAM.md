@@ -815,8 +815,8 @@ release, add it to `unavailableProjectBases`.
 
 `create-sidekick-app` downloads no starter at run time:
 
-- `client/packages/create-instant-app/src/projectBase.ts`: every base is
-  `bundled: true`. Upstream bundles some and clones the rest from
+- `client/packages/create-instant-app/src/projectBase.ts`: every offered base
+  is `bundled: true`. Upstream bundles some and clones the rest from
   `instantdb/instant` when the tool runs.
 - `client/packages/create-instant-app/src/scaffold.ts`: the download
   fallback, reached only when a bundled template is missing, uses
@@ -824,17 +824,20 @@ release, add it to `unavailableProjectBases`.
 - `examples/bun-react`: `@sidekickdb/react` is `latest`, and `bun.lock` is
   deleted: it resolved upstream's packages, and the tool deletes lockfiles
   from a new project anyway.
-- `examples/vercel-ai-sdk/src/lib/mockModel.ts`: without a model key upstream
-  sends the user's prompt to `api.instantdb.com/examples/mma`. SidekickDB's
-  copy sends nothing and answers with how to set a key.
+- `vercel-ai-sdk` is in `unavailableProjectBases` next to `python-script`
+  (PR #58): not offered and not bundled. The starter is built on Instant's
+  hosted services: without a model key it sends the user's prompt to
+  `api.instantdb.com/examples/mma`, and its preview creates apps through the
+  platform API without a server URL. The example itself is unchanged.
 - `examples/ai-chat/src/lib/mockModel.ts`: the `User-Agent` of its Wikipedia
   requests names SidekickDB's repository, not Instant.
 
 **Resolving:** keep every base bundled, including a base upstream adds, and
 keep SidekickDB's repository in the fallback (a unit test fails when an
 offered base is not bundled). Keep `bun-react` on `latest` and delete
-`bun.lock` again if upstream changes it. Keep the two `mockModel.ts` edits: no
-starter may send requests to an Instant-owned host or name Instant as contact.
+`bun.lock` again if upstream changes it. Keep `vercel-ai-sdk` unavailable
+until the example works against a SidekickDB server with no request to an
+Instant-owned host; keep the `User-Agent` edit in `ai-chat`.
 
 ### Brand: READMEs and package descriptions (PR #56)
 

@@ -93,8 +93,7 @@ export const projectBaseConfig = {
   'vercel-ai-sdk': {
     appIdEnvName: 'NEXT_PUBLIC_INSTANT_APP_ID',
     backendConfigFiles: [clientDb(), adminDb('initAdmin')],
-    // SidekickDB: bundled, so that no starter is downloaded at run time.
-    bundled: true,
+    bundled: false,
   },
   'ai-chat': {
     appIdEnvName: 'NEXT_PUBLIC_INSTANT_APP_ID',
@@ -111,11 +110,17 @@ export const projectBaseConfig = {
 
 export type ProjectBase = keyof typeof projectBaseConfig;
 
-// SidekickDB: the Python starter is not offered and not bundled. It installs
-// Instant's `instantdb` package from PyPI, and SidekickDB releases no Python
-// SDK. Its entry above stays, so the code that handles it merges cleanly with
-// upstream.
-const unavailableProjectBases: ProjectBase[] = ['python-script'];
+// SidekickDB: starters that are not offered and not bundled. Their entries
+// above stay, so the code that handles them merges cleanly with upstream.
+// - python-script installs Instant's `instantdb` package from PyPI, and
+//   SidekickDB releases no Python SDK.
+// - vercel-ai-sdk is built on Instant's hosted services: without a model key
+//   it sends the prompt to api.instantdb.com, and its preview creates apps
+//   through the platform API with no server URL.
+const unavailableProjectBases: ProjectBase[] = [
+  'python-script',
+  'vercel-ai-sdk',
+];
 
 export const projectBases = (
   Object.keys(projectBaseConfig) as ProjectBase[]
