@@ -72,6 +72,25 @@ describe('API URL configuration', () => {
     expect(missingApiUrlMessage).toContain('instant.config.ts');
   });
 
+  it('treats a blank INSTANT_CLI_API_URI as unset', async () => {
+    vi.stubEnv('INSTANT_CLI_API_URI', '   ');
+
+    await expect(Effect.runPromise(getBaseUrl)).rejects.toThrow(
+      missingApiUrlMessage,
+    );
+  });
+
+  it('falls back to instant.config.ts when INSTANT_CLI_API_URI is blank', async () => {
+    vi.stubEnv('INSTANT_CLI_API_URI', ' ');
+    mocks.readInstantConfigFile.mockResolvedValue({
+      apiURI: 'https://api.config.example',
+    });
+
+    await expect(Effect.runPromise(getBaseUrl)).resolves.toBe(
+      'https://api.config.example',
+    );
+  });
+
   it('uses INSTANT_CLI_API_URI unchanged', async () => {
     vi.stubEnv('INSTANT_CLI_API_URI', 'https://api.env.example/');
 
@@ -105,6 +124,14 @@ describe('dashboard URL without configuration', () => {
       missingDashUrlMessage,
     );
     expect(missingDashUrlMessage).toContain('INSTANT_CLI_DASH_URI');
+  });
+
+  it('treats a blank INSTANT_CLI_DASH_URI as unset', async () => {
+    vi.stubEnv('INSTANT_CLI_DASH_URI', '   ');
+
+    await expect(Effect.runPromise(getDashUrl)).rejects.toThrow(
+      missingDashUrlMessage,
+    );
   });
 
   it('returns none from getOptionalDashUrl', async () => {
