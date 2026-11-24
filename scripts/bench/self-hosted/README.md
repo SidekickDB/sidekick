@@ -16,7 +16,10 @@ samples per runtime mode, the modes to compare, idle seconds). By default it
 compares the `default` and `self-hosted` runtime modes, 3 samples each,
 alternating in one job. It also runs on a pull request that changes this
 directory or the workflow, on every push to it; a pull request that changes
-only `results/` does not start it. The job summary shows the table; the artifact has
+only `results/` does not start it. A pull request run only checks that the
+harness works: `self-hosted` mode alone, 20 idle seconds, and images built
+with the release workflow's layer cache instead of cold (so no build times).
+Do not keep its numbers as a baseline. The job summary shows the table; the artifact has
 `results.json`, `summary.md` and, for a failed sample, the compose logs.
 
 Locally, on a disposable Linux machine with Docker, Node 24 and pnpm:
