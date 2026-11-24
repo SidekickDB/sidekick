@@ -839,7 +839,7 @@ offered base is not bundled). Keep `bun-react` on `latest` and delete
 until the example works against a SidekickDB server with no request to an
 Instant-owned host; keep the `User-Agent` edit in `ai-chat`.
 
-### Brand: READMEs, package descriptions and CLI text (PR #56, PR #61)
+### Brand: READMEs, package descriptions, CLI text and starters (PR #56, PR #61, PR #62)
 
 What a visitor of the repository or of a package's npm page reads presents the
 project as SidekickDB:
@@ -864,13 +864,23 @@ project as SidekickDB:
   verified"). The welcome comment `platform/src/perms.ts` writes into a new
   permissions file is changed too. Identifiers, `X-Instant-*` headers, the
   `instant-cli` alias, generated file names and docs links are upstream's.
+- PR #62: what `create-sidekick-app` writes into a new project. The 11
+  starters it offers (under `examples/`) say "SidekickDB" in READMEs, page
+  titles, UI text and comments, and six of them no longer load Instant's logo
+  from www.instantdb.com. The Expo title is "My SidekickDB App" in the starter
+  and in `create-instant-app/src/scaffold.ts`, which replaces it. The agent
+  rules (`client/www/lib/intern/instant-rules.md` and its identical copy
+  `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
+  mention the Python SDK.
 
 **Resolving:** keep SidekickDB's text. When upstream changes what a README
 says (a new API, a new SDK, a changed command), write that change into
 SidekickDB's text by hand. In a `package.json` keep SidekickDB's `description`
 and take upstream's other changes. For printed text keep SidekickDB's wording,
 give a string upstream adds the same treatment, and update the tests that
-assert it.
+assert it. In the starters and the rules file keep SidekickDB's name and add no
+image from instantdb.com; copy the rules file to its template copy after
+every edit.
 
 ### NOTICE file (PR #41)
 
