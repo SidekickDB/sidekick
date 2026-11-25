@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import Link from 'next/link';
 import { HeroTitle, SectionSubtitle } from './typography';
-import { isSelfHosted } from '@/lib/config';
 
 const VIDEO_URL =
   'https://stream.mux.com/RKzKMImR1oIGNLPTLjflaD02dNWo1003H00Pv6ZIIogo01g/1080p.mp4';
@@ -91,20 +89,6 @@ export function Hero() {
     <section className="pt-28 pb-8 sm:pt-32 sm:pb-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          {!isSelfHosted && (
-            <Link
-              href="/essays/instant_team_joins_openai"
-              className="mb-8 inline-flex flex-wrap items-center justify-center gap-x-3 rounded-full border border-orange-200 bg-orange-100 px-7 py-3 text-base text-orange-900 shadow-sm transition-colors hover:bg-orange-200 sm:text-lg"
-            >
-              <span>
-                <span className="font-semibold">Instant is sunsetting.</span>{' '}
-                Services will continue until August 31st, 2027.
-              </span>{' '}
-              <span className="font-medium whitespace-nowrap text-orange-900/70">
-                Learn more →
-              </span>
-            </Link>
-          )}
           <HeroTitle>The best backend for AI-coded apps</HeroTitle>
           <SectionSubtitle>
             Give your AI a real backend. You get auth, permissions, storage,

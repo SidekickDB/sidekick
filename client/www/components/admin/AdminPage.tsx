@@ -214,9 +214,7 @@ export function Admin({
     (invite) => invite.status !== 'accepted',
   );
 
-  const paidFeaturesFree =
-    dashResponse.data.sunset?.['paid-features-free'] ?? false;
-  const canAddMembers = app.pro || isPaidOrg || paidFeaturesFree;
+  const canAddMembers = app.pro || isPaidOrg;
   const hasAppPeople =
     Boolean(app.members?.length) || Boolean(displayedInvites?.length);
 

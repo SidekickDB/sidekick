@@ -645,13 +645,13 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### Removed: wind-down (sunset) stage (PR #64)
+### Removed: wind-down (sunset) stage (PRs #64, #65)
 
 Upstream built a global wind-down of Instant Cloud into the server: a stage
 (`signups-closed`, `read-only`, `disabled`) read from the `sunset-stage` flag
 of the config app, which closes sign-ups, app creation and checkout and then
-makes every app read-only or unreadable. SidekickDB removed it from the server;
-no code reads that flag, so setting it has no effect.
+makes every app read-only or unreadable. SidekickDB removed it from the server
+and the dashboard; no code reads that flag, so setting it has no effect.
 
 - Deleted: `server/src/instant/sunset.clj`, `server/test/instant/sunset_test.clj`.
 - `flags.clj`: the sunset section. `model/app.clj`: `get-status` is the app's
@@ -665,18 +665,31 @@ no code reads that flag, so setting it has no effect.
   `reactive/store.clj` (helpers only the wind-down used).
 - Tests: `server/test/instant/app_status_test.clj` (new),
   `dash/removed_routes_test.clj`, `runtime_mode_test.clj`.
+- Dashboard (`client/www`), deleted: `pages/intern/sunset.tsx` (operator
+  page), `components/SunsetBanner.tsx`, `lib/sunset.ts`.
+- Dashboard, edited: `components/dash/MainDashLayout.tsx` (notice, redirect
+  to the backups tab), `pages/dash/index.tsx`, `components/dash/TopBar.tsx`,
+  `pages/dash/new.tsx`, `pages/dash/onboarding.tsx` (app creation gate),
+  `components/dash/Billing.tsx`, `components/dash/org-management/OrgBilling.tsx`,
+  `components/admin/AdminPage.tsx` (billing closed, paid features free),
+  `components/dash/Auth.tsx` (sign-ups closed), `lib/types.ts` (`SunsetStage`,
+  `SunsetInfo`, `effective_status`, `sunset`), and the banners in
+  `components/marketingUi.tsx`, `components/docs/Layout.jsx` and
+  `components/new-landing/Hero.tsx`.
 
 The per-app status (`apps.status`, `set-status!`, `assert-write-allowed!`,
 `assert-read-allowed!`, the `app-status-changed` event), backups and the flags
 machinery are upstream's and stay.
 
-**Resolving:** keep the two files deleted and delete again whatever upstream
+**Resolving:** keep the five files deleted and delete again whatever upstream
 adds for the wind-down (readers of `sunset-stage`,
 `sunset-app-creation-allowed-emails` or `final-backup-status`, `/dash/sunset`
 routes, gates tied to the stage, `paid-features-free`, the `sunset` field of
-the dashboard responses, the cancel reason `sunset`). Take upstream's other
-changes in these files. The three tests above must pass and
-`git grep -n -i sunset -- server/src` must print nothing.
+the dashboard responses and its dashboard readers, the cancel reason
+`sunset`). Take upstream's other changes in these files. The three tests above
+must pass and
+`git grep -n -i sunset -- server/src client/www/components client/www/pages client/www/lib`
+must print only the essay word count in `allExactCounts.json`.
 
 ### Removed: WebSocket playground (PR #51)
 

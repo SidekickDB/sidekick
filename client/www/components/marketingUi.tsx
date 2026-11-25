@@ -15,7 +15,6 @@ import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Button, cn, LogoIcon } from '@/components/ui';
 import { ComponentType, SVGProps } from 'react';
-import { SunsetBanner } from '@/components/SunsetBanner';
 
 type Product = {
   id: string;
@@ -458,7 +457,6 @@ export function MainNav() {
 
   return (
     <div className="fixed top-0 right-0 left-0 z-50">
-      <SunsetBanner />
       <div
         className={cn(
           'relative py-4',
