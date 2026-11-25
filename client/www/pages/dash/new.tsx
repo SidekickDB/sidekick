@@ -1,6 +1,5 @@
 import { NextPageWithLayout } from '../_app';
 import { asClientOnlyPage, ClientOnly } from '@/components/clientOnlyPage';
-import { sunsetPostPath } from '@/components/SunsetBanner';
 import {
   MainDashLayout,
   useFetchedDash,
@@ -17,7 +16,6 @@ import { TokenContext } from '@/lib/contexts';
 import { jsonFetch } from '@/lib/fetch';
 import { InstantApp } from '@/lib/types';
 import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ReactElement, useContext, useState } from 'react';
 import { v4 } from 'uuid';
@@ -31,29 +29,6 @@ function NewApp() {
   const token = useContext(TokenContext);
   const router = useRouter();
   const posthog = usePostHog();
-  const appCreationAllowed =
-    dashResponse.data.sunset?.['app-creation-allowed'] ?? true;
-
-  if (!appCreationAllowed) {
-    return (
-      <div className="my-auto grid h-full w-full place-items-center">
-        <div className="flex max-w-md flex-col gap-4 text-center">
-          <ScreenHeading>New app creation is closed</ScreenHeading>
-          <Content>
-            Instant is winding down and isn&apos;t accepting new apps. Read the{' '}
-            <Link
-              href={sunsetPostPath}
-              className="underline underline-offset-2"
-            >
-              announcement
-            </Link>{' '}
-            for what&apos;s next and how to migrate.
-          </Content>
-        </div>
-      </div>
-    );
-  }
-
   function onCreateApp(r: { name: string }) {
     const orgId =
       dashResponse.data.currentWorkspaceId === 'personal'

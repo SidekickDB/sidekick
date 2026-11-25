@@ -15,7 +15,6 @@ import { useAuthToken, useTokenFetch } from '@/lib/auth';
 import config from '@/lib/config';
 import { Button } from '@/components/ui';
 import { BareNav } from '@/components/marketingUi';
-import { SunsetDocsNotice } from '@/components/SunsetBanner';
 import navigation from '@/data/docsNavigation';
 import { useIsHydrated } from '@/lib/hooks/useIsHydrated';
 import { getLocallySavedApp, setLocallySavedApp } from '@/lib/locallySavedApp';
@@ -438,7 +437,6 @@ export function Layout({ children, title, tableOfContents }) {
               key={docPath}
               className="max-w-2xl min-w-0 flex-1 p-4"
             >
-              <SunsetDocsNotice />
               <AppPicker
                 isReady={isHydrated && !isLoadingWorkspace}
                 {...{

@@ -297,11 +297,6 @@ function errorFromSendMagicCode(res: InstantIssue): string {
       return 'Please enter your email address.';
     case 'param-malformed':
       return "Is there a typo with your email? We couldn't recognize it.";
-    case 'signups-closed':
-      return (
-        res.body?.message ??
-        "Instant is winding down and isn't accepting new sign-ups. If you have any urgent issues and would like to talk to us, you can email us at founders@instantdb.com."
-      );
     case 'validation-failed':
       const hintMsg = res.body?.hint?.errors?.[0]?.message;
       return hintMsg || defaultMsg;
