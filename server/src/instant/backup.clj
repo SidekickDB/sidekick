@@ -21,7 +21,6 @@
    [instant.model.schema :as schema]
    [instant.model.webhook :as webhook-model]
    [instant.storage.s3 :refer [s3-transfer-manager]]
-   [instant.sunset :as sunset]
    [instant.util.async :as ua]
    [instant.util.date :as date]
    [instant.util.defrecord :refer [defrecord-once]]
@@ -1128,19 +1127,12 @@
                      (tracer/with-span! {:name "backup/daily-backup"
                                          :attributes {:date date-str}}
                        (try
-                         (let [final-backup-status (flags/flag :final-backup-status)
-                               final-snapshot? (= "pending" final-backup-status)
-                               backup-config (merge {:expire-s3? (not final-snapshot?)}
-                                                    (when final-snapshot?
-                                                      {:expires-at (.plus (Instant/now) (Duration/ofDays (+ 365 32)))}))]
-                           (when-not (= "completed" final-backup-status)
-                             (if (flags/toggled? :backup-with-clone true)
-                               (process-with-clone (assoc backup-config
-                                                          :source-cluster-id (clone/default-source-cluster-id)))
-                               (let [process (process-with-snapshot backup-config)]
-                                 ((:wait-for-finish process)))))
-                           (when final-snapshot?
-                             (sunset/update-flag! "final-backup-status" "completed")))
+                         ;; SidekickDB: the plain daily backup. Upstream adds a
+                         ;; final-backup step of its wind-down here.
+                         (if (flags/toggled? :backup-with-clone true)
+                           (process-with-clone {:source-cluster-id (clone/default-source-cluster-id)})
+                           (let [process (process-with-snapshot {})]
+                             ((:wait-for-finish process))))
                          (swap! current-backup assoc
                                 :status :completed
                                 :finished-at (Instant/now))

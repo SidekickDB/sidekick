@@ -33,9 +33,6 @@
 
                 ::app-read-only
                 ::app-disabled
-                ::app-creation-disabled
-                ::signups-closed
-                ::billing-closed
 
                 ::param-missing
                 ::param-malformed
@@ -71,9 +68,6 @@
 
                          ::app-read-only
                          ::app-disabled
-                         ::app-creation-disabled
-                         ::signups-closed
-                         ::billing-closed
 
                          ::param-missing
                          ::param-malformed
@@ -337,28 +331,6 @@
   (throw+ {::type ::app-disabled
            ::message "This app is currently disabled."
            ::hint {:status "disabled"}}))
-
-(defn throw-app-creation-disabled! []
-  (throw+ {::type ::app-creation-disabled
-           ::message (str "Instant is winding down and isn't accepting new apps. "
-                          "Check instantdb.com for what's next and how to migrate.")
-           ::hint {:sunset true}}))
-
-(def signups-closed-message
-  (str "Instant is winding down and isn't accepting new sign-ups. "
-       "If you have any urgent issues and would like to talk to us, "
-       "you can email us at founders@instantdb.com."))
-
-(defn throw-signups-closed! []
-  (throw+ {::type ::signups-closed
-           ::message signups-closed-message
-           ::hint {:sunset true}}))
-
-(defn throw-billing-closed! []
-  (throw+ {::type ::billing-closed
-           ::message (str "Instant is winding down and isn't selling new subscriptions. "
-                          "Paid features are now included on every plan for free.")
-           ::hint {:sunset true}}))
 
 ;; -----------
 ;; Validations

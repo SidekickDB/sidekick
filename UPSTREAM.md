@@ -614,7 +614,7 @@ as `:dev`. The compose files and `server/Dockerfile.self-hosted` set
 Changes outside `config.clj`, each one small on purpose:
 
 - `core.clj`: `with-log-init` skips the steps in
-  `self-hosted-skipped-init-steps` (sunset, app-proxy, join-room-logger,
+  `self-hosted-skipped-init-steps` (app-proxy, join-room-logger,
   hint-testing) and nREPL unless enabled; the startup-error exit uses
   `exit-on-startup-error?`; `wrap-dev-server-info` uses `dev-only?`.
 - `(config/dev?)` became `(config/dev-only?)` in `reactive/sse.clj`,
@@ -622,8 +622,6 @@ Changes outside `config.clj`, each one small on purpose:
 - The three OAuth cookie sites (`runtime/routes.clj`, `oauth_apps/routes.clj`,
   `dash/routes.clj`) use `secure-cookies?`.
 - `db/hint_testing.clj`: queueing is a no-op until `start` runs.
-- `dash/routes.clj`: `admin-sunset-cancel-subscriptions-post` refuses in the
-  self-hosted mode.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
@@ -646,6 +644,39 @@ removed.
 **Resolving:** if upstream changes `session_counter.clj`, keep it deleted. If
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
+
+### Removed: wind-down (sunset) stage (PR #64)
+
+Upstream built a global wind-down of Instant Cloud into the server: a stage
+(`signups-closed`, `read-only`, `disabled`) read from the `sunset-stage` flag
+of the config app, which closes sign-ups, app creation and checkout and then
+makes every app read-only or unreadable. SidekickDB removed it from the server;
+no code reads that flag, so setting it has no effect.
+
+- Deleted: `server/src/instant/sunset.clj`, `server/test/instant/sunset_test.clj`.
+- `flags.clj`: the sunset section. `model/app.clj`: `get-status` is the app's
+  own status; no `apply-sunset-stage`, no gate in `create!`. `model/org.clj`
+  and `model/instant_subscription.clj`: no `paid-features-free`.
+- `dash/routes.clj`: no `/dash/sunset` routes, no sign-up, app-creation,
+  claiming or checkout gate tied to the stage, no `sunset` block and no
+  `effective_status` in the dashboard responses.
+- `util/exception.clj` (three error types), `backup.clj` (final-backup step),
+  `core.clj` (startup step), `stripe.clj`, `stripe_webhook.clj` and
+  `reactive/store.clj` (helpers only the wind-down used).
+- Tests: `server/test/instant/app_status_test.clj` (new),
+  `dash/removed_routes_test.clj`, `runtime_mode_test.clj`.
+
+The per-app status (`apps.status`, `set-status!`, `assert-write-allowed!`,
+`assert-read-allowed!`, the `app-status-changed` event), backups and the flags
+machinery are upstream's and stay.
+
+**Resolving:** keep the two files deleted and delete again whatever upstream
+adds for the wind-down (readers of `sunset-stage`,
+`sunset-app-creation-allowed-emails` or `final-backup-status`, `/dash/sunset`
+routes, gates tied to the stage, `paid-features-free`, the `sunset` field of
+the dashboard responses, the cancel reason `sunset`). Take upstream's other
+changes in these files. The three tests above must pass and
+`git grep -n -i sunset -- server/src` must print nothing.
 
 ### Removed: WebSocket playground (PR #51)
 

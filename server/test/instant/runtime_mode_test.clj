@@ -89,7 +89,7 @@
   (with-env {"INSTANT_RUNTIME_MODE" "self-hosted" "SIDEKICK_NREPL" "true"}
     (is (config/nrepl-enabled?))))
 
-(def gated-steps #{:sunset :app-proxy :join-room-logger :hint-testing})
+(def gated-steps #{:app-proxy :join-room-logger :hint-testing})
 
 (deftest skipped-startup-steps
   (is (= gated-steps core/self-hosted-skipped-init-steps))
@@ -115,9 +115,9 @@
 ;; names, so a step that upstream adds or removes fails this test and gets a
 ;; decision: add it to core/self-hosted-skipped-init-steps or not, then
 ;; update the two values below.
-(def reviewed-step-count 42)
+(def reviewed-step-count 41)
 (def reviewed-steps-sha256
-  "3da832694f2a985a3cd344711068ba91b4097251d0ed3d65fef7e2bdaaaf5a39")
+  "08e8e996728fb11201f9a4e81367c32b21a2ab1b30f5758e8216845a9cc95368")
 
 (defn- sha256 [^String s]
   (let [digest (.digest (MessageDigest/getInstance "SHA-256") (.getBytes s "UTF-8"))]

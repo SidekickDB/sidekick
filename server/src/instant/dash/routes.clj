@@ -20,7 +20,6 @@
             [instant.email-router :as email-router]
             [instant.fixtures :as fixtures]
             [instant.flags :as flags :refer [admin-email?]]
-            [instant.sunset :as sunset]
             [instant.hard-deletion-sweeper :as sweeper]
             [instant.intern.metrics :as metrics]
             [instant.isn :as isn]
@@ -259,8 +258,6 @@
                                    :email email})
         existing-user (instant-user-model/get-by-email {:email email})
         _ (when-not existing-user
-            (when (flags/signups-closed?)
-              (ex/throw-signups-closed!))
             (assert-dashboard-signup-allowed! email))
         {user-id :id :as u} (or existing-user
                                 (instant-user-model/create!
@@ -341,40 +338,6 @@
   (let [{:keys [email]} (req->auth-user! req)]
     (assert-admin-email! email)
     (response/ok {:ok true})))
-
-(defn- sunset-state-response [email]
-  (assert-admin-email! email)
-  {:stage (name (:stage (sunset/state)))
-   :app-creation-allowed (flags/dash-app-creation-allowed? email)
-   :env (name (config/get-env))})
-
-(defn admin-sunset-get [req]
-  (let [{:keys [email]} (req->auth-user! req)]
-    (assert-admin-email! email)
-    (response/ok (sunset-state-response email))))
-
-(defn admin-sunset-post [req]
-  (let [{:keys [email]} (req->auth-user! req)
-        _ (assert-admin-email! email)
-        stage (ex/get-param! req [:body :stage] keyword)]
-    (sunset/set-stage! stage)
-    (response/ok (sunset-state-response email))))
-
-(defn admin-sunset-billing-get [req]
-  (let [{:keys [email]} (req->auth-user! req)]
-    (assert-admin-email! email)
-    (response/ok (sunset/billing-state))))
-
-(defn admin-sunset-cancel-subscriptions-post [req]
-  (let [{:keys [email]} (req->auth-user! req)]
-    (assert-admin-email! email)
-    (when (config/self-hosted?)
-      (ex/throw-validation-err!
-       :cancel-subscriptions
-       nil
-       [{:message (str "Cancelling Stripe subscriptions in bulk is not available "
-                       "on a self-hosted server.")}]))
-    (response/ok (sunset/cancel-all-subscriptions!))))
 
 (defn admin-top-get [req]
   (let [{:keys [email]} (req->auth-user! req)
@@ -524,19 +487,9 @@
 ;; ---
 ;; Dash
 
-(defn with-effective-status
-  "Adds the app's status after applying the global sunset stage, so the
-   dashboard can tell the difference between an app's own status and the
-   status it is actually enforced at."
-  [{:keys [id status] :as app}]
-  (assoc app :effective_status
-         (name (app-model/apply-sunset-stage id (or (some-> status keyword)
-                                                    :active)))))
-
 (defn dash-get [req]
   (let [{:keys [id email]} (req->auth-user! req)
-        apps (mapv with-effective-status
-                   (app-model/get-all-for-user {:user-id id}))
+        apps (app-model/get-all-for-user {:user-id id})
         instant-config-app-id config/instant-config-app-id
         instant-config-app (app-model/get-by-id
                             {:id instant-config-app-id})
@@ -552,11 +505,7 @@
               :orgs orgs
               :profile profile
               :invites invites
-              :user {:id id :email email}
-              :sunset {:stage (name (flags/sunset-stage))
-                       :app-creation-allowed (flags/dash-app-creation-allowed? email)
-                       :billing-closed (flags/billing-closed?)
-                       :paid-features-free (flags/paid-features-free?)}}
+              :user {:id id :email email}}
        superuser (assoc :instant_config_app_id instant-config-app-id)))))
 
 (defn me-get [req]
@@ -579,8 +528,6 @@
 
 (defn apps-post [req]
   (let [user (req->auth-user-accepting-superadmin-token! :apps/write req)
-        _ (when-not (flags/dash-app-creation-allowed? (:email user))
-            (ex/throw-app-creation-disabled!))
         title (ex/get-param! req [:body :title] string-util/coerce-non-blank-str)
         id (ex/get-param! req [:body :id] uuid-util/coerce)
         token (ex/get-param! req [:body :admin_token] uuid-util/coerce)
@@ -866,8 +813,6 @@
   (let [app-id (ex/get-param! req [:params :app_id] uuid-util/coerce)
         token (ex/get-param! req [:body :token] uuid-util/coerce)
         {user-id :id user-email :email} (req->auth-user! req)
-        _ (when-not (flags/dash-app-creation-allowed? user-email)
-            (ex/throw-app-creation-disabled!))
         {app-creator-id :creator_id} (app-model/get-by-id! {:id app-id})
 
         ephemeral-app? (= (:id @ephemeral-app/ephemeral-creator) app-creator-id)
@@ -1055,11 +1000,6 @@
                     (not email) "Could not determine email."
                     (not google-sub) "Could not determine user info."
                     (instant-oauth-redirect-model/expired? oauth-redirect) "Request is expired."
-                    (and (flags/signups-closed?)
-                         (empty? (instant-user-model/get-by-email-or-google-sub
-                                  {:email email :google-sub google-sub})))
-                    ex/signups-closed-message
-
                     new-user-signup-blocked? dashboard-signup-denied-message
 
                     :else nil)]
@@ -1100,8 +1040,6 @@
                         (config/default-paid-app?)))
 
 (defn checkout-session-post [req]
-  (when (flags/billing-closed?)
-    (ex/throw-billing-closed!))
   (let [{{app-id :id app-title :title} :app
          {user-id :id user-email :email :as user} :user} (req->app-and-user! req)
         {:keys [name]} (instant-subscription-model/get-by-app-id {:app-id app-id})
@@ -1131,8 +1069,6 @@
     (response/ok {:id (.getId session)})))
 
 (defn org-checkout-session-post [req]
-  (when (flags/billing-closed?)
-    (ex/throw-billing-closed!))
   (let [{{org-id :id org-title :title :as org} :org
          {user-id :id user-email :email} :user} (req->org-and-user! :collaborator req)
         {:keys [name]} (instant-subscription-model/get-by-org-id {:org-id org-id})
@@ -1234,8 +1170,7 @@
         ;; what is visible to the user.
         org (org-model/get-org-for-user! {:org-id org-id-param
                                           :user-id user-id})
-        apps (mapv with-effective-status
-                   (org-model/apps-for-org {:org-id (:id org) :user-id user-id}))
+        apps (org-model/apps-for-org {:org-id (:id org) :user-id user-id})
         members (org-model/members-for-org {:org-id (:id org) :user-id user-id})
         invites (org-model/invites-for-org {:org-id (:id org) :user-id user-id})]
     (response/ok {:org org
@@ -2700,10 +2635,6 @@
 
   ;; internal admin routes
   (GET "/dash/check-admin" [] admin-check-get)
-  (GET "/dash/sunset" [] admin-sunset-get)
-  (POST "/dash/sunset" [] admin-sunset-post)
-  (GET "/dash/sunset/billing" [] admin-sunset-billing-get)
-  (POST "/dash/sunset/cancel_subscriptions" [] admin-sunset-cancel-subscriptions-post)
   (GET "/dash/top" [] admin-top-get)
   (GET "/dash/paid" [] admin-paid-get)
   (GET "/dash/storage" [] admin-storage-get)
