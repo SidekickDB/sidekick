@@ -29,6 +29,7 @@ function NewApp() {
   const token = useContext(TokenContext);
   const router = useRouter();
   const posthog = usePostHog();
+
   function onCreateApp(r: { name: string }) {
     const orgId =
       dashResponse.data.currentWorkspaceId === 'personal'
