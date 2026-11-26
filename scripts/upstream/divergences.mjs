@@ -9,14 +9,17 @@ import { git, lines } from "./git.mjs";
 export const DIVERGENCES = {
   "ci-lockdown": {
     title:
-      "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base, runs on main and pull requests only",
+      "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base, runs on main and pull requests only, JS caches saved on main only with one turbo entry (prune job holds actions: write)",
     prs: [1, 5, 27, 54],
     resolve:
       'Keep every line marked "# SidekickDB:" / "// SidekickDB:". Take upstream\'s other changes. ' +
       "A new or changed publish/deploy job gets `if: false && (<upstream condition>)`; a new publish-only " +
       'workflow gets its triggers commented out (workflow_dispatch only). Never re-enable "Fetch timings". ' +
       "Keep the clj-check-result job in clojure.yml (the ruleset on main requires it); if upstream renames " +
-      "clj-check, update its `needs`. Then run scripts/upstream/check.mjs.",
+      "clj-check, update its `needs`. In js.yml keep the turbo restore/save split, the main-only saves, " +
+      "the pnpm save skipped on a cache hit and the prune-turbo-cache job (no checkout, no action; " +
+      "JOB_RIGHTS in check.mjs); if upstream renames `build`, update its `needs`. " +
+      "Then run scripts/upstream/check.mjs.",
   },
   "js-test-guard": {
     title:

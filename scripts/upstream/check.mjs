@@ -133,6 +133,17 @@ export const SELF_HOSTING_CHECK_WORKFLOWS = ["sidekick-self-hosting-check.yml"];
 // file with this name. No exception: every RISKY rule applies.
 export const TWO_NODE_SMOKE_WORKFLOWS = ["sidekick-two-node-smoke.yml"];
 
+// SidekickDB's own jobs in inherited workflows that may hold the rights
+// matched by `allow` (whole job lines), only while checkJobRightsShape finds
+// nothing: the job is guarded to main and uses no action, so it runs no
+// repository or pull request code. Everything else in RISKY still applies.
+export const JOB_RIGHTS = {
+  "js.yml": {
+    // Deletes older turbo cache entries on main (cache API).
+    "prune-turbo-cache": [/^\s+actions:\s*write\s*$/],
+  },
+};
+
 export const KNOWN_WORKFLOWS = [
   "clojure.yml",
   "js.yml",
@@ -149,9 +160,10 @@ const RELEASE_GUARDS = [
   "github.ref == 'refs/heads/main'",
 ];
 
-// True when `cond` can only be true with both RELEASE_GUARDS: they must be
-// top-level `&&` terms and the condition must have no top-level `||`.
-export function hasReleaseGuard(cond) {
+// True when `cond` can only be true with all `guards` (default: both
+// RELEASE_GUARDS): they must be top-level `&&` terms and the condition must
+// have no top-level `||`.
+export function hasReleaseGuard(cond, guards = RELEASE_GUARDS) {
   if (cond === null || cond === undefined) return false;
   let expr = cond.trim().replace(/\s+#.*$/, "");
   if (expr.includes("${{")) {
@@ -169,7 +181,23 @@ export function hasReleaseGuard(cond) {
     else parts.forEach(flatten);
   };
   flatten(expr);
-  return RELEASE_GUARDS.every((g) => terms.includes(g));
+  return guards.every((g) => terms.includes(g));
+}
+
+const MAIN_GUARD = "github.ref == 'refs/heads/main'";
+
+function checkJobRightsShape(rel, j) {
+  const out = [];
+  if (!hasReleaseGuard(j.if, [MAIN_GUARD]))
+    out.push(
+      `${rel}:${j.start}: job "${j.name}" holds a write right and must be guarded with if: ${MAIN_GUARD} && ... (no ||), found if: ${j.if ?? "(none)"}`,
+    );
+  for (const { n, text } of j.lines)
+    if (/^\s*(-\s+)?uses:/.test(text))
+      out.push(
+        `${rel}:${n}: job "${j.name}" holds a write right and must not use an action: ${text.trim().slice(0, 140)}`,
+      );
+  return out;
 }
 
 function checkReleaseShape(rel, spec, { jobs, triggers, top }) {
@@ -586,9 +614,16 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
           .filter((s) => isFalse(s.if))
           .flatMap((s) => s.lines.map((l) => l.n)),
       );
+      let jobAllowed = allowed;
+      const rights = JOB_RIGHTS[f]?.[j.name];
+      if (rights) {
+        const shape = checkJobRightsShape(rel, j);
+        failures.push(...shape);
+        if (!shape.length) jobAllowed = [...allowed, ...rights];
+      }
       for (const { n, text } of j.lines) {
         if (disabledStepLines.has(n) || /^\s*#/.test(text)) continue;
-        if (allowed.some((re) => re.test(text))) continue;
+        if (jobAllowed.some((re) => re.test(text))) continue;
         const code = text.replace(/\s#.*$/, "");
         for (const [re, why] of RISKY) {
           if (re.test(code)) {

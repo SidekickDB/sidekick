@@ -165,8 +165,12 @@ jobs:
         with:
           fetch-depth: 2
 
+      # SidekickDB: restore only; the turbo cache is saved at the end of the
+      # job, on main only. Upstream's actions/cache saved a 600+ MB entry per
+      # commit, pull requests included, and pushed the repository past its
+      # 10 GiB cache limit.
       - name: Cache turbo build setup
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: client/.turbo
           key: ${{ runner.os }}-turbo-${{ github.sha }}
@@ -188,6 +192,8 @@ jobs:
         run: echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
       - uses: actions/cache/restore@v4
+        # SidekickDB: id, so the store is pruned and saved only on a miss.
+        id: pnpm-cache
         with:
           path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('client/pnpm-lock.yaml') }}
@@ -224,16 +230,64 @@ jobs:
         working-directory: client
         run: pnpm run bench
 
+      # SidekickDB: skip prune and save when the store was restored from its
+      # exact key (the lockfile did not change). Upstream spent about two
+      # minutes compressing the store only to be refused the existing key.
       - name: Prune store
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.pnpm-cache.outputs.cache-hit != 'true'
         working-directory: client
         run: pnpm store prune
 
       - uses: actions/cache/save@v4
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.pnpm-cache.outputs.cache-hit != 'true'
         with:
           path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-pnpm-${{ hashFiles('client/pnpm-lock.yaml') }}
+
+      # SidekickDB: save the turbo cache on main only (see "Cache turbo build
+      # setup"). Pull requests read main's entry and write none.
+      - name: Save turbo build setup
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: client/.turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+
+  # SidekickDB: keep one turbo entry on main by deleting the main turbo
+  # entries created before this commit's, so two main runs close together
+  # cannot delete each other's new entry. Not in upstream. The only enabled
+  # job in this file with a write right (actions: write, for the cache API):
+  # it checks out no code and uses no action. `build`, which runs pull
+  # request code, keeps the read-only default token.
+  prune-turbo-cache:
+    name: Prune turbo cache
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    if: github.ref == 'refs/heads/main' && needs.build.result == 'success'
+    permissions:
+      actions: write
+    steps:
+      - name: Delete older turbo entries on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          KEEP: ${{ runner.os }}-turbo-${{ github.sha }}
+          PREFIX: ${{ runner.os }}-turbo-
+        run: |
+          set -euo pipefail
+          entries=$(gh cache list --ref refs/heads/main --key "$PREFIX" --limit 100 --json id,key,createdAt)
+          # Whole seconds: createdAt has a varying number of fraction digits.
+          at='.createdAt | sub("\\.[0-9]+"; "") | fromdate'
+          keep=$(jq -r ".[] | select(.key == env.KEEP) | $at" <<<"$entries")
+          if [ -z "$keep" ]; then
+            echo "No entry $KEEP on refs/heads/main; deleting nothing"
+            exit 0
+          fi
+          for id in $(jq -r --argjson keep "$keep" ".[] | select(($at) < \$keep) | .id" <<<"$entries"); do
+            echo "Deleting cache $id"
+            gh cache delete "$id"
+          done
 
   check_formatting:
     name: Check formatting
@@ -247,13 +301,8 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Cache turbo build setup
-        uses: actions/cache@v4
-        with:
-          path: client/.turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
+      # SidekickDB: upstream's turbo cache step removed. This job runs only
+      # prettier and never creates client/.turbo, so it saved nothing.
 
       - uses: pnpm/action-setup@v4
         with:
