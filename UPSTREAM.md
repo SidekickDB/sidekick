@@ -964,7 +964,7 @@ for the person reviewing the sync PR.
 | Wire `versions` keys unchanged | `check.mjs` fails if a session `versions` key (`'@instantdb/<pkg>': version` in `client/packages/*/src`) disappears or appears under `@sidekickdb/` |
 | Rename leftovers | `check.mjs` fails if a changed file still needs the normalizer or has a leftover (an old name the rules do not rewrite and the allowlist does not cover) |
 | LLM rules copies | `client/www/lib/intern/instant-rules.md` and `client/packages/create-instant-app/template/rules/AGENTS.md` must stay byte-identical |
-| SidekickDB's version is above the server's version minimums | `check.mjs` fails and names the minimum if `version.ts` is not above every `*-min-version` in `server/src/instant/reactive/session.clj` and `server/src/instant/dash/routes.clj`, or if it cannot read one of them |
+| SidekickDB's version is above the server's version minimums | `check.mjs` fails and names the minimum (file, line, enclosing def) if `version.ts` is not above every version string literal (`x.y.z`, optional `v` and `-dev`) in `server/src/instant/reactive/session.clj` and `server/src/instant/dash/routes.clj`, whatever its name or form. It also fails if a file has no such literal, if `semver/parse` gets anything but a version literal, or if a version map is built by hand (`:major`) |
 | Conflict markers | none left in changed files |
 | Licence and attribution | `LICENSE.md` unchanged; this file still accurate |
 

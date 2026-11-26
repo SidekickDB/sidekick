@@ -655,41 +655,73 @@ test("the version must be above every server version minimum", () => {
     routes: routes.replace("v0.19.0", "v2.1.3"),
   });
   assert.equal(raised.length, 2, raised.join("\n"));
-  assert.ok(raised[0].includes("reactive/session.clj batch-messages-min-version 2.0.0"), raised[0]);
-  assert.ok(raised[1].includes("dash/routes.clj cli-min-version 2.1.3"), raised[1]);
+  assert.ok(raised[0].includes("reactive/session.clj:4 batch-messages-min-version 2.0.0"), raised[0]);
+  assert.ok(raised[1].includes("dash/routes.clj:1 cli-min-version 2.1.3"), raised[1]);
+  // Equal is not above, also for a -dev minimum (the server ranks -dev higher).
+  assert.equal(
+    withServerMinimums({ version: "v2.0.0", session: session.replace('"0.22.75"', '"2.0.0-dev"'), routes }).length,
+    1,
+  );
+});
 
-  // Metadata, defonce and a docstring are read like a plain def.
-  const decorated = withServerMinimums({
-    version: "v2.0.0",
-    session:
-      session +
-      '(def ^:private private-min-version (semver/parse "9.0.0"))\n' +
-      '(def ^:private ^:dynamic two-min-version (semver/parse "9.0.1"))\n' +
-      '(def ^{:private true} map-min-version\n  (semver/parse "v9.0.2"))\n' +
-      '(defonce once-min-version (semver/parse "9.0.3"))\n' +
-      '(def doc-min-version\n  "Docstring."\n  (semver/parse "9.0.4"))\n' +
-      '(def ^:private low-min-version (semver/parse "v1.0.0"))\n',
-    routes,
-  });
+test("every version literal counts as a minimum, whatever its form or name", () => {
+  const session = '(def patch-presence-min-version\n  (semver/parse "v0.17.5"))\n';
+  const routes = '(def cli-min-version (semver/parse "v0.19.0"))\n';
+  // Each case adds one minimum above v2.0.0 that must be reported, named by
+  // its enclosing def when there is one, by file and line otherwise.
+  for (const [added, name] of [
+    ['(def ^:private private-min-version (semver/parse "9.0.0"))', "private-min-version"],
+    ['(def ^:private ^:dynamic two-min-version (semver/parse "9.0.0"))', "two-min-version"],
+    ['(def ^{:private true} map-min-version\n  (semver/parse "v9.0.0"))', "map-min-version"],
+    ['(defonce once-min-version (semver/parse "9.0.0"))', "once-min-version"],
+    ['(def doc-min-version\n  "Docstring."\n  (semver/parse "9.0.0"))', "doc-min-version"],
+    // A strict-only form and a loose-only form must not cancel out.
+    [
+      '(def ^{:doc "(x)"} a-min-version (semver/parse "1.0.0"))\n(def b-min-version-v2 (semver/parse "99.0.0"))',
+      "b-min-version-v2",
+    ],
+    ['(def min-x-version (semver/parse "9.0.0"))', "min-x-version"],
+    ['(def x-minimum-version (semver/parse "9.0.0"))', "x-minimum-version"],
+    ['(def X-MIN-VERSION (semver/parse "9.0.0"))', "X-MIN-VERSION"],
+    ['(def ^{:doc "a } inside"} y-min-version (semver/parse "9.0.0"))', "y-min-version"],
+    ['(def new-min-version "9.0.0")', "new-min-version"],
+    ['(defn f [v]\n  (pos? (semver/compare-semver v (semver/parse "9.0.0"))))', "f"],
+    ['(defn g [v]\n  (pos? (semver/compare-semver v "9.0.0")))', "g"],
+    ['(let [m (semver/parse "9.0.0")] m)', null],
+  ]) {
+    const r = withServerMinimums({ version: "v2.0.0", session: session + added + "\n", routes });
+    assert.equal(r.length, 1, `${added}\n${r.join("\n")}`);
+    const named = name ? ` ${name}` : "";
+    assert.match(
+      r[0],
+      new RegExp(`must be above server/src/instant/reactive/session\\.clj:\\d+${named} 99?\\.0\\.0, `),
+      r[0],
+    );
+  }
+
+  // Comments and non-version strings are not minimums.
   assert.deepEqual(
-    decorated.map((m) => m.match(/session\.clj (\S+) /)?.[1]),
-    ["private-min-version", "two-min-version", "map-min-version", "once-min-version", "doc-min-version"],
-    decorated.join("\n"),
+    withServerMinimums({
+      version: "v2.0.0",
+      session: session + '; (semver/parse "99.0.0")\n(def s "see 9.0.0 notes")\n(def c \\")\n',
+      routes,
+    }),
+    [],
   );
 
-  // A minimum in a shape the reader does not know fails instead of passing.
+  // A minimum that cannot be read fails instead of passing.
   for (const odd of [
-    "(def new-min-version (semver/parse some-var))\n",
-    '(def ^:private new-min-version (some/other-parse "9.0.0"))\n',
-    '(def ^{:doc "a } inside"} new-min-version (semver/parse "9.0.0"))\n',
-    '(def new-min-version "9.0.0")\n',
+    "(def new-min-version (semver/parse some-var))",
+    '(def new-min-version (semver/parse "9.0"))',
+    '(def new-min-version (semver/parse "latest"))',
+    "(def new-min-version {:major 9 :minor 0 :patch 0 :dev? false})",
   ]) {
-    const unread = withServerMinimums({ version: "v2.0.0", session: session + odd, routes });
-    assert.equal(unread.length, 1, odd);
-    assert.match(unread[0], /session\.clj: cannot read/, odd);
+    const r = withServerMinimums({ version: "v2.0.0", session: session + odd + "\n", routes });
+    assert.equal(r.length, 1, odd);
+    assert.match(r[0], /session\.clj:3: .*cannot read the server's version minimums/, odd);
   }
   const none = withServerMinimums({ version: "v2.0.0", session: "(ns x)\n", routes });
-  assert.match(none[0], /session\.clj: cannot read/);
+  assert.match(none[0], /session\.clj: no version string literal/);
 });
 
 test("the repository's version is above its server minimums", () => {
@@ -724,7 +756,7 @@ test("runChecks fails on a raised server minimum and names it", () => {
     assert.equal(r.failures.length, 1, r.failures.join("\n"));
     assert.match(
       r.failures[0],
-      /version v2\.0\.0 must be above server\/src\/instant\/reactive\/session\.clj batch-messages-min-version 9\.0\.0/,
+      /version v2\.0\.0 must be above server\/src\/instant\/reactive\/session\.clj:2 batch-messages-min-version 9\.0\.0/,
     );
   } finally {
     fs.rmSync(root, { recursive: true, force: true });

@@ -97,33 +97,56 @@ export const SERVER_MIN_VERSION_FILES = [
   "server/src/instant/dash/routes.clj",
 ];
 
-// `(def` or `(defonce`, any metadata (`^:private`, `^{...}`, `^Type`), then a
-// name ending in min-version. Its value must be `(semver/parse "x.y.z")`,
-// optionally after a docstring; any other shape is an error, not a pass.
-const MIN_VERSION_DEF =
-  /\(def(?:once)?\s+(?:\^(?:\{[^}]*\}|\S+)\s+)*(\S*min-version)(?=[\s)])/g;
-const MIN_VERSION_VALUE =
-  /^\s+(?:"(?:[^"\\]|\\.)*"\s+)?\(semver\/parse\s+"v?(\d+)\.(\d+)\.(\d+)"\)\s*\)/;
-// Looser count of the same forms, so a head MIN_VERSION_DEF misses fails.
-const MIN_VERSION_LOOSE = /\(def(?:once)?\s[^()]*?min-version/g;
+// The server ties no meaning to a minimum's name, so every version string
+// literal in these files counts as a minimum (what instant.util.semver
+// accepts: x.y.z, optional v and -dev), wherever it is: `(semver/parse "...")`
+// or a string handed to semver/compare-semver. Failing closed:
+//   - a file with no version literal;
+//   - `(semver/parse` with anything but a version literal (a minimum built
+//     from a symbol or another string could not be read);
+//   - a `:major` key (a version map built by hand).
+// Comments, character literals and other strings are skipped.
+const VERSION_LITERAL = /^v?(\d+)\.(\d+)\.(\d+)(?:-dev)?$/;
+const CLOJURE_TOKENS = /;[^\n]*|\\.|"((?:[^"\\]|\\.)*)"|\(semver\/parse(?![\w*+!?'<>=/-])|:major(?![\w*+!?'<>=/-])/g;
+const TOP_LEVEL_DEF =
+  /^\(def[\w-]*\s+(?:\^(?:\{(?:[^}"]|"(?:[^"\\]|\\.)*")*\}|\S+)\s+)*([^\s()]+)/;
 
 export function serverMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
+  const unreadable = (where, why) =>
+    new Error(
+      `${where}: ${why}; cannot read the server's version minimums (update serverMinimums in client/scripts/sidekick-release-npm.mjs)`,
+    );
   return SERVER_MIN_VERSION_FILES.flatMap((f) => {
     const text = fs.readFileSync(path.join(repoRoot, f), "utf8");
-    const defs = [...text.matchAll(MIN_VERSION_DEF)];
-    const loose = text.match(MIN_VERSION_LOOSE)?.length ?? 0;
-    if (!defs.length || defs.length !== loose)
-      throw new Error(
-        `${f}: cannot read every version minimum (found ${loose}, read ${defs.length}); update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
-      );
-    return defs.map((d) => {
-      const v = MIN_VERSION_VALUE.exec(text.slice(d.index + d[0].length));
-      if (!v)
-        throw new Error(
-          `${f}: cannot read version minimum ${d[1]}; update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+    const lineAt = (i) => text.slice(0, i).split("\n").length;
+    // The name of the top-level def/defn/... form holding offset i, if any.
+    const defAt = (i) => {
+      const start = text.lastIndexOf("\n(", i);
+      return TOP_LEVEL_DEF.exec(text.slice(start + 1, i))?.[1];
+    };
+    const out = [];
+    for (const t of text.matchAll(CLOJURE_TOKENS)) {
+      const where = `${f}:${lineAt(t.index)}`;
+      if (t[0] === "(semver/parse") {
+        const arg = /^\s+"((?:[^"\\]|\\.)*)"\s*\)/.exec(
+          text.slice(t.index + t[0].length),
         );
-      return { name: `${f} ${d[1]}`, parts: v.slice(1).map(Number) };
-    });
+        if (!arg || !VERSION_LITERAL.test(arg[1]))
+          throw unreadable(where, "semver/parse without a version string literal");
+      } else if (t[0] === ":major") {
+        throw unreadable(where, "a version map built by hand (:major)");
+      } else if (t[1] !== undefined) {
+        const m = VERSION_LITERAL.exec(t[1]);
+        if (!m) continue;
+        const name = defAt(t.index);
+        out.push({
+          name: name ? `${where} ${name}` : where,
+          parts: m.slice(1, 4).map(Number),
+        });
+      }
+    }
+    if (!out.length) throw unreadable(f, "no version string literal");
+    return out;
   });
 }
 
