@@ -48,7 +48,8 @@ without those protections.
 ### 2. Claim the npm names (first publish)
 
 npm can only attach a trusted publisher to a package that exists, so each name
-first gets a `0.0.0` placeholder:
+first gets a placeholder, the lowest `0.0.N` the name has never had (usually
+`0.0.0`; npm never accepts a version twice, also after an unpublish):
 
 ```sh
 git switch main && git pull
@@ -119,7 +120,7 @@ gh workflow run sidekick-release-npm.yml -R SidekickDB/sidekick --ref main \
 Every release goes to the `latest` dist-tag; there is no `next` channel (a
 plain version published under `next` could not be promoted by re-running,
 since the version would already be on npm). Until the first release, `latest`
-of every package is the empty `0.0.0` placeholder from `claim-names`. A version
+of every package is the empty `0.0.N` placeholder from `claim-names`. A version
 that is already on npm is skipped, so a run that failed halfway can be re-run as it is; a run in which
 every package is already published fails and asks for a version bump.
 
