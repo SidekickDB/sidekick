@@ -15,6 +15,7 @@ import {
   listPackages,
   orderPackages,
   parseVersion,
+  placeholderVersion,
   readVersion,
   removeLicenceFiles,
   RELEASE_ENVIRONMENT,
@@ -72,6 +73,29 @@ test("the repo's publishable packages are the expected 17, in dependency order",
     for (const d of p.deps)
       if (names.includes(d)) assert.ok(pos(d) < pos(p.name), `${d} before ${p.name}`);
   assert.doesNotThrow(() => checkNames(pkgs));
+});
+
+test("a claim placeholder takes the lowest 0.0.N the name never had", () => {
+  assert.equal(placeholderVersion(undefined), "0.0.0");
+  assert.equal(placeholderVersion({ created: "t", modified: "t" }), "0.0.0");
+  assert.equal(
+    placeholderVersion({ created: "t", modified: "t", "0.0.0-stage": "t", "0.0.0": "t" }),
+    "0.0.1",
+  );
+  // An unpublished name: no version keys left, only the record of them.
+  assert.equal(
+    placeholderVersion({
+      created: "t",
+      modified: "t",
+      unpublished: { time: "t", versions: ["0.0.0", "0.0.0-stage"] },
+    }),
+    "0.0.1",
+  );
+  assert.equal(placeholderVersion({ "0.0.0": "t", "0.0.2": "t" }), "0.0.1");
+  assert.equal(
+    placeholderVersion({ "0.0.0": "t", unpublished: { versions: ["0.0.1"] } }),
+    "0.0.2",
+  );
 });
 
 test("names outside the SidekickDB scope are refused", () => {

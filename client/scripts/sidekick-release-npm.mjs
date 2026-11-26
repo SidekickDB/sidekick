@@ -23,9 +23,11 @@
 //
 //   node scripts/sidekick-release-npm.mjs claim-names [--dry-run]
 //       Owner only, once, on their own machine while logged in to npm. Publishes
-//       a 0.0.0 placeholder for every package name that does not exist on npm
-//       yet, so trusted publishing can be configured for it. npm asks for the
-//       2FA code itself. Never run in CI.
+//       a placeholder for every package name that does not exist on npm yet,
+//       so trusted publishing can be configured for it. The placeholder is the
+//       lowest 0.0.N the name has never had (usually 0.0.0; npm never accepts
+//       a version twice, also after an unpublish). npm asks for the 2FA code
+//       itself. Never run in CI.
 //
 //   node scripts/sidekick-release-npm.mjs trust [--dry-run]
 //       Owner only, once, after claim-names. Runs `npm trust github` for every
@@ -337,7 +339,30 @@ function publishTarballs({ dir, dryRun }) {
     );
 }
 
-function claimNames({ dryRun }) {
+// The lowest 0.0.N npm has never seen for a name. `time` is the `time` object
+// of the name's registry document; none means the registry never had the name.
+// An unpublished version stays a key of `time` or in `time.unpublished`.
+export function placeholderVersion(time) {
+  const { created, modified, unpublished, ...versions } = time || {};
+  const used = new Set([
+    ...Object.keys(versions),
+    ...(unpublished?.versions || []),
+  ]);
+  let n = 0;
+  while (used.has(`0.0.${n}`)) n++;
+  return `0.0.${n}`;
+}
+
+// The `time` object of a name's registry document, or undefined for a 404.
+async function registryTime(name) {
+  const url = `https://registry.npmjs.org/${name.replace("/", "%2f")}`;
+  const r = await fetch(url, { headers: { accept: "application/json" } });
+  if (r.status === 404) return undefined;
+  if (!r.ok) throw new Error(`GET ${url} failed: ${r.status}`);
+  return (await r.json()).time;
+}
+
+async function claimNames({ dryRun }) {
   if (process.env.GITHUB_ACTIONS)
     throw new Error("claim-names is for the owner's machine, not CI");
   const pkgs = listPackages();
@@ -350,6 +375,7 @@ function claimNames({ dryRun }) {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "sidekick-claim-"));
   for (const p of missing) {
     const real = JSON.parse(fs.readFileSync(p.file, "utf8"));
+    const version = placeholderVersion(await registryTime(p.name));
     const dir = path.join(out, p.name.replace(/[@/]/g, "_"));
     fs.mkdirSync(dir);
     fs.writeFileSync(
@@ -357,7 +383,7 @@ function claimNames({ dryRun }) {
       JSON.stringify(
         {
           name: p.name,
-          version: "0.0.0",
+          version,
           description:
             "Placeholder. The first real SidekickDB release replaces it.",
           license: "Apache-2.0",
@@ -377,7 +403,7 @@ function claimNames({ dryRun }) {
     );
     const args = ["publish", "--access", "public"];
     if (dryRun) args.push("--dry-run");
-    console.log(`\n[claim] ${p.name}@0.0.0${dryRun ? " (dry run)" : ""}`);
+    console.log(`\n[claim] ${p.name}@${version}${dryRun ? " (dry run)" : ""}`);
     run("npm", args, { cwd: dir });
   }
 }
@@ -444,7 +470,7 @@ function main(argv) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    main(process.argv.slice(2));
+    await main(process.argv.slice(2));
   } catch (e) {
     console.error(`error: ${e.message}`);
     process.exit(1);
