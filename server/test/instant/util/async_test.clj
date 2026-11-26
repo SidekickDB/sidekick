@@ -56,6 +56,10 @@
   ;; (future-call adds the child to the parent's children before it returns),
   ;; `started` is delivered when the innermost body runs and `finished` when
   ;; it exits. Cancellation of the children is synchronous in `.cancel`.
+  ;; Parents park on a promise nobody delivers instead of derefing the child:
+  ;; `.cancel` cancels the children before the parent, so a parent woken by
+  ;; its child's CancellationException could finish with an
+  ;; ExecutionException before its own cancel lands.
   (testing "demonstrate the problem"
     (let [signal (atom nil)
           go-ahead (promise)
@@ -78,13 +82,14 @@
           started (promise)
           finished (promise)
           registered (CountDownLatch. 1)
-          wait-on (fn [child] (.countDown registered) @child)
+          parked (promise)
+          park-after (fn [_child] (.countDown registered) @parked)
           v (tracked-future
-              (wait-on (tracked-future (try
-                                         (deliver started true)
-                                         @go-ahead
-                                         (reset! signal :whoops!)
-                                         (finally (deliver finished true))))))]
+              (park-after (tracked-future (try
+                                            (deliver started true)
+                                            @go-ahead
+                                            (reset! signal :whoops!)
+                                            (finally (deliver finished true))))))]
       (is (= true (deref started 10000 :timeout)))
       (is (.await registered 10 TimeUnit/SECONDS))
       (future-cancel v)
@@ -98,15 +103,16 @@
           started (promise)
           finished (promise)
           registered (CountDownLatch. 4)
-          wait-on (fn [child] (.countDown registered) @child)
+          parked (promise)
+          park-after (fn [_child] (.countDown registered) @parked)
           v (tracked-future
-              (wait-on
+              (park-after
                (tracked-future
-                 (wait-on
+                 (park-after
                   (tracked-future
-                    (wait-on
+                    (park-after
                      (tracked-future
-                       (wait-on
+                       (park-after
                         (tracked-future (try
                                           (deliver started true)
                                           @go-ahead
