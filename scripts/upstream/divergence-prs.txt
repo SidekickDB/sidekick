@@ -1,16 +1,4 @@
-# Which SidekickDB pull request belongs to which intentional divergence.
-# scripts/upstream/divergences.mjs reads this file; the divergence keys, titles
-# and resolution hints are there, the pull request numbers only here.
-#
-# One pull request per line: its number, a space, its divergence key. Add a
-# line at the end, once `gh pr create` has returned the number. A pull request
-# that carries two concerns lists both keys and needs an entry in SPLIT in
-# divergences.mjs that picks one by path.
-#
-# .gitattributes merges this file with merge=union: lines that two branches
-# add are both kept, and no line closes a block, so nothing is lost or
-# doubled. divergences.test.mjs fails on what such a merge can still leave
-# (a conflict marker, a pull request listed twice, an unknown key).
+# <PR number> <divergence key>, one per line; see UPSTREAM.md "Maintaining the tooling".
 1 ci-lockdown own-fixes
 2 dashboard
 3 upstream-fixes

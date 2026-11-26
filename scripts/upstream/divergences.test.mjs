@@ -6,6 +6,7 @@ import fs from "node:fs";
 import { test } from "node:test";
 import {
   DIVERGENCES,
+  DIVERGENCE_FILES,
   DIVERGENCE_PRS_FILE,
   PR_CATEGORY,
   parseDivergencePrs,
@@ -17,6 +18,29 @@ test("divergence-prs.txt reads without problems", () => {
   );
   assert.deepEqual(problems, []);
   assert.ok(entries.length > 0);
+});
+
+test("every file in divergences/ is <key>.mjs with a title and a hint", async () => {
+  assert.deepEqual(Object.keys(DIVERGENCES), DIVERGENCE_FILES.map((f) => f.slice(0, -4)));
+  for (const f of DIVERGENCE_FILES) {
+    assert.match(f, /^[a-z0-9-]+\.mjs$/);
+    const { default: d } = await import(`./divergences/${f}`);
+    assert.deepEqual(Object.keys(d).sort(), ["resolve", "title"], f);
+    assert.ok(typeof d.title === "string" && d.title, `${f}: title`);
+    assert.ok(typeof d.resolve === "string" && d.resolve, `${f}: resolve`);
+  }
+});
+
+test("every key in divergence-prs.txt has a file in divergences/", () => {
+  const { entries } = parseDivergencePrs(
+    fs.readFileSync(DIVERGENCE_PRS_FILE, "utf8"),
+  );
+  for (const { pr, keys } of entries)
+    for (const k of keys)
+      assert.ok(
+        DIVERGENCE_FILES.includes(`${k}.mjs`),
+        `PR ${pr}: no divergences/${k}.mjs`,
+      );
 });
 
 test("every PR_CATEGORY value is a divergence key or a split by path", () => {

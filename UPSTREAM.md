@@ -93,7 +93,8 @@ described below.
 | `normalize-rename.mjs` | Applies the package rename to a tree or to files (also usable on its own) |
 | `check.mjs` | The post-sync checks |
 | `rename.mjs` | Rename map, excluded paths, allowlist and guards |
-| `divergences.mjs` | Names and resolution hints for each divergence |
+| `divergences.mjs` | Loads the divergences and attributes changed paths to them |
+| `divergences/<key>.mjs` | Title and resolution hint of one divergence |
 | `divergence-prs.txt` | Which PR belongs to which divergence, one per line |
 | `*.test.mjs` | Tests: `node --test scripts/upstream/*.test.mjs` |
 
@@ -228,9 +229,9 @@ git commit                                            # the merge commit
 Each row is a deliberate difference from upstream, the PR that introduced it, and
 how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
-hints come from `scripts/upstream/divergences.mjs`). The PR numbers of each row
-are in `scripts/upstream/divergence-prs.txt`, not in the headings below, so that
-two open PRs do not edit the same line.
+hints come from `scripts/upstream/divergences/<key>.mjs`). The PR numbers of
+each row are in `scripts/upstream/divergence-prs.txt`, not in the headings
+below, so that two open PRs do not edit the same line.
 
 ### CI lockdown
 
@@ -1002,19 +1003,25 @@ instructions.
 - An old name must stay somewhere new: add an `ALLOWLIST` entry (path, a regex
   for the line, the reason). Prefer a `GUARDS` entry (a regex for just the
   protected token) if it is a wire identifier that can appear anywhere.
-- A new intentional divergence: add an entry to `DIVERGENCES` in
-  `scripts/upstream/divergences.mjs` (key, title, resolution hint), a section
-  here with no PR number in its heading, and a line `<PR number> <key>` at the
-  end of `scripts/upstream/divergence-prs.txt`. A PR for an existing divergence
-  needs only that line. Write the number only once `gh pr create` has returned
-  it. Unlisted PRs are still attributed, under their own title.
-  `.gitattributes` merges `divergence-prs.txt` with `merge=union`, so two PRs
-  that each add a line merge without a conflict; `divergences.mjs` merges
-  normally, so two edits of the same hint still conflict. The union merge is
-  relied on for a local `git merge` only: do not count on GitHub's
-  mergeability check or its "Update branch" button applying it.
-  `divergences.test.mjs` fails on what a union merge can leave in the file (a
-  conflict marker, a PR listed twice, an unknown key).
+- A new intentional divergence: add `scripts/upstream/divergences/<key>.mjs`
+  (`export default { title, resolve }`; the file name is the key), a section
+  here with no PR number in its heading, and a line for the PR in
+  `scripts/upstream/divergence-prs.txt`. A PR for an existing divergence needs
+  only that line. Unlisted PRs are still attributed, under their own title.
+- `divergence-prs.txt`: one line per PR, `<PR number> <key>`, appended at the
+  end once `gh pr create` has returned the number. A PR with two concerns lists
+  both keys and needs an entry in `SPLIT` in `divergences.mjs` that picks one
+  by path. Lines starting with `#` are comments; keep the one header line as it
+  is.
+- Why this layout: two PRs that each record a divergence add different files
+  and different lines, so they merge without a conflict. `.gitattributes`
+  merges `divergence-prs.txt` with `merge=union` (both added lines are kept);
+  everything else merges normally, so two edits of the same hint still
+  conflict. The union merge is relied on for a local `git merge` only: do not
+  count on GitHub's mergeability check or its "Update branch" button applying
+  it. `divergences.mjs` refuses to load, and `divergences.test.mjs` fails, on
+  what a union merge can leave behind (a conflict marker, a PR listed twice, an
+  unknown key, a malformed line).
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
