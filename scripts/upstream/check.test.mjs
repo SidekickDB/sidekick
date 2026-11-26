@@ -655,8 +655,12 @@ test("the version must be above every server version minimum", () => {
     routes: routes.replace("v0.19.0", "v2.1.3"),
   });
   assert.equal(raised.length, 2, raised.join("\n"));
-  assert.ok(raised[0].includes("reactive/session.clj:4 batch-messages-min-version 2.0.0"), raised[0]);
-  assert.ok(raised[1].includes("dash/routes.clj:1 cli-min-version 2.1.3"), raised[1]);
+  assert.ok(
+    raised[0].startsWith('server/src/instant/reactive/session.clj:4 batch-messages-min-version "2.0.0": '),
+    raised[0],
+  );
+  assert.ok(raised[0].includes("version.ts (v2.0.0) must be above every server version minimum"), raised[0]);
+  assert.ok(raised[1].startsWith('server/src/instant/dash/routes.clj:1 cli-min-version "v2.1.3": '), raised[1]);
   // Equal is not above, also for a -dev minimum (the server ranks -dev higher).
   assert.equal(
     withServerMinimums({ version: "v2.0.0", session: session.replace('"0.22.75"', '"2.0.0-dev"'), routes }).length,
@@ -694,34 +698,28 @@ test("every version literal counts as a minimum, whatever its form or name", () 
     const named = name ? ` ${name}` : "";
     assert.match(
       r[0],
-      new RegExp(`must be above server/src/instant/reactive/session\\.clj:\\d+${named} 99?\\.0\\.0, `),
+      new RegExp(`^server/src/instant/reactive/session\\.clj:\\d+${named} "v?99?\\.0\\.0": `),
       r[0],
     );
   }
 
-  // Comments and non-version strings are not minimums.
+  // Runtime code, comments and non-version strings are not minimums.
   assert.deepEqual(
     withServerMinimums({
       version: "v2.0.0",
-      session: session + '; (semver/parse "99.0.0")\n(def s "see 9.0.0 notes")\n(def c \\")\n',
+      session:
+        session +
+        '; (semver/parse "99.0.0")\n(def s "see 9.0.0 notes")\n(def c \\")\n' +
+        "(defn a [versions] (semver/parse (get versions core-version-key)))\n" +
+        "(defn b [versions] (some-> versions (get core-version-key) (semver/parse)))\n" +
+        "(defn c [v] (:major (semver/parse v)))\n",
       routes,
     }),
     [],
   );
 
-  // A minimum that cannot be read fails instead of passing.
-  for (const odd of [
-    "(def new-min-version (semver/parse some-var))",
-    '(def new-min-version (semver/parse "9.0"))',
-    '(def new-min-version (semver/parse "latest"))',
-    "(def new-min-version {:major 9 :minor 0 :patch 0 :dev? false})",
-  ]) {
-    const r = withServerMinimums({ version: "v2.0.0", session: session + odd + "\n", routes });
-    assert.equal(r.length, 1, odd);
-    assert.match(r[0], /session\.clj:3: .*cannot read the server's version minimums/, odd);
-  }
   const none = withServerMinimums({ version: "v2.0.0", session: "(ns x)\n", routes });
-  assert.match(none[0], /session\.clj: no version string literal/);
+  assert.match(none[0], /^server\/src\/instant\/reactive\/session\.clj: no version string literal found/);
 });
 
 test("the repository's version is above its server minimums", () => {
@@ -756,7 +754,7 @@ test("runChecks fails on a raised server minimum and names it", () => {
     assert.equal(r.failures.length, 1, r.failures.join("\n"));
     assert.match(
       r.failures[0],
-      /version v2\.0\.0 must be above server\/src\/instant\/reactive\/session\.clj:2 batch-messages-min-version 9\.0\.0/,
+      /^server\/src\/instant\/reactive\/session\.clj:2 batch-messages-min-version "9\.0\.0": the SidekickDB version .* \(v2\.0\.0\) must be above/,
     );
   } finally {
     fs.rmSync(root, { recursive: true, force: true });

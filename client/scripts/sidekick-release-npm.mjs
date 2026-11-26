@@ -98,24 +98,16 @@ export const SERVER_MIN_VERSION_FILES = [
 ];
 
 // The server ties no meaning to a minimum's name, so every version string
-// literal in these files counts as a minimum (what instant.util.semver
-// accepts: x.y.z, optional v and -dev), wherever it is: `(semver/parse "...")`
-// or a string handed to semver/compare-semver. Failing closed:
-//   - a file with no version literal;
-//   - `(semver/parse` with anything but a version literal (a minimum built
-//     from a symbol or another string could not be read);
-//   - a `:major` key (a version map built by hand).
-// Comments, character literals and other strings are skipped.
+// literal in these files (what instant.util.semver accepts: x.y.z, optional
+// v and -dev) counts as a minimum, whatever form holds it. Comments and
+// character literals are skipped. A file with no version literal is an error.
+// Not seen: a minimum assembled at runtime or defined in another server file.
 const VERSION_LITERAL = /^v?(\d+)\.(\d+)\.(\d+)(?:-dev)?$/;
-const CLOJURE_TOKENS = /;[^\n]*|\\.|"((?:[^"\\]|\\.)*)"|\(semver\/parse(?![\w*+!?'<>=/-])|:major(?![\w*+!?'<>=/-])/g;
+const CLOJURE_TOKENS = /;[^\n]*|\\.|"((?:[^"\\]|\\.)*)"/g;
 const TOP_LEVEL_DEF =
   /^\(def[\w-]*\s+(?:\^(?:\{(?:[^}"]|"(?:[^"\\]|\\.)*")*\}|\S+)\s+)*([^\s()]+)/;
 
 export function serverMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
-  const unreadable = (where, why) =>
-    new Error(
-      `${where}: ${why}; cannot read the server's version minimums (update serverMinimums in client/scripts/sidekick-release-npm.mjs)`,
-    );
   return SERVER_MIN_VERSION_FILES.flatMap((f) => {
     const text = fs.readFileSync(path.join(repoRoot, f), "utf8");
     const lineAt = (i) => text.slice(0, i).split("\n").length;
@@ -126,26 +118,20 @@ export function serverMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
     };
     const out = [];
     for (const t of text.matchAll(CLOJURE_TOKENS)) {
+      const m = t[1] !== undefined && VERSION_LITERAL.exec(t[1]);
+      if (!m) continue;
       const where = `${f}:${lineAt(t.index)}`;
-      if (t[0] === "(semver/parse") {
-        const arg = /^\s+"((?:[^"\\]|\\.)*)"\s*\)/.exec(
-          text.slice(t.index + t[0].length),
-        );
-        if (!arg || !VERSION_LITERAL.test(arg[1]))
-          throw unreadable(where, "semver/parse without a version string literal");
-      } else if (t[0] === ":major") {
-        throw unreadable(where, "a version map built by hand (:major)");
-      } else if (t[1] !== undefined) {
-        const m = VERSION_LITERAL.exec(t[1]);
-        if (!m) continue;
-        const name = defAt(t.index);
-        out.push({
-          name: name ? `${where} ${name}` : where,
-          parts: m.slice(1, 4).map(Number),
-        });
-      }
+      const name = defAt(t.index);
+      out.push({
+        name: name ? `${where} ${name}` : where,
+        literal: t[1],
+        parts: m.slice(1, 4).map(Number),
+      });
     }
-    if (!out.length) throw unreadable(f, "no version string literal");
+    if (!out.length)
+      throw new Error(
+        `${f}: no version string literal found, but this is where the server keeps its version minimums. If they moved, update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+      );
     return out;
   });
 }
@@ -157,8 +143,8 @@ export function checkServerMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
   return serverMinimums(repoRoot)
     .filter(({ parts }) => compare(ours, parts) <= 0)
     .map(
-      ({ name, parts }) =>
-        `client/packages/version/src/version.ts: version ${v} must be above ${name} ${parts.join(".")}, or the server disables that protocol feature for SidekickDB clients; raise version.ts (RELEASING.md)`,
+      ({ name, literal }) =>
+        `${name} "${literal}": the SidekickDB version in client/packages/version/src/version.ts (${v}) must be above every server version minimum (protocol features in session.clj, the CLI's compatibility floor in routes.clj). Raise version.ts (RELEASING.md). If this string is not a minimum, add an exception to serverMinimums in client/scripts/sidekick-release-npm.mjs`,
     );
 }
 
