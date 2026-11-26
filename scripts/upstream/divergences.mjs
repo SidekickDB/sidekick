@@ -3,6 +3,11 @@
 // non-upstream commit merged into main), so new SidekickDB PRs are picked
 // up automatically; the table below only adds names and resolution hints.
 // Keep it in step with the "Intentional divergences" section of UPSTREAM.md.
+//
+// Parallel PRs add lines here. .gitattributes merges this file with
+// merge=union, so keep every addition on a line of its own: one `prs` number
+// per line, one PR_CATEGORY entry per line. divergences.test.mjs catches
+// what a union merge can get wrong (conflict markers, duplicate keys).
 
 import { git, lines } from "./git.mjs";
 
@@ -10,7 +15,12 @@ export const DIVERGENCES = {
   "ci-lockdown": {
     title:
       "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base, runs on main and pull requests only",
-    prs: [1, 5, 27, 54],
+    prs: [
+      1,
+      5,
+      27,
+      54,
+    ],
     resolve:
       'Keep every line marked "# SidekickDB:" / "// SidekickDB:". Take upstream\'s other changes. ' +
       "A new or changed publish/deploy job gets `if: false && (<upstream condition>)`; a new publish-only " +
@@ -21,7 +31,9 @@ export const DIVERGENCES = {
   "js-test-guard": {
     title:
       "JS tests run offline in CI behind a network guard; networked suites only with SIDEKICK_E2E_API_URI",
-    prs: [9],
+    prs: [
+      9,
+    ],
     resolve:
       "Keep the \"Run tests\" step's SIDEKICK_E2E_API_URI: '' and SIDEKICK_NETWORK_GUARD_ALLOW: '', the " +
       "client test/bench scripts that run through scripts/with-network-guard.mjs, and the e2e helpers that " +
@@ -31,7 +43,9 @@ export const DIVERGENCES = {
   "fail-closed": {
     title:
       "SDKs, CLI and MCP fail closed: no default server URL (no api.instantdb.com, no localhost default)",
-    prs: [11],
+    prs: [
+      11,
+    ],
     resolve:
       "Keep SidekickDB's side: init()/clients require apiURI (websocketURI derived from it), the CLI needs " +
       "INSTANT_CLI_API_URI or instant.config.ts, MCP needs --api-url/INSTANT_API_URL, the devtool loads " +
@@ -42,7 +56,10 @@ export const DIVERGENCES = {
   dashboard: {
     title:
       "Dashboard decoupled from Instant services (Berkeley Mono, star count, docs feedback/AI chat/GitHub webhook removed; self-hosted: no Stripe.js, billing hidden)",
-    prs: [2, 14],
+    prs: [
+      2,
+      14,
+    ],
     resolve:
       "Keep the removals. If upstream changed a file SidekickDB deleted, keep it deleted. If upstream " +
       "re-introduces the font (stopaio.s3.amazonaws.com), the star count, the feedback app or the chat, drop " +
@@ -52,7 +69,13 @@ export const DIVERGENCES = {
   "upstream-fixes": {
     title:
       "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions, Explorer exponent numbers) and their follow-ups",
-    prs: [3, 10, 32, 35, 52],
+    prs: [
+      3,
+      10,
+      32,
+      35,
+      52,
+    ],
     resolve:
       "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
       "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +
@@ -62,7 +85,16 @@ export const DIVERGENCES = {
   selfhost: {
     title:
       "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, required secrets, JVM memory defaults, Google prefetch only when configured, DoH setting, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
-    prs: [4, 13, 14, 21, 31, 34, 36, 43],
+    prs: [
+      4,
+      13,
+      14,
+      21,
+      31,
+      34,
+      36,
+      43,
+    ],
     resolve:
       "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
       "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +
@@ -84,7 +116,16 @@ export const DIVERGENCES = {
   "own-fixes": {
     title:
       "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image, signing-key refresh runs, team and transfer invites sent through the email router",
-    prs: [6, 8, 12, 16, 24, 44, 49, 63],
+    prs: [
+      6,
+      8,
+      12,
+      16,
+      24,
+      44,
+      49,
+      63,
+    ],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
@@ -93,7 +134,9 @@ export const DIVERGENCES = {
   "bundled-starters": {
     title:
       "create-sidekick-app bundles every starter it offers and does not offer vercel-ai-sdk; the download fallback points at SidekickDB's repository; bun-react without lockfile",
-    prs: [60],
+    prs: [
+      60,
+    ],
     resolve:
       "Keep `bundled: true` on every offered base in create-instant-app/src/projectBase.ts, also on a base upstream " +
       "adds, and keep SidekickDB/sidekick as the repository in scaffold.ts. Keep examples/bun-react on " +
@@ -103,7 +146,9 @@ export const DIVERGENCES = {
   },
   "python-starter": {
     title: "create-sidekick-app does not offer or bundle the Python starter; docs say the Python SDK is Instant's",
-    prs: [58],
+    prs: [
+      58,
+    ],
     resolve:
       "Keep unavailableProjectBases in create-instant-app/src/projectBase.ts with python-script in it, and no " +
       "--python option or menu entry in cli.ts. Take upstream's other changes to the Python handling as they " +
@@ -113,7 +158,12 @@ export const DIVERGENCES = {
   release: {
     title:
       "SidekickDB release pipeline: npm trusted publishing and GHCR image workflows, flags-config and mcp private",
-    prs: [18, 39, 40, 42],
+    prs: [
+      18,
+      39,
+      40,
+      42,
+    ],
     resolve:
       "Upstream has none of these files except server/flags-config/package.json and " +
       "client/packages/mcp/package.json: keep \"private\": true in both and take upstream's other changes. Keep the release workflows' shape (check.mjs enforces it). " +
@@ -123,7 +173,9 @@ export const DIVERGENCES = {
   "config-aliases": {
     title:
       "Configuration names: SIDEKICK_* variables and sidekick.* config files accepted next to INSTANT_* / instant.*",
-    prs: [19],
+    prs: [
+      19,
+    ],
     resolve:
       "The source keeps upstream's INSTANT_* names; only the lookup differs. Server: keep env/getenv " +
       "(instant.util.env) wherever an INSTANT_* variable is read, and use it for a variable upstream adds. " +
@@ -136,7 +188,10 @@ export const DIVERGENCES = {
   bench: {
     title:
       "Self-hosted stack benchmark: harness in scripts/bench/self-hosted and a read-only workflow",
-    prs: [20, 23],
+    prs: [
+      20,
+      23,
+    ],
     resolve:
       "Upstream has none of these files. If upstream changes self-hosting/docker-compose.yml, " +
       "server/Dockerfile.self-hosted, client/Dockerfile.www or @sidekickdb/core's init()/subscribeQuery " +
@@ -146,7 +201,9 @@ export const DIVERGENCES = {
   "two-node-smoke": {
     title:
       "Two-node smoke test: two server nodes against one Postgres (scripts/smoke/two-node) and a read-only workflow",
-    prs: [37],
+    prs: [
+      37,
+    ],
     resolve:
       "Upstream has none of these files. If upstream changes self-hosting/docker-compose.yml, swarm.yml, " +
       "server/Dockerfile.self-hosted or how init-hz discovers peers (SWARM_SERVICE_NAME, tasks.<name>, ports " +
@@ -154,7 +211,9 @@ export const DIVERGENCES = {
   },
   "runtime-mode": {
     title: "Self-hosted runtime mode (INSTANT_RUNTIME_MODE / SIDEKICK_RUNTIME_MODE)",
-    prs: [22],
+    prs: [
+      22,
+    ],
     resolve:
       "Keep config.clj's runtime-mode helpers and their call sites: the skip check in core.clj's with-log-init, " +
       "dev-only? instead of dev? in sse.clj, session.clj, app_stream.clj and wrap-dev-server-info, secure-cookies? " +
@@ -163,21 +222,28 @@ export const DIVERGENCES = {
   },
   "removed-session-counter": {
     title: "Session-count WebSocket (/dash/session_counts) and its reporter removed",
-    prs: [29],
+    prs: [
+      29,
+    ],
     resolve:
       "Keep server/src/instant/session_counter.clj deleted, and the route and the start step in core.clj removed. " +
       "Take upstream's other changes in those files. server/test/instant/dash/removed_routes_test.clj must pass.",
   },
   "removed-ws-playground": {
     title: "Debug WebSocket playground (/dash/ws_playground) removed",
-    prs: [51],
+    prs: [
+      51,
+    ],
     resolve:
       "Keep ws-playground-get, id-atom and the route removed from dash/routes.clj. Take upstream's other " +
       "changes in that file. server/test/instant/dash/removed_routes_test.clj must pass.",
   },
   "removed-sunset": {
     title: "Wind-down (sunset) of Instant Cloud removed from the server and the dashboard",
-    prs: [64, 65],
+    prs: [
+      64,
+      65,
+    ],
     resolve:
       "Keep sunset.clj, sunset_test.clj, pages/intern/sunset.tsx, SunsetBanner.tsx and lib/sunset.ts deleted. " +
       "Delete again whatever upstream adds for the wind-down: " +
@@ -191,12 +257,16 @@ export const DIVERGENCES = {
   },
   "security-policy": {
     title: "SidekickDB's own security policy (SECURITY.md)",
-    prs: [30],
+    prs: [
+      30,
+    ],
     resolve: "Upstream has no SECURITY.md. If it adds one, keep SidekickDB's.",
   },
   notice: {
     title: "SidekickDB's NOTICE file (attribution to InstantDB, statement of changes)",
-    prs: [41],
+    prs: [
+      41,
+    ],
     resolve:
       "Upstream has no NOTICE. If it adds one, keep its attribution notices and SidekickDB's text in the " +
       "same file (Apache-2.0 section 4(d)).",
@@ -204,7 +274,11 @@ export const DIVERGENCES = {
   brand: {
     title:
       "Brand: README body, package READMEs and descriptions, self-hosting/client/server README headers, CONTRIBUTING.md and the text the CLI and create-sidekick-app print present the project as SidekickDB",
-    prs: [56, 61, 62],
+    prs: [
+      56,
+      61,
+      62,
+    ],
     resolve:
       "Keep SidekickDB's text: no Instant logo, badges, Discord or instantdb.com links, the name SidekickDB in " +
       "prose, docs links to client/www/app/docs in this repository. When upstream changes what a README says " +
@@ -219,7 +293,10 @@ export const DIVERGENCES = {
   },
   "readme-header": {
     title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
-    prs: [38, 48],
+    prs: [
+      38,
+      48,
+    ],
     resolve:
       "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
       "the logo, the Discord and stars badges or the instantdb.com link row. Keep the two diagrams on their " +
@@ -229,7 +306,10 @@ export const DIVERGENCES = {
   rename: {
     title:
       "JS package rename to @sidekickdb/* (CLI @sidekickdb/cli, create-sidekick-app)",
-    prs: [7, 17],
+    prs: [
+      7,
+      17,
+    ],
     resolve:
       "The sync already re-merged this file with the rename applied to all three sides, so what remains is " +
       "a real edit on both sides: keep both intents, written with SidekickDB names. Never hand-edit " +

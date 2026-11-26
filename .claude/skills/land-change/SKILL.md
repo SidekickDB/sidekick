@@ -24,7 +24,11 @@ Never commit to `main`.
   `SidekickDB:` comment saying why, where the format allows comments.
 - An intentional difference from upstream is recorded in two places:
   `UPSTREAM.md` under "Intentional divergences" (with how to resolve it at the
-  next sync) and `scripts/upstream/divergences.mjs`.
+  next sync) and `scripts/upstream/divergences.mjs`. Both name the pull
+  request by number, so write them only after `gh pr create` has returned it;
+  never guess the next number. In `divergences.mjs` put each new `prs` number
+  and `PR_CATEGORY` entry on a line of its own; no PR number goes into an
+  `UPSTREAM.md` heading.
 - New workflow file: name it `sidekick-*.yml`, pin actions to full commit SHAs
   (verify each SHA exists; dereference annotated tags), and add it to
   `KNOWN_WORKFLOWS` in `scripts/upstream/check.mjs`.

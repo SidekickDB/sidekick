@@ -227,9 +227,11 @@ git commit                                            # the merge commit
 Each row is a deliberate difference from upstream, the PR that introduced it, and
 how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
-hints come from `scripts/upstream/divergences.mjs`).
+hints come from `scripts/upstream/divergences.mjs`). The PR numbers of each row
+are listed there, not in the headings below, so that two open PRs do not edit
+the same line.
 
-### CI lockdown (PR #1, PR #5, PR #27, PR #54)
+### CI lockdown
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -276,7 +278,7 @@ re-enable **Fetch timings**. Keep the `on:` and `concurrency:` blocks of
 `clojure.yml` and `js.yml` as they are here; if upstream adds a trigger, add it
 only if it cannot publish or deploy.
 
-### JS tests offline in CI behind a network guard (PR #9)
+### JS tests offline in CI behind a network guard
 
 - `.github/workflows/js.yml`, `build` job, **Run tests** step: runs
   `pnpm run test --continue` with `SIDEKICK_E2E_API_URI: ''`,
@@ -298,7 +300,7 @@ guarded `test`/`bench` scripts, and the e2e helpers that skip without
 `check.mjs` fails if the step loses either variable or its command, or if the
 client `test`/`bench` script stops using the guard.
 
-### SDKs, CLI and MCP fail closed (PR #11)
+### SDKs, CLI and MCP fail closed
 
 The JS packages have no default server any more: no `api.instantdb.com`, no
 `instantdb.com` dashboard, no localhost default.
@@ -325,7 +327,7 @@ host added to `client/packages/*/src` or `bin` (outside tests and comments), and
 the core, admin, platform, resumable-stream, mcp and cli `apiURI`/`endpoints`
 tests must pass.
 
-### Dashboard decoupled from Instant services (PR #2, PR #14)
+### Dashboard decoupled from Instant services
 
 The dashboard (`client/www`) contacted Instant-owned services at build time and
 from users' browsers. PR #2 (32 files; paths below are under `client/www/`
@@ -370,7 +372,7 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
 changes.
 
-### Upstream fixes taken early (PR #3, PR #10, PR #32, PR #35, PR #52)
+### Upstream fixes taken early
 
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
@@ -417,7 +419,7 @@ keep ours and apply upstream's other changes, but keep a SidekickDB follow-up
 that upstream lacks (for example the #2945 `options=` fix). Re-run the affected
 tests.
 
-### Self-hosting defaults and RustFS (PR #4, PR #13, PR #21, PR #31, PR #34, PR #36, PR #43)
+### Self-hosting defaults and RustFS
 
 The self-hosted stack works without Instant infrastructure.
 
@@ -504,7 +506,7 @@ boot prefetch and take upstream's other changes. In `config.clj` and
 lookup final (no system fallback); if upstream changes the resolvers, port
 the change into that form.
 
-### JS package rename (PR #7, PR #17)
+### JS package rename
 
 | Upstream | SidekickDB |
 |---|---|
@@ -564,7 +566,7 @@ hand. If upstream adds a package, add it to `SCOPED_PACKAGES` in
 `@instantdb/*` name), add the `repository`/`bugs`/`homepage` fields as in PR #7,
 and normalize again.
 
-### Configuration names: `SIDEKICK_*` and `sidekick.*` (PR #19)
+### Configuration names: `SIDEKICK_*` and `sidekick.*`
 
 Every `INSTANT_*` variable can also be set as `SIDEKICK_*`, and the CLI's
 `instant.config`, `instant.schema`, `instant.perms` and `instant.email` files
@@ -601,7 +603,7 @@ lookup. When upstream adds a variable: on the server read it with
 is needed. When upstream adds an `instant.*` file kind to the CLI, add it to
 `LEGACY_CONFIG_FILE` in `findConfigCandidates.ts`.
 
-### Self-hosted runtime mode (PR #22)
+### Self-hosted runtime mode
 
 `INSTANT_RUNTIME_MODE` / `SIDEKICK_RUNTIME_MODE` = `self-hosted` | `default`
 (`config.clj`: `runtime-mode-value`, `self-hosted?`, `dev-only?`,
@@ -633,7 +635,7 @@ the self-hosted mode skips it.
 a new startup step gets a skip decision and an updated count and hash in the
 test.
 
-### Removed: session-count WebSocket (PR #29)
+### Removed: session-count WebSocket
 
 `server/src/instant/session_counter.clj`, its start in `core.clj` and the route
 `GET /dash/session_counts` in `dash/routes.clj` are removed. SidekickDB has no
@@ -645,7 +647,7 @@ removed.
 upstream changes the route or the start step, keep them removed and take its
 other changes in those files.
 
-### Removed: wind-down (sunset) stage (PRs #64, #65)
+### Removed: wind-down (sunset) stage
 
 Upstream built a global wind-down of Instant Cloud into the server: a stage
 (`signups-closed`, `read-only`, `disabled`) read from the `sunset-stage` flag
@@ -691,7 +693,7 @@ must pass and
 `git grep -n -i sunset -- server/src client/www/components client/www/pages client/www/lib`
 must print only the essay word count in `allExactCounts.json`.
 
-### Removed: WebSocket playground (PR #51)
+### Removed: WebSocket playground
 
 The unused inherited debug endpoint `GET /dash/ws_playground` and its handler
 (`ws-playground-get`, `id-atom`) are removed from `dash/routes.clj`, together
@@ -702,7 +704,7 @@ that only it used. Nothing in the clients or the dashboard calls it.
 **Resolving:** if upstream changes the handler or the route, keep them removed
 and take its other changes in the file.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49, PR #63)
+### SidekickDB's own fixes
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
@@ -753,7 +755,7 @@ then take upstream's version. Take upstream's new tests as they are. For the
 Postgres image, drop the entrypoint only if upstream's image allows `wal2json`
 some other way; check by starting the self-hosting stack.
 
-### Release pipeline (PR #18, PR #39, PR #40, PR #42)
+### Release pipeline
 
 - `.github/workflows/sidekick-release-npm.yml` and
   `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
@@ -781,7 +783,7 @@ keep `"private": true` in both and take upstream's other changes. In
 upstream raised a server version minimum above SidekickDB's version; raise
 `version.ts` above that minimum in that case.
 
-### Self-hosted stack benchmark (PR #20, PR #23)
+### Self-hosted stack benchmark
 
 `scripts/bench/self-hosted/` (`run.mjs`, `workload.mjs`, `summarize.mjs`,
 `compose.bench.yml`, kept results in `results/`) and
@@ -800,7 +802,7 @@ compose file, the self-hosted Dockerfiles or the core client API the workload
 uses, keep upstream's change and adapt the harness. Compare a new run only with
 a kept result from the same runner label.
 
-### Two-node smoke test (PR #37)
+### Two-node smoke test
 
 `scripts/smoke/two-node/` (`run.mjs`, `smoke.mjs`, `compose.two-node.yml`)
 and `.github/workflows/sidekick-two-node-smoke.yml` boot two server nodes
@@ -820,7 +822,7 @@ compose file, `swarm.yml`, the self-hosted Dockerfile or how `init-hz` in
 `server/src/instant/reactive/ephemeral.clj` discovers peers, keep upstream's
 change and adapt the override or `run.mjs`.
 
-### Security policy (PR #30)
+### Security policy
 
 `SECURITY.md`: SidekickDB's own policy, reports through GitHub private
 vulnerability reporting on `SidekickDB/sidekick`.
@@ -828,7 +830,7 @@ vulnerability reporting on `SidekickDB/sidekick`.
 **Resolving:** upstream has no `SECURITY.md`. If it adds one, keep
 SidekickDB's.
 
-### README header (PR #38, PR #48)
+### README header
 
 `README.md`: the top of the file is SidekickDB's plain-text header (name, one
 line on what it is, the relation to Instant, a link to this file). Upstream's
@@ -841,7 +843,7 @@ not from instantdb.com.
 or link row. Keep the relative diagram paths. The text below the header is
 SidekickDB's too since PR #56 (next section).
 
-### No Python starter (PR #58)
+### No Python starter
 
 SidekickDB releases no Python SDK. `create-sidekick-app` therefore does not
 offer or bundle the `python-script` starter, which installs Instant's
@@ -863,7 +865,7 @@ upstream's changes to the Python handling as they are; it stays unreachable.
 If upstream adds another starter that installs a package SidekickDB does not
 release, add it to `unavailableProjectBases`.
 
-### Starters come with the package (PR #60)
+### Starters come with the package
 
 `create-sidekick-app` downloads no starter at run time:
 
@@ -891,7 +893,7 @@ offered base is not bundled). Keep `bun-react` on `latest` and delete
 until the example works against a SidekickDB server with no request to an
 Instant-owned host; keep the `User-Agent` edit in `ai-chat`.
 
-### Brand: READMEs, package descriptions, CLI text and starters (PR #56, PR #61, PR #62)
+### Brand: READMEs, package descriptions, CLI text and starters
 
 What a visitor of the repository or of a package's npm page reads presents the
 project as SidekickDB:
@@ -934,7 +936,7 @@ assert it. In the starters and the rules file keep SidekickDB's name and add no
 image from instantdb.com; copy the rules file to its template copy after
 every edit.
 
-### NOTICE file (PR #41)
+### NOTICE file
 
 `NOTICE`: SidekickDB's own attribution notice. It names InstantDB as the
 original work, says that SidekickDB is not affiliated with Instant and that
@@ -943,10 +945,11 @@ files were changed.
 **Resolving:** upstream has no `NOTICE`. If it adds one, keep its attribution
 notices and SidekickDB's text in the same file (section 4(d) of the licence).
 
-### Upstream sync tooling (this file's PR)
+### Upstream sync tooling
 
-`UPSTREAM.md` and `scripts/upstream/`. Upstream has neither, so they never
-conflict.
+`UPSTREAM.md`, `scripts/upstream/` and `.gitattributes`. Upstream has none of
+them, so they never conflict. If upstream adds a `.gitattributes`, keep its
+lines and SidekickDB's `merge=union` line for `divergences.mjs`.
 
 ## Re-check after every sync
 
@@ -999,8 +1002,13 @@ instructions.
   for the line, the reason). Prefer a `GUARDS` entry (a regex for just the
   protected token) if it is a wire identifier that can appear anywhere.
 - A new intentional divergence: add its PR to `PR_CATEGORY` and `DIVERGENCES` in
-  `scripts/upstream/divergences.mjs` and a section here. Unlisted PRs are still
-  attributed, under their own title.
+  `scripts/upstream/divergences.mjs` (one line each, a `prs` entry per line) and
+  a section here, with no PR number in its heading. Write the number only once
+  `gh pr create` has returned it. Unlisted PRs are still attributed, under their
+  own title. `.gitattributes` merges `divergences.mjs` with `merge=union`, so
+  two PRs that add lines there merge without a conflict;
+  `divergences.test.mjs` fails on a conflict marker or a duplicate
+  `PR_CATEGORY` key that such a merge leaves.
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
