@@ -14,13 +14,24 @@ import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { git, lines } from "./git.mjs";
 
-// Loaded in file name order; nothing depends on the order of the keys.
+/**
+ * The divergence files among the names in divergences/, in file name order
+ * (nothing depends on the order of the keys). Dotfiles such as .DS_Store or
+ * an editor's swap file are ignored; any other name that is not <key>.mjs
+ * is an error.
+ */
+export function divergenceFiles(names) {
+  const files = names.filter((f) => !f.startsWith(".")).sort();
+  for (const f of files)
+    if (!/^[a-z0-9-]+\.mjs$/.test(f))
+      throw new Error(`scripts/upstream/divergences/${f}: not <key>.mjs`);
+  return files;
+}
+
 const DIVERGENCES_DIR = new URL("./divergences/", import.meta.url);
-export const DIVERGENCE_FILES = fs.readdirSync(DIVERGENCES_DIR).sort();
+export const DIVERGENCE_FILES = divergenceFiles(fs.readdirSync(DIVERGENCES_DIR));
 export const DIVERGENCES = {};
 for (const f of DIVERGENCE_FILES) {
-  if (!/^[a-z0-9-]+\.mjs$/.test(f))
-    throw new Error(`scripts/upstream/divergences/${f}: not <key>.mjs`);
   const { default: d } = await import(new URL(f, DIVERGENCES_DIR));
   DIVERGENCES[f.slice(0, -".mjs".length)] = { ...d };
 }

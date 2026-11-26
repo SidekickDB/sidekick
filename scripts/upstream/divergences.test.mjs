@@ -9,6 +9,7 @@ import {
   DIVERGENCE_FILES,
   DIVERGENCE_PRS_FILE,
   PR_CATEGORY,
+  divergenceFiles,
   parseDivergencePrs,
 } from "./divergences.mjs";
 
@@ -29,6 +30,15 @@ test("every file in divergences/ is <key>.mjs with a title and a hint", async ()
     assert.ok(typeof d.title === "string" && d.title, `${f}: title`);
     assert.ok(typeof d.resolve === "string" && d.resolve, `${f}: resolve`);
   }
+});
+
+test("the loader skips dotfiles and rejects other names", () => {
+  assert.deepEqual(
+    divergenceFiles(["selfhost.mjs", ".DS_Store", ".brand.mjs.swp", "brand.mjs"]),
+    ["brand.mjs", "selfhost.mjs"],
+  );
+  for (const bad of ["notes.txt", "Brand.mjs", "brand.mjs~", "brand.js"])
+    assert.throws(() => divergenceFiles(["brand.mjs", bad]), /not <key>\.mjs/, bad);
 });
 
 test("every key in divergence-prs.txt has a file in divergences/", () => {
