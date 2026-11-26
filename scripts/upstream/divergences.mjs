@@ -84,7 +84,7 @@ export const DIVERGENCES = {
   "own-fixes": {
     title:
       "SidekickDB's own fixes: flaky or hanging tests on 2-vCPU runners, timed-out refreshes keep and redeliver subscriptions (#2932), attr-sketch loads off the common pool, presence refresh combine keeps snapshots, wal2json allowed in the Postgres image, signing-key refresh runs, team and transfer invites sent through the email router",
-    prs: [6, 8, 12, 16, 24, 44, 49, 63],
+    prs: [6, 8, 12, 16, 24, 44, 49, 63, 69],
     resolve:
       "Keep SidekickDB's fix unless upstream fixed the same problem; then take upstream's version. Take " +
       "upstream's new tests as they are. server/dev-postgres: keep sidekick-entrypoint.sh and the ENTRYPOINT " +
@@ -292,6 +292,7 @@ const PR_CATEGORY = {
   63: "own-fixes",
   64: "removed-sunset",
   65: "removed-sunset",
+  69: "own-fixes",
 };
 
 export function categoryFor(pr, file) {

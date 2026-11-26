@@ -702,13 +702,15 @@ that only it used. Nothing in the clients or the dashboard calls it.
 **Resolving:** if upstream changes the handler or the route, keep them removed
 and take its other changes in the file.
 
-### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49, PR #63)
+### SidekickDB's own fixes (PR #1, PR #6, PR #8, PR #12, PR #16, PR #24, PR #44, PR #49, PR #63, PR #69)
 
 - Tests that hung or flaked on 2-vCPU CI runners:
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
   `server/test/instant/reactive/session_test.clj` (PR #6),
   `server/test/instant/custodian_test.clj` and
-  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8).
+  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
+  `child-tracked-futures-are-canceled` in
+  `server/test/instant/util/async_test.clj` (PR #69).
 - PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
   the receive timeout no longer removes the session's queries.
   `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
