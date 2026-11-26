@@ -753,7 +753,7 @@ then take upstream's version. Take upstream's new tests as they are. For the
 Postgres image, drop the entrypoint only if upstream's image allows `wal2json`
 some other way; check by starting the self-hosting stack.
 
-### Release pipeline (PR #18, PR #39, PR #40, PR #42)
+### Release pipeline (PR #18, PR #39, PR #40, PR #42, PR #72)
 
 - `.github/workflows/sidekick-release-npm.yml` and
   `.github/workflows/sidekick-release-images.yml`: SidekickDB's own publish
