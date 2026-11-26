@@ -21,7 +21,7 @@ export const DIVERGENCES = {
   "js-test-guard": {
     title:
       "JS tests run offline in CI behind a network guard; networked suites only with SIDEKICK_E2E_API_URI",
-    prs: [9],
+    prs: [9, 70],
     resolve:
       "Keep the \"Run tests\" step's SIDEKICK_E2E_API_URI: '' and SIDEKICK_NETWORK_GUARD_ALLOW: '', the " +
       "client test/bench scripts that run through scripts/with-network-guard.mjs, and the e2e helpers that " +
@@ -292,6 +292,7 @@ const PR_CATEGORY = {
   63: "own-fixes",
   64: "removed-sunset",
   65: "removed-sunset",
+  70: "js-test-guard",
 };
 
 export function categoryFor(pr, file) {
