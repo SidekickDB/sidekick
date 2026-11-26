@@ -97,23 +97,33 @@ export const SERVER_MIN_VERSION_FILES = [
   "server/src/instant/dash/routes.clj",
 ];
 
+// `(def` or `(defonce`, any metadata (`^:private`, `^{...}`, `^Type`), then a
+// name ending in min-version. Its value must be `(semver/parse "x.y.z")`,
+// optionally after a docstring; any other shape is an error, not a pass.
+const MIN_VERSION_DEF =
+  /\(def(?:once)?\s+(?:\^(?:\{[^}]*\}|\S+)\s+)*(\S*min-version)(?=[\s)])/g;
+const MIN_VERSION_VALUE =
+  /^\s+(?:"(?:[^"\\]|\\.)*"\s+)?\(semver\/parse\s+"v?(\d+)\.(\d+)\.(\d+)"\)\s*\)/;
+// Looser count of the same forms, so a head MIN_VERSION_DEF misses fails.
+const MIN_VERSION_LOOSE = /\(def(?:once)?\s[^()]*?min-version/g;
+
 export function serverMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
   return SERVER_MIN_VERSION_FILES.flatMap((f) => {
     const text = fs.readFileSync(path.join(repoRoot, f), "utf8");
-    const defs = [...text.matchAll(/\(def \S*min-version(?=\s)/g)];
-    const mins = [
-      ...text.matchAll(
-        /\(def (\S*min-version)\s+\(semver\/parse "v?(\d+)\.(\d+)\.(\d+)"\)\)/g,
-      ),
-    ];
-    if (!mins.length || mins.length !== defs.length)
+    const defs = [...text.matchAll(MIN_VERSION_DEF)];
+    const loose = text.match(MIN_VERSION_LOOSE)?.length ?? 0;
+    if (!defs.length || defs.length !== loose)
       throw new Error(
-        `${f}: cannot read every version minimum (found ${defs.length} definitions, parsed ${mins.length}); update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+        `${f}: cannot read every version minimum (found ${loose}, read ${defs.length}); update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
       );
-    return mins.map((m) => ({
-      name: `${f} ${m[1]}`,
-      parts: m.slice(2).map(Number),
-    }));
+    return defs.map((d) => {
+      const v = MIN_VERSION_VALUE.exec(text.slice(d.index + d[0].length));
+      if (!v)
+        throw new Error(
+          `${f}: cannot read version minimum ${d[1]}; update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+        );
+      return { name: `${f} ${d[1]}`, parts: v.slice(1).map(Number) };
+    });
   });
 }
 

@@ -1,6 +1,7 @@
 // Run with: node --test scripts/upstream/*.test.mjs
 // Uses temporary copies of the repository's real workflow files.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +12,7 @@ import {
   hasReleaseGuard,
   isFalse,
   compareVersionsKeys,
+  runChecks,
   scanAddedLines,
   versionsKeys,
 } from "./check.mjs";
@@ -656,15 +658,75 @@ test("the version must be above every server version minimum", () => {
   assert.ok(raised[0].includes("reactive/session.clj batch-messages-min-version 2.0.0"), raised[0]);
   assert.ok(raised[1].includes("dash/routes.clj cli-min-version 2.1.3"), raised[1]);
 
-  // A minimum in a shape the reader does not know fails instead of passing.
-  const unread = withServerMinimums({
+  // Metadata, defonce and a docstring are read like a plain def.
+  const decorated = withServerMinimums({
     version: "v2.0.0",
-    session: session + "(def new-min-version (semver/parse some-var))\n",
+    session:
+      session +
+      '(def ^:private private-min-version (semver/parse "9.0.0"))\n' +
+      '(def ^:private ^:dynamic two-min-version (semver/parse "9.0.1"))\n' +
+      '(def ^{:private true} map-min-version\n  (semver/parse "v9.0.2"))\n' +
+      '(defonce once-min-version (semver/parse "9.0.3"))\n' +
+      '(def doc-min-version\n  "Docstring."\n  (semver/parse "9.0.4"))\n' +
+      '(def ^:private low-min-version (semver/parse "v1.0.0"))\n',
     routes,
   });
-  assert.match(unread[0], /session\.clj: cannot read every version minimum/);
+  assert.deepEqual(
+    decorated.map((m) => m.match(/session\.clj (\S+) /)?.[1]),
+    ["private-min-version", "two-min-version", "map-min-version", "once-min-version", "doc-min-version"],
+    decorated.join("\n"),
+  );
+
+  // A minimum in a shape the reader does not know fails instead of passing.
+  for (const odd of [
+    "(def new-min-version (semver/parse some-var))\n",
+    '(def ^:private new-min-version (some/other-parse "9.0.0"))\n',
+    '(def ^{:doc "a } inside"} new-min-version (semver/parse "9.0.0"))\n',
+    '(def new-min-version "9.0.0")\n',
+  ]) {
+    const unread = withServerMinimums({ version: "v2.0.0", session: session + odd, routes });
+    assert.equal(unread.length, 1, odd);
+    assert.match(unread[0], /session\.clj: cannot read/, odd);
+  }
+  const none = withServerMinimums({ version: "v2.0.0", session: "(ns x)\n", routes });
+  assert.match(none[0], /session\.clj: cannot read/);
 });
 
 test("the repository's version is above its server minimums", () => {
   assert.deepEqual(checkServerMinimums(repo), []);
+});
+
+test("runChecks fails on a raised server minimum and names it", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-minimums-run-"));
+  const write = (rel, text) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), text);
+  };
+  const run = (...args) =>
+    assert.equal(spawnSync("git", args, { cwd: root }).status, 0, `git ${args.join(" ")}`);
+  try {
+    write("client/packages/version/src/version.ts", "const version = 'v2.0.0';\n");
+    write(
+      "server/src/instant/reactive/session.clj",
+      '(def ^:private batch-messages-min-version\n  (semver/parse "0.22.75"))\n',
+    );
+    write("server/src/instant/dash/routes.clj", '(def cli-min-version (semver/parse "v0.19.0"))\n');
+    run("init", "-q");
+    run("add", "-A");
+    run("-c", "user.name=t", "-c", "user.email=t@example.org", "commit", "-qm", "base");
+    assert.deepEqual(runChecks({ root, base: "HEAD" }).failures, []);
+
+    write(
+      "server/src/instant/reactive/session.clj",
+      '(def ^:private batch-messages-min-version\n  (semver/parse "9.0.0"))\n',
+    );
+    const r = runChecks({ root, base: "HEAD" });
+    assert.equal(r.failures.length, 1, r.failures.join("\n"));
+    assert.match(
+      r.failures[0],
+      /version v2\.0\.0 must be above server\/src\/instant\/reactive\/session\.clj batch-messages-min-version 9\.0\.0/,
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
