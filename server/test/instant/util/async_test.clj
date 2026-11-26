@@ -6,7 +6,7 @@
                                severed-vfuture submitBlocking tracked-future
                                vfut-bg vfuture]])
   (:import
-   (java.util.concurrent ExecutionException Future)))
+   (java.util.concurrent CountDownLatch ExecutionException Future TimeUnit)))
 
 (deftest vfuture-works
   (is (= 1 @(vfuture 1))))
@@ -51,41 +51,72 @@
       (is (= @signal nil)))))
 
 (deftest child-tracked-futures-are-canceled
+  ;; SidekickDB: wait on events instead of Thread/sleep, which flaked on slow
+  ;; CI runners. `registered` counts down once a parent has created its child
+  ;; (future-call adds the child to the parent's children before it returns),
+  ;; `started` is delivered when the innermost body runs and `finished` when
+  ;; it exits. Cancellation of the children is synchronous in `.cancel`.
   (testing "demonstrate the problem"
     (let [signal (atom nil)
           go-ahead (promise)
-          v (future @(future @go-ahead (reset! signal :whoops!)))]
-      (Thread/sleep 50)
+          started (promise)
+          finished (promise)
+          v (future @(future (try
+                               (deliver started true)
+                               @go-ahead
+                               (reset! signal :whoops!)
+                               (finally (deliver finished true)))))]
+      (is (= true (deref started 10000 :timeout)))
       (future-cancel v)
-      (Thread/sleep 50)
       (deliver go-ahead true)
-      (Thread/sleep 50)
+      (is (= true (deref finished 10000 :timeout)))
       (is (thrown? java.util.concurrent.CancellationException @v))
       (is (= :whoops! @signal))))
   (testing "demonstrate the fix"
     (let [signal (atom nil)
           go-ahead (promise)
-          v (tracked-future @(tracked-future @go-ahead (reset! signal :whoops!)))]
-      (Thread/sleep 50)
+          started (promise)
+          finished (promise)
+          registered (CountDownLatch. 1)
+          wait-on (fn [child] (.countDown registered) @child)
+          v (tracked-future
+              (wait-on (tracked-future (try
+                                         (deliver started true)
+                                         @go-ahead
+                                         (reset! signal :whoops!)
+                                         (finally (deliver finished true))))))]
+      (is (= true (deref started 10000 :timeout)))
+      (is (.await registered 10 TimeUnit/SECONDS))
       (future-cancel v)
-      (Thread/sleep 50)
       (deliver go-ahead true)
-      (Thread/sleep 50)
+      (is (= true (deref finished 10000 :timeout)))
       (is (thrown? java.util.concurrent.CancellationException @v))
       (is (= @signal nil))))
   (testing "works with multiple levels fix"
     (let [signal (atom nil)
           go-ahead (promise)
+          started (promise)
+          finished (promise)
+          registered (CountDownLatch. 4)
+          wait-on (fn [child] (.countDown registered) @child)
           v (tracked-future
-              @(tracked-future
-                 @(tracked-future
-                    @(tracked-future
-                       @(tracked-future @go-ahead (reset! signal :whoops!))))))]
-      (Thread/sleep 50)
+              (wait-on
+               (tracked-future
+                 (wait-on
+                  (tracked-future
+                    (wait-on
+                     (tracked-future
+                       (wait-on
+                        (tracked-future (try
+                                          (deliver started true)
+                                          @go-ahead
+                                          (reset! signal :whoops!)
+                                          (finally (deliver finished true))))))))))))]
+      (is (= true (deref started 10000 :timeout)))
+      (is (.await registered 10 TimeUnit/SECONDS))
       (future-cancel v)
-      (Thread/sleep 50)
       (deliver go-ahead true)
-      (Thread/sleep 50)
+      (is (= true (deref finished 10000 :timeout)))
       (is (thrown? java.util.concurrent.CancellationException @v))
       (is (= @signal nil)))))
 
