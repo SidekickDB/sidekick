@@ -10,7 +10,7 @@ export const DIVERGENCES = {
   "ci-lockdown": {
     title:
       "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base, runs on main and pull requests only, JS caches saved on main only with one turbo entry (prune job holds actions: write)",
-    prs: [1, 5, 27, 54],
+    prs: [1, 5, 27, 54, 71],
     resolve:
       'Keep every line marked "# SidekickDB:" / "// SidekickDB:". Take upstream\'s other changes. ' +
       "A new or changed publish/deploy job gets `if: false && (<upstream condition>)`; a new publish-only " +
@@ -295,6 +295,7 @@ const PR_CATEGORY = {
   63: "own-fixes",
   64: "removed-sunset",
   65: "removed-sunset",
+  71: "ci-lockdown",
 };
 
 export function categoryFor(pr, file) {

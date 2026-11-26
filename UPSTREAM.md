@@ -229,7 +229,7 @@ how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences.mjs`).
 
-### CI lockdown (PR #1, PR #5, PR #27, PR #54)
+### CI lockdown (PR #1, PR #5, PR #27, PR #54, PR #71)
 
 No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
@@ -264,7 +264,7 @@ services. SidekickDB releases only through its own two release workflows (PR
   fails unless the `clj-check` matrix passed or was skipped. The ruleset on
   `main` requires it; the matrix itself reports under a different name per
   shard and cannot be required.
-- `js.yml` Actions cache, kept under the repository's 10 GiB limit: the
+- PR #71: `js.yml` Actions cache, kept under the repository's 10 GiB limit: the
   `build` job restores the turbo cache and saves it (**Save turbo build
   setup**) on `main` only, so pull requests write none; it prunes and saves
   the pnpm store only when the restore missed (step `id: pnpm-cache`). A new
