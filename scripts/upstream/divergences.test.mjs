@@ -1,50 +1,72 @@
 // Run with: node --test scripts/upstream/*.test.mjs
-// divergences.mjs is merged with merge=union (.gitattributes), which keeps
+// divergence-prs.txt is merged with merge=union (.gitattributes), which keeps
 // both sides without asking. These tests catch what that can leave behind.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import path from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
+import {
+  DIVERGENCES,
+  DIVERGENCE_PRS_FILE,
+  PR_CATEGORY,
+  parseDivergencePrs,
+} from "./divergences.mjs";
 
-const file = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "divergences.mjs",
-);
-
-function problems(src) {
-  const out = [];
-  for (const m of src.matchAll(/^(<{7}|={7}|>{7}|\|{7})( |$)/gm))
-    out.push(`conflict marker ${m[1]}`);
-  const body = src.match(/^const PR_CATEGORY = \{\n([\s\S]*?)^\};/m);
-  if (!body) return [...out, "PR_CATEGORY not found"];
-  const seen = new Set();
-  for (const m of body[1].matchAll(/^ {2}(\d+):/gm)) {
-    if (seen.has(m[1])) out.push(`duplicate PR_CATEGORY key ${m[1]}`);
-    seen.add(m[1]);
-  }
-  return out;
-}
-
-test("divergences.mjs has no conflict marker and no duplicate PR_CATEGORY key", () => {
-  assert.deepEqual(problems(fs.readFileSync(file, "utf8")), []);
+test("divergence-prs.txt reads without problems", () => {
+  const { entries, problems } = parseDivergencePrs(
+    fs.readFileSync(DIVERGENCE_PRS_FILE, "utf8"),
+  );
+  assert.deepEqual(problems, []);
+  assert.ok(entries.length > 0);
 });
 
-test("the check finds conflict markers and duplicate keys", () => {
-  const src = [
-    "const PR_CATEGORY = {",
-    '  1: "a",',
+test("every PR_CATEGORY value is a divergence key or a split by path", () => {
+  for (const [pr, c] of Object.entries(PR_CATEGORY)) {
+    assert.ok(Number.isInteger(Number(pr)), `PR_CATEGORY key ${pr}`);
+    if (typeof c === "function") {
+      const keys = new Set(
+        [".github/a", "self-hosting/a", "client/a"].map((f) => c(f)),
+      );
+      for (const k of keys) {
+        assert.ok(DIVERGENCES[k], `PR ${pr} splits to unknown key ${k}`);
+        assert.ok(DIVERGENCES[k].prs.includes(Number(pr)), `PR ${pr} in ${k}`);
+      }
+    } else {
+      assert.ok(DIVERGENCES[c], `PR ${pr}: unknown key ${c}`);
+    }
+  }
+});
+
+test("every prs entry is a PR number listed once per divergence", () => {
+  for (const [key, d] of Object.entries(DIVERGENCES)) {
+    assert.ok(d.prs.length > 0, `${key} has no PR`);
+    for (const pr of d.prs) {
+      assert.ok(Number.isInteger(pr) && pr > 0, `${key}: ${pr}`);
+      assert.ok(PR_CATEGORY[pr], `${key}: PR ${pr} not in PR_CATEGORY`);
+    }
+    assert.equal(new Set(d.prs).size, d.prs.length, `${key} lists a PR twice`);
+  }
+});
+
+test("the reader reports conflict markers, duplicates and unknown keys", () => {
+  const text = [
+    "# comment",
+    "4 selfhost",
     "<<<<<<< HEAD",
-    '  2: "b",',
+    "70 selfhost",
     "=======",
-    '  2: "c",',
+    "70 brand",
     ">>>>>>> other",
-    "};",
+    "71 no-such-key",
+    "72 selfhost brand",
+    "73 selfhost,",
   ].join("\n");
-  assert.deepEqual(problems(src), [
-    "conflict marker <<<<<<<",
-    "conflict marker =======",
-    "conflict marker >>>>>>>",
-    "duplicate PR_CATEGORY key 2",
+  assert.deepEqual(parseDivergencePrs(text).problems, [
+    'divergence-prs.txt:3: not "<number> <key>": <<<<<<< HEAD',
+    'divergence-prs.txt:5: not "<number> <key>": =======',
+    "divergence-prs.txt:6: PR 70 listed twice",
+    'divergence-prs.txt:7: not "<number> <key>": >>>>>>> other',
+    "divergence-prs.txt:8: unknown divergence key no-such-key",
+    "divergence-prs.txt:9: PR 72 needs an entry in SPLIT",
+    'divergence-prs.txt:10: not "<number> <key>": 73 selfhost,',
   ]);
 });

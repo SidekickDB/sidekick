@@ -1,3 +1,3 @@
-# SidekickDB: parallel pull requests each add lines to this file; keep both sides.
+# SidekickDB: parallel pull requests each add a line to this file; keep both sides.
 # scripts/upstream/divergences.test.mjs catches a bad result.
-scripts/upstream/divergences.mjs merge=union
+scripts/upstream/divergence-prs.txt merge=union
