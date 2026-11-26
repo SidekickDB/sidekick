@@ -14,6 +14,7 @@ import {
   scanAddedLines,
   versionsKeys,
 } from "./check.mjs";
+import { checkServerMinimums } from "../../client/scripts/sidekick-release-npm.mjs";
 
 const repo = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -619,4 +620,51 @@ test("the two-node smoke workflow stays read-only and does not push", () => {
     r2.failures.some((f) => f.includes(file) && f.includes("pushes images")),
     r2.failures.join("\n"),
   );
+});
+
+function withServerMinimums({ version, session, routes }) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-minimums-"));
+  const write = (rel, text) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), text);
+  };
+  write("client/packages/version/src/version.ts", `const version = '${version}';\n`);
+  write("server/src/instant/reactive/session.clj", session);
+  write("server/src/instant/dash/routes.clj", routes);
+  try {
+    return checkServerMinimums(root);
+  } catch (e) {
+    return [e.message];
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test("the version must be above every server version minimum", () => {
+  const session =
+    '(def patch-presence-min-version\n  (semver/parse "v0.17.5"))\n' +
+    '(def batch-messages-min-version\n  (semver/parse "0.22.75"))\n';
+  const routes = '(def cli-min-version (semver/parse "v0.19.0"))\n';
+  assert.deepEqual(withServerMinimums({ version: "v2.0.0", session, routes }), []);
+
+  const raised = withServerMinimums({
+    version: "v2.0.0",
+    session: session.replace('"0.22.75"', '"2.0.0"'),
+    routes: routes.replace("v0.19.0", "v2.1.3"),
+  });
+  assert.equal(raised.length, 2, raised.join("\n"));
+  assert.ok(raised[0].includes("reactive/session.clj batch-messages-min-version 2.0.0"), raised[0]);
+  assert.ok(raised[1].includes("dash/routes.clj cli-min-version 2.1.3"), raised[1]);
+
+  // A minimum in a shape the reader does not know fails instead of passing.
+  const unread = withServerMinimums({
+    version: "v2.0.0",
+    session: session + "(def new-min-version (semver/parse some-var))\n",
+    routes,
+  });
+  assert.match(unread[0], /session\.clj: cannot read every version minimum/);
+});
+
+test("the repository's version is above its server minimums", () => {
+  assert.deepEqual(checkServerMinimums(repo), []);
 });

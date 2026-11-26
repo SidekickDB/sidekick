@@ -89,6 +89,46 @@ export function readVersion(clientDir = CLIENT_DIR) {
   return m[1];
 }
 
+// SidekickDB has its own version line, so an upstream sync can raise one of
+// the server's version minimums above it without touching version.ts.
+// scripts/upstream/check.mjs runs checkServerMinimums on every sync.
+export const SERVER_MIN_VERSION_FILES = [
+  "server/src/instant/reactive/session.clj",
+  "server/src/instant/dash/routes.clj",
+];
+
+export function serverMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
+  return SERVER_MIN_VERSION_FILES.flatMap((f) => {
+    const text = fs.readFileSync(path.join(repoRoot, f), "utf8");
+    const defs = [...text.matchAll(/\(def \S*min-version(?=\s)/g)];
+    const mins = [
+      ...text.matchAll(
+        /\(def (\S*min-version)\s+\(semver\/parse "v?(\d+)\.(\d+)\.(\d+)"\)\)/g,
+      ),
+    ];
+    if (!mins.length || mins.length !== defs.length)
+      throw new Error(
+        `${f}: cannot read every version minimum (found ${defs.length} definitions, parsed ${mins.length}); update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+      );
+    return mins.map((m) => ({
+      name: `${f} ${m[1]}`,
+      parts: m.slice(2).map(Number),
+    }));
+  });
+}
+
+// One message per server minimum the version in version.ts is not above.
+export function checkServerMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
+  const v = readVersion(path.join(repoRoot, "client"));
+  const ours = parseVersion(v);
+  return serverMinimums(repoRoot)
+    .filter(({ parts }) => compare(ours, parts) <= 0)
+    .map(
+      ({ name, parts }) =>
+        `client/packages/version/src/version.ts: version ${v} must be above ${name} ${parts.join(".")}, or the server disables that protocol feature for SidekickDB clients; raise version.ts (RELEASING.md)`,
+    );
+}
+
 const DEP_FIELDS = [
   "dependencies",
   "peerDependencies",

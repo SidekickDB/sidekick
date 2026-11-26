@@ -141,7 +141,8 @@ every package is already published fails and asks for a version bump.
   `cli-min-version` in `server/src/instant/dash/routes.clj`). An upstream sync
   can raise one. `scripts/sidekick-release-npm.test.mjs` reads them from the
   server source and fails if the checked-in version is not above all of them;
-  the release workflow runs that test before it builds. If it fails, raise
+  the release workflow runs that test before it builds, and
+  `scripts/upstream/check.mjs` runs the same check on every sync. If it fails, raise
   `version.ts` above the new minimum.
 
 ## Releasing images
