@@ -1005,23 +1005,29 @@ instructions.
   protected token) if it is a wire identifier that can appear anywhere.
 - A new intentional divergence: add `scripts/upstream/divergences/<key>.mjs`
   (`export default { title, resolve }`; the file name is the key), a section
-  here with no PR number in its heading, and a line for the PR in
+  under "Intentional divergences" with no PR number in its heading (directly
+  before "Upstream sync tooling", which stays last), and a line for the PR in
   `scripts/upstream/divergence-prs.txt`. A PR for an existing divergence needs
   only that line. Unlisted PRs are still attributed, under their own title.
 - `divergence-prs.txt`: one line per PR, `<PR number> <key>`, appended at the
   end once `gh pr create` has returned the number. A PR with two concerns lists
   both keys and needs an entry in `SPLIT` in `divergences.mjs` that picks one
   by path. Lines starting with `#` are comments; keep the one header line as it
-  is.
-- Why this layout: two PRs that each record a divergence add different files
-  and different lines, so they merge without a conflict. `.gitattributes`
-  merges `divergence-prs.txt` with `merge=union` (both added lines are kept);
-  everything else merges normally, so two edits of the same hint still
-  conflict. The union merge is relied on for a local `git merge` only: do not
-  count on GitHub's mergeability check or its "Update branch" button applying
-  it. `divergences.mjs` refuses to load, and `divergences.test.mjs` fails, on
-  what a union merge can leave behind (a conflict marker, a PR listed twice, an
-  unknown key, a malformed line).
+  is. A union merge also keeps a line that one side deleted while the other
+  side appended: after merging a change that removes or re-keys a line, check
+  the file by hand.
+- Why this layout: two PRs that each record a divergence add different key
+  files and different lines in `divergence-prs.txt`, so the tooling data
+  merges without a conflict. The prose in this file still conflicts when two
+  such PRs add text in the same place (two new sections before "Upstream sync
+  tooling", or text in the same section): resolve it by hand and keep both.
+  `.gitattributes` merges `divergence-prs.txt` with `merge=union` (both added
+  lines are kept); everything else merges normally, so two edits of the same
+  hint still conflict. The union merge is relied on for a local `git merge`
+  only: do not count on GitHub's mergeability check or its "Update branch"
+  button applying it. `divergences.mjs` refuses to load, and
+  `divergences.test.mjs` fails, on what a union merge can leave behind (a
+  conflict marker, a PR listed twice, an unknown key, a malformed line).
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
