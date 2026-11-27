@@ -1,4 +1,4 @@
-// Docs: https://www.instantdb.com/docs/permissions
+// Docs: https://sidekickdb.co/docs/permissions
 
 import type { InstantRules } from "@sidekickdb/react";
 
@@ -6,7 +6,7 @@ const rules = {
   /**
    * Welcome to SidekickDB's permission system!
    * Right now your rules are empty. To start filling them in, check out the docs:
-   * https://www.instantdb.com/docs/permissions
+   * https://sidekickdb.co/docs/permissions
    *
    * Here's an example to give you a feel:
    * posts: {

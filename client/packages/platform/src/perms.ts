@@ -12,7 +12,7 @@ export function generatePermsTypescriptFile(
   /**
    * Welcome to SidekickDB's permission system!
    * Right now your rules are empty. To start filling them in, check out the docs:
-   * https://www.instantdb.com/docs/permissions
+   * https://sidekickdb.co/docs/permissions
    *
    * Here's an example to give you a feel:
    * posts: {
@@ -28,7 +28,7 @@ export function generatePermsTypescriptFile(
 }
 `.trim();
 
-  return `// Docs: https://www.instantdb.com/docs/permissions
+  return `// Docs: https://sidekickdb.co/docs/permissions
 
 import type { InstantRules } from "${instantModuleName ?? '@sidekickdb/core'}";
 

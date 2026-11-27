@@ -208,7 +208,7 @@ export function Welcome() {
         </a>
         <a
           target="_blank"
-          href="https://www.instantdb.com/docs"
+          href="https://sidekickdb.co/docs"
           rel="noopener noreferrer"
           className="border p-2 shadow flex py-8 flex-col gap-2 hover:bg-neutral-100 items-center justify-center font-semibold border-neutral-200 rounded"
         >
