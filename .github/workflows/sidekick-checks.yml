@@ -43,6 +43,9 @@ jobs:
       - name: Upstream tooling tests
         run: node --test scripts/upstream/*.test.mjs
 
+      - name: Agent upstream write guard tests
+        run: node --test .claude/hooks/*.test.mjs
+
       - name: Post-sync checks
         run: node scripts/upstream/check.mjs --base HEAD^1
 

@@ -766,6 +766,13 @@ and take its other changes in the file.
   `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
   `child-tracked-futures-are-canceled` in
   `server/test/instant/util/async_test.clj` (PR #69).
+- PR #93: `.github/workflows/clojure.yml` turns off Postgres JIT for the
+  test database. `on-delete-cascade-perf` in
+  `server/test/instant/db/transaction_test.clj` sometimes hit the 30 s query
+  timeout. With JIT on, its 1,365-CTE entity query was measured at 3.6 s when
+  its cost estimate crossed `jit_above_cost` (9,556 functions compiled); that
+  it passes 30 s once `jit_optimize_above_cost` is crossed is inferred, not
+  measured. Keep the setting if upstream rewrites the "Prepare database" step.
 - PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
   the receive timeout no longer removes the session's queries.
   `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
@@ -821,6 +828,15 @@ and take its other changes in the file.
   also leaves `/platform/oauth` alone. The server sends platform OAuth users
   to `/platform/oauth/start`, the consent page, and upstream's list sent it to
   `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
+- PR #85: `ensure-attrs-on-system-catalog-app` in
+  `server/src/instant/system_catalog_migration.clj` reads the system catalog
+  attrs and inserts the missing ones in one transaction on the write pool,
+  after `pg_advisory_xact_lock(hashtext('instant-system-catalog-migration'))`.
+  Upstream read and inserted without a lock, so of two nodes starting at once
+  on an empty database one could insert attrs the other had just inserted,
+  hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
+  Test `concurrent-boots-insert-catalog-attrs-once` in
+  `server/test/instant/system_catalog_migration_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
