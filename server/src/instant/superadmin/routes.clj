@@ -214,14 +214,15 @@
 
 ;; SidekickDB: the sender and the link come from this server's configuration
 ;; (upstream: teams@pm.instantdb.com and instantdb.com/dash), and the letter
-;; is structured for email-router.
+;; is structured for email-router. The subject and the link text say
+;; SidekickDB (upstream: Instant).
 (defn transfer-app-invite-email [inviter-user app invitee-email]
   (let [{sender-name :name sender-email :email} (config/team-email-sender)
         invite-url (str (config/dashboard-origin) "/dash?s=invites")]
     {:from {:name sender-name
             :email sender-email}
      :to [{:email invitee-email}]
-     :subject (str "[Instant] You've been asked to take ownership of " (:title app))
+     :subject (str "[SidekickDB] You've been asked to take ownership of " (:title app))
      :reply-to sender-email
      :html
      (email/standard-body
@@ -231,7 +232,7 @@
         (:email inviter-user) " invited you to become the new owner of " (:title app) "."]
        [:p
         "Navigate to "
-        [:a {:href invite-url} "Instant"]
+        [:a {:href invite-url} "SidekickDB"]
         " to accept the invite."]
        [:p
         "Note: This invite will expire in 3 days. If you "
