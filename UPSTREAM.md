@@ -760,9 +760,11 @@ and take its other changes in the file.
   `server/test/instant/util/async_test.clj` (PR #69).
 - PR #93: `.github/workflows/clojure.yml` turns off Postgres JIT for the
   test database. `on-delete-cascade-perf` in
-  `server/test/instant/db/transaction_test.clj` timed out whenever the cost
-  estimate of its 1,365-CTE entity query crossed the JIT thresholds. Keep
-  the setting if upstream rewrites the "Prepare database" step.
+  `server/test/instant/db/transaction_test.clj` sometimes hit the 30 s query
+  timeout. With JIT on, its 1,365-CTE entity query was measured at 3.6 s when
+  its cost estimate crossed `jit_above_cost` (9,556 functions compiled); that
+  it passes 30 s once `jit_optimize_above_cost` is crossed is inferred, not
+  measured. Keep the setting if upstream rewrites the "Prepare database" step.
 - PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
   the receive timeout no longer removes the session's queries.
   `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
