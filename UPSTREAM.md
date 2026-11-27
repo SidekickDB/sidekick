@@ -665,7 +665,8 @@ is needed. When upstream adds an `instant.*` file kind to the CLI, add it to
 `secure-cookies?`). `get-env` is unchanged, so a self-hosted server still runs
 as `:dev`. The compose files and `server/Dockerfile.self-hosted` set
 `self-hosted`; a bare server start, the tests and upstream's own images stay
-`default`.
+`default`. They also pass `INSTANT_NREPL` (or `SIDEKICK_NREPL`) to the server,
+and `deploy-swarm.sh` forwards it.
 
 Changes outside `config.clj`, each one small on purpose:
 

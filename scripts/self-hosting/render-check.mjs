@@ -471,6 +471,59 @@ for (const cmd of composes) {
     }
   }
 
+  // SIDEKICK_NREPL (or INSTANT_NREPL) from .env reaches the server; unset
+  // leaves it empty, which keeps nREPL off in the self-hosted mode.
+  for (const file of [
+    'docker-compose.yml',
+    'docker-compose.with-caddy.yml',
+    'docker-compose.local.yml',
+  ]) {
+    const secrets = {
+      POSTGRES_PASSWORD: PG,
+      STORAGE_ACCESS_KEY: AK,
+      STORAGE_SECRET_KEY: SK,
+    };
+    for (const [name, values, want] of [
+      ['nrepl: neither set', { SIDEKICK_NREPL: '', INSTANT_NREPL: '' }, ''],
+      [
+        'nrepl: only SIDEKICK_NREPL',
+        { SIDEKICK_NREPL: 'true', INSTANT_NREPL: '' },
+        'true',
+      ],
+      [
+        'nrepl: only INSTANT_NREPL',
+        { SIDEKICK_NREPL: '', INSTANT_NREPL: 'true' },
+        'true',
+      ],
+    ]) {
+      const r = renderCompose(
+        cmd,
+        file,
+        envFile(`${file}-${name.replace(/\W+/g, '_')}`, {
+          ...secrets,
+          ...values,
+        }),
+      );
+      const problems = [];
+      if (!r.ok)
+        problems.push(`did not render: ${r.stderr.trim().split('\n').at(-1)}`);
+      else {
+        const got = envOf(r.config, 'server').INSTANT_NREPL;
+        if (got !== want)
+          problems.push(
+            `server INSTANT_NREPL is ${JSON.stringify(got)}, expected "${want}"`,
+          );
+      }
+      record(
+        label,
+        file,
+        name,
+        problems,
+        r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+      );
+    }
+  }
+
   // Postgres is not published beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
   // says so. A port without host_ip is published on every interface.
   {
@@ -662,6 +715,19 @@ for (const cmd of composes) {
   }
   record('docker stack config', 'swarm.yml', 'postgres port: none', p3);
   record('docker stack config', 'swarm.yml', 'postgres: jit=off', p4);
+  // deploy-swarm.sh passes SIDEKICK_NREPL on as INSTANT_NREPL.
+  const nrepl = stack({
+    POSTGRES_PASSWORD: PG,
+    STORAGE_ACCESS_KEY: AK,
+    STORAGE_SECRET_KEY: SK,
+    INSTANT_NREPL: 'true',
+  });
+  const p5 = !nrepl.ok
+    ? [`did not render: ${nrepl.stderr.trim().split('\n').at(-1)}`]
+    : /^ {6}INSTANT_NREPL: "?true"?$/m.test(nrepl.stdout)
+      ? []
+      : ['server environment lacks INSTANT_NREPL: "true"'];
+  record('docker stack config', 'swarm.yml', 'nrepl: INSTANT_NREPL=true', p5);
   const none = stack({ POSTGRES_PASSWORD: PG });
   const p2 = none.ok
     ? ['rendered without storage keys']
