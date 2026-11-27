@@ -201,6 +201,16 @@ jobs:
 
         psql -d $DATABASE_URL -c "select version()"
 
+        # SidekickDB: no JIT. A transaction that loads about 1,400 entities
+        # (on-delete-cascade-perf in transaction_test.clj) sends one query
+        # with that many CTEs. Whether its estimated cost crosses
+        # jit_above_cost or jit_optimize_above_cost depends on the table
+        # statistics left by earlier tests, and when it does LLVM compiles
+        # about 9,500 functions: 3.6 s at the first threshold, and past the
+        # 30 s query timeout once inlining and optimization start. The query
+        # runs in about 0.3 s without JIT.
+        psql -d $DATABASE_URL -v ON_ERROR_STOP=1 -c "alter system set jit = off" -c "select pg_reload_conf()"
+
         # Uncomment to see auto explain logs at the end of tests in the stop containers step
         # psql -d $DATABASE_URL -v ON_ERROR_STOP=1 <<'SQL'
         # ALTER SYSTEM SET session_preload_libraries = 'auto_explain';
