@@ -1,4 +1,5 @@
-import { EventSource } from '@instantdb/eventsource';
+// SidekickDB: own copy of eventsource (MIT), see eventsource/LICENSE.
+import { EventSource } from './eventsource/index.ts';
 import version from './version.ts';
 import {
   id,

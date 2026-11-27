@@ -99,7 +99,8 @@ import {
   SubscriptionReadyState,
 } from './subscribe.ts';
 import { parseCookie } from 'cookie';
-import { EventSource } from '@instantdb/eventsource';
+// SidekickDB: own copy of eventsource (MIT), see eventsource/LICENSE.
+import { EventSource } from './eventsource/index.ts';
 import { MessageEventPolyfill } from './polyfill.ts';
 import {
   Webhooks,
