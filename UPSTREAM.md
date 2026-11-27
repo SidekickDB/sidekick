@@ -681,7 +681,8 @@ Changes outside `config.clj`, each one small on purpose:
 - `core.clj` `stop`: the WebSocket drain comes from
   `config/shutdown-drain-opts` when it returns one (self-hosted, 20 s, or
   `INSTANT_SHUTDOWN_DRAIN_SECONDS`), else upstream's `dev?` choice; covered by
-  `shutdown_drain_test.clj`.
+  `shutdown_drain_test.clj`. `config/init` checks the value, so an invalid
+  one fails at startup.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
