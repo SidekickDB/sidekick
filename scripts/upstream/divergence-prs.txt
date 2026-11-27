@@ -37,6 +37,7 @@
 41 notice
 42 release
 43 selfhost
+81 selfhost
 44 own-fixes
 48 readme-header
 49 own-fixes
@@ -57,5 +58,6 @@
 69 own-fixes
 74 brand
 73 brand
+75 brand
+79 selfhost
 78 admin-eventsource
-81 selfhost

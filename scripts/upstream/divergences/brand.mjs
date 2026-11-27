@@ -13,6 +13,8 @@ export default {
     "Starters under examples/ that create-sidekick-app offers and client/www/lib/intern/instant-rules.md: " +
     "keep SidekickDB in prose and titles, no image from instantdb.com, no Python SDK in the rules; after " +
     "editing the rules file copy it to create-instant-app/template/rules/AGENTS.md (check.mjs compares them). " +
+    "Starter READMEs keep the feedback line pointing at github.com/SidekickDB/sidekick/issues; drop the " +
+    "Discord invite constants from components/src/config.ts again if upstream changes them. " +
     "Docs links in those paths and in the platform perms/schema headers point at https://sidekickdb.co/docs/ " +
     "with upstream's path (the docs-host rule in rename.mjs rewrites them); for an instant-site-link leftover " +
     "remove the link or name the user's SidekickDB dashboard in words, never a new URL. Add a newly offered " +

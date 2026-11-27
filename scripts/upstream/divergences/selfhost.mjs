@@ -14,7 +14,10 @@ export default {
     "Postgres service; if upstream changes an image tag, release that tag from SidekickDB first. " +
     'In server config keep "no default ' +
     "outside tests\" for buckets, ARNs and sender addresses. Port upstream's new settings into that form. " +
-    "Keep the required POSTGRES_PASSWORD, mem_limit and the default JAVA_OPTS (PR #13). In jwt.clj and " +
+    "Keep the required POSTGRES_PASSWORD, mem_limit and the default JAVA_OPTS (PR #13). " +
+    "In deploy-swarm.sh keep bash with set -euo pipefail, STACK_VARS listing every variable swarm.yml reads " +
+    "(add upstream's new ones; scripts/self-hosting/deploy-swarm.test.mjs names them) and the check that " +
+    "stops when the server_config secret is missing without ever creating or replacing it. In jwt.clj and " +
     "oauth.clj keep the dashboard-google-oauth-configured? condition around the boot prefetch; in config.clj " +
     "and webhook_sender.clj keep INSTANT_DNS_OVER_HTTPS_URLS and no system-resolver fallback after a failed " +
     "DoH lookup.",

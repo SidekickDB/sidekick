@@ -9,4 +9,4 @@ To push schema changes:
 To pull schema changes:
 `bunx --package=@sidekickdb/cli sidekick-cli pull`
 
-Got any feedback or questions? Join our [Discord](https://discord.gg/hgVf9R6SBm)
+Got any feedback or questions? Open an issue on [GitHub](https://github.com/SidekickDB/sidekick/issues)
