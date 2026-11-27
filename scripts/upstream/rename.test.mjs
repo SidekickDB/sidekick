@@ -14,7 +14,7 @@ function norm(file, text) {
   return once;
 }
 
-test("scoped packages are renamed, third-party and unknown ones are not", () => {
+test("scoped packages are renamed, vendored and unknown ones are not", () => {
   assert.equal(
     norm(
       "client/packages/x/src/a.ts",
@@ -29,6 +29,16 @@ test("scoped packages are renamed, third-party and unknown ones are not", () => 
     ),
     "import '@sidekickdb/react/nextjs'; import '@instantdb/eventsource';\n",
   );
+  // admin has its own copy of eventsource, so the old import is reported.
+  const es = scanLeftovers(
+    "client/packages/admin/src/subscribe.ts",
+    "import { EventSource } from '@instantdb/eventsource';\n",
+  );
+  assert.deepEqual(
+    es.map((l) => l.id),
+    ["vendored-package"],
+  );
+  assert.match(es[0].hint, /client\/packages\/admin\/src\/eventsource\//);
   assert.equal(
     norm("client/a.md", "see @instantdb/newthing\n"),
     "see @instantdb/newthing\n",
@@ -219,7 +229,12 @@ test("package.json: names, deps, scripts, metadata; bin alias kept", () => {
   assert.match(out, /"@instantdb\/eventsource": "4.1.0-2"/);
   // A renamed package is only resolvable from the workspace.
   assert.match(out, /"@sidekickdb\/cli": "workspace:\*"/);
-  assert.deepEqual(scanLeftovers("client/packages/cli/package.json", out), []);
+  // The eventsource dependency is not renamed but reported: admin has its
+  // own copy.
+  assert.deepEqual(
+    scanLeftovers("client/packages/cli/package.json", out).map((l) => l.id),
+    ["vendored-package"],
+  );
 });
 
 test("examples keep registry specs (they are outside the workspace)", () => {
@@ -266,7 +281,7 @@ test("CRLF line endings are preserved", () => {
   );
 });
 
-test("path forms: our packages renamed, third-party kept, unknown reported", () => {
+test("path forms: our packages renamed, vendored kept and reported, unknown reported", () => {
   const f = "client/packages/x/src/a.ts";
   assert.equal(
     norm(f, "COPY node_modules/@instantdb/react ./r\n"),
@@ -279,12 +294,24 @@ test("path forms: our packages renamed, third-party kept, unknown reported", () 
     ),
     "join(dir, 'node_modules', '@sidekickdb', 'react', 'package.json')\n",
   );
-  for (const t of [
-    "alias: { es: 'node_modules/@instantdb/eventsource' }\n",
-    "join(dir, 'node_modules', '@instantdb', 'eventsource')\n",
+  // eventsource paths are left alone and reported (admin has its own copy).
+  for (const [t, id] of [
+    [
+      "alias: { es: 'node_modules/@instantdb/eventsource' }\n",
+      "vendored-package",
+    ],
+    [
+      "join(dir, 'node_modules', '@instantdb', 'eventsource')\n",
+      "scope-path-segment",
+    ],
   ]) {
     assert.equal(norm(f, t), t);
-    assert.deepEqual(scanLeftovers(f, t), []);
+    const left = scanLeftovers(f, t);
+    assert.deepEqual(
+      left.map((l) => l.id),
+      [id],
+    );
+    assert.match(left[0].hint, /own copy in client\/packages\/admin/);
   }
   const cases = [
     [

@@ -6,8 +6,9 @@
 //   instant-cli         -> @sidekickdb/cli (package), sidekick-cli (binary)
 //   create-instant-app  -> create-sidekick-app  (directory name unchanged)
 // together with the paths that are never touched and the allowlist of old
-// names that stay on purpose (wire identifiers, the third-party
-// @instantdb/eventsource dependency, legacy-project detection, history).
+// names that stay on purpose (wire identifiers, legacy-project detection,
+// history). @instantdb/eventsource is not renamed either: admin has its own
+// copy (VENDORED_SCOPED), so the old name is reported wherever it appears.
 //
 // Only mechanical, unambiguous rewrites are applied. Anything that needs a
 // judgement call (for example prose that says "instant-cli" without a
@@ -37,10 +38,21 @@ export const SCOPED_PACKAGES = [
 ];
 
 // @instantdb/* packages that are NOT ours and must keep their name.
-export const THIRD_PARTY_SCOPED = ["eventsource"];
+export const THIRD_PARTY_SCOPED = [];
+
+// @instantdb/* packages SidekickDB replaced with its own copy, and where the
+// copy is. Any use of the old name is a leftover.
+export const VENDORED_SCOPED = {
+  eventsource: "client/packages/admin/src/eventsource/",
+};
 
 const SCOPED = new Set(SCOPED_PACKAGES);
 const THIRD_PARTY = new Set(THIRD_PARTY_SCOPED);
+const VENDORED = new Map(Object.entries(VENDORED_SCOPED));
+
+function vendoredHint(name) {
+  return `@instantdb/${name} is replaced by SidekickDB's own copy in ${VENDORED.get(name)}: import that instead and do not add the dependency (UPSTREAM.md, "Own copy of eventsource in admin")`;
+}
 
 // ---------------------------------------------------------------------------
 // Paths that are never rewritten (and never scanned for leftovers).
@@ -249,8 +261,8 @@ const COMMON_RULES = [
   },
   // node_modules/@instantdb/<pkg> is handled by "scoped-package" above,
   // which knows which packages are ours. The bare scope directory
-  // (node_modules/@instantdb) is ambiguous, because it also holds the
-  // third-party @instantdb/eventsource, so it is reported, not rewritten.
+  // (node_modules/@instantdb) is ambiguous, because it can also hold
+  // upstream's published packages, so it is reported, not rewritten.
   {
     id: "cli-runner-pkg",
     // pnpm dlx / pnpx / bunx need the binary name because the package
@@ -572,9 +584,19 @@ const LEFTOVER_CHECKS = [
   {
     id: "unknown-scoped-package",
     re: /@instantdb\\?\/([a-z0-9][a-z0-9-]*)/g,
-    test: (m) => !THIRD_PARTY.has(m[1]) && !SCOPED.has(m[1]),
+    test: (m) =>
+      !THIRD_PARTY.has(m[1]) && !SCOPED.has(m[1]) && !VENDORED.has(m[1]),
     hint: (m) =>
       `@instantdb/${m[1]} is not in the rename map. If upstream added a new package, add '${m[1]}' to SCOPED_PACKAGES in scripts/upstream/rename.mjs; if it is third-party, add it to THIRD_PARTY_SCOPED.`,
+  },
+  {
+    id: "vendored-package",
+    re: /@instantdb\\?\/([a-z0-9][a-z0-9-]*)/g,
+    // Unmasked: the session-versions guard would otherwise hide a
+    // dependency line such as "@instantdb/eventsource": "4.1.0-2".
+    unmasked: true,
+    test: (m) => VENDORED.has(m[1]),
+    hint: (m) => vendoredHint(m[1]),
   },
   {
     id: "scoped-package",
@@ -585,7 +607,7 @@ const LEFTOVER_CHECKS = [
   {
     id: "bare-scope",
     // A quoted '@instantdb' scope, unless the next path segment names a
-    // third-party package (join(..., '@instantdb', 'eventsource')).
+    // package (join(..., '@instantdb', '<pkg>'), see scope-path-segment).
     re: /(['"`])@instantdb\1(?!\s*,\s*(['"])([a-z0-9-]+)\2)/g,
     test: () => true,
     hint: () =>
@@ -594,11 +616,13 @@ const LEFTOVER_CHECKS = [
   {
     id: "scope-path-segment",
     // join(..., '@instantdb', '<pkg>') with a package that is neither ours
-    // nor known third-party.
+    // nor known third-party (vendored packages are reported too).
     re: /(['"`])@instantdb\1\s*,\s*(['"])([a-z0-9]+(?:-[a-z0-9]+)*)\2/g,
     test: (m) => !SCOPED.has(m[3]) && !THIRD_PARTY.has(m[3]),
     hint: (m) =>
-      `path to @instantdb/${m[3]}, which is not in the rename map: add it to SCOPED_PACKAGES or THIRD_PARTY_SCOPED in scripts/upstream/rename.mjs`,
+      VENDORED.has(m[3])
+        ? vendoredHint(m[3])
+        : `path to @instantdb/${m[3]}, which is not in the rename map: add it to SCOPED_PACKAGES or THIRD_PARTY_SCOPED in scripts/upstream/rename.mjs`,
   },
   {
     id: "scope-directory",
@@ -606,7 +630,7 @@ const LEFTOVER_CHECKS = [
     re: /node_modules\/@instantdb(?![\\/\w-])/g,
     test: () => true,
     hint: () =>
-      "the bare node_modules/@instantdb scope directory also holds third-party @instantdb/eventsource; point it at the package you mean",
+      "the bare node_modules/@instantdb scope directory can hold upstream's packages too; point it at the package you mean",
   },
   {
     id: "cli-name",
@@ -653,7 +677,7 @@ export function scanLeftovers(file, text) {
     if (lineIsProtected(file, line)) return;
     const scan = mask(line).masked;
     for (const c of LEFTOVER_CHECKS) {
-      for (const m of scan.matchAll(c.re)) {
+      for (const m of (c.unmasked ? line : scan).matchAll(c.re)) {
         if (c.test(m, file)) {
           found.push({
             line: i + 1,
