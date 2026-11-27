@@ -58,3 +58,4 @@
 74 brand
 73 brand
 75 brand
+78 admin-eventsource
