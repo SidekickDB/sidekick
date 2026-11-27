@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Google OAuth'
-    description: 'How to add Google OAuth to your Instant app.'
+    description: 'How to add Google OAuth to your SidekickDB app.'
 ---
 
 {% nav-default value="web-google-button" %}
@@ -127,7 +127,7 @@ Head on over to {% blank-link href="https://console.cloud.google.com/apis/creden
 {% conditional
    param="method"
    value=["web-redirect", "rn-web"] %}
-- Add `https://api.instantdb.com/runtime/oauth/callback` as an Authorized redirect URI.
+- Add `https://sidekick.example.com/runtime/oauth/callback` as an Authorized redirect URI (replace `https://sidekick.example.com` with your SidekickDB server's URL).
 {% /conditional %}
 - If you're testing from localhost, **add both `http://localhost`** and `http://localhost:3000` to "Authorized JavaScript origins", replacing `3000` with the port you use.
 - For production, add your website's domain.

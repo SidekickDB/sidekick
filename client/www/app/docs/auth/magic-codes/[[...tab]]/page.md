@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Magic Code Auth'
-    description: 'How to add magic code auth to your Instant app.'
+    description: 'How to add magic code auth to your SidekickDB app.'
 ---
 
 {% nav-default value="react" %}

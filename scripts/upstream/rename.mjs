@@ -379,8 +379,8 @@ const COMMON_RULES = [
   {
     id: "docs-host",
     // Docs links in what the CLI and create-sidekick-app print and write, the
-    // agent rules and the offered starters point at SidekickDB's docs site;
-    // the path stays.
+    // agent rules, the offered starters and the docs pages point at
+    // SidekickDB's docs site; the path stays.
     re: /https?:\/\/(?:www\.)?instantdb\.com(?=\/docs(?![\w-]))/g,
     to: "https://sidekickdb.co",
     only: isDocsHostPath,
@@ -398,6 +398,11 @@ export const DOCS_HOST_PATHS = [
   "client/packages/platform/__tests__/src/perms.test.ts",
   "client/packages/platform/__tests__/src/schema.test.ts",
   "client/www/lib/intern/instant-rules.md",
+  // The docs pages and their chrome.
+  "client/www/app/docs/",
+  "client/www/components/docs/",
+  "client/www/components/DocsPage.jsx",
+  "client/www/data/docsNavigation.js",
   // The starters create-sidekick-app offers.
   ...[
     "next-js-app-dir",

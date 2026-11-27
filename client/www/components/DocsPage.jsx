@@ -64,7 +64,7 @@ export function DocsPage({ Component, pageProps }) {
 
   const pageTitle =
     pageProps.markdoc?.frontmatter.pageTitle ||
-    `${pageProps.markdoc?.frontmatter.title} - Instant Docs`;
+    `${pageProps.markdoc?.frontmatter.title} - SidekickDB Docs`;
 
   const description = pageProps.markdoc?.frontmatter.description;
 

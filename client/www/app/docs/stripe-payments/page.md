@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Stripe Payments'
-    description: 'How to add payments to your Instant app with Stripe.'
+    description: 'How to add payments to your SidekickDB app with Stripe.'
 ---
 
 The quickest way to add Stripe to your Instant app is to tell your LLM to do it. Just say "add Stripe payments" and follow along step by step.
@@ -23,8 +23,8 @@ instantly.
 This example is for a wallpaper store where users buy a pack and get immediate
 access to high-resolution downloads. It's a one-off payment, and no user accounts are required to minimize friction.
 
-- [Example repo](https://github.com/instantdb/instant/tree/main/examples/stripe-one-off) with [step-by-step tutorial](https://github.com/instantdb/instant/tree/main/examples/stripe-one-off/tutorial.md)
-- [Strategy](https://raw.githubusercontent.com/instantdb/instant/main/examples/stripe-one-off/stripe-strategy.md) and [payment flow](https://raw.githubusercontent.com/instantdb/instant/main/examples/stripe-one-off/purchase.md) docs to help your agent implement the pattern
+- [Example repo](https://github.com/SidekickDB/sidekick/tree/main/examples/stripe-one-off) with [step-by-step tutorial](https://github.com/SidekickDB/sidekick/tree/main/examples/stripe-one-off/tutorial.md)
+- [Strategy](https://raw.githubusercontent.com/SidekickDB/sidekick/main/examples/stripe-one-off/stripe-strategy.md) and [payment flow](https://raw.githubusercontent.com/SidekickDB/sidekick/main/examples/stripe-one-off/purchase.md) docs to help your agent implement the pattern
 
 **How it works:**
 
@@ -43,8 +43,8 @@ access to high-resolution downloads. It's a one-off payment, and no user account
 This example is for a blog where free users see teasers and subscribers get full
 articles. It uses recurring billing with Stripe and auth-based access control.
 
-- [Example repo](https://github.com/instantdb/instant/tree/main/examples/stripe-subscription) with [step-by-step tutorial](https://github.com/instantdb/instant/tree/main/examples/stripe-subscription/tutorial.md)
-- [Strategy](https://raw.githubusercontent.com/instantdb/instant/main/examples/stripe-subscription/stripe-strategy.md) and [subscription flow](https://raw.githubusercontent.com/instantdb/instant/main/examples/stripe-subscription/subscription.md) docs to help your agent implement the pattern
+- [Example repo](https://github.com/SidekickDB/sidekick/tree/main/examples/stripe-subscription) with [step-by-step tutorial](https://github.com/SidekickDB/sidekick/tree/main/examples/stripe-subscription/tutorial.md)
+- [Strategy](https://raw.githubusercontent.com/SidekickDB/sidekick/main/examples/stripe-subscription/stripe-strategy.md) and [subscription flow](https://raw.githubusercontent.com/SidekickDB/sidekick/main/examples/stripe-subscription/subscription.md) docs to help your agent implement the pattern
 
 **How it works:**
 
@@ -61,8 +61,8 @@ articles. It uses recurring billing with Stripe and auth-based access control.
 This example is for a haiku generator where each generation costs one credit.
 Users buy packs of 10 credits for $2. It's a pay-per-use model with real-time balance updates.
 
-- [Example repo](https://github.com/instantdb/instant/tree/main/examples/stripe-credits) with [step-by-step tutorial](https://github.com/instantdb/instant/tree/main/examples/stripe-credits/tutorial.md)
-- [Strategy](https://raw.githubusercontent.com/instantdb/instant/main/examples/stripe-credits/stripe-strategy.md) and [credit flow](https://raw.githubusercontent.com/instantdb/instant/main/examples/stripe-credits/credits.md) docs to help your agent implement the pattern
+- [Example repo](https://github.com/SidekickDB/sidekick/tree/main/examples/stripe-credits) with [step-by-step tutorial](https://github.com/SidekickDB/sidekick/tree/main/examples/stripe-credits/tutorial.md)
+- [Strategy](https://raw.githubusercontent.com/SidekickDB/sidekick/main/examples/stripe-credits/stripe-strategy.md) and [credit flow](https://raw.githubusercontent.com/SidekickDB/sidekick/main/examples/stripe-credits/credits.md) docs to help your agent implement the pattern
 
 **How it works:**
 

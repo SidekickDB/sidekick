@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Auth'
-    description: 'Instant supports magic code, OAuth, Clerk, and custom auth.'
+    description: 'SidekickDB supports magic code, OAuth, Clerk, and custom auth.'
 ---
 
 Instant comes with support for auth. We currently offer [Magic Codes](/docs/auth/magic-codes), [Guest Auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), [Sign In with Apple](/docs/auth/apple), [GitHub OAuth](/docs/auth/github-oauth), [LinkedIn OAuth](/docs/auth/linkedin-oauth), and [Clerk](/docs/auth/clerk). If you want to build your own flow, you can use the [Admin SDK](/docs/backend#custom-auth).

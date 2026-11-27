@@ -1,8 +1,8 @@
 ---
 nextjs:
   metadata:
-    title: 'Using Instant with LLMs'
-    description: 'How to use Instant with LLMs'
+    title: 'Using SidekickDB with LLMs'
+    description: 'How to use SidekickDB with LLMs'
 ---
 
 You can supercharge your Instant experience by using it with LLMs. Just add our Instant rules and you're off to the races!
@@ -44,11 +44,11 @@ particular functionality. For example, here are the recommended docs for [adding
 
 We recommend starting with the rules files above and adding more docs as needed.
 If you want though you can get all our docs at once in markdown format via
-[llms-full.txt](https://www.instantdb.com/llms-full.txt)
+[llms-full.txt](https://sidekickdb.co/llms-full.txt)
 
 ## Instant MCP Server
 
-We built [`@sidekickdb/mcp`](https://github.com/instantdb/instant/tree/main/client/packages/mcp) to enable creating, managing, and updating your Instant apps.
+We built [`@sidekickdb/mcp`](https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp) to enable creating, managing, and updating your Instant apps.
 Combine the MCP with our rules file to build full-stack apps directly in your editor.
 
 The easiest way to get started is to use our hosted remote MCP server. Use the
@@ -206,14 +206,14 @@ https://mcp.instantdb.com/sse
 
 ## Local MCP server
 
-We recommend using our hosted MCP server, but we also support running [`@sidekickdb/mcp`](https://github.com/instantdb/instant/tree/main/client/packages/mcp) locally
+We recommend using our hosted MCP server, but we also support running [`@sidekickdb/mcp`](https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp) locally
 via `stdio`. This will avoid OAuth but requires you to manage your personal
 access token.
 
 ### Get your Personal Access Token
 
 If you haven't already, make sure to get a personal access token from your
-[Instant dashboard](https://www.instantdb.com/dash?s=personal-access-tokens)
+[Instant dashboard](/dash?s=personal-access-tokens)
 
 Once you have your token, you can set up the local Instant MCP server in your
 favorite editor with MCP support.
