@@ -651,7 +651,7 @@ test("the turbo cache prune job keeps actions: write only while it is main-only 
         "      - uses: actions/checkout@v4\n      - name: Delete older turbo entries on main\n",
       ),
     ),
-    'job "prune-turbo-cache" holds a write right and must not use an action',
+    'job "prune-turbo-cache" holds a write right and may not contain this line',
   );
   for (const step of ["      - { uses: actions/checkout@v4 }\n", '      - "uses": actions/checkout@v4\n'])
     failsWith(
@@ -663,11 +663,22 @@ test("the turbo cache prune job keeps actions: write only while it is main-only 
           `${step}      - name: Delete older turbo entries on main\n`,
         ),
       ),
-      'job "prune-turbo-cache" holds a write right and must not use an action',
+      'job "prune-turbo-cache" holds a write right and may not contain this line',
     );
   for (const [from, to] of [
     ["      actions: write\n", "      actions: write\n    steps: *bsteps\n"],
     ["      actions: write\n", "      actions: write\n    <<: *defaults\n"],
+    ["      actions: write\n", "      actions: write\n    steps: *b.steps\n"],
+    ["      actions: write\n", "      actions: write\n    steps: [*bsteps]\n"],
+    ["      actions: write\n", "      actions: write\n    steps: [ *co, *setup ]\n"],
+    [
+      "      - name: Delete older turbo entries on main\n",
+      "      - ? uses\n        : actions/checkout@v4\n      - name: Delete older turbo entries on main\n",
+    ],
+    [
+      "      - name: Delete older turbo entries on main\n",
+      "      - name: Delete older turbo entries on main\n        with:\n          a: b\n",
+    ],
     ["      actions: write\n", "      actions: write\n    env: &shared\n      A: b\n"],
     [
       "      - name: Delete older turbo entries on main\n",
@@ -676,14 +687,14 @@ test("the turbo cache prune job keeps actions: write only while it is main-only 
   ])
     failsWith(
       withWorkflows((d) => edit(d, "js.yml", from, to)),
-      'job "prune-turbo-cache" holds a write right and must not use a YAML anchor, alias, merge key or escaped key',
+      'job "prune-turbo-cache" holds a write right and may not contain this line',
     );
   for (const key of ["container: node:22", "services:\n      db:\n        image: postgres"])
     failsWith(
       withWorkflows((d) =>
         edit(d, "js.yml", "      actions: write\n", `      actions: write\n    ${key}\n`),
       ),
-      'job "prune-turbo-cache" holds a write right and must not run in a container or beside a service',
+      'job "prune-turbo-cache" holds a write right and may not contain this line',
     );
   failsWith(
     withWorkflows((d) =>

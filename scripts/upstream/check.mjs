@@ -187,6 +187,18 @@ export function hasReleaseGuard(cond, guards = RELEASE_GUARDS) {
 }
 
 const MAIN_GUARD = "github.ref == 'refs/heads/main'";
+const JOB_KEYS = ["name", "timeout-minutes", "runs-on", "needs", "if", "permissions", "steps"];
+const STEP_KEYS = [
+  "name",
+  "id",
+  "if",
+  "env",
+  "run",
+  "shell",
+  "working-directory",
+  "timeout-minutes",
+  "continue-on-error",
+];
 
 function checkJobRightsShape(rel, j) {
   const out = [];
@@ -194,28 +206,52 @@ function checkJobRightsShape(rel, j) {
     out.push(
       `${rel}:${j.start}: job "${j.name}" holds a write right and must be guarded with if: ${MAIN_GUARD} && ... (no ||), found if: ${j.if ?? "(none)"}`,
     );
+  // The job may only have the lines below, so that nothing can bring in an
+  // action or another job's steps (uses in any spelling, a container, a YAML
+  // anchor, alias or merge key). The body of a `run: |` block is free text.
+  const plain = (v) => v === "" || !/^[*&!?{\[|>%@`]/.test(v);
+  const bad = (n, text) =>
+    out.push(
+      `${rel}:${n}: job "${j.name}" holds a write right and may not contain this line (allowed: ${JOB_KEYS.join(", ")}; in a step: ${STEP_KEYS.join(", ")}): ${text.trim().slice(0, 140)}`,
+    );
+  let section = null; // "permissions" | "steps"
+  let inEnv = false;
+  let inRun = false;
   for (const { n, text } of j.lines) {
-    if (/^\s*#/.test(text)) continue;
-    // An anchor, alias or merge key can bring in steps from another job, and
-    // an escape in a quoted key can spell `uses` without the word.
-    if (
-      /(^|[\s{,\[])(:|-)?\s*[&*][\w-]+\s*(#.*)?$/.test(text) ||
-      /[:-]\s+&[\w-]+(\s|$)/.test(text) ||
-      /(^|[\s{,])<<\s*:/.test(text) ||
-      /(^|[\s{,-])"[^"]*\\[^"]*"\s*:/.test(text)
-    )
-      out.push(
-        `${rel}:${n}: job "${j.name}" holds a write right and must not use a YAML anchor, alias, merge key or escaped key: ${text.trim().slice(0, 140)}`,
-      );
-    // Block style, flow style (`- { uses: x }`) and a quoted key.
-    if (/(^|[\s{,-])["']?uses["']?\s*:/.test(text))
-      out.push(
-        `${rel}:${n}: job "${j.name}" holds a write right and must not use an action: ${text.trim().slice(0, 140)}`,
-      );
-    if (/^    ["']?(container|services)["']?\s*:/.test(text))
-      out.push(
-        `${rel}:${n}: job "${j.name}" holds a write right and must not run in a container or beside a service: ${text.trim().slice(0, 140)}`,
-      );
+    const indent = text.match(/^ */)[0].length;
+    if (inRun && (!text.trim() || indent >= 10)) continue;
+    inRun = false;
+    if (!text.trim() || /^\s*#/.test(text) || indent < 4) continue;
+    let m;
+    if ((m = text.match(/^    ([a-z-]+):(?: (.*))?$/)) && JOB_KEYS.includes(m[1])) {
+      const [, key, value = ""] = m;
+      section = key === "permissions" || key === "steps" ? key : null;
+      inEnv = false;
+      const ok = section
+        ? value === ""
+        : key === "needs"
+          ? /^(\[ *[\w-]+( *, *[\w-]+)* *\]|[\w-]+)$/.test(value)
+          : value !== "" && plain(value);
+      if (!ok) bad(n, text);
+    } else if (section === "permissions" && /^      [a-z-]+: (read|write|none)$/.test(text)) {
+      continue;
+    } else if (
+      section === "steps" &&
+      (m = text.match(/^      (?:- |  )([a-z-]+):(?: (.*))?$/)) &&
+      STEP_KEYS.includes(m[1])
+    ) {
+      const [, key, value = ""] = m;
+      inEnv = key === "env";
+      if (key === "run" && value === "|") inRun = true;
+      else if (inEnv ? value !== "" : value === "" || !plain(value)) bad(n, text);
+    } else if (
+      section === "steps" &&
+      inEnv &&
+      (m = text.match(/^          [A-Za-z_][A-Za-z0-9_]*: (.+)$/)) &&
+      plain(m[1])
+    ) {
+      continue;
+    } else bad(n, text);
   }
   return out;
 }

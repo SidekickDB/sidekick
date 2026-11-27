@@ -276,8 +276,9 @@ services. SidekickDB releases only through its own two release workflows (PR
   `Linux-turbo-*` entries on `refs/heads/main` created before this commit's.
   It is the one enabled job in `js.yml` with a write right
   (`actions: write`); `scripts/upstream/check.mjs` (`JOB_RIGHTS`) allows it
-  only while the job is guarded to `main`, uses no action, has no
-  `container` or `services` and no YAML anchor, alias or merge key. The
+  only while the job is guarded to `main` and has nothing but a fixed set
+  of job and step keys, which leaves no way to use an action, a container
+  or another job's steps (YAML anchors and aliases are refused). The
   `check_formatting` job's turbo step is removed (it never creates
   `client/.turbo`). The disabled jobs keep upstream's turbo steps.
 
