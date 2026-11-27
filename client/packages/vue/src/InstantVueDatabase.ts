@@ -88,7 +88,7 @@ export class InstantVueDatabase<
   /**
    * Use this to write data! You can create, update, delete, and link objects
    *
-   * @see https://instantdb.com/docs/instaml
+   * @see https://sidekickdb.co/docs/instaml
    *
    * @example
    *   const goalId = id();
@@ -103,7 +103,7 @@ export class InstantVueDatabase<
   /**
    * One time query for the logged in state.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   const user = await db.getAuth();
    *   console.log('logged in as', user.email)
@@ -116,7 +116,7 @@ export class InstantVueDatabase<
    * Use this for one-off queries.
    * Returns local data if available, otherwise fetches from the server.
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *  const resp = await db.queryOnce({ goals: {} });
@@ -138,7 +138,7 @@ export class InstantVueDatabase<
   /**
    * Use this to query your data!
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *   // basic query — refs auto-unwrap in templates
@@ -234,7 +234,7 @@ export class InstantVueDatabase<
    * Listen for the logged in state. This is useful
    * for deciding when to show a login screen.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *  const { isLoading, user, error } = db.useAuth();
    */
@@ -263,7 +263,7 @@ export class InstantVueDatabase<
    * signed in when `.value` is accessed — wrap callers with `<SignedIn>` or
    * a `useAuth` check.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *  const user = db.useUser();
    *  // user.value.email
@@ -283,7 +283,7 @@ export class InstantVueDatabase<
   /**
    * Listen for connection status changes to Instant.
    *
-   * @see https://www.instantdb.com/docs/patterns#connection-status
+   * @see https://sidekickdb.co/docs/patterns#connection-status
    * @example
    *  const status = db.useConnectionStatus();
    *  // status.value
@@ -335,7 +335,7 @@ export class InstantVueDatabase<
   /**
    * Obtain a handle to a room, which allows you to listen to topics and presence data
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    *
    * @example
    *  const room = db.room('chat', roomId);
@@ -355,7 +355,7 @@ export class InstantVueDatabase<
   /**
    * Hooks for working with rooms
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    *
    * @example
    *  const room = db.room('chat', roomId);
@@ -371,7 +371,7 @@ export class InstantVueDatabase<
 /**
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` :)
+ * Find your `appId` in your SidekickDB dashboard.
  *
  * @example
  *  import { init } from "@sidekickdb/vue"

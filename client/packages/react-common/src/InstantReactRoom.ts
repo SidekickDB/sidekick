@@ -49,7 +49,7 @@ export const defaultActivityStopTimeout = 1_000;
 /**
  * Listen for broadcasted events given a room and topic.
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  function App({ roomId }) {
  *    const room = db.room('chats', roomId);
@@ -91,7 +91,7 @@ export function useTopicEffect<
 /**
  * Broadcast an event to a room.
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  * function App({ roomId }) {
  *   const room = db.room('chat', roomId);
@@ -134,7 +134,7 @@ export function usePublishTopic<
 /**
  * Listen for peer's presence data in a room, and publish the current user's presence.
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  function App({ roomId }) {
  *    const {
@@ -195,7 +195,7 @@ export function usePresence<
 /**
  * Publishes presence data to a room
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  function App({ roomId, nickname }) {
  *    const room = db.room('chat', roomId);
@@ -225,7 +225,7 @@ export function useSyncPresence<
 /**
  * Manage typing indicator state
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  function App({ roomId }) {
  *    const room = db.room('chat', roomId);

@@ -22,7 +22,7 @@ export { createInstantRouteHandler } from '@sidekickdb/core';
  *
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` :)
+ * Find your `appId` in your SidekickDB dashboard.
  *
  * @example
  *  import { init } from "@sidekickdb/react"
@@ -36,7 +36,7 @@ export { createInstantRouteHandler } from '@sidekickdb/core';
  *
  *  const db = init({ appId: "my-app-id", apiURI: "https://sidekick.example.com", schema })
  *
- *  // To learn more: https://instantdb.com/docs/modeling-data
+ *  // To learn more: https://sidekickdb.co/docs/modeling-data
  */
 export function init<
   Schema extends InstantSchemaDef<any, any, any> = InstantUnknownSchema,

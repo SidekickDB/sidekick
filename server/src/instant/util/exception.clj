@@ -708,7 +708,7 @@
         (throw+ {::type ::parameter-limit-exceeded
                  ::message "There are too many parameters in the transaction or query."
                  ::hint {:message "Consider batching transactions to reduce the number of writes in a single transaction."
-                         :doc-urls ["https://www.instantdb.com/docs/instaml#batching-transactions"]}
+                         :doc-urls ["https://sidekickdb.co/docs/instaml#batching-transactions"]}
                  ::pg-error-data data})
         (default-psql-throw! e data hint))
 
@@ -737,7 +737,7 @@
                  ::message (str
                             "You can't create a required system attribute. Make sure it's optional."
                             " Check out the docs to learn more:"
-                            " https://www.instantdb.com/docs/modeling-data#required-constraints")})
+                            " https://sidekickdb.co/docs/modeling-data#required-constraints")})
 
         #_else
         (throw+ {::type ::sql-raise

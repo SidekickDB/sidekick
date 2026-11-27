@@ -52,7 +52,7 @@ export const defaultActivityStopTimeout = 1_000;
 /**
  * Listen for broadcasted events given a room and topic.
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  const room = db.room('chats', roomId);
  *  db.rooms.useTopicEffect(room, 'emoji', (message, peer) => {
@@ -89,7 +89,7 @@ export function useTopicEffect<
 /**
  * Broadcast an event to a room.
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  const room = db.room('chat', roomId);
  *  const publishTopic = db.rooms.usePublishTopic(room, 'emoji');
@@ -126,7 +126,7 @@ export function usePublishTopic<
 /**
  * Listen for peer's presence data in a room, and publish the current user's presence.
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  const room = db.room('chat', roomId);
  *  const { peers, isLoading, publishPresence } = db.rooms.usePresence(room, { keys: ["name", "avatar"] });
@@ -188,7 +188,7 @@ export function usePresence<
 /**
  * Publishes presence data to a room
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  const room = db.room('chat', roomId);
  *  db.rooms.useSyncPresence(room, { nickname });
@@ -222,7 +222,7 @@ export function useSyncPresence<
 /**
  * Manage typing indicator state
  *
- * @see https://instantdb.com/docs/presence-and-topics
+ * @see https://sidekickdb.co/docs/presence-and-topics
  * @example
  *  const room = db.room('chat', roomId);
  *  const typing = db.rooms.useTypingIndicator(room, 'chat-input');

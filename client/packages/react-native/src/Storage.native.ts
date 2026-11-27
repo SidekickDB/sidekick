@@ -66,7 +66,7 @@ class MissingStore extends StoreInterface {
   constructor(appId: string, dbName: StoreInterfaceStoreName) {
     super(appId, dbName);
     throw new Error(
-      'Instant needs a store to persist data on device. ' +
+      'SidekickDB needs a store to persist data on device. ' +
         'Install `@react-native-async-storage/async-storage`, ' +
         'or pass a `Store` to `init` (e.g. from `@sidekickdb/react-native-mmkv` or `@sidekickdb/expo-sqlite`).' +
         (asyncStorageLoadError

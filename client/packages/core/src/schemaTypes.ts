@@ -426,7 +426,7 @@ export class InstantSchemaDef<
    *  }
    * })
    *
-   * @see https://instantdb.com/docs/presence-and-topics#typesafety
+   * @see https://sidekickdb.co/docs/presence-and-topics#typesafety
    */
   withRoomSchema<_RoomSchema extends RoomSchemaShape>() {
     type RDef = RoomDefFromShape<_RoomSchema>;
@@ -442,7 +442,7 @@ export class InstantSchemaDef<
  * @deprecated
  * `i.graph` is deprecated. Use `i.schema` instead.
  *
- * @see https://instantdb.com/docs/modeling-data
+ * @see https://sidekickdb.co/docs/modeling-data
  */
 export class InstantGraph<
   Entities extends EntitiesDef,

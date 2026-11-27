@@ -818,7 +818,7 @@ function IndexingJobError({
       <div className="mt-2 mb-2 space-y-2 border-l-2 border-l-red-500 pl-2">
         <div>
           An unexpected error occured while changing constraints. Please share
-          these details with the Instant team:
+          these details with the administrator of your server:
         </div>
         <pre>id: "{indexingJob.id}"</pre>
       </div>
