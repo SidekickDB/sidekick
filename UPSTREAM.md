@@ -1205,7 +1205,8 @@ instructions.
   under "Intentional divergences" with no PR number in its heading (directly
   before "Upstream sync tooling", which stays last), and a file for the PR in
   `scripts/upstream/divergence-prs/`. A PR for an existing divergence needs
-  only that file. Unlisted PRs are still attributed, under their own title.
+  only that file and its bullet in the divergence's section. Unlisted PRs are
+  still attributed, under their own title.
 - `divergence-prs/<PR number>`: one file per PR, holding its key, written once
   `gh pr create` has returned the number
   (`echo '<key>' > scripts/upstream/divergence-prs/<PR number>`, then
@@ -1225,11 +1226,35 @@ instructions.
   files and different PR files, so the tooling data merges without a conflict,
   in a local `git merge` and on GitHub alike. The prose in this file still
   conflicts when two such PRs add text in the same place (two new sections
-  before "Upstream sync tooling", or text in the same section): resolve it by
-  hand and keep both. `divergences.mjs` refuses to load, and
+  before "Upstream sync tooling", or bullets at the same place in one section,
+  see below): resolve it by hand and keep both. `divergences.mjs` refuses to
+  load, and
   `divergences.test.mjs` fails, on a PR file whose name is not a number, whose
   content is not one or two keys (a conflict marker, a stray character), or
   that names an unknown key, a key twice or a split that `SPLIT` does not know.
+- A divergence `title` is a short label (at most 80 characters, no comma or
+  semicolon; `divergences.test.mjs` checks it). The fixes are listed only in
+  this file. A PR for an existing key leaves the title alone.
+- Where a new bullet goes in a divergence section: at its sorted place, not at
+  the end. A bullet's sort key is the first text in backticks in the bullet
+  that contains a `/`, taken exactly as written (braces, `*` and a trailing
+  `/` included, so `dash/routes.clj` and
+  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` are keys as they stand).
+  Backticked text without a `/` (a bare file name such as `swarm.yml`, a
+  variable, a command) is not a key. A bullet with no such text has no key and
+  is skipped. A new bullet must have a key: name the file it changes in
+  backticks from the repository root (`self-hosting/swarm.yml`, not
+  `swarm.yml`; `./NOTICE` for a file at the root). Keys are compared byte by
+  byte, as `LC_ALL=C sort` does. Find the greatest key in the section that is
+  less than or equal to the new bullet's key, and put the new bullet directly
+  after the last bullet with that key; if every key is greater, put it before
+  the section's first bullet. The sections are not in that order, so compare
+  against every bullet in the section, not only the neighbours. Why: two PRs
+  that add a bullet at the same place conflict whatever the text, and PR
+  numbers only grow, so ordering by them would put every new bullet last;
+  file paths spread new bullets through the list. Two PRs whose keys have no
+  existing key between them still land next to each other and conflict
+  (rarer, not gone): resolve by hand and keep both.
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
