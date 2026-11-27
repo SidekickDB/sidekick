@@ -44,6 +44,8 @@ It also runs on pull requests that change `self-hosting/` (other than
 Markdown files), the server's clustering code (`server/src/instant/reactive/ephemeral.clj`,
 `reactive/invalidator.clj`, `util/hazelcast.clj`, `grpc*.clj`, `config.clj`,
 `model/app_stream.clj`),
+the system catalog migration that both nodes run at startup
+(`server/src/instant/system_catalog_migration.clj`),
 `server/deps.edn` (Hazelcast and gRPC versions), the self-hosted Dockerfile,
 the shared client helper
 (`scripts/bench/self-hosted/client.mjs`), this directory or the workflow. The job summary

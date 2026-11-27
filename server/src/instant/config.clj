@@ -82,21 +82,31 @@
 ;; over. INSTANT_SHUTDOWN_DRAIN_SECONDS (or SIDEKICK_SHUTDOWN_DRAIN_SECONDS)
 ;; sets it in any mode. Unset, a self-hosted server drains for 20 s, and nil
 ;; leaves upstream's drain (1 s in :dev, 4 minutes otherwise) to the caller.
+;; `init` checks the value, so an invalid one stops the server at startup.
 (def default-self-hosted-drain-seconds 20)
 
+(def max-shutdown-drain-seconds 3600)
+
+(defn parse-shutdown-drain-seconds
+  "The drain in seconds: `value` is a whole number from 0 to 3600; nil or
+   blank gives nil."
+  [value]
+  (when-let [value (some-> value string/trim not-empty)]
+    (let [seconds (some-> (re-matches #"\d{1,4}" value) parse-long)]
+      (when-not (and seconds (<= seconds max-shutdown-drain-seconds))
+        (throw (ex-info (str (env/describe "INSTANT_SHUTDOWN_DRAIN_SECONDS")
+                             " is " (pr-str value) ". Use a whole number of"
+                             " seconds from 0 to " max-shutdown-drain-seconds
+                             ", or leave it unset.")
+                        {:value value})))
+      seconds)))
+
 (defn shutdown-drain-opts []
-  (let [value (non-blank-env "INSTANT_SHUTDOWN_DRAIN_SECONDS")
-        seconds (some-> value parse-long)
-        seconds (cond
-                  (and seconds (<= 0 seconds)) seconds
-                  value (do (log/warn (env/describe "INSTANT_SHUTDOWN_DRAIN_SECONDS")
-                                      "is" (pr-str value)
-                                      "but must be a whole number of seconds; using the default")
-                            nil))]
-    (when-let [seconds (or seconds
-                           (when (self-hosted?) default-self-hosted-drain-seconds))]
-      {:total-ms (* 1000 seconds)
-       :max-gap-ms 1000})))
+  (when-let [seconds (or (parse-shutdown-drain-seconds
+                          (env/getenv "INSTANT_SHUTDOWN_DRAIN_SECONDS"))
+                         (when (self-hosted?) default-self-hosted-drain-seconds))]
+    {:total-ms (* 1000 seconds)
+     :max-gap-ms 1000}))
 
 (defn runtime-mode-errors
   "Problems with the runtime mode setting, as messages. Empty when it is fine."
@@ -711,6 +721,8 @@
     (throw (ex-info (string/join " " errors) {:runtime-mode (runtime-mode-value)})))
   ;; SidekickDB: fail at startup on an invalid query cache size
   (query-cache-max-bytes)
+  ;; SidekickDB: and on an invalid shutdown drain, not only when stopping
+  (shutdown-drain-opts)
   ;; instantiate the config-map so we can fail early if it's not
   ;; valid
   (let [config @config-map]

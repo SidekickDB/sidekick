@@ -681,7 +681,8 @@ Changes outside `config.clj`, each one small on purpose:
 - `core.clj` `stop`: the WebSocket drain comes from
   `config/shutdown-drain-opts` when it returns one (self-hosted, 20 s, or
   `INSTANT_SHUTDOWN_DRAIN_SECONDS`), else upstream's `dev?` choice; covered by
-  `shutdown_drain_test.clj`.
+  `shutdown_drain_test.clj`. `config/init` checks the value, so an invalid
+  one fails at startup.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
@@ -842,6 +843,12 @@ and take its other changes in the file.
   hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
   Test `concurrent-boots-insert-catalog-attrs-once` in
   `server/test/instant/system_catalog_migration_test.clj`.
+- PR #99: the example page, `client/www/app/examples/[slug]/page.tsx`,
+  serves only the slugs from `generateStaticParams` (`dynamicParams = false`)
+  and answers 404 for any other. `getExampleAppBySlug` in
+  `client/www/lib/examples/server.ts` looks the slug up in `appMetas` before
+  reading its file (`isExampleSlug`). Test
+  `client/www/__tests__/examples.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
