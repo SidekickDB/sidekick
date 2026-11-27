@@ -1032,6 +1032,18 @@ same file compares the message as a string and it names the `Instant-Signature`
 header; the `knownKeys` entry for `https://api.instantdb.com`; the instantdb.com
 addresses in test data; identifiers and `X-Instant-*` headers.
 
+Server emails and messages: the dashboard and team sender names default to
+"SidekickDB" (`config.clj`, and `self-hosting/.env.example`, which also says
+the app sender name is unused because app emails use the app's title). The
+team-invite and app-transfer emails say "[SidekickDB]" in the subject and
+"SidekickDB" as link text; the custom-sender verification email says "this
+server" and `postmark-user-note` names SidekickDB. Without a superuser email
+the rate-limit error asks users to contact the administrator of this server.
+The schema errors in `model/schema.clj` link to `config/dashboard-origin`
+instead of www.instantdb.com/dash. The signup-denied message says "this
+deployment" and the login-code log banner reads "SIDEKICKDB DASHBOARD LOGIN
+CODE". Each edit has a `SidekickDB:` comment.
+
 **Resolving the SDK links:** upstream edits these doc comments often, so a sync
 that touches a line next to a swapped link conflicts. Take upstream's line and
 swap the host again (`instantdb.com/docs` or `www.instantdb.com/docs` becomes

@@ -47,14 +47,15 @@
        (ex/throw-expiration-err! :app-email-verification-code {:args [params]}))
      verification-code)))
 
+;; SidekickDB: the subject and body say "this server" (upstream: Instant).
 (defn format-email [{:keys [code sender-email app-title]}]
   (let [{sender-name :name from-email :email} (config/dashboard-email-sender)]
     {:from {:name sender-name
             :email from-email}
      :to [{:email sender-email}]
-     :subject (str code " is your Instant sender verification code for app: " app-title)
+     :subject (str code " is your sender verification code for app: " app-title)
      :reply-to from-email
 
-     :html (str (h/html [:p "Use this code to verify your custom sender email address on Instant for the app: "
+     :html (str (h/html [:p "Use this code to verify your custom sender email address on this server for the app: "
                          [:strong app-title]]
                         [:h2 {:style "text-align: center"} code] [:p "This code can only be used once."]))}))

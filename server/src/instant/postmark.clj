@@ -150,7 +150,8 @@
 ;; XXX: We may want to extract this out if we end up having
 (def standard-body email/standard-body)
 
-(def postmark-user-note "Instant partners with Postmark to send emails.  Please verify your custom sender address.")
+;; SidekickDB: names SidekickDB (upstream names Instant).
+(def postmark-user-note "This SidekickDB server uses Postmark to send emails.  Please verify your custom sender address.")
 
 ;; Note, Postmark has TWO tokens - "Account" for admin, and "Server" for sending
 (defn postmark-admin-request-headers []
