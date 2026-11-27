@@ -195,6 +195,18 @@ function checkJobRightsShape(rel, j) {
       `${rel}:${j.start}: job "${j.name}" holds a write right and must be guarded with if: ${MAIN_GUARD} && ... (no ||), found if: ${j.if ?? "(none)"}`,
     );
   for (const { n, text } of j.lines) {
+    if (/^\s*#/.test(text)) continue;
+    // An anchor, alias or merge key can bring in steps from another job, and
+    // an escape in a quoted key can spell `uses` without the word.
+    if (
+      /(^|[\s{,\[])(:|-)?\s*[&*][\w-]+\s*(#.*)?$/.test(text) ||
+      /[:-]\s+&[\w-]+(\s|$)/.test(text) ||
+      /(^|[\s{,])<<\s*:/.test(text) ||
+      /(^|[\s{,-])"[^"]*\\[^"]*"\s*:/.test(text)
+    )
+      out.push(
+        `${rel}:${n}: job "${j.name}" holds a write right and must not use a YAML anchor, alias, merge key or escaped key: ${text.trim().slice(0, 140)}`,
+      );
     // Block style, flow style (`- { uses: x }`) and a quoted key.
     if (/(^|[\s{,-])["']?uses["']?\s*:/.test(text))
       out.push(

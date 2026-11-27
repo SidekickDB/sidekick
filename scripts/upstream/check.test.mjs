@@ -665,6 +665,19 @@ test("the turbo cache prune job keeps actions: write only while it is main-only 
       ),
       'job "prune-turbo-cache" holds a write right and must not use an action',
     );
+  for (const [from, to] of [
+    ["      actions: write\n", "      actions: write\n    steps: *bsteps\n"],
+    ["      actions: write\n", "      actions: write\n    <<: *defaults\n"],
+    ["      actions: write\n", "      actions: write\n    env: &shared\n      A: b\n"],
+    [
+      "      - name: Delete older turbo entries on main\n",
+      '      - "u\\x73es": actions/checkout@v4\n      - name: Delete older turbo entries on main\n',
+    ],
+  ])
+    failsWith(
+      withWorkflows((d) => edit(d, "js.yml", from, to)),
+      'job "prune-turbo-cache" holds a write right and must not use a YAML anchor, alias, merge key or escaped key',
+    );
   for (const key of ["container: node:22", "services:\n      db:\n        image: postgres"])
     failsWith(
       withWorkflows((d) =>
