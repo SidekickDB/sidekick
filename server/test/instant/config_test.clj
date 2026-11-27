@@ -33,6 +33,39 @@
   (is (nil? (config/non-blank-env "SIDEKICK_CONFIG_TEST_UNSET_VARIABLE")))
   (is (= (System/getenv "PATH") (config/non-blank-env "PATH"))))
 
+(deftest s3-settings-test
+  (let [file-config {:s3-endpoint "http://file:9000"
+                     :s3-public-endpoint "http://file-public:9000"
+                     :s3-region "eu-west-1"}]
+    (doseq [blank ["" "  "]]
+      (testing (str "a blank value " (pr-str blank) " counts as unset")
+        (with-redefs [env/getenv (partial env/lookup {"S3_ENDPOINT" blank
+                                                      "S3_PUBLIC_ENDPOINT" blank
+                                                      "AWS_REGION" blank})]
+          (with-redefs [config/config-map (delay file-config)]
+            (is (= "http://file:9000" (config/s3-endpoint)))
+            (is (= "http://file-public:9000" (config/s3-public-endpoint)))
+            (is (= "eu-west-1" (config/s3-region))))
+          (with-redefs [config/config-map (delay {})]
+            (is (nil? (config/s3-endpoint)))
+            (is (nil? (config/s3-public-endpoint)))
+            (is (= "us-east-1" (config/s3-region)))))))
+
+    (testing "a set value wins over the config file"
+      (with-redefs [env/getenv (partial env/lookup {"S3_ENDPOINT" " http://storage:9000 "
+                                                    "S3_PUBLIC_ENDPOINT" "http://localhost:9000"
+                                                    "AWS_REGION" "us-west-2"})
+                    config/config-map (delay file-config)]
+        (is (= "http://storage:9000" (config/s3-endpoint)))
+        (is (= "http://localhost:9000" (config/s3-public-endpoint)))
+        (is (= "us-west-2" (config/s3-region)))))
+
+    (testing "a blank public endpoint falls back to S3_ENDPOINT"
+      (with-redefs [env/getenv (partial env/lookup {"S3_ENDPOINT" "http://storage:9000"
+                                                    "S3_PUBLIC_ENDPOINT" ""})
+                    config/config-map (delay {})]
+        (is (= "http://storage:9000" (config/s3-public-endpoint)))))))
+
 (deftest sidekick-env-names-test
   (let [vars {"SIDEKICK_EMAIL_REPLY_TO" "new@example.com"
               "INSTANT_EMAIL_REPLY_TO" "old@example.com"

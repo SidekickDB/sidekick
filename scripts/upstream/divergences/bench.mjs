@@ -1,6 +1,6 @@
 export default {
   title:
-    "Self-hosted stack benchmark: harness in scripts/bench/self-hosted and a read-only workflow",
+    "Self-hosted stack benchmark",
   resolve:
     "Upstream has none of these files. If upstream changes self-hosting/docker-compose.yml, " +
     "server/Dockerfile.self-hosted, client/Dockerfile.www or @sidekickdb/core's init()/subscribeQuery " +

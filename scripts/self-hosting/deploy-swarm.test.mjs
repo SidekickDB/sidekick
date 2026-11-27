@@ -102,6 +102,7 @@ test('swarm.yml variables are found', () => {
     'POSTGRES_PASSWORD',
     'POSTMARK_TOKEN',
     'INSTANT_TEAM_EMAIL_SENDER_EMAIL',
+    'INSTANT_NREPL',
     'S3_BUCKET',
     'SERVER_IMAGE',
   ])

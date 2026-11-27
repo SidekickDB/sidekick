@@ -1,6 +1,6 @@
 export default {
   title:
-    "CI lockdown: publish/deploy jobs disabled, no secrets or timing writes, job timeouts, detect_changes merge base, runs on main and pull requests only, JS caches saved on main only with one turbo entry (prune job holds actions: write)",
+    "CI lockdown",
   resolve:
     'Keep every line marked "# SidekickDB:" / "// SidekickDB:". Take upstream\'s other changes. ' +
     "A new or changed publish/deploy job gets `if: false && (<upstream condition>)`; a new publish-only " +
