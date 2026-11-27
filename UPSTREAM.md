@@ -1023,8 +1023,8 @@ because the Vercel edge runtime defines a `MessageEvent` that throws. Public
   apart from `ReaderLike` and `BodyChunk` in `types.ts`, which are taken from
   `eventsource` 5.1.5 so the code type-checks with TypeScript 5.9 (marked
   `SidekickDB:`). Its MIT `LICENSE` and a `.prettierrc.json` with the
-  original formatting are next to it; `NOTICE` names it. Both ship in the
-  package tarball because admin packs `src/`.
+  original formatting are next to it, and `NOTICE` names it. The `LICENSE`
+  ships in the package tarball (admin packs `src/`), as does `NOTICE`.
 - `client/packages/admin/src/index.ts` and `subscribe.ts` import
   `./eventsource/index.ts`; `client/packages/admin/package.json` depends on
   `eventsource-parser` (the copy's only dependency) instead.
