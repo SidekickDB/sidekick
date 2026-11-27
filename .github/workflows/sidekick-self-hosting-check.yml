@@ -64,6 +64,14 @@ jobs:
           for s in sh bash zsh dash; do printf '%s: %s\n' "$s" "$(command -v $s)"; done
           node --test scripts/self-hosting/rename-keys.test.mjs
 
+      # Runs deploy-swarm.sh with stand-ins for docker and ssh: every variable
+      # swarm.yml reads is passed, and the server_config secret is never
+      # created or replaced.
+      - name: Test deploy-swarm.sh
+        run: |
+          shellcheck self-hosting/deploy-swarm.sh
+          node --test scripts/self-hosting/deploy-swarm.test.mjs
+
       - name: Render the compose files
         run: |
           node scripts/self-hosting/render-check.mjs \
