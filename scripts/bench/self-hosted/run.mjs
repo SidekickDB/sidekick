@@ -21,7 +21,8 @@
 //      (jcmd 1 GC.heap_info);
 //   4. runs workload.mjs (live queries, writes, time to client-visible update);
 //   5. waits 30 s and records memory again;
-//   6. runs smoke.mjs (response headers, presence, streams, SSE) for the mode;
+//   6. runs smoke.mjs (response headers, presence, streams, SSE, dashboard
+//      login, file upload, on-demand backup) for the mode;
 //   7. restarts the server container and times it back to GET / (warm restart).
 //
 // From the server log of each cold start it also records the start-up phases
@@ -634,6 +635,8 @@ function smoke(mode) {
       apiURI,
       '--mode',
       mode,
+      '--server-container',
+      containerId('server'),
     ],
     { timeout: 180_000 },
   );
