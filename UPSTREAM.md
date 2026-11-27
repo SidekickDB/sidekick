@@ -879,7 +879,7 @@ upstream raised a server version minimum above SidekickDB's version; raise
 stack in `self-hosting/docker-compose.yml`: start-up time and its phases,
 per-step init times from the server log, per-service and server JVM memory,
 a small live-query workload, and smoke checks (`smoke.mjs`: dev headers,
-presence, streams, SSE). Since PR #23 it compares runtime modes
+presence, streams, SSE, dashboard login, file upload, on-demand backup). Since PR #23 it compares runtime modes
 (`--modes default,self-hosted`) in one job. See the README there for
 what is and is not measured. The workflow is read-only (`contents: read`, no
 secrets), runs on demand and on pull requests that change the harness, and
