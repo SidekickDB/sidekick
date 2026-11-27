@@ -741,7 +741,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *
    * @example
    *   try {
-   *     await auth.signOut({ email: "alyssa_p_hacker@instantdb.com" });
+   *     await auth.signOut({ email: "alyssa_p_hacker@example.com" });
    *     console.log("Successfully signed out");
    *   } catch (err) {
    *     console.error("Sign out failed:", err.message);
@@ -1179,7 +1179,7 @@ class InstantAdminDatabase<
    *
    * @see https://sidekickdb.co/docs/backend#impersonating-users
    * @example
-   *  await db.asUser({email: "stopa@instantdb.com"}).query({ goals: {} })
+   *  await db.asUser({email: "stopa@example.com"}).query({ goals: {} })
    */
   asUser = (
     opts: ImpersonationOpts,

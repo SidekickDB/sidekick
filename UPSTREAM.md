@@ -968,12 +968,15 @@ do the two `:doc-urls`/message links in `server/src/instant/util/exception.clj`.
 The `init` doc comments say "Find your `appId` in your SidekickDB dashboard"
 instead of linking to Instant's hosted dashboard. The appId errors in
 `core/src/Reactor.js` and `admin/src/index.ts` and the missing-store error in
-`react-native/src/Storage.native.ts` say "SidekickDB". These edits carry no
+`react-native/src/Storage.native.ts` say "SidekickDB". The example addresses in
+the admin doc comments are at example.com, and the unexpected-error text in
+`components/src/components/explorer/edit-namespace-dialog.tsx` asks the user to
+share the details with the administrator of their server. These edits carry no
 `SidekickDB:` comment (one per doc comment would be noise). Left as upstream's:
 `'Instant Signature did not validate'` in `webhooks/src/index.ts`, because the
 same file compares the message as a string and it names the `Instant-Signature`
-header; the `knownKeys` entry for `https://api.instantdb.com`; example emails
-at instantdb.com in doc comments; identifiers and `X-Instant-*` headers.
+header; the `knownKeys` entry for `https://api.instantdb.com`; the instantdb.com
+addresses in test data; identifiers and `X-Instant-*` headers.
 
 **Resolving the SDK links:** upstream edits these doc comments often, so a sync
 that touches a line next to a swapped link conflicts. Take upstream's line and
