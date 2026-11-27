@@ -101,7 +101,8 @@ export const SERVER_MIN_VERSION_FILES = [
 // literal in these files (what instant.util.semver accepts: x.y.z, optional
 // v and -dev) counts as a minimum, whatever form holds it. Comments and
 // character literals are skipped. A file with no version literal is an error.
-// Not seen: a minimum assembled at runtime or defined in another server file.
+// Not seen: a minimum assembled at runtime, written as a version map by
+// hand, or defined in another server file.
 const VERSION_LITERAL = /^v?(\d+)\.(\d+)\.(\d+)(?:-dev)?$/;
 const CLOJURE_TOKENS = /;[^\n]*|\\.|"((?:[^"\\]|\\.)*)"/g;
 const TOP_LEVEL_DEF =

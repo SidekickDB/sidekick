@@ -7,7 +7,7 @@
 # Read-only: no secrets, no write permissions, nothing is pushed or published.
 # The image is built and loaded locally; the GitHub Actions cache keeps its
 # layers between runs. Runs on demand and on pull requests that change
-# self-hosting or clustering files.
+# self-hosting files (other than Markdown) or clustering files.
 name: Two-node smoke test
 
 on:
@@ -20,6 +20,7 @@ on:
   pull_request:
     paths:
       - 'self-hosting/**'
+      - '!self-hosting/**/*.md'
       - 'server/Dockerfile.self-hosted'
       - 'server/deps.edn'
       - 'server/src/instant/config.clj'
