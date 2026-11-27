@@ -192,11 +192,17 @@ function checkJobRightsShape(rel, j) {
     out.push(
       `${rel}:${j.start}: job "${j.name}" holds a write right and must be guarded with if: ${MAIN_GUARD} && ... (no ||), found if: ${j.if ?? "(none)"}`,
     );
-  for (const { n, text } of j.lines)
-    if (/^\s*(-\s+)?uses:/.test(text))
+  for (const { n, text } of j.lines) {
+    // Block style, flow style (`- { uses: x }`) and a quoted key.
+    if (/(^|[\s{,-])["']?uses["']?\s*:/.test(text))
       out.push(
         `${rel}:${n}: job "${j.name}" holds a write right and must not use an action: ${text.trim().slice(0, 140)}`,
       );
+    if (/^    ["']?(container|services)["']?\s*:/.test(text))
+      out.push(
+        `${rel}:${n}: job "${j.name}" holds a write right and must not run in a container or beside a service: ${text.trim().slice(0, 140)}`,
+      );
+  }
   return out;
 }
 
