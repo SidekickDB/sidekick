@@ -45,13 +45,25 @@
    (ensure-attrs-on-system-catalog-app system-catalog/system-catalog-app-id))
   ([app-id]
    (tracer/with-span! {:name "system-catalog/ensure-attrs-on-system-catalog-app"}
-     (let [existing-attrs (attr-model/get-by-app-id (aurora/conn-pool :read) app-id)
-           new-attrs (missing-attrs existing-attrs)
-           ids (when (seq new-attrs)
-                 (attr-model/insert-multi! (aurora/conn-pool :write)
-                                           app-id
-                                           new-attrs
-                                           {:allow-reserved-names? true}))
+     ;; SidekickDB: nodes that start together used to read the same missing
+     ;; attrs and both insert them; the second insert hit the trigger on
+     ;; idents and the node exited. The lock makes the read and the insert
+     ;; one step, so a node that waits re-reads and finds nothing missing.
+     (let [{:keys [existing-attrs new-attrs ids]}
+           (next.jdbc/with-transaction [conn (aurora/conn-pool :write)]
+             (sql/execute-one! ::ensure-attrs-lock
+                               conn
+                               ["SELECT pg_advisory_xact_lock(hashtext(?))"
+                                "instant-system-catalog-migration"])
+             (let [existing-attrs (attr-model/get-by-app-id conn app-id)
+                   new-attrs (missing-attrs existing-attrs)]
+               {:existing-attrs existing-attrs
+                :new-attrs new-attrs
+                :ids (when (seq new-attrs)
+                       (attr-model/insert-multi! conn
+                                                 app-id
+                                                 new-attrs
+                                                 {:allow-reserved-names? true}))}))
            json-ids (keep (fn [a]
                             (when (= "meta" (attr-model/fwd-label a))
                               (:id a)))

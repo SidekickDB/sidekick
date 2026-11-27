@@ -116,10 +116,11 @@ const nextConfig = {
       return [
         ...standardRedirects,
         // redirect any page that isn't /api, /dash, /debug-uri, /docs, /intern, /logout, or /_devtool
+        // SidekickDB: also keep /platform/oauth, the consent page the server sends platform OAuth users to.
         {
           permanent: false,
           source:
-            '/((?!api(?:/.*)?$|dash(?:/.*)?$|debug-uri(?:/.*)?$|docs(?:/.*)?$|intern(?:/.*)?$|logout(?:/.*)?$|_devtool(?:/.*)?$|.*\\.[^/]+$).*)',
+            '/((?!api(?:/.*)?$|dash(?:/.*)?$|debug-uri(?:/.*)?$|docs(?:/.*)?$|intern(?:/.*)?$|logout(?:/.*)?$|platform/oauth(?:/.*)?$|_devtool(?:/.*)?$|.*\\.[^/]+$).*)',
           destination: '/dash',
         },
       ];

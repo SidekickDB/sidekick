@@ -63,8 +63,13 @@ Commit and push only when asked.
 
 ```sh
 git push -u origin <branch>
-gh pr create -R SidekickDB/sidekick --base main --title "<type(scope): summary>" --body "<what, why, how it was checked>"
+gh pr create -R SidekickDB/sidekick --base main --title "<type(scope): summary>" --body-file <file>
 ```
+
+Write the description (what, why, how it was checked) to a uniquely named
+temporary file with the Write tool and pass it with `--body-file`, also for
+`gh pr edit` and `gh pr comment`. Text inside the command can trip the
+upstream deny rules in `.claude/settings.json` when it quotes them.
 
 The repository is public: nothing confidential in titles, descriptions, commit
 messages or comments. Put the PR link in the card.
