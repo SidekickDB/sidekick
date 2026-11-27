@@ -773,7 +773,7 @@ and take its other changes in the file.
   before the invite is stored. Upstream calls `postmark/send!`, which sends
   nothing without a Postmark token, and gives the transfer invite the sender
   `teams@pm.instantdb.com` and a link to instantdb.com.
-- PR #NNN: a request that matches no route gets the 404 from `not-found` in
+- PR #76: a request that matches no route gets the 404 from `not-found` in
   `server/src/instant/core.clj`. Upstream's `add-security-headers` and
   `wrap-dev-server-info` turned the nil from an unmatched route into a map
   with headers and no status, so `routes` never reached `not-found` and
