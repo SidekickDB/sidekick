@@ -6,6 +6,16 @@ The self-hosting guides are in this repository: [overview](../client/www/app/doc
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
 
+<!-- SidekickDB: backup and restore guide, see BACKUP.md. -->
+
+## Backup and restore
+
+Nothing in the stack backs itself up. [BACKUP.md](BACKUP.md) lists what holds
+state (Postgres, the storage volume, the server's `override.edn` and `.env`),
+and has a backup script with a cron example and the steps to restore it on a
+fresh stack. The on-demand app backups in the dashboard cover one app and are
+stored in the same storage service, so they do not replace it.
+
 ## Variable names
 
 Settings are named `SIDEKICK_*`, for example `SIDEKICK_BACKEND_URL`. Each one
