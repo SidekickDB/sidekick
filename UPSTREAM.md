@@ -522,6 +522,14 @@ The self-hosted stack works without Instant infrastructure.
   `sidekick-self-hosting-check.yml`) runs the script with stand-ins for
   `docker` and `ssh` and fails when `swarm.yml` reads a variable it does not
   pass.
+- PR #84: the default weight limit of each app's datalog query cache in
+  `reactive/store.clj` is `config/query-cache-max-bytes`, a quarter of the
+  maximum heap (500 MB when the heap has no limit), instead of upstream's
+  fixed 500 MB. `INSTANT_QUERY_CACHE_MAX_BYTES` sets it; an invalid value
+  fails in `config/init`. The `:datalog-cache-max-weight` flag still wins.
+  The compose files, `swarm.yml`, `deploy-swarm.sh`, `.env.example` and
+  `README.md` carry the variable; tests in `config_test.clj`. If upstream
+  changes that default, keep the call to `config/query-cache-max-bytes`.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
