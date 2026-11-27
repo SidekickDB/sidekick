@@ -32,8 +32,11 @@ Never commit to `main`.
   number goes into an `UPSTREAM.md` heading. Details: "Maintaining the
   tooling" in `UPSTREAM.md`.
 - Adding a fix to an existing divergence key: do not edit its `title`, and
-  insert the `UPSTREAM.md` bullet at its sorted place in that key's section
-  (by the first file path the bullet names), not at the end. Two pull
+  insert the `UPSTREAM.md` bullet at its sorted place in that key's section,
+  not at the end. The sort key is the first backticked text in the bullet
+  that contains a `/`, so name the changed file from the repository root;
+  the bullet goes after the last bullet with the greatest key not above its
+  own (exact rule: "Maintaining the tooling" in `UPSTREAM.md`). Two pull
   requests whose bullets still land next to each other conflict: merge by
   hand, keep both.
 - New workflow file: name it `sidekick-*.yml`, pin actions to full commit SHAs

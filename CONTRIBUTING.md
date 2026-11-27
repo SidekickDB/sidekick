@@ -45,7 +45,8 @@ changes regularly. To keep those merges cheap:
   and in `scripts/upstream/divergences/<key>.mjs` plus a file
   `scripts/upstream/divergence-prs/<PR number>` (see "Maintaining the tooling" in `UPSTREAM.md`).
   For an existing divergence, leave its title alone and add your bullet in
-  `UPSTREAM.md` at its sorted place, not at the end.
+  `UPSTREAM.md` at its sorted place by the first backticked path with a `/`
+  it names, not at the end (exact rule in "Maintaining the tooling").
 
 [`UPSTREAM.md`](./UPSTREAM.md) explains how the fork relates to upstream.
 
