@@ -1,6 +1,6 @@
 export default {
   title:
-    "Self-hosting defaults: RustFS object store, backups out of the box, no Instant AWS/email defaults, required secrets, JVM memory defaults, Google prefetch only when configured, DoH setting, neutral image tags, healthchecks, loopback-only Postgres and dev compose ports",
+    "Self-hosting defaults and RustFS",
   resolve:
     "Keep the `storage` (RustFS) service, the required STORAGE_* variables as plain ${VAR:?message} " +
     "(never a :? inside a default: Compose 2.38 rejects that; nested :- defaults such as the SIDEKICK_* aliases " +

@@ -31,6 +31,17 @@ test("every file in divergences/ is <key>.mjs with a title and a hint", async ()
   }
 });
 
+// The title is a label only; the fixes are listed in UPSTREAM.md. A title that
+// lists them would be edited by every PR for its key, and two open PRs would
+// conflict on that one line.
+test("every divergence title is a short label, not a list", async () => {
+  for (const f of DIVERGENCE_FILES) {
+    const { default: d } = await import(`./divergences/${f}`);
+    assert.ok(d.title.length <= 80, `${f}: title longer than 80 characters`);
+    assert.doesNotMatch(d.title, /[,;]/, `${f}: title lists items`);
+  }
+});
+
 test("the loader skips dotfiles and rejects other names", () => {
   assert.deepEqual(
     divergenceFiles(["selfhost.mjs", ".DS_Store", ".brand.mjs.swp", "brand.mjs"]),

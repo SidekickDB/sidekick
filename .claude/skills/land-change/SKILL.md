@@ -31,6 +31,11 @@ Never commit to `main`.
   number; never guess the next number. No PR
   number goes into an `UPSTREAM.md` heading. Details: "Maintaining the
   tooling" in `UPSTREAM.md`.
+- Adding a fix to an existing divergence key: do not edit its `title`, and
+  insert the `UPSTREAM.md` bullet at its sorted place in that key's section
+  (by the first file path the bullet names), not at the end. Two pull
+  requests whose bullets still land next to each other conflict: merge by
+  hand, keep both.
 - New workflow file: name it `sidekick-*.yml`, pin actions to full commit SHAs
   (verify each SHA exists; dereference annotated tags), and add it to
   `KNOWN_WORKFLOWS` in `scripts/upstream/check.mjs`.

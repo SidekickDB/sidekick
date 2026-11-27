@@ -1209,11 +1209,26 @@ instructions.
   files and different PR files, so the tooling data merges without a conflict,
   in a local `git merge` and on GitHub alike. The prose in this file still
   conflicts when two such PRs add text in the same place (two new sections
-  before "Upstream sync tooling", or text in the same section): resolve it by
-  hand and keep both. `divergences.mjs` refuses to load, and
+  before "Upstream sync tooling", or bullets at the same place in one section,
+  see below): resolve it by hand and keep both. `divergences.mjs` refuses to
+  load, and
   `divergences.test.mjs` fails, on a PR file whose name is not a number, whose
   content is not one or two keys (a conflict marker, a stray character), or
   that names an unknown key, a key twice or a split that `SPLIT` does not know.
+- A divergence `title` is a short label (at most 80 characters, no comma or
+  semicolon; `divergences.test.mjs` checks it). The fixes are listed only in
+  this file. A PR for an existing key leaves the title alone.
+- Where a new bullet goes in a divergence section: at its sorted place, not at
+  the end. A bullet's sort key is the first file path it names in backticks
+  (its first word if it names none), compared character by character
+  (`LC_ALL=C sort`). Put the new bullet directly after the bullet whose key is
+  the closest below its own, or first if no key is below it. Older sections
+  are not in that order yet, so compare against every bullet in the section,
+  not only the neighbours. Why: two PRs that add a bullet at the same place
+  conflict whatever the text, and PR numbers only grow, so ordering by them
+  would put every new bullet last; file paths spread new bullets through the
+  list. Two PRs whose bullets still land next to each other conflict (rarer,
+  not gone): resolve by hand and keep both.
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
