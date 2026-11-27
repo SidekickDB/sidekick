@@ -665,6 +665,10 @@ Changes outside `config.clj`, each one small on purpose:
 - The three OAuth cookie sites (`runtime/routes.clj`, `oauth_apps/routes.clj`,
   `dash/routes.clj`) use `secure-cookies?`.
 - `db/hint_testing.clj`: queueing is a no-op until `start` runs.
+- `core.clj` `stop`: the WebSocket drain comes from
+  `config/shutdown-drain-opts` when it returns one (self-hosted, 20 s, or
+  `INSTANT_SHUTDOWN_DRAIN_SECONDS`), else upstream's `dev?` choice; covered by
+  `shutdown_drain_test.clj`.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
@@ -800,6 +804,15 @@ and take its other changes in the file.
   the security headers too. Tests `unmatched-routes-are-not-found` in
   `server/test/instant/core_test.clj` and `sunset-routes-are-gone` in
   `server/test/instant/dash/removed_routes_test.clj`.
+- PR #90: the essay live preview route,
+  `client/www/pages/api/intern/posts/watch/[slug].ts`, answers 404 unless
+  `NODE_ENV` is `development`. It and `getPostBySlug` in
+  `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
+  (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
+- PR #92: the self-hosted catch-all redirect in `client/www/next.config.js`
+  also leaves `/platform/oauth` alone. The server sends platform OAuth users
+  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
+  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
 - PR #85: `ensure-attrs-on-system-catalog-app` in
   `server/src/instant/system_catalog_migration.clj` reads the system catalog
   attrs and inserts the missing ones in one transaction on the write pool,
