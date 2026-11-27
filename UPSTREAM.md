@@ -800,6 +800,11 @@ and take its other changes in the file.
   the security headers too. Tests `unmatched-routes-are-not-found` in
   `server/test/instant/core_test.clj` and `sunset-routes-are-gone` in
   `server/test/instant/dash/removed_routes_test.clj`.
+- The essay live preview route,
+  `client/www/pages/api/intern/posts/watch/[slug].ts`, answers 404 unless
+  `NODE_ENV` is `development`. It and `getPostBySlug` in
+  `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
+  (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
