@@ -336,3 +336,71 @@ test("session versions keys are kept for several value shapes", () => {
     assert.equal(norm(f, t), t);
   }
 });
+
+test("docs links get SidekickDB's host only in the listed paths", () => {
+  const cases = [
+    [
+      "examples/vite-react/src/instant.perms.ts",
+      "// Docs: https://www.instantdb.com/docs/permissions\n",
+      "// Docs: https://sidekickdb.co/docs/permissions\n",
+    ],
+    [
+      "client/www/lib/intern/instant-rules.md",
+      "- [Auth](https://www.instantdb.com/docs/auth/magic-codes.md): x\n",
+      "- [Auth](https://sidekickdb.co/docs/auth/magic-codes.md): x\n",
+    ],
+    [
+      "client/packages/cli/src/a.ts",
+      "see http://instantdb.com/docs/cli#push and https://instantdb.com/docs\n",
+      "see https://sidekickdb.co/docs/cli#push and https://sidekickdb.co/docs\n",
+    ],
+    [
+      "examples/bun-react/src/App.tsx",
+      '<a href="https://www.instantdb.com/docs">\n',
+      '<a href="https://sidekickdb.co/docs">\n',
+    ],
+  ];
+  for (const [f, t, want] of cases) {
+    assert.equal(norm(f, t), want, f);
+    assert.deepEqual(scanLeftovers(f, want), [], f);
+  }
+  // Outside the listed paths, and paths that only start with "/docs", stay.
+  for (const [f, t] of [
+    ["client/www/app/docs/a/page.md", "https://www.instantdb.com/docs/x\n"],
+    ["client/packages/mcp/README.md", "https://www.instantdb.com/docs/x\n"],
+    ["examples/todos/src/a.ts", "https://www.instantdb.com/docs/x\n"],
+    ["client/packages/platform/src/other.ts", "https://instantdb.com/docs\n"],
+    ["client/packages/cli/src/a.ts", "https://www.instantdb.com/docsearch\n"],
+  ]) {
+    assert.equal(norm(f, t), t, f);
+  }
+});
+
+test("other instantdb.com links in the docs-host paths are leftovers", () => {
+  const f = "examples/expo/README.md";
+  for (const t of [
+    "Get started at https://instantdb.com\n",
+    "Open https://www.instantdb.com/dash to see your app\n",
+    "Read https://www.instantdb.com/essays/next_firebase\n",
+    "Docs: instantdb.com/docs/permissions\n",
+  ]) {
+    assert.equal(norm(f, t), t);
+    assert.deepEqual(
+      scanLeftovers(f, t).map((l) => l.id),
+      ["instant-site-link"],
+      t,
+    );
+  }
+  // Other hosts and addresses on the same domain are not links to the site.
+  for (const t of [
+    "fetch('https://api.instantdb.com/examples/mma')\n",
+    "mail founders@instantdb.com\n",
+  ]) {
+    assert.deepEqual(scanLeftovers(f, t), [], t);
+  }
+  // Outside the listed paths nothing is reported.
+  assert.deepEqual(
+    scanLeftovers("examples/todos/README.md", "https://instantdb.com\n"),
+    [],
+  );
+});

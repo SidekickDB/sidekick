@@ -383,7 +383,7 @@ export function generateSchemaTypescriptFile(
     return indentLines(`${k}: ${v}`, 2);
   };
 
-  const code = `// Docs: https://www.instantdb.com/docs/modeling-data
+  const code = `// Docs: https://sidekickdb.co/docs/modeling-data
 
 import { i } from "${instantModuleName ?? '@sidekickdb/core'}";
 

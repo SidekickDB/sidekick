@@ -430,7 +430,7 @@ test('generates schema', () => {
       }),
       '@sidekickdb/core',
     ),
-  ).toEqual(`// Docs: https://www.instantdb.com/docs/modeling-data
+  ).toEqual(`// Docs: https://sidekickdb.co/docs/modeling-data
 
 import { i } from "@sidekickdb/core";
 

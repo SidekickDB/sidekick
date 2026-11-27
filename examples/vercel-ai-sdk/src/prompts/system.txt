@@ -8,7 +8,7 @@ Here are are some important rules on how to use InstantDB.
 <rules>
 # About InstantDB
 
-Instant is the Modern Firebase. With Instant you can easily build realtime and collaborative apps. You can get started for free at https://instantdb.com
+Instant is the Modern Firebase. With Instant you can easily build realtime and collaborative apps.
 
 # How to use Instant in projects
 

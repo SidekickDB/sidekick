@@ -1,6 +1,6 @@
 # Welcome to your SidekickDB Vite + React app 👋
 
-[SidekickDB Docs](https://www.instantdb.com/docs)
+[SidekickDB Docs](https://sidekickdb.co/docs)
 
 This is a Vite + React project scaffolded with create-sidekick-app.
 

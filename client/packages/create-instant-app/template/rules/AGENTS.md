@@ -407,28 +407,28 @@ The bullets below are links to the SidekickDB documentation. They provide detail
 
 Fetch the URL for a topic to learn more about it.
 
-- [Common mistakes](https://www.instantdb.com/docs/common-mistakes.md): Common mistakes when working with SidekickDB
-- [Initializing SidekickDB](https://www.instantdb.com/docs/init.md): How to integrate SidekickDB with your app.
-- [Modeling data](https://www.instantdb.com/docs/modeling-data.md): How to model data with SidekickDB's schema.
-- [Writing data](https://www.instantdb.com/docs/instaml.md): How to write data with SidekickDB using InstaML.
-- [Reading data](https://www.instantdb.com/docs/instaql.md): How to read data with SidekickDB using InstaQL.
-- [SidekickDB on the Backend](https://www.instantdb.com/docs/backend.md): How to use SidekickDB on the server with the Admin SDK.
-- [Patterns](https://www.instantdb.com/docs/patterns.md): Common patterns for working with SidekickDB.
-- [Auth](https://www.instantdb.com/docs/auth/magic-codes.md): How to add magic code auth to your SidekickDB app.
-- [Guest Auth](https://www.instantdb.com/docs/auth/guest-auth.md): How to add guest auth to your SidekickDB app.
-- [Other Auth](https://www.instantdb.com/docs/auth.md): Additional auth methods supported by SidekickDB.
-- [Managing users](https://www.instantdb.com/docs/users.md): How to manage users in your SidekickDB app.
-- [Presence, Cursors, and Activity](https://www.instantdb.com/docs/presence-and-topics.md): How to add ephemeral features like presence and cursors to your SidekickDB app.
-- [SidekickDB CLI](https://www.instantdb.com/docs/cli.md): How to use the SidekickDB CLI to manage schema.
-- [Storage](https://www.instantdb.com/docs/storage.md): How to upload and serve files with SidekickDB.
-- [Streams](https://www.instantdb.com/docs/streams.md): How to use streams with SidekickDB.
-- [Stripe Payments](https://www.instantdb.com/docs/stripe-payments.md): How to integrate Stripe payments with SidekickDB.
-- [React Native](https://www.instantdb.com/docs/start-rn.md): How to use SidekickDB in React Native apps.
-- [Vanilla JS](https://www.instantdb.com/docs/start-vanilla.md): How to use SidekickDB in vanilla JS apps.
-- [SolidJS](https://www.instantdb.com/docs/start-solidjs.md): How to use SidekickDB in SolidJS apps.
-- [Svelte](https://www.instantdb.com/docs/start-svelte.md): How to use SidekickDB in Svelte apps.
-- [Vue](https://www.instantdb.com/docs/start-vue.md): How to use SidekickDB in Vue apps.
-- [TanStack](https://www.instantdb.com/docs/start-tanstack.md): How to use SidekickDB in TanStack apps.
+- [Common mistakes](https://sidekickdb.co/docs/common-mistakes.md): Common mistakes when working with SidekickDB
+- [Initializing SidekickDB](https://sidekickdb.co/docs/init.md): How to integrate SidekickDB with your app.
+- [Modeling data](https://sidekickdb.co/docs/modeling-data.md): How to model data with SidekickDB's schema.
+- [Writing data](https://sidekickdb.co/docs/instaml.md): How to write data with SidekickDB using InstaML.
+- [Reading data](https://sidekickdb.co/docs/instaql.md): How to read data with SidekickDB using InstaQL.
+- [SidekickDB on the Backend](https://sidekickdb.co/docs/backend.md): How to use SidekickDB on the server with the Admin SDK.
+- [Patterns](https://sidekickdb.co/docs/patterns.md): Common patterns for working with SidekickDB.
+- [Auth](https://sidekickdb.co/docs/auth/magic-codes.md): How to add magic code auth to your SidekickDB app.
+- [Guest Auth](https://sidekickdb.co/docs/auth/guest-auth.md): How to add guest auth to your SidekickDB app.
+- [Other Auth](https://sidekickdb.co/docs/auth.md): Additional auth methods supported by SidekickDB.
+- [Managing users](https://sidekickdb.co/docs/users.md): How to manage users in your SidekickDB app.
+- [Presence, Cursors, and Activity](https://sidekickdb.co/docs/presence-and-topics.md): How to add ephemeral features like presence and cursors to your SidekickDB app.
+- [SidekickDB CLI](https://sidekickdb.co/docs/cli.md): How to use the SidekickDB CLI to manage schema.
+- [Storage](https://sidekickdb.co/docs/storage.md): How to upload and serve files with SidekickDB.
+- [Streams](https://sidekickdb.co/docs/streams.md): How to use streams with SidekickDB.
+- [Stripe Payments](https://sidekickdb.co/docs/stripe-payments.md): How to integrate Stripe payments with SidekickDB.
+- [React Native](https://sidekickdb.co/docs/start-rn.md): How to use SidekickDB in React Native apps.
+- [Vanilla JS](https://sidekickdb.co/docs/start-vanilla.md): How to use SidekickDB in vanilla JS apps.
+- [SolidJS](https://sidekickdb.co/docs/start-solidjs.md): How to use SidekickDB in SolidJS apps.
+- [Svelte](https://sidekickdb.co/docs/start-svelte.md): How to use SidekickDB in Svelte apps.
+- [Vue](https://sidekickdb.co/docs/start-vue.md): How to use SidekickDB in Vue apps.
+- [TanStack](https://sidekickdb.co/docs/start-tanstack.md): How to use SidekickDB in TanStack apps.
 
 # Final Note
 

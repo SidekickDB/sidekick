@@ -1,4 +1,4 @@
-// Docs: https://www.instantdb.com/docs/modeling-data
+// Docs: https://sidekickdb.co/docs/modeling-data
 
 import { i } from "@sidekickdb/vue";
 

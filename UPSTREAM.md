@@ -941,7 +941,8 @@ project as SidekickDB:
   says what it is ("shared dev credentials", "managed by the server", "Server
   verified"). The welcome comment `platform/src/perms.ts` writes into a new
   permissions file is changed too. Identifiers, `X-Instant-*` headers, the
-  `instant-cli` alias, generated file names and docs links are upstream's.
+  `instant-cli` alias and generated file names are upstream's (docs links:
+  see below).
 - PR #62: what `create-sidekick-app` writes into a new project. The 11
   starters it offers (under `examples/`) say "SidekickDB" in READMEs, page
   titles, UI text and comments, and six of them no longer load Instant's logo
@@ -950,6 +951,20 @@ project as SidekickDB:
   rules (`client/www/lib/intern/instant-rules.md` and its identical copy
   `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
   mention the Python SDK.
+- Docs links in what the CLI and `create-sidekick-app` print and write, the
+  headers `platform/src/perms.ts` and `schema.ts` generate (and their tests),
+  the agent rules and the 12 starters under `examples/` point at
+  `https://sidekickdb.co/docs/...` with upstream's path, anchor and `.md`
+  suffix. Other instantdb.com links there are removed: "get started for free
+  at https://instantdb.com" in `examples/vercel-ai-sdk/src/prompts/system.txt`.
+  The `docs-host` rule in `scripts/upstream/rename.mjs` (paths in
+  `DOCS_HOST_PATHS`) rewrites such links, so `sync.mjs` applies it to every
+  side of a conflict and `check.mjs` to upstream's new lines; any other
+  instantdb.com link in those paths is an `instant-site-link` leftover.
+  `api.instantdb.com` is a different host and is not touched here. To
+  resolve such a leftover, remove the link or name the user's SidekickDB
+  dashboard in words; never invent a URL. If upstream adds a starter that
+  `create-sidekick-app` offers, add it to `DOCS_HOST_PATHS`.
 
 **Resolving:** keep SidekickDB's text. When upstream changes what a README
 says (a new API, a new SDK, a changed command), write that change into

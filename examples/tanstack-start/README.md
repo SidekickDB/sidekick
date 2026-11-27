@@ -1,7 +1,7 @@
 # Welcome to your SidekickDB Tanstack Start app 👋
 
 [TanStack Start Docs](https://tanstack.com/start/latest/docs/framework/react/overview)
-[SidekickDB Docs](https://www.instantdb.com/docs)
+[SidekickDB Docs](https://sidekickdb.co/docs)
 
 This is a Tanstack Start project scaffolded with create-sidekick-app.
 
