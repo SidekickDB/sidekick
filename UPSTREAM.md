@@ -758,6 +758,11 @@ and take its other changes in the file.
   `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
   `child-tracked-futures-are-canceled` in
   `server/test/instant/util/async_test.clj` (PR #69).
+- PR #93: `.github/workflows/clojure.yml` turns off Postgres JIT for the
+  test database. `on-delete-cascade-perf` in
+  `server/test/instant/db/transaction_test.clj` timed out whenever the cost
+  estimate of its 1,365-CTE entity query crossed the JIT thresholds. Keep
+  the setting if upstream rewrites the "Prepare database" step.
 - PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
   the receive timeout no longer removes the session's queries.
   `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
