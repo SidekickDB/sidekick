@@ -505,6 +505,16 @@ The self-hosted stack works without Instant infrastructure.
   `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
   `ghcr.io/instantdb/*`, and the Postgres service of
   `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
+- `deploy-swarm.sh` runs under bash with `set -euo pipefail`, passes every
+  variable `swarm.yml` reads (one list, `STACK_VARS`; upstream passed a few and
+  dropped email, S3, Postgres user and database and the rest), and renders
+  before it connects. Before deploying it checks over ssh that the external
+  secret `server_config` exists and otherwise stops with the commands to
+  create it once; it never creates or replaces it. `README.md` documents the
+  secret. `scripts/self-hosting/deploy-swarm.test.mjs` (run by
+  `sidekick-self-hosting-check.yml`) runs the script with stand-ins for
+  `docker` and `ssh` and fails when `swarm.yml` reads a variable it does not
+  pass.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
@@ -519,6 +529,8 @@ the same tag from SidekickDB first). Run
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
 Port upstream's new settings into that form.
+When upstream adds a variable to `swarm.yml`, add it to `STACK_VARS` in
+`deploy-swarm.sh` (the test names it), and keep the `server_config` check.
 Keep the required `POSTGRES_PASSWORD` and the memory and `JAVA_OPTS` defaults
 (PR #13); if upstream changes its JVM flags in `server/docker-compose.yml`,
 consider the same change in the default `JAVA_OPTS`. In `jwt.clj` and
