@@ -240,8 +240,9 @@
    :team "INSTANT_TEAM_EMAIL_SENDER_EMAIL"})
 
 (defn dashboard-email-sender []
+  ;; SidekickDB: the default sender name is SidekickDB (upstream: Instant).
   {:name (or (non-blank-env "INSTANT_DASHBOARD_EMAIL_SENDER_NAME")
-             "Instant")
+             "SidekickDB")
    :email (non-blank-env (:dashboard email-sender-env-vars))})
 
 (defn app-email-sender []
@@ -249,8 +250,9 @@
    :email (non-blank-env (:app email-sender-env-vars))})
 
 (defn team-email-sender []
+  ;; SidekickDB: the default sender name is SidekickDB (upstream: Instant).
   {:name (or (non-blank-env "INSTANT_TEAM_EMAIL_SENDER_NAME")
-             "Instant")
+             "SidekickDB")
    :email (non-blank-env (:team email-sender-env-vars))})
 
 (defn email-provider
