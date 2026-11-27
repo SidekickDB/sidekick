@@ -30,6 +30,7 @@ on:
       - 'server/src/instant/util/hazelcast.clj'
       - 'server/src/instant/grpc*.clj'
       - 'server/src/instant/model/app_stream.clj'
+      - 'server/src/instant/system_catalog_migration.clj'
       - 'scripts/smoke/two-node/**'
       - 'scripts/bench/self-hosted/client.mjs'
       - '.github/workflows/sidekick-two-node-smoke.yml'
