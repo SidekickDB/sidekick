@@ -26,9 +26,9 @@ Never commit to `main`.
   `UPSTREAM.md` under "Intentional divergences" (with how to resolve it at the
   next sync) and `scripts/upstream/divergences/<key>.mjs` (title and hint; a
   pull request for an existing divergence skips this), with the pull request
-  number as one line `<number> <key>` at the end of
-  `scripts/upstream/divergence-prs.txt`. Write that line only after
-  `gh pr create` has returned the number; never guess the next number. No PR
+  number as a file of its own, `scripts/upstream/divergence-prs/<number>`,
+  holding the key. Write that file only after `gh pr create` has returned the
+  number; never guess the next number. No PR
   number goes into an `UPSTREAM.md` heading. Details: "Maintaining the
   tooling" in `UPSTREAM.md`.
 - New workflow file: name it `sidekick-*.yml`, pin actions to full commit SHAs

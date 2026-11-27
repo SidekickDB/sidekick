@@ -5,12 +5,14 @@
 // hints. Keep them in step with the "Intentional divergences" section of
 // UPSTREAM.md.
 //
-// Each divergence is a file of its own, ./divergences/<key>.mjs, and the PR
-// numbers are lines in divergence-prs.txt (merged with merge=union), so two
-// PRs that each record a divergence touch different lines. UPSTREAM.md
-// "Maintaining the tooling" says how to add one.
+// Each divergence is a file of its own, ./divergences/<key>.mjs, and so is
+// each PR that belongs to one, ./divergence-prs/<PR number>, which holds the
+// key. Two PRs that each record a divergence add different files, so neither
+// git nor GitHub sees a conflict. UPSTREAM.md "Maintaining the tooling" says
+// how to add one.
 
 import fs from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { git, lines } from "./git.mjs";
 
@@ -37,30 +39,44 @@ for (const f of DIVERGENCE_FILES) {
 }
 
 // Pull requests that carry two concerns: which of their keys a path belongs
-// to. Their line in divergence-prs.txt lists both keys.
+// to. Their file in divergence-prs/ lists both keys.
 const SPLIT = {
   1: (file) => (file.startsWith(".github/") ? "ci-lockdown" : "own-fixes"),
   14: (file) => (file.startsWith("self-hosting/") ? "selfhost" : "dashboard"),
 };
 
 /**
- * Read divergence-prs.txt.
+ * Read the files of divergence-prs/, in PR order. Each is named by a PR
+ * number and holds the PR's key (both keys, space-separated, for a PR in
+ * SPLIT). Dotfiles are ignored.
+ * @param {[string, string][]} files  [file name, content]
  * @returns {{entries: {pr:number, keys:string[]}[], problems: string[]}}
  */
-export function parseDivergencePrs(text) {
+export function parseDivergencePrs(files) {
   const entries = [];
   const problems = [];
   const seen = new Set();
-  text.split("\n").forEach((raw, i) => {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) return;
-    const where = `divergence-prs.txt:${i + 1}`;
-    const m = line.match(/^(\d+)((?: +[a-z0-9-]+)+)$/);
-    if (!m) return problems.push(`${where}: not "<number> <key>": ${raw}`);
-    const pr = Number(m[1]);
-    const keys = m[2].trim().split(/ +/);
+  for (const [name, text] of files) {
+    if (name.startsWith(".")) continue;
+    const where = `divergence-prs/${name}`;
+    if (text === null) {
+      problems.push(`${where}: a directory, not a file`);
+      continue;
+    }
+    if (!/^\d+$/.test(name)) {
+      problems.push(`${where}: not a PR number`);
+      continue;
+    }
+    if (!/^[a-z0-9-]+(?: [a-z0-9-]+)*$/.test(text.trim())) {
+      problems.push(`${where}: not "<key>": ${JSON.stringify(text)}`);
+      continue;
+    }
+    const pr = Number(name);
+    const keys = text.trim().split(" ");
     if (seen.has(pr)) problems.push(`${where}: PR ${pr} listed twice`);
     seen.add(pr);
+    if (new Set(keys).size !== keys.length)
+      problems.push(`${where}: a key listed twice`);
     for (const k of keys)
       if (!DIVERGENCES[k]) problems.push(`${where}: unknown divergence key ${k}`);
     if ((keys.length > 1) !== Boolean(SPLIT[pr]))
@@ -68,18 +84,71 @@ export function parseDivergencePrs(text) {
         `${where}: PR ${pr} needs ${keys.length > 1 ? "an entry in SPLIT" : "both keys, as it is in SPLIT"}`,
       );
     entries.push({ pr, keys });
-  });
+  }
+  entries.sort((a, b) => a.pr - b.pr);
   return { entries, problems };
 }
 
-export const DIVERGENCE_PRS_FILE = fileURLToPath(
-  new URL("./divergence-prs.txt", import.meta.url),
+export const DIVERGENCE_PRS_DIR = fileURLToPath(
+  new URL("./divergence-prs/", import.meta.url),
 );
 
-const { entries, problems } = parseDivergencePrs(
-  fs.readFileSync(DIVERGENCE_PRS_FILE, "utf8"),
-);
+/** [file name, content] for each entry; content is null for a directory. */
+export function readDivergencePrs(dir = DIVERGENCE_PRS_DIR) {
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .map((e) => [
+      e.name,
+      e.isDirectory() ? null : fs.readFileSync(path.join(dir, e.name), "utf8"),
+    ]);
+}
+
+// divergence-prs/ replaced a single list beside it, the same name plus .txt.
+// A branch made before that still adds its line there; when it merges main,
+// git keeps the branch's copy (main deleted it) and the loader says how to
+// move the line.
+const OLD_LIST_NAME = `${path.basename(DIVERGENCE_PRS_DIR)}.txt`;
+const OLD_LIST = `scripts/upstream/${OLD_LIST_NAME}`;
+
+/**
+ * The commands that give each line of the old list a file in divergence-prs/
+ * (lines that already have one are skipped) and delete the old list.
+ * @param {string} text  the old list
+ * @param {{pr:number, keys:string[]}[]} entries  what divergence-prs/ holds
+ */
+export function oldListMigration(text, entries) {
+  const have = new Map(entries.map((e) => [e.pr, e.keys.join(" ")]));
+  const commands = [];
+  for (const raw of text.split("\n")) {
+    const m = raw.trim().match(/^(\d+)((?: +[a-z0-9-]+)+)$/);
+    if (!m) continue;
+    const pr = Number(m[1]);
+    const keys = m[2].trim().split(/ +/).join(" ");
+    if (!have.has(pr))
+      commands.push(
+        `echo '${keys}' > scripts/upstream/divergence-prs/${pr}`,
+        `git add scripts/upstream/divergence-prs/${pr}`,
+      );
+    else if (have.get(pr) !== keys)
+      commands.push(
+        `# PR ${pr}: the old list says "${keys}", divergence-prs/${pr} says "${have.get(pr)}": keep the right one`,
+      );
+  }
+  commands.push(`git rm -f ${OLD_LIST}`);
+  return [
+    `${OLD_LIST} is replaced by one file per PR in scripts/upstream/divergence-prs/`,
+    `(UPSTREAM.md, "Maintaining the tooling"). Move its lines over and delete it;`,
+    "from the repository root:",
+    "",
+    ...commands.map((c) => `  ${c}`),
+  ].join("\n");
+}
+
+const { entries, problems } = parseDivergencePrs(readDivergencePrs());
 if (problems.length) throw new Error(problems.join("\n"));
+const oldList = path.join(DIVERGENCE_PRS_DIR, "..", OLD_LIST_NAME);
+if (fs.existsSync(oldList))
+  throw new Error(oldListMigration(fs.readFileSync(oldList, "utf8"), entries));
 
 // PR number -> divergence key, or a function of the path for a split PR.
 export const PR_CATEGORY = {};
