@@ -268,6 +268,19 @@ services. SidekickDB releases only through its own two release workflows (PR
   fails unless the `clj-check` matrix passed or was skipped. The ruleset on
   `main` requires it; the matrix itself reports under a different name per
   shard and cannot be required.
+- PR #71: `js.yml` Actions cache, kept under the repository's 10 GiB limit: the
+  `build` job restores the turbo cache and saves it (**Save turbo build
+  setup**) on `main` only, so pull requests write none; it prunes and saves
+  the pnpm store only when the restore missed (step `id: pnpm-cache`). A new
+  job `prune-turbo-cache` runs after `build` on `main` and deletes the
+  `Linux-turbo-*` entries on `refs/heads/main` created before this commit's.
+  It is the one enabled job in `js.yml` with a write right
+  (`actions: write`); `scripts/upstream/check.mjs` (`JOB_RIGHTS`) allows it
+  only while the job is guarded to `main` and has nothing but a fixed set
+  of job and step keys, which leaves no way to use an action, a container
+  or another job's steps (YAML anchors and aliases are refused). The
+  `check_formatting` job's turbo step is removed (it never creates
+  `client/.turbo`). The disabled jobs keep upstream's turbo steps.
 
 Every edit is marked `# SidekickDB:` or `// SidekickDB:`.
 
@@ -278,7 +291,9 @@ secrets or write permissions gets the same treatment with a `# SidekickDB:`
 comment. A new publish-only workflow gets its triggers commented out. Never
 re-enable **Fetch timings**. Keep the `on:` and `concurrency:` blocks of
 `clojure.yml` and `js.yml` as they are here; if upstream adds a trigger, add it
-only if it cannot publish or deploy.
+only if it cannot publish or deploy. If upstream changes the `build` job's
+turbo or pnpm cache steps, keep the restore/save split, the `main`-only save
+and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
 
 ### JS tests offline in CI behind a network guard
 
