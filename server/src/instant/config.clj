@@ -652,9 +652,43 @@
          :webhook 1
          :webhook-config 2)))
 
+;; SidekickDB: the default weight limit of each app's datalog query cache
+;; (reactive/store.clj). Upstream fixes it at 500 MB, most of the heap the
+;; self-hosted stack gives the server. INSTANT_QUERY_CACHE_MAX_BYTES sets it;
+;; unset, it is a quarter of the maximum heap.
+(defn parse-query-cache-max-bytes
+  "The limit in bytes. `value` is a positive number of bytes, optionally with a
+   k, m or g suffix (powers of 1024); nil or blank means a quarter of
+   `max-heap`, or 500 MB when the heap has no limit."
+  [value max-heap]
+  (if-let [value (some-> value string/trim not-empty)]
+    (let [[_ n unit] (re-matches #"(?i)(\d{1,18})([kmg]?)" value)
+          bytes (some-> n
+                        parse-long
+                        (*' (case (string/lower-case unit)
+                              "" 1
+                              "k" 1024
+                              "m" (* 1024 1024)
+                              "g" (* 1024 1024 1024))))]
+      (when-not (and bytes (pos? bytes) (<= bytes Long/MAX_VALUE))
+        (throw (ex-info (str (env/describe "INSTANT_QUERY_CACHE_MAX_BYTES")
+                             " is " (pr-str value) ". Use a positive number of"
+                             " bytes, optionally with a k, m or g suffix (512m).")
+                        {:value value})))
+      (long bytes))
+    (if (= Long/MAX_VALUE max-heap)
+      (* 1024 1024 500)
+      (quot max-heap 4))))
+
+(defn query-cache-max-bytes []
+  (parse-query-cache-max-bytes (env/getenv "INSTANT_QUERY_CACHE_MAX_BYTES")
+                               (Runtime/.maxMemory (Runtime/getRuntime))))
+
 (defn init []
   (when-let [errors (seq (runtime-mode-errors))]
     (throw (ex-info (string/join " " errors) {:runtime-mode (runtime-mode-value)})))
+  ;; SidekickDB: fail at startup on an invalid query cache size
+  (query-cache-max-bytes)
   ;; instantiate the config-map so we can fail early if it's not
   ;; valid
   (let [config @config-map]

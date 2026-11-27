@@ -145,3 +145,36 @@
     (is (thrown-with-msg? clojure.lang.ExceptionInfo
                           #"INSTANT_DNS_OVER_HTTPS_URLS"
                           (config/parse-dns-over-https-urls " , , ")))))
+
+(deftest parse-query-cache-max-bytes-test
+  (let [heap (* 1200 1024 1024)]
+    (testing "unset or blank is a quarter of the heap"
+      (is (= (* 300 1024 1024) (config/parse-query-cache-max-bytes nil heap)))
+      (is (= (* 300 1024 1024) (config/parse-query-cache-max-bytes " " heap)))
+      (is (= (* 1024 1024 1024)
+             (config/parse-query-cache-max-bytes nil (* 4 1024 1024 1024)))))
+    (testing "a heap with no limit keeps 500 MB"
+      (is (= (* 500 1024 1024)
+             (config/parse-query-cache-max-bytes nil Long/MAX_VALUE))))
+    (testing "bytes, or a k, m or g suffix"
+      (is (= 1000 (config/parse-query-cache-max-bytes "1000" heap)))
+      (is (= (* 64 1024) (config/parse-query-cache-max-bytes "64k" heap)))
+      (is (= (* 512 1024 1024) (config/parse-query-cache-max-bytes " 512M " heap)))
+      (is (= (* 2 1024 1024 1024) (config/parse-query-cache-max-bytes "2g" heap))))
+    (testing "anything else is rejected"
+      (doseq [v ["0" "0m" "-1" "1.5g" "512mb" "lots" "99999999999999g"]]
+        (is (thrown-with-msg? clojure.lang.ExceptionInfo
+                              #"SIDEKICK_QUERY_CACHE_MAX_BYTES"
+                              (config/parse-query-cache-max-bytes v heap))
+            v)))))
+
+(deftest query-cache-max-bytes-test
+  (testing "the SIDEKICK_ name wins"
+    (with-redefs [env/getenv (partial env/lookup
+                                      {"SIDEKICK_QUERY_CACHE_MAX_BYTES" "64m"
+                                       "INSTANT_QUERY_CACHE_MAX_BYTES" "1g"})]
+      (is (= (* 64 1024 1024) (config/query-cache-max-bytes)))))
+  (testing "unset, a quarter of this JVM's heap"
+    (with-redefs [env/getenv (constantly nil)]
+      (is (= (quot (Runtime/.maxMemory (Runtime/getRuntime)) 4)
+             (config/query-cache-max-bytes))))))
