@@ -963,6 +963,14 @@ project as SidekickDB:
   rules (`client/www/lib/intern/instant-rules.md` and its identical copy
   `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
   mention the Python SDK.
+- Upstream's community invite links: the seven offered starters whose README
+  invited feedback on upstream's Discord now point at this repository's issue
+  tracker, and `client/packages/components/src/config.ts` no longer exports
+  `discordInviteUrl`, `discordOAuthAppsFeedbackInviteUrl` and
+  `bugsAndQuestionsInviteUrl` (nothing imported them from the package; the
+  dashboard keeps its own copies in `client/www/lib/config.ts`).
+  The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
+  asks for an issue here instead of a message on upstream's Discord.
 - Docs links in what the CLI and `create-sidekick-app` print and write, the
   headers `platform/src/perms.ts` and `schema.ts` generate (and their tests),
   the agent rules and the 12 starters under `examples/` point at
@@ -985,7 +993,10 @@ and take upstream's other changes. For printed text keep SidekickDB's wording,
 give a string upstream adds the same treatment, and update the tests that
 assert it. In the starters and the rules file keep SidekickDB's name and add no
 image from instantdb.com; copy the rules file to its template copy after
-every edit.
+every edit. If upstream edits a starter's "Got any feedback or questions?"
+sentence, keep SidekickDB's line pointing at the issue tracker; if upstream
+changes the three invite constants in `components/src/config.ts`, drop them
+again.
 
 SDK source and server error links: in `client/packages/*/src` of admin, core,
 react, react-common, react-native, solidjs, svelte and vue, every docs link
