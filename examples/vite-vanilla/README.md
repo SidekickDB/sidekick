@@ -14,4 +14,4 @@ To pull schema changes:
 `npx @sidekickdb/cli pull`
 
 
-Got any feedback or questions? Join our [Discord](https://discord.gg/hgVf9R6SBm)
+Got any feedback or questions? Open an issue on [GitHub](https://github.com/SidekickDB/sidekick/issues)
