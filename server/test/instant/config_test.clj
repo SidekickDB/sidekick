@@ -52,7 +52,7 @@
             (is (= "us-east-1" (config/s3-region)))))))
 
     (testing "a set value wins over the config file"
-      (with-redefs [env/getenv (partial env/lookup {"S3_ENDPOINT" "http://storage:9000"
+      (with-redefs [env/getenv (partial env/lookup {"S3_ENDPOINT" " http://storage:9000 "
                                                     "S3_PUBLIC_ENDPOINT" "http://localhost:9000"
                                                     "AWS_REGION" "us-west-2"})
                     config/config-map (delay file-config)]

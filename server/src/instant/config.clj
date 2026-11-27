@@ -196,17 +196,20 @@
 (defn s3-storage-secret-key []
   (some-> @config-map :s3-storage-secret-key crypt-util/secret-value))
 
+;; SidekickDB: blank counts as unset (non-blank-env). The compose files pass
+;; these through as empty strings, and an empty S3_ENDPOINT would replace the
+;; AWS endpoint with "".
 (defn s3-endpoint []
-  (or (env/getenv "S3_ENDPOINT")
+  (or (non-blank-env "S3_ENDPOINT")
       (some-> @config-map :s3-endpoint)))
 
 (defn s3-public-endpoint []
-  (or (env/getenv "S3_PUBLIC_ENDPOINT")
+  (or (non-blank-env "S3_PUBLIC_ENDPOINT")
       (some-> @config-map :s3-public-endpoint)
       (s3-endpoint)))
 
 (defn s3-region []
-  (or (env/getenv "AWS_REGION")
+  (or (non-blank-env "AWS_REGION")
       (some-> @config-map :s3-region)
       "us-east-1"))
 
