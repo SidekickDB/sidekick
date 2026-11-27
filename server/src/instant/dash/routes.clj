@@ -240,8 +240,9 @@
   (def m {:code (string-util/rand-num-str 6)})
   (email-router/send-structured! (magic-code-email {:user user :magic-code m})))
 
+;; SidekickDB: "this deployment" (upstream names Instant here).
 (def dashboard-signup-denied-message
-  "This email is not allowed to sign up for this Instant deployment.")
+  "This email is not allowed to sign up for this deployment.")
 
 (defn assert-dashboard-signup-allowed! [email]
   (when-not (flags/dashboard-signup-allowed? email)
@@ -266,10 +267,11 @@
                     {:id (UUID/randomUUID)
                      :code (instant-user-magic-code-model/rand-code)
                      :user-id user-id})]
+    ;; SidekickDB: the banner names SidekickDB (upstream: INSTANT).
     (when-not (config/email-send-enabled?)
       (log/infof (str "\n"
                       "============================================================\n"
-                      "              INSTANT DASHBOARD LOGIN CODE\n"
+                      "              SIDEKICKDB DASHBOARD LOGIN CODE\n"
                       "\n"
                       "                         %s\n"
                       "\n"
@@ -1215,11 +1217,12 @@
         invite-url (str (config/dashboard-origin) "/dash?s=invites")]
     ;; SidekickDB: a structured letter for email-router, so the invite goes
     ;; through whichever provider is configured. Upstream builds a Postmark
-    ;; request and calls postmark/send! directly.
+    ;; request and calls postmark/send! directly. The subject and the link
+    ;; text say SidekickDB (upstream: Instant).
     {:from {:name sender-name
             :email sender-email}
      :to [{:email invitee-email}]
-     :subject (str "[Instant] You've been invited to collaborate on " title)
+     :subject (str "[SidekickDB] You've been invited to collaborate on " title)
      :reply-to sender-email
      :html
      (email/standard-body
@@ -1234,7 +1237,7 @@
         " " title "."]
        [:p "Navigate to "
         [:a {:href invite-url}
-         "Instant"]
+         "SidekickDB"]
         " to accept the invite."]
        [:p "Note: this invite will expire in 3 days. "
         "If you don't know the user inviting you, please reply to this email."]))}))
