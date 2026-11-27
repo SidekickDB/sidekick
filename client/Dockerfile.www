@@ -60,7 +60,15 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /monorepo/www/.next/standalone ./
 # Copy static assets and public files
 COPY --from=builder /monorepo/www/.next/static ./www/.next/static
-COPY --from=builder /monorepo/www/public ./www/public
+# SidekickDB: only the public files the dashboard and the docs load. The rest of
+# public/ is Instant's website (essay media, newsletters, marketing images). A
+# new file the dashboard loads must be added here, and served by the self-hosted
+# allowlist in www/next.config.js.
+COPY --from=builder /monorepo/www/public/fonts ./www/public/fonts
+COPY --from=builder /monorepo/www/public/img/icon ./www/public/img/icon
+COPY --from=builder /monorepo/www/public/img/docs ./www/public/img/docs
+COPY --from=builder /monorepo/www/public/img/*.svg ./www/public/img/
+COPY --from=builder /monorepo/www/public/native-file-system-adapter-sw.js /monorepo/www/public/publicSelfHostedVariables.js ./www/public/
 
 COPY <<'EOF' /app/start.sh
 #!/bin/sh

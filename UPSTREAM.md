@@ -388,6 +388,18 @@ Google" shows only when configured (`dashboardGoogleOAuth`). Files:
 `lib/config.ts`, `lib/config.selfHosted.test.ts`, `pages/dash/{index,org}.tsx`,
 and the `self-hosting/` compose files (variable passed to `www`).
 
+Self-hosted dashboard image: `client/Dockerfile.www` copies only the `public/`
+files the dashboard and the docs load (`fonts`, `img/icon`, `img/docs`, the
+`img/*.svg` logos, the two scripts at the top level). The self-hosted allowlist
+in `next.config.js` serves `/dash`, `/docs`, `/logout`, `/_devtool`,
+`/debug-uri`, `/platform/oauth`, `/intern` with its three tools, and static
+files at the top level or under `/_next`, `/fonts` and `/img`; no `/api` route,
+and `/pricing` is left out of the self-hosted redirects. `app/intern/nav.tsx`
+replaces the Instant website's navigation and footer on the self-hosted
+`/intern` index and restore page. Tested in
+`__tests__/self-hosted-redirects.test.ts`; the benchmark workflow checks the
+built image.
+
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
 feedback app or the chat, drop that part. Keep the `/pure` Stripe import and

@@ -114,13 +114,18 @@ const nextConfig = {
 
     if (process.env.NEXT_PUBLIC_SELF_HOSTED === 'true') {
       return [
-        ...standardRedirects,
+        // SidekickDB: /pricing goes to Instant's announcement essay; self-hosted, it ends at /dash.
+        ...standardRedirects.filter((r) => r.source !== '/pricing'),
         // redirect any page that isn't /api, /dash, /debug-uri, /docs, /intern, /logout, or /_devtool
         // SidekickDB: also keep /platform/oauth, the consent page the server sends platform OAuth users to.
+        // SidekickDB: serve only the dashboard, the docs and the admin tools. /api and the other
+        // /intern pages go to /dash too, and so does a path with a dot unless it is a file at the
+        // top level or under /_next, /fonts or /img (Dockerfile.www copies only the files the
+        // dashboard and the docs load).
         {
           permanent: false,
           source:
-            '/((?!api(?:/.*)?$|dash(?:/.*)?$|debug-uri(?:/.*)?$|docs(?:/.*)?$|intern(?:/.*)?$|logout(?:/.*)?$|platform/oauth(?:/.*)?$|_devtool(?:/.*)?$|.*\\.[^/]+$).*)',
+            '/((?!dash(?:/.*)?$|debug-uri(?:/.*)?$|docs(?:/.*)?$|intern(?:/(?:storage|restore|deployment-settings))?/?$|logout(?:/.*)?$|platform/oauth(?:/.*)?$|_devtool(?:/.*)?$|(?:_next|fonts|img)/.*$|[^/]+\\.[^/]+$).*)',
           destination: '/dash',
         },
       ];
