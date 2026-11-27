@@ -12,6 +12,7 @@ InstantDB rules file (`dev-llm-rules.md`, a generated `AGENTS.md`), these win.
   hosts.
 - `gh` must target origin: `gh repo set-default --view` prints
   `SidekickDB/sidekick`. Pass `-R SidekickDB/sidekick` when in doubt.
+- The upstream write guard enforces this; see "Upstream write guard" below.
 - Read `UPSTREAM.md` before touching anything inherited, `RELEASING.md` before
   anything about releases, `self-hosting/README.md` before changing the shipped
   stack.
@@ -66,3 +67,57 @@ Use the `land-change` skill. In short:
   `scripts/upstream/divergence-prs.txt` (`UPSTREAM.md`, "Maintaining the
   tooling"), and marked `SidekickDB:` in a comment where the file format allows
   one.
+
+## Upstream write guard
+
+`.claude/settings.json` has two layers that stop an agent from writing to
+upstream. Neither replaces the rule above; both are there for mistakes.
+
+- **Hook** (`.claude/hooks/upstream-write-guard.mjs`, a `PreToolUse` hook on
+  every Bash command). It splits the command like a shell, so a quoted
+  description is text, not a target. It blocks:
+  - any `gh` command that targets a repository of the owner `instantdb`,
+    unless it only reads (`pr view`, `pr diff`, `pr list`, `pr checks`,
+    `issue view`, `issue list`, `repo view`, `search` and similar). The target
+    counts in every spelling: `-R`, `--repo`, `--repo=`, `-R` before the
+    subcommand, a quoted value, any letter case, `github.com/` or `https://`
+    in front, a pull request or issue URL, and `GH_REPO`. This covers the
+    less common writes too (`pr ready`, `pr lock`, `pr update-branch`,
+    `issue delete`, `issue transfer`, `issue pin`, `issue develop`, ...);
+  - `gh api`, `curl` and `wget` with a write method or a body against
+    `repos/instantdb/...` or `orgs/instantdb/...`, and a `gh api graphql`
+    mutation whose text names `instantdb`;
+  - `git push` to the remote `upstream` or to a GitHub URL of `instantdb`,
+    and setting the upstream push URL to anything but `DISABLED`;
+  - these commands also inside `&&`, `;`, pipes, `$(...)`, backticks,
+    `bash -c`, `eval`, here-documents and wrappers such as `env` or `timeout`;
+  - a command that mentions `instantdb` or `upstream` and that it cannot
+    parse, or a target it cannot resolve (`-R "$X"`). A crash or bad input
+    also blocks (`onFailure: "block"`).
+  Commands that do not mention `instantdb` or `upstream` are not inspected.
+  Tests: `node --test .claude/hooks/upstream-write-guard.test.mjs`.
+- **Deny rules** (`permissions.deny`), which also apply when hooks are off.
+  They match command text, so they are coarse: `gh pr` and `gh issue` writes
+  with the literal text `-R instantdb/instant` or `--repo instantdb/instant`,
+  `git push upstream`, and any `git push` whose text contains
+  `instantdb/instant`.
+
+Accepted, not blocked:
+
+- A `git push` to a branch whose name contains `instantdb/instant` is blocked
+  by the deny rule. Name the branch differently.
+- A command whose own text quotes `-R instantdb/instant` (for example in a
+  `--body` value or a `grep` pattern) is blocked by a deny rule even when it
+  targets `SidekickDB/sidekick`. Pass pull request and issue text with
+  `--body-file`; a description that merely names `instantdb/instant` is not
+  blocked.
+- What the guard cannot see: a `git push` with no remote named, which follows
+  the branch configuration (the upstream push URL is `DISABLED`); `gh` run
+  without `-R` in a checkout whose default repository is upstream; a target
+  held in a variable set outside the command (`GH_REPO` exported earlier); a
+  GraphQL mutation by node ID; programs started another way (a script file,
+  `python`, `node`); tools other than Bash, such as MCP connectors.
+
+If every Bash command is blocked with an error that the guard script is
+missing, the checkout the session started in is older than the guard: the
+owner updates that checkout.

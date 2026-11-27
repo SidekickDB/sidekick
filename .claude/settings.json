@@ -55,5 +55,23 @@
       "Bash(gh issue reopen *-R instantdb/instant*)",
       "Bash(gh issue reopen *--repo instantdb/instant*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/upstream-write-guard.mjs"
+            ],
+            "timeout": 10,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
   }
 }
