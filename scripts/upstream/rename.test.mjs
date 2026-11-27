@@ -364,6 +364,25 @@ test("session versions keys are kept for several value shapes", () => {
   }
 });
 
+test("an exact-version dependency in a package.json is renamed", () => {
+  const pkg =
+    '{\n  "dependencies": {\n    "@instantdb/core": "1.2.3",\n    "@instantdb/react": "^1.2.3"\n  }\n}\n';
+  const out = norm("examples/foo/package.json", pkg);
+  assert.equal(
+    out,
+    '{\n  "dependencies": {\n    "@sidekickdb/core": "1.2.3",\n    "@sidekickdb/react": "^1.2.3"\n  }\n}\n',
+  );
+  assert.deepEqual(
+    scanLeftovers("examples/foo/package.json", pkg).map((l) => l.id),
+    ["scoped-package", "scoped-package"],
+  );
+  assert.deepEqual(scanLeftovers("examples/foo/package.json", out), []);
+  assert.match(
+    norm("client/packages/react/package.json", pkg),
+    /"@sidekickdb\/core": "workspace:\*"/,
+  );
+});
+
 test("docs links get SidekickDB's host only in the listed paths", () => {
   const cases = [
     [
