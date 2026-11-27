@@ -809,6 +809,10 @@ and take its other changes in the file.
   `NODE_ENV` is `development`. It and `getPostBySlug` in
   `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
   (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
+- PR #92: the self-hosted catch-all redirect in `client/www/next.config.js`
+  also leaves `/platform/oauth` alone. The server sends platform OAuth users
+  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
+  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
