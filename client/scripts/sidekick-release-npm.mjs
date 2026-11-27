@@ -89,6 +89,66 @@ export function readVersion(clientDir = CLIENT_DIR) {
   return m[1];
 }
 
+// SidekickDB has its own version line, so an upstream sync can raise one of
+// the server's version minimums above it without touching version.ts.
+// scripts/upstream/check.mjs runs checkServerMinimums on every sync.
+export const SERVER_MIN_VERSION_FILES = [
+  "server/src/instant/reactive/session.clj",
+  "server/src/instant/dash/routes.clj",
+];
+
+// The server ties no meaning to a minimum's name, so every version string
+// literal in these files (what instant.util.semver accepts: x.y.z, optional
+// v and -dev) counts as a minimum, whatever form holds it. Comments and
+// character literals are skipped. A file with no version literal is an error.
+// Not seen: a minimum assembled at runtime, written as a version map by
+// hand, or defined in another server file.
+const VERSION_LITERAL = /^v?(\d+)\.(\d+)\.(\d+)(?:-dev)?$/;
+const CLOJURE_TOKENS = /;[^\n]*|\\.|"((?:[^"\\]|\\.)*)"/g;
+const TOP_LEVEL_DEF =
+  /^\(def[\w-]*\s+(?:\^(?:\{(?:[^}"]|"(?:[^"\\]|\\.)*")*\}|\S+)\s+)*([^\s()]+)/;
+
+export function serverMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
+  return SERVER_MIN_VERSION_FILES.flatMap((f) => {
+    const text = fs.readFileSync(path.join(repoRoot, f), "utf8");
+    const lineAt = (i) => text.slice(0, i).split("\n").length;
+    // The name of the top-level def/defn/... form holding offset i, if any.
+    const defAt = (i) => {
+      const start = text.lastIndexOf("\n(", i);
+      return TOP_LEVEL_DEF.exec(text.slice(start + 1, i))?.[1];
+    };
+    const out = [];
+    for (const t of text.matchAll(CLOJURE_TOKENS)) {
+      const m = t[1] !== undefined && VERSION_LITERAL.exec(t[1]);
+      if (!m) continue;
+      const where = `${f}:${lineAt(t.index)}`;
+      const name = defAt(t.index);
+      out.push({
+        name: name ? `${where} ${name}` : where,
+        literal: t[1],
+        parts: m.slice(1, 4).map(Number),
+      });
+    }
+    if (!out.length)
+      throw new Error(
+        `${f}: no version string literal found, but this is where the server keeps its version minimums. If they moved, update serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+      );
+    return out;
+  });
+}
+
+// One message per server minimum the version in version.ts is not above.
+export function checkServerMinimums(repoRoot = path.resolve(CLIENT_DIR, "..")) {
+  const v = readVersion(path.join(repoRoot, "client"));
+  const ours = parseVersion(v);
+  return serverMinimums(repoRoot)
+    .filter(({ parts }) => compare(ours, parts) <= 0)
+    .map(
+      ({ name, literal }) =>
+        `${name} "${literal}": the SidekickDB version in client/packages/version/src/version.ts (${v}) must be above every server version minimum (protocol features in session.clj, the CLI's compatibility floor in routes.clj). Raise version.ts (RELEASING.md). If this string is not a minimum, add an exception to serverMinimums in client/scripts/sidekick-release-npm.mjs`,
+    );
+}
+
 const DEP_FIELDS = [
   "dependencies",
   "peerDependencies",

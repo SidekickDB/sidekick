@@ -22,6 +22,8 @@
 //   - an Instant host is added to SDK/CLI/MCP source (PR #11; --accept-hosts
 //     once a person confirmed it is only a link);
 //   - a session `versions` key is renamed or removed;
+//   - the version in client/packages/version/src/version.ts is not above
+//     every server version minimum;
 //   - files still need the rename normalizer, or rename leftovers remain
 //     (unless --allow-leftovers);
 //   - the two copies of the LLM rules differ;
@@ -32,6 +34,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { checkServerMinimums } from "../../client/scripts/sidekick-release-npm.mjs";
 import { git, gitTry, lines, repoRoot } from "./git.mjs";
 import { normalizeFiles } from "./normalize-rename.mjs";
 import { isExcluded } from "./rename.mjs";
@@ -974,6 +977,12 @@ export function runChecks({
   );
   failures.push(...vk.failures);
   warnings.push(...vk.info);
+
+  try {
+    failures.push(...checkServerMinimums(root));
+  } catch (e) {
+    failures.push(e.message);
+  }
 
   const hosts = checkInstantHosts(base, root);
   review.hosts = hosts;

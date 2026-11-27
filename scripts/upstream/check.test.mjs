@@ -1,6 +1,7 @@
 // Run with: node --test scripts/upstream/*.test.mjs
 // Uses temporary copies of the repository's real workflow files.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -11,9 +12,11 @@ import {
   hasReleaseGuard,
   isFalse,
   compareVersionsKeys,
+  runChecks,
   scanAddedLines,
   versionsKeys,
 } from "./check.mjs";
+import { checkServerMinimums } from "../../client/scripts/sidekick-release-npm.mjs";
 
 const repo = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -619,6 +622,143 @@ test("the two-node smoke workflow stays read-only and does not push", () => {
     r2.failures.some((f) => f.includes(file) && f.includes("pushes images")),
     r2.failures.join("\n"),
   );
+});
+
+function withServerMinimums({ version, session, routes }) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-minimums-"));
+  const write = (rel, text) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), text);
+  };
+  write("client/packages/version/src/version.ts", `const version = '${version}';\n`);
+  write("server/src/instant/reactive/session.clj", session);
+  write("server/src/instant/dash/routes.clj", routes);
+  try {
+    return checkServerMinimums(root);
+  } catch (e) {
+    return [e.message];
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+test("the version must be above every server version minimum", () => {
+  const session =
+    '(def patch-presence-min-version\n  (semver/parse "v0.17.5"))\n' +
+    '(def batch-messages-min-version\n  (semver/parse "0.22.75"))\n';
+  const routes = '(def cli-min-version (semver/parse "v0.19.0"))\n';
+  assert.deepEqual(withServerMinimums({ version: "v2.0.0", session, routes }), []);
+
+  const raised = withServerMinimums({
+    version: "v2.0.0",
+    session: session.replace('"0.22.75"', '"2.0.0"'),
+    routes: routes.replace("v0.19.0", "v2.1.3"),
+  });
+  assert.equal(raised.length, 2, raised.join("\n"));
+  assert.ok(
+    raised[0].startsWith('server/src/instant/reactive/session.clj:4 batch-messages-min-version "2.0.0": '),
+    raised[0],
+  );
+  assert.ok(raised[0].includes("version.ts (v2.0.0) must be above every server version minimum"), raised[0]);
+  assert.ok(raised[1].startsWith('server/src/instant/dash/routes.clj:1 cli-min-version "v2.1.3": '), raised[1]);
+  // Equal is not above, also for a -dev minimum (the server ranks -dev higher).
+  assert.equal(
+    withServerMinimums({ version: "v2.0.0", session: session.replace('"0.22.75"', '"2.0.0-dev"'), routes }).length,
+    1,
+  );
+});
+
+test("every version literal counts as a minimum, whatever its form or name", () => {
+  const session = '(def patch-presence-min-version\n  (semver/parse "v0.17.5"))\n';
+  const routes = '(def cli-min-version (semver/parse "v0.19.0"))\n';
+  // Each case adds one minimum above v2.0.0 that must be reported, named by
+  // its enclosing def when there is one, by file and line otherwise.
+  for (const [added, name] of [
+    ['(def ^:private private-min-version (semver/parse "9.0.0"))', "private-min-version"],
+    ['(def ^:private ^:dynamic two-min-version (semver/parse "9.0.0"))', "two-min-version"],
+    ['(def ^{:private true} map-min-version\n  (semver/parse "v9.0.0"))', "map-min-version"],
+    ['(defonce once-min-version (semver/parse "9.0.0"))', "once-min-version"],
+    ['(def doc-min-version\n  "Docstring."\n  (semver/parse "9.0.0"))', "doc-min-version"],
+    // A strict-only form and a loose-only form must not cancel out.
+    [
+      '(def ^{:doc "(x)"} a-min-version (semver/parse "1.0.0"))\n(def b-min-version-v2 (semver/parse "99.0.0"))',
+      "b-min-version-v2",
+    ],
+    ['(def min-x-version (semver/parse "9.0.0"))', "min-x-version"],
+    ['(def x-minimum-version (semver/parse "9.0.0"))', "x-minimum-version"],
+    ['(def X-MIN-VERSION (semver/parse "9.0.0"))', "X-MIN-VERSION"],
+    ['(def ^{:doc "a } inside"} y-min-version (semver/parse "9.0.0"))', "y-min-version"],
+    ['(def new-min-version "9.0.0")', "new-min-version"],
+    ['(defn f [v]\n  (pos? (semver/compare-semver v (semver/parse "9.0.0"))))', "f"],
+    ['(defn g [v]\n  (pos? (semver/compare-semver v "9.0.0")))', "g"],
+    ['(let [m (semver/parse "9.0.0")] m)', null],
+  ]) {
+    const r = withServerMinimums({ version: "v2.0.0", session: session + added + "\n", routes });
+    assert.equal(r.length, 1, `${added}\n${r.join("\n")}`);
+    const named = name ? ` ${name}` : "";
+    assert.match(
+      r[0],
+      new RegExp(`^server/src/instant/reactive/session\\.clj:\\d+${named} "v?99?\\.0\\.0": `),
+      r[0],
+    );
+  }
+
+  // Runtime code, comments and non-version strings are not minimums.
+  assert.deepEqual(
+    withServerMinimums({
+      version: "v2.0.0",
+      session:
+        session +
+        '; (semver/parse "99.0.0")\n(def s "see 9.0.0 notes")\n(def c \\")\n' +
+        "(defn a [versions] (semver/parse (get versions core-version-key)))\n" +
+        "(defn b [versions] (some-> versions (get core-version-key) (semver/parse)))\n" +
+        "(defn c [v] (:major (semver/parse v)))\n",
+      routes,
+    }),
+    [],
+  );
+
+  const none = withServerMinimums({ version: "v2.0.0", session: "(ns x)\n", routes });
+  assert.match(none[0], /^server\/src\/instant\/reactive\/session\.clj: no version string literal found/);
+});
+
+test("the repository's version is above its server minimums", () => {
+  assert.deepEqual(checkServerMinimums(repo), []);
+});
+
+test("runChecks fails on a raised server minimum and names it", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-minimums-run-"));
+  const write = (rel, text) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), text);
+  };
+  const run = (...args) =>
+    assert.equal(spawnSync("git", args, { cwd: root }).status, 0, `git ${args.join(" ")}`);
+  try {
+    write("client/packages/version/src/version.ts", "const version = 'v2.0.0';\n");
+    write(
+      "server/src/instant/reactive/session.clj",
+      '(def ^:private batch-messages-min-version\n  (semver/parse "0.22.75"))\n',
+    );
+    write("server/src/instant/dash/routes.clj", '(def cli-min-version (semver/parse "v0.19.0"))\n');
+    run("init", "-q");
+    run("add", "-A");
+    run("-c", "user.name=t", "-c", "user.email=t@example.org", "commit", "-qm", "base");
+    assert.deepEqual(runChecks({ root, base: "HEAD" }).failures, []);
+
+    write(
+      "server/src/instant/reactive/session.clj",
+      '(def ^:private batch-messages-min-version\n  (semver/parse "9.0.0"))\n',
+    );
+    const r = runChecks({ root, base: "HEAD" });
+    assert.equal(r.failures.length, 1, r.failures.join("\n"));
+    assert.match(
+      r.failures[0],
+      /^server\/src\/instant\/reactive\/session\.clj:2 batch-messages-min-version "9\.0\.0": the SidekickDB version .* \(v2\.0\.0\) must be above/,
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("the turbo cache prune job keeps actions: write only while it is main-only and uses no action", () => {

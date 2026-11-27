@@ -802,8 +802,8 @@ some other way; check by starting the self-hosting stack.
 **Resolving:** upstream has none of these files except
 `server/flags-config/package.json` and `client/packages/mcp/package.json`;
 keep `"private": true` in both and take upstream's other changes. In
-`version.ts` keep SidekickDB's version, not upstream's. Then run
-`node --test client/scripts/sidekick-release-npm.test.mjs`: it fails if
+`version.ts` keep SidekickDB's version, not upstream's. `check.mjs` (and
+`node --test client/scripts/sidekick-release-npm.test.mjs`) fails if
 upstream raised a server version minimum above SidekickDB's version; raise
 `version.ts` above that minimum in that case.
 
@@ -992,7 +992,7 @@ for the person reviewing the sync PR.
 | Wire `versions` keys unchanged | `check.mjs` fails if a session `versions` key (`'@instantdb/<pkg>': version` in `client/packages/*/src`) disappears or appears under `@sidekickdb/` |
 | Rename leftovers | `check.mjs` fails if a changed file still needs the normalizer or has a leftover (an old name the rules do not rewrite and the allowlist does not cover) |
 | LLM rules copies | `client/www/lib/intern/instant-rules.md` and `client/packages/create-instant-app/template/rules/AGENTS.md` must stay byte-identical |
-| SidekickDB's version is above the server's version minimums | `node --test client/scripts/sidekick-release-npm.test.mjs` |
+| SidekickDB's version is above the server's version minimums | `check.mjs` fails and names the minimum (file, line, enclosing def) if `version.ts` is not above every version string literal (`x.y.z`, optional `v` and `-dev`) in `server/src/instant/reactive/session.clj` and `server/src/instant/dash/routes.clj`, whatever its name or form, and if either file has no version literal. Not seen: a minimum assembled at runtime, written as a version map by hand, or defined in another server file |
 | Conflict markers | none left in changed files |
 | Licence and attribution | `LICENSE.md` unchanged; this file still accurate |
 
