@@ -42,8 +42,8 @@ not `rm`: deleting the directory leaves the worktree registered. Afterwards
 3. **Fork rules.**
    - Inherited files: edit small and marked `SidekickDB:`.
    - An intentional difference from upstream is recorded in `UPSTREAM.md`,
-     `scripts/upstream/divergences/<key>.mjs` and a line in
-     `scripts/upstream/divergence-prs.txt`.
+     `scripts/upstream/divergences/<key>.mjs` and a file
+     `scripts/upstream/divergence-prs/<PR number>`.
    - Nothing enables a publishing or deploying job, adds a secret, or points at
      an Instant-owned host: in the worktree, `node scripts/upstream/check.mjs`
      must print `Result: OK` and `node --test scripts/upstream/*.test.mjs` must
