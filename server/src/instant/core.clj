@@ -329,12 +329,15 @@
              server)
     (Server/.shutdownGracefully server))
 
-  (let [drain-opts {:total-ms (if (config/dev?)
-                                1000
-                                (* 1000 60 4))
-                    :max-gap-ms (if (config/dev?)
-                                  100
-                                  1000)}
+  ;; SidekickDB: config/shutdown-drain-opts is set in the self-hosted mode or
+  ;; by INSTANT_SHUTDOWN_DRAIN_SECONDS; otherwise upstream's drain applies.
+  (let [drain-opts (or (config/shutdown-drain-opts)
+                       {:total-ms (if (config/dev?)
+                                    1000
+                                    (* 1000 60 4))
+                        :max-gap-ms (if (config/dev?)
+                                      100
+                                      1000)})
         ;; Proxied WebSockets never enter the session store, so they need
         ;; their own drain. Run it alongside the local one so both finish
         ;; within the drain window.

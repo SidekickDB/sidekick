@@ -78,6 +78,26 @@
   []
   (and (dev?) (not (self-hosted?))))
 
+;; SidekickDB: how long `instant.core/stop` spreads the closing of WebSockets
+;; over. INSTANT_SHUTDOWN_DRAIN_SECONDS (or SIDEKICK_SHUTDOWN_DRAIN_SECONDS)
+;; sets it in any mode. Unset, a self-hosted server drains for 20 s, and nil
+;; leaves upstream's drain (1 s in :dev, 4 minutes otherwise) to the caller.
+(def default-self-hosted-drain-seconds 20)
+
+(defn shutdown-drain-opts []
+  (let [value (non-blank-env "INSTANT_SHUTDOWN_DRAIN_SECONDS")
+        seconds (some-> value parse-long)
+        seconds (cond
+                  (and seconds (<= 0 seconds)) seconds
+                  value (do (log/warn (env/describe "INSTANT_SHUTDOWN_DRAIN_SECONDS")
+                                      "is" (pr-str value)
+                                      "but must be a whole number of seconds; using the default")
+                            nil))]
+    (when-let [seconds (or seconds
+                           (when (self-hosted?) default-self-hosted-drain-seconds))]
+      {:total-ms (* 1000 seconds)
+       :max-gap-ms 1000})))
+
 (defn runtime-mode-errors
   "Problems with the runtime mode setting, as messages. Empty when it is fine."
   []
@@ -220,8 +240,9 @@
    :team "INSTANT_TEAM_EMAIL_SENDER_EMAIL"})
 
 (defn dashboard-email-sender []
+  ;; SidekickDB: the default sender name is SidekickDB (upstream: Instant).
   {:name (or (non-blank-env "INSTANT_DASHBOARD_EMAIL_SENDER_NAME")
-             "Instant")
+             "SidekickDB")
    :email (non-blank-env (:dashboard email-sender-env-vars))})
 
 (defn app-email-sender []
@@ -229,8 +250,9 @@
    :email (non-blank-env (:app email-sender-env-vars))})
 
 (defn team-email-sender []
+  ;; SidekickDB: the default sender name is SidekickDB (upstream: Instant).
   {:name (or (non-blank-env "INSTANT_TEAM_EMAIL_SENDER_NAME")
-             "Instant")
+             "SidekickDB")
    :email (non-blank-env (:team email-sender-env-vars))})
 
 (defn email-provider
