@@ -136,6 +136,11 @@ export const SELF_HOSTING_CHECK_WORKFLOWS = ["sidekick-self-hosting-check.yml"];
 // file with this name. No exception: every RISKY rule applies.
 export const TWO_NODE_SMOKE_WORKFLOWS = ["sidekick-two-node-smoke.yml"];
 
+// SidekickDB's networked JS e2e suites against a server started in the job
+// (scripts/e2e). Upstream has no file with this name. No exception: every
+// RISKY rule applies.
+export const E2E_WORKFLOWS = ["sidekick-e2e.yml"];
+
 // SidekickDB's own jobs in inherited workflows that may hold the rights
 // matched by `allow` (whole job lines), only while checkJobRightsShape finds
 // nothing: the job is guarded to main and uses no action, so it runs no
@@ -157,6 +162,7 @@ export const KNOWN_WORKFLOWS = [
   ...BENCH_WORKFLOWS,
   ...SELF_HOSTING_CHECK_WORKFLOWS,
   ...TWO_NODE_SMOKE_WORKFLOWS,
+  ...E2E_WORKFLOWS,
   ...Object.keys(RELEASE_WORKFLOWS),
 ];
 

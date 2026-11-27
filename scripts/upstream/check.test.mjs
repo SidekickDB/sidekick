@@ -624,6 +624,44 @@ test("the two-node smoke workflow stays read-only and does not push", () => {
   );
 });
 
+test("the e2e workflow stays read-only and talks to no Instant host", () => {
+  const file = "sidekick-e2e.yml";
+  const r0 = withWorkflows();
+  assert.deepEqual(r0.failures, []);
+  assert.ok(
+    !r0.warnings.some((w) => w.includes(file)),
+    r0.warnings.join("\n"),
+  );
+  const r1 = withWorkflows((d) =>
+    edit(d, file, "  contents: read\n", "  contents: write\n"),
+  );
+  assert.ok(
+    r1.failures.some(
+      (f) => f.includes(file) && f.includes("write permission"),
+    ),
+    r1.failures.join("\n"),
+  );
+  const r2 = withWorkflows((d) =>
+    edit(
+      d,
+      file,
+      "SIDEKICK_E2E_API_URI: http://localhost:8888\n",
+      "SIDEKICK_E2E_API_URI: https://api.instantdb.com\n",
+    ),
+  );
+  assert.ok(
+    r2.failures.some((f) => f.includes(file) && f.includes("Instant-owned")),
+    r2.failures.join("\n"),
+  );
+  const r3 = withWorkflows((d) =>
+    edit(d, file, "          push: false\n", "          push: true\n"),
+  );
+  assert.ok(
+    r3.failures.some((f) => f.includes(file) && f.includes("pushes images")),
+    r3.failures.join("\n"),
+  );
+});
+
 function withServerMinimums({ version, session, routes }) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-minimums-"));
   const write = (rel, text) => {
