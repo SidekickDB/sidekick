@@ -153,11 +153,25 @@ jobs:
           node ../../scripts/with-network-guard.mjs pnpm exec vitest run --project e2e \
             --reporter=default --reporter=junit --outputFile.junit="$OUT/cli.xml"
 
+      # Every scaffold ends with `<package manager> install` in the new
+      # project, which would download its dependencies from the npm registry.
+      # The tests check the scaffolded files and the app created on the
+      # server, not installed packages, so npm (the package manager
+      # create-sidekick-app picks without npm_config_user_agent) is replaced
+      # here by a stub that skips the install. vitest is started without pnpm
+      # so that the user agent stays unset.
       - name: create-sidekick-app
         if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
         working-directory: client/packages/create-instant-app
         run: |
-          node ../../scripts/with-network-guard.mjs pnpm exec vitest run --project e2e \
+          stub="$RUNNER_TEMP/no-install"
+          mkdir -p "$stub"
+          printf '%s\n' '#!/bin/sh' \
+            'case "$1" in -v) echo 10.0.0-e2e-stub ;; install) echo "e2e: install skipped" ;; *) exit 1 ;; esac' \
+            > "$stub/npm"
+          chmod +x "$stub/npm"
+          unset npm_config_user_agent
+          PATH="$stub:$PATH" node ../../scripts/with-network-guard.mjs ./node_modules/.bin/vitest run --project e2e \
             --reporter=default --reporter=junit --outputFile.junit="$OUT/create-sidekick-app.xml"
 
       - name: mcp
