@@ -316,9 +316,9 @@ refuses to deploy without them.
 
 ### Cloudflare R2
 
-File URLs are presigned with `S3_PUBLIC_ENDPOINT` (or `S3_ENDPOINT` when it is
-unset), with the bucket in the path. For R2, set both to the bucket's S3 API
-domain, `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`. Do not point
+File URLs are presigned with `S3_PUBLIC_ENDPOINT`, with the bucket in the path.
+For R2, set both `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` to R2's S3 API domain,
+`https://<ACCOUNT_ID>.r2.cloudflarestorage.com`. Do not point
 `S3_PUBLIC_ENDPOINT` at an R2 custom domain: R2 does not accept presigned URLs
 on custom domains (see Cloudflare's
 [presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)
