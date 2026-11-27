@@ -148,6 +148,8 @@ export const KNOWN_WORKFLOWS = [
   "clojure.yml",
   "js.yml",
   "python.yml",
+  // SidekickDB's own checks (tooling tests, this script, the network guard).
+  "sidekick-checks.yml",
   ...DISPATCH_ONLY,
   ...BENCH_WORKFLOWS,
   ...SELF_HOSTING_CHECK_WORKFLOWS,

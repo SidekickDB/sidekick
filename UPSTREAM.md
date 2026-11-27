@@ -309,6 +309,11 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
   platform e2e, resumable-stream) run only when `SIDEKICK_E2E_API_URI` is set and
   use only that URL; they have no default host. svelte, vue and components gained
   a `test:ci` script.
+- `.github/workflows/sidekick-checks.yml` (PR #70): on every pull request and
+  push to `main`, runs `node --test scripts/upstream/*.test.mjs`,
+  `node scripts/upstream/check.mjs --base HEAD^1` and a probe that fails unless
+  the guard refuses outbound requests to reserved addresses. Upstream has no
+  file with this name, and it gets no exception from `check.mjs`'s rules.
 
 **Resolving:** keep the step's two empty variables and `pnpm run test`, the
 guarded `test`/`bench` scripts, and the e2e helpers that skip without
@@ -977,6 +982,7 @@ for the person reviewing the sync PR.
 |---|---|
 | No workflow re-enables publish or deploy | `check.mjs` fails if a job or step that was disabled before the merge is enabled after it (it reads the disabled set from the pre-merge commit, so newly gated jobs stay protected), if a job condition can be true (`false \|\| ...`, `(false) \|\| ...`, `${{ false }} \|\| ...`; only `false`, `false && (...)` and one `${{ }}` around such a condition count as disabled), if a publish-only workflow regains a trigger, if any workflow gains a `schedule` or `pull_request_target` trigger, or if an enabled job, a workflow-level `env`/`permissions` block, or a local action (`./.github/actions/*`) used by an enabled job uses repository secrets, `secrets: inherit`, any write permission (`<scope>: write`, `write-all`), publish or deploy tools, or Instant-owned hosts. SidekickDB's two release workflows (PR #18) may keep their publish rights only in their checked shape. New workflow files are flagged for review |
 | JS tests stay behind the network guard (PR #9) | `check.mjs` fails if **Run tests** loses `SIDEKICK_E2E_API_URI: ''`, `SIDEKICK_NETWORK_GUARD_ALLOW: ''` or `pnpm run test`, or if the client `test`/`bench` scripts stop running through `scripts/with-network-guard.mjs` |
+| SidekickDB's own checks pass (PR #70) | `sidekick-checks.yml` is green on the sync PR: tooling tests, `check.mjs` and the network guard self-check |
 | SDKs, CLI and MCP still fail closed (PR #11) | `check.mjs` fails on an Instant host added to `client/packages/*/src` or `bin` outside tests and comments (`--accept-hosts` once a person has confirmed it is only a link). Also run the `apiURI`/`endpoints` tests and look for new clients or commands that talk to a server without a required URL |
 | No new default that points at Instant-owned hosts | `check.mjs` lists every added line (outside comments) that mentions an `instantdb.com` host, `stopaio.s3.amazonaws.com` or an Instant S3 bucket, split into runtime code or config defaults, build-time files, and docs/tests. Instant-domain email addresses outside docs and tests (sender or contact defaults such as the ones PR #4 removed) are listed in their own section; in docs and tests they are listed with the hosts. Review everything outside docs/tests; nothing there should be a default |
 | No new build-time or runtime contact with Instant services | The same lists, plus the report's flag when `client/www/next.config.js` changes. Also look for new fetches in build scripts and Dockerfiles before building images |

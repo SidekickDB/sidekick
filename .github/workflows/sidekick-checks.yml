@@ -1,0 +1,78 @@
+# SidekickDB: runs the fork's own guard rails on every pull request and every
+# push to main, with no path filter so it can be a required check:
+#   - the upstream tooling tests (scripts/upstream/*.test.mjs);
+#   - scripts/upstream/check.mjs, which fails when a publishing job is
+#     re-enabled or an added line points at an Instant-owned host;
+#   - a self-check that the JS network guard (client/scripts/
+#     with-network-guard.mjs) still blocks outbound requests.
+#
+# Read-only: no secrets, no write permissions, nothing is pushed or published.
+# Only Node built-ins run; no dependencies are installed.
+name: SidekickDB checks
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Upstream tooling and network guard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      # Depth 2: check.mjs compares the tree with HEAD^1, which is main for
+      # the pull request merge commit and the previous main after a merge.
+      - name: Check out code
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Upstream tooling tests
+        run: node --test scripts/upstream/*.test.mjs
+
+      - name: Post-sync checks
+        run: node scripts/upstream/check.mjs --base HEAD^1
+
+      # The probe swallows every error and exits 0, so the run fails only if
+      # the wrapper saw the blocked attempts. Targets are reserved: a .invalid
+      # name and TEST-NET-1 (RFC 6761, RFC 5737), never a real host.
+      - name: Network guard blocks outbound requests
+        run: |
+          probe='
+            import dns from "node:dns/promises";
+            const tries = await Promise.allSettled([
+              fetch("http://sidekick-guard-check.invalid/", { signal: AbortSignal.timeout(5000) }),
+              fetch("http://192.0.2.1/", { signal: AbortSignal.timeout(5000) }),
+              dns.lookup("sidekick-guard-check.invalid"),
+            ]);
+            const blocked = tries.filter((t) =>
+              [t.reason?.code, t.reason?.cause?.code].includes("ERR_SIDEKICK_NETWORK_BLOCKED"));
+            console.log(`probe: ${blocked.length}/${tries.length} blocked by the guard`);
+          '
+          set +e
+          out=$(node client/scripts/with-network-guard.mjs node --input-type=module -e "$probe" 2>&1)
+          code=$?
+          set -e
+          echo "$out"
+          if [ "$code" -eq 0 ]; then
+            echo "::error::with-network-guard.mjs exited 0 after outbound attempts"
+            exit 1
+          fi
+          grep -q '^probe: 3/3 blocked by the guard$' <<<"$out" ||
+            { echo "::error::the guard did not refuse every outbound attempt"; exit 1; }
+          grep -q 'FAILED: 3 blocked outbound attempt(s)' <<<"$out" ||
+            { echo "::error::the wrapper did not report the blocked attempts"; exit 1; }
+          echo "Network guard: fails closed."
