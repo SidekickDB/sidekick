@@ -144,7 +144,7 @@ export default abstract class InstantReactAbstractDatabase<
    * If you don't provide a `type` or `id`, Instant will default to `_defaultRoomType` and `_defaultRoomId`
    * as the room type and id, respectively.
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    *
    * @example
    *  const room = db.room('chat', roomId);
@@ -160,7 +160,7 @@ export default abstract class InstantReactAbstractDatabase<
   /**
    * Hooks for working with rooms
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    *
    * @example
    *  const room = db.room('chat', roomId);
@@ -173,7 +173,7 @@ export default abstract class InstantReactAbstractDatabase<
   /**
    * Use this to write data! You can create, update, delete, and link objects
    *
-   * @see https://instantdb.com/docs/instaml
+   * @see https://sidekickdb.co/docs/instaml
    *
    * @example
    *   // Create a new object in the `goals` namespace
@@ -202,7 +202,7 @@ export default abstract class InstantReactAbstractDatabase<
   /**
    * Use this to query your data!
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *   // listen to all goals
@@ -236,7 +236,7 @@ export default abstract class InstantReactAbstractDatabase<
    *
    * Check out the docs for an example `Login` component too!
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *  function App() {
    *    const { isLoading, user, error } = db.useAuth()
@@ -292,7 +292,7 @@ export default abstract class InstantReactAbstractDatabase<
    * You will want to protect any calls of this hook with a
    * <db.SignedIn> component, or your own logic based on db.useAuth()
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @throws Error indicating user not signed in
    * @example
    *  function UserDisplay() {
@@ -320,7 +320,7 @@ export default abstract class InstantReactAbstractDatabase<
    * for scenarios where you want to know the current auth
    * state without subscribing to changes.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   const user = await db.getAuth();
    *   console.log('logged in as', user.email)
@@ -333,7 +333,7 @@ export default abstract class InstantReactAbstractDatabase<
    * Listen for connection status changes to Instant. Use this for things like
    * showing connection state to users
    *
-   * @see https://www.instantdb.com/docs/patterns#connection-status
+   * @see https://sidekickdb.co/docs/patterns#connection-status
    * @example
    *  function App() {
    *    const status = db.useConnectionStatus()
@@ -419,7 +419,7 @@ export default abstract class InstantReactAbstractDatabase<
    * Because we want to avoid stale data, this method will throw an error
    * if the user is offline or there is no active connection to the server.
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *
@@ -473,7 +473,7 @@ export default abstract class InstantReactAbstractDatabase<
 
   /**
    * Only render children if the user is signed in.
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    *
    * @example
    *  <db.SignedIn>
@@ -492,7 +492,7 @@ export default abstract class InstantReactAbstractDatabase<
 
   /**
    * Only render children if the user is signed out.
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    *
    * @example
    *  <db.SignedOut>

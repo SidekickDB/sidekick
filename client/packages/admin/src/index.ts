@@ -383,7 +383,7 @@ function makeEventSourceWrapper(opts: {
  *
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` :)
+ * Find your `appId` in your SidekickDB dashboard.
  *
  * @example
  *  import { init } from "@sidekickdb/admin"
@@ -405,7 +405,7 @@ function makeEventSourceWrapper(opts: {
  *    apiURI: process.env.INSTANT_API_URI!,
  *    schema,
  *  })
- *  // To learn more: https://instantdb.com/docs/modeling-data
+ *  // To learn more: https://sidekickdb.co/docs/modeling-data
  */
 function init<
   Schema extends InstantSchemaDef<any, any, any> = InstantUnknownSchema,
@@ -419,7 +419,7 @@ function init<
 ): InstantAdminDatabase<Schema, UseDates, InstantConfig<Schema, UseDates>> {
   if (!config.appId || !uuidValidate(config.appId)) {
     console.warn(
-      'warning: Instant Admin DB must be initialized with a valid appId. Received: ' +
+      'warning: SidekickDB Admin DB must be initialized with a valid appId. Received: ' +
         JSON.stringify(config.appId),
     );
   }
@@ -505,7 +505,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *   // Send the magic code to the user with your own email provider
    *   await customEmailProvider.sendMagicCode(email, code)
    *
-   * @see https://instantdb.com/docs/backend#custom-magic-codes
+   * @see https://sidekickdb.co/docs/backend#custom-magic-codes
    */
   generateMagicCode = async (email: string): Promise<{ code: string }> => {
     return jsonFetch(
@@ -526,7 +526,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *   // Send an email to user with magic code
    *   await db.auth.sendMagicCode({ email })
    *
-   * @see https://instantdb.com/docs/backend#custom-magic-codes
+   * @see https://sidekickdb.co/docs/backend#custom-magic-codes
    */
   sendMagicCode = async (email: string): Promise<{ code: string }> => {
     return jsonFetch(
@@ -543,7 +543,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    * @deprecated Use {@link checkMagicCode} instead to get the `created` field
    * and support `extraFields`.
    *
-   * @see https://instantdb.com/docs/backend#custom-magic-codes
+   * @see https://sidekickdb.co/docs/backend#custom-magic-codes
    */
   verifyMagicCode = async (email: string, code: string): Promise<User> => {
     const { user } = await jsonFetch(
@@ -569,7 +569,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *     { extraFields: { nickname: 'ari' } },
    *   );
    *
-   * @see https://instantdb.com/docs/backend#custom-magic-codes
+   * @see https://sidekickdb.co/docs/backend#custom-magic-codes
    */
   checkMagicCode = async (
     email: string,
@@ -606,7 +606,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *     return res.status(200).send({ token })
    *   })
    *
-   * @see https://instantdb.com/docs/backend#custom-auth
+   * @see https://sidekickdb.co/docs/backend#custom-auth
    */
   createToken(email: { email: string } | { id: string }): Promise<AuthToken>;
 
@@ -653,7 +653,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *     }
    *     // ...
    *   })
-   * @see https://instantdb.com/docs/backend#custom-endpoints
+   * @see https://sidekickdb.co/docs/backend#custom-endpoints
    */
   verifyToken = async (token: AuthToken): Promise<User> => {
     const res = await jsonFetch(
@@ -683,7 +683,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *   }
    *   console.log("Found user:", user);
    *
-   * @see https://instantdb.com/docs/backend#retrieve-a-user
+   * @see https://sidekickdb.co/docs/backend#retrieve-a-user
    */
   getUser = async (
     params: { email: string } | { id: string } | { refresh_token: string },
@@ -717,7 +717,7 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *   }
    *   console.log("Deleted user:", deletedUser);
    *
-   * @see https://instantdb.com/docs/backend#delete-a-user
+   * @see https://sidekickdb.co/docs/backend#delete-a-user
    */
   deleteUser = async (
     params: { email: string } | { id: string } | { refresh_token: string },
@@ -741,13 +741,13 @@ class Auth<Schema extends InstantSchemaDef<any, any, any>> {
    *
    * @example
    *   try {
-   *     await auth.signOut({ email: "alyssa_p_hacker@instantdb.com" });
+   *     await auth.signOut({ email: "alyssa_p_hacker@example.com" });
    *     console.log("Successfully signed out");
    *   } catch (err) {
    *     console.error("Sign out failed:", err.message);
    *   }
    *
-   * @see https://instantdb.com/docs/backend#sign-out
+   * @see https://sidekickdb.co/docs/backend#sign-out
    */
   async signOut(
     params: { email: string } | { id: string } | { refresh_token: string },
@@ -862,7 +862,7 @@ class Storage {
   /**
    * Uploads file at the provided path. Accepts a Buffer or a Readable stream.
    *
-   * @see https://instantdb.com/docs/storage
+   * @see https://sidekickdb.co/docs/storage
    * @example
    *   const buffer = fs.readFileSync('demo.png');
    *   const isSuccess = await db.storage.uploadFile('photos/demo.png', buffer);
@@ -931,7 +931,7 @@ class Storage {
    *   // Delete by path
    *   await db.transact(db.tx.$files[lookup('path', 'photos/demo.png')].delete());
    *
-   * @see https://instantdb.com/docs/storage
+   * @see https://sidekickdb.co/docs/storage
    */
   delete = async (pathname: string): Promise<DeleteFileResponse> => {
     return jsonFetch(
@@ -954,7 +954,7 @@ class Storage {
    *   const paths = ['images/1.png', 'images/2.png', 'images/3.png'];
    *   await db.transact(paths.map(p => db.tx.$files[lookup('path', p)].delete()));
    *
-   * @see https://instantdb.com/docs/storage
+   * @see https://sidekickdb.co/docs/storage
    */
   deleteMany = async (pathnames: string[]): Promise<DeleteManyFileResponse> => {
     return jsonFetch(
@@ -1130,7 +1130,7 @@ function createLogger(
  *
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` and `adminToken` :)
+ * Find your `appId` and `adminToken` in your SidekickDB dashboard.
  *
  * @example
  *  const db = init({
@@ -1177,9 +1177,9 @@ class InstantAdminDatabase<
    *
    * You can provide a user's auth token, email, or impersonate a guest.
    *
-   * @see https://instantdb.com/docs/backend#impersonating-users
+   * @see https://sidekickdb.co/docs/backend#impersonating-users
    * @example
-   *  await db.asUser({email: "stopa@instantdb.com"}).query({ goals: {} })
+   *  await db.asUser({email: "stopa@example.com"}).query({ goals: {} })
    */
   asUser = (
     opts: ImpersonationOpts,
@@ -1195,7 +1195,7 @@ class InstantAdminDatabase<
   /**
    * Use this to query your data!
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *  // fetch all goals
@@ -1241,7 +1241,7 @@ class InstantAdminDatabase<
   /**
    * Use this to to get a live view of your data!
    *
-   * @see https://www.instantdb.com/docs/backend
+   * @see https://sidekickdb.co/docs/backend
    *
    * @example
    *  // create a subscription to a query
@@ -1306,7 +1306,7 @@ class InstantAdminDatabase<
   /**
    * Use this to write data! You can create, update, delete, and link objects
    *
-   * @see https://instantdb.com/docs/instaml
+   * @see https://sidekickdb.co/docs/instaml
    *
    * @example
    *   // Create a new object in the `goals` namespace
@@ -1358,7 +1358,7 @@ class InstantAdminDatabase<
    * Accepts an optional configuration object with a `rules` key.
    * The provided rules will override the rules in the database for the query.
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *  await db.asUser({ guest: true }).debugQuery(

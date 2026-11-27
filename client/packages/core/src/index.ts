@@ -350,7 +350,7 @@ type SignoutOpts = {
 /**
  * Functions to log users in and out.
  *
- * @see https://instantdb.com/docs/auth
+ * @see https://sidekickdb.co/docs/auth
  */
 class Auth {
   constructor(private db: Reactor) {}
@@ -361,7 +361,7 @@ class Auth {
    * Once you send the magic code, see {@link auth.signInWithMagicCode} to let the
    * user verify.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *  db.auth.sendMagicCode({email: "example@gmail.com"})
    *    .catch((err) => console.error(err.body?.message))
@@ -375,7 +375,7 @@ class Auth {
   /**
    * Verify a magic code that was sent to the user's email address.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    *
    * @example
    *  db.auth.signInWithMagicCode({email: "example@gmail.com", code: "123456"})
@@ -390,7 +390,7 @@ class Auth {
   /**
    * Sign in a user with a refresh token
    *
-   * @see https://instantdb.com/docs/backend#frontend-auth-sign-in-with-token
+   * @see https://sidekickdb.co/docs/backend#frontend-auth-sign-in-with-token
    *
    * @example
    *   // Get the token from your backend
@@ -405,7 +405,7 @@ class Auth {
   /**
    * Sign in as guest, creating a new user without email
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    *
    * @example
    *   db.auth.signInAsGuest();
@@ -417,7 +417,7 @@ class Auth {
   /**
    * Create an authorization url to sign in with an external provider.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    *
    * @example
    *   // Get the authorization url from your backend
@@ -440,7 +440,7 @@ class Auth {
   /**
    * Sign in with the id_token from an external provider like Google
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   db.auth
    *  .signInWithIdToken({
@@ -464,7 +464,7 @@ class Auth {
   /**
    * Sign in with the id_token from an external provider like Google
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   db.auth
    *  .exchangeOAuthCode({
@@ -488,7 +488,7 @@ class Auth {
    * expo-auth-session that use auto-discovery of
    * OAuth parameters.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   const discovery = useAutoDiscovery(
    *     db.auth.issuerURI()
@@ -521,7 +521,7 @@ class Storage {
   /**
    * Uploads file at the provided path.
    *
-   * @see https://instantdb.com/docs/storage
+   * @see https://sidekickdb.co/docs/storage
    * @example
    *   const [file] = e.target.files; // result of file input
    *   const data = await db.storage.uploadFile('photos/demo.png', file);
@@ -548,7 +548,7 @@ class Storage {
    *   // Delete multiple files
    *   db.transact(fileIds.map(id => db.tx.$files[id].delete()));
    *
-   * @see https://instantdb.com/docs/storage
+   * @see https://sidekickdb.co/docs/storage
    */
   delete = (pathname: string) => {
     return this.db.deleteFile(pathname);
@@ -679,7 +679,7 @@ class InstantCoreDatabase<
   /**
    * Use this to write data! You can create, update, delete, and link objects
    *
-   * @see https://instantdb.com/docs/instaml
+   * @see https://sidekickdb.co/docs/instaml
    *
    * @example
    *   // Create a new object in the `goals` namespace
@@ -712,7 +712,7 @@ class InstantCoreDatabase<
   /**
    * Use this to query your data!
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *  // listen to all goals
@@ -780,7 +780,7 @@ class InstantCoreDatabase<
    * Listen for the logged in state. This is useful
    * for deciding when to show a login screen.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   const unsub = db.subscribeAuth((auth) => {
    *     if (auth.user) {
@@ -799,7 +799,7 @@ class InstantCoreDatabase<
    * for scenarios where you want to know the current auth
    * state without subscribing to changes.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   const user = await db.getAuth();
    *   console.log('logged in as', user.email)
@@ -812,7 +812,7 @@ class InstantCoreDatabase<
    * Listen for connection status changes to Instant. This is useful
    * for building things like connectivity indicators
    *
-   * @see https://www.instantdb.com/docs/patterns#connection-status
+   * @see https://sidekickdb.co/docs/patterns#connection-status
    * @example
    *   const unsub = db.subscribeConnectionStatus((status) => {
    *     const connectionState =
@@ -853,7 +853,7 @@ class InstantCoreDatabase<
   /**
    * Join a room to publish and subscribe to topics and presence.
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    * @example
    * // init
    * const db = init();
@@ -906,7 +906,7 @@ class InstantCoreDatabase<
    * Because we want to avoid stale data, this method will throw an error
    * if the user is offline or there is no active connection to the server.
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *
@@ -971,7 +971,7 @@ function schemaChanged(
  *
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` :)
+ * Find your `appId` in your SidekickDB dashboard.
  *
  * @example
  *  import { init } from "@sidekickdb/core"
@@ -992,7 +992,7 @@ function schemaChanged(
  *    schema,
  *  })
  *
- *  // To learn more: https://instantdb.com/docs/modeling-data
+ *  // To learn more: https://sidekickdb.co/docs/modeling-data
  */
 function init<
   Schema extends InstantSchemaDef<any, any, any> = InstantUnknownSchema,

@@ -324,12 +324,12 @@ export default class Reactor {
     }
 
     if (!config.appId) {
-      throw new Error('Instant must be initialized with an appId.');
+      throw new Error('SidekickDB must be initialized with an appId.');
     }
 
     if (!validateUUID(config.appId)) {
       throw new Error(
-        `Instant must be initialized with a valid appId. \`${config.appId}\` is not a valid uuid.`,
+        `SidekickDB must be initialized with a valid appId. \`${config.appId}\` is not a valid uuid.`,
       );
     }
 
@@ -1198,7 +1198,7 @@ export default class Reactor {
     if (!this.querySubs) {
       dfd.reject(
         new Error(
-          "We can't run `queryOnce` on the backend. Use adminAPI.query instead: https://www.instantdb.com/docs/backend#query",
+          "We can't run `queryOnce` on the backend. Use adminAPI.query instead: https://sidekickdb.co/docs/backend#query",
         ),
       );
       return dfd.promise;

@@ -11,7 +11,7 @@ import version from './version.ts';
  *
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` :)
+ * Find your `appId` in your SidekickDB dashboard.
  *
  * @example
  *  import { init } from "@sidekickdb/react"
@@ -25,7 +25,7 @@ import version from './version.ts';
  *
  *  const db = init({ appId: "my-app-id", apiURI: "https://sidekick.example.com", schema })
  *
- *  // To learn more: https://instantdb.com/docs/modeling-data
+ *  // To learn more: https://sidekickdb.co/docs/modeling-data
  */
 export function init<
   Schema extends InstantSchemaDef<any, any, any> = InstantUnknownSchema,

@@ -960,6 +960,31 @@ assert it. In the starters and the rules file keep SidekickDB's name and add no
 image from instantdb.com; copy the rules file to its template copy after
 every edit.
 
+SDK source and server error links: in `client/packages/*/src` of admin, core,
+react, react-common, react-native, solidjs, svelte and vue, every docs link
+(`@see`, "To learn more", the `queryOnce` error in `core/src/Reactor.js`)
+points at `https://sidekickdb.co/docs/...` with upstream's path and anchor, as
+do the two `:doc-urls`/message links in `server/src/instant/util/exception.clj`.
+The `init` doc comments say "Find your `appId` in your SidekickDB dashboard"
+instead of linking to Instant's hosted dashboard. The appId errors in
+`core/src/Reactor.js` and `admin/src/index.ts` and the missing-store error in
+`react-native/src/Storage.native.ts` say "SidekickDB". The example addresses in
+the admin doc comments are at example.com, and the unexpected-error text in
+`components/src/components/explorer/edit-namespace-dialog.tsx` asks the user to
+share the details with the administrator of their server. These edits carry no
+`SidekickDB:` comment (one per doc comment would be noise). Left as upstream's:
+`'Instant Signature did not validate'` in `webhooks/src/index.ts`, because the
+same file compares the message as a string and it names the `Instant-Signature`
+header; the `knownKeys` entry for `https://api.instantdb.com`; the instantdb.com
+addresses in test data; identifiers and `X-Instant-*` headers.
+
+**Resolving the SDK links:** upstream edits these doc comments often, so a sync
+that touches a line next to a swapped link conflicts. Take upstream's line and
+swap the host again (`instantdb.com/docs` or `www.instantdb.com/docs` becomes
+`sidekickdb.co/docs`); give a docs link upstream adds the same treatment, and
+reword a new `instantdb.com/dash` or other non-docs instantdb.com link without
+a URL. In `exception.clj` take upstream's change and keep the host swap.
+
 ### NOTICE file
 
 `NOTICE`: SidekickDB's own attribution notice. It names InstantDB as the
