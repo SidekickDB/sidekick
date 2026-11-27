@@ -16,3 +16,12 @@ divergences". Some of them are marked with a "SidekickDB:" comment in the
 file; most changed files carry no per-file marker. Every change is recorded
 in the git history, which also keeps the original authors of every upstream
 commit.
+
+The admin package contains a copy of eventsource
+(https://github.com/EventSource/eventsource) by Espen Hovlandsdal and
+contributors, as published in the @instantdb/eventsource 4.1.0-2 package,
+which adds a "messageEvent" option, with one type taken from eventsource
+5.1.5. It is in client/packages/admin/src/eventsource/ in the repository and
+in src/eventsource/ in the @sidekickdb/admin package, and is licensed under
+the MIT License, Copyright (c) EventSource GitHub organisation. The license
+text is in the LICENSE file in that directory.

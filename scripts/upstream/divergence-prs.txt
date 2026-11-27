@@ -58,3 +58,4 @@
 74 brand
 73 brand
 79 selfhost
+78 admin-eventsource
