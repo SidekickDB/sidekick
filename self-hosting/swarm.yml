@@ -33,6 +33,9 @@ services:
       - "shared_preload_libraries=pg_hint_plan"
       - "-c"
       - "random_page_cost=1.1"
+      # SidekickDB: JIT off, its compile time made large transactions slow; delete these two lines to turn it back on (README.md, "Postgres JIT").
+      - "-c"
+      - "jit=off"
   www:
     image: "${DASHBOARD_IMAGE:-ghcr.io/sidekickdb/dashboard:latest}"
     healthcheck:
@@ -146,6 +149,12 @@ services:
       # DNS-over-HTTPS resolvers for outbound requests (webhooks, OAuth); "system"
       # uses the system resolver. Unset means Cloudflare and Google DoH.
       INSTANT_DNS_OVER_HTTPS_URLS: ${INSTANT_DNS_OVER_HTTPS_URLS:-}
+      # Seconds over which a stopping server closes its WebSockets; see
+      # README.md, "Restarts and rolling updates". Unset means 20.
+      INSTANT_SHUTDOWN_DRAIN_SECONDS: ${INSTANT_SHUTDOWN_DRAIN_SECONDS:-}
+      # Weight limit of each app's query cache, in bytes or with a k, m or g
+      # suffix. Unset means a quarter of the server's maximum heap.
+      INSTANT_QUERY_CACHE_MAX_BYTES: ${INSTANT_QUERY_CACHE_MAX_BYTES:-}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}
@@ -170,6 +179,9 @@ services:
       # header: content-encoding"). Backups set Content-Encoding: zstd, and the AWS
       # SDK's default checksum mode adds aws-chunked. when_required avoids that.
       AWS_REQUEST_CHECKSUM_CALCULATION: ${AWS_REQUEST_CHECKSUM_CALCULATION:-when_required}
+    # SidekickDB: room for the shutdown drain (20 s by default) and the rest
+    # of shutdown before Docker kills the server; its default is 10 s.
+    stop_grace_period: 60s
     secrets:
       - source: server_config
         target: /app/resources/config/override.edn

@@ -15,8 +15,9 @@
 // 3. `docker compose up` of self-hosting/docker-compose.yml plus
 //    compose.two-node.yml: postgres, storage, createbuckets and two server
 //    containers. The dashboard is not started.
-// 4. Waits until both nodes answer GET /, then runs smoke.mjs with one node
-//    as A and the other as B.
+// 4. Waits until both nodes answer GET /, checks that Postgres answers
+//    `show jit` with `off`, then runs smoke.mjs with one node as A and the
+//    other as B.
 // 5. With --restart, restarts node A, waits for it, and runs smoke.mjs again.
 //
 // Writes <out>/result.json, and <out>/logs.txt with every container's log.
@@ -277,6 +278,24 @@ try {
     ns.map((n) => `${n.container} ${n.ip} ${n.url}`).join(", "),
     `after ${Math.round((Date.now() - t0) / 1000)} s`,
   );
+
+  // The shipped compose file starts Postgres with -c jit=off.
+  const jit = tryRun(
+    "docker",
+    [
+      ...dcArgs,
+      "exec",
+      "-T",
+      "postgres",
+      "sh",
+      "-c",
+      'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "show jit"',
+    ],
+    { timeout: 30_000 },
+  );
+  result.postgres_jit = jit.ok ? jit.stdout.trim() : null;
+  log(`postgres: show jit -> ${result.postgres_jit ?? jit.stderr.trim()}`);
+  if (result.postgres_jit !== "off") failed = true;
 
   log("smoke");
   result.smoke = smoke(ns);

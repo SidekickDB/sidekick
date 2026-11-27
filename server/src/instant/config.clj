@@ -78,6 +78,36 @@
   []
   (and (dev?) (not (self-hosted?))))
 
+;; SidekickDB: how long `instant.core/stop` spreads the closing of WebSockets
+;; over. INSTANT_SHUTDOWN_DRAIN_SECONDS (or SIDEKICK_SHUTDOWN_DRAIN_SECONDS)
+;; sets it in any mode. Unset, a self-hosted server drains for 20 s, and nil
+;; leaves upstream's drain (1 s in :dev, 4 minutes otherwise) to the caller.
+;; `init` checks the value, so an invalid one stops the server at startup.
+(def default-self-hosted-drain-seconds 20)
+
+(def max-shutdown-drain-seconds 3600)
+
+(defn parse-shutdown-drain-seconds
+  "The drain in seconds: `value` is a whole number from 0 to 3600; nil or
+   blank gives nil."
+  [value]
+  (when-let [value (some-> value string/trim not-empty)]
+    (let [seconds (some-> (re-matches #"\d{1,4}" value) parse-long)]
+      (when-not (and seconds (<= seconds max-shutdown-drain-seconds))
+        (throw (ex-info (str (env/describe "INSTANT_SHUTDOWN_DRAIN_SECONDS")
+                             " is " (pr-str value) ". Use a whole number of"
+                             " seconds from 0 to " max-shutdown-drain-seconds
+                             ", or leave it unset.")
+                        {:value value})))
+      seconds)))
+
+(defn shutdown-drain-opts []
+  (when-let [seconds (or (parse-shutdown-drain-seconds
+                          (env/getenv "INSTANT_SHUTDOWN_DRAIN_SECONDS"))
+                         (when (self-hosted?) default-self-hosted-drain-seconds))]
+    {:total-ms (* 1000 seconds)
+     :max-gap-ms 1000}))
+
 (defn runtime-mode-errors
   "Problems with the runtime mode setting, as messages. Empty when it is fine."
   []
@@ -220,8 +250,9 @@
    :team "INSTANT_TEAM_EMAIL_SENDER_EMAIL"})
 
 (defn dashboard-email-sender []
+  ;; SidekickDB: the default sender name is SidekickDB (upstream: Instant).
   {:name (or (non-blank-env "INSTANT_DASHBOARD_EMAIL_SENDER_NAME")
-             "Instant")
+             "SidekickDB")
    :email (non-blank-env (:dashboard email-sender-env-vars))})
 
 (defn app-email-sender []
@@ -229,8 +260,9 @@
    :email (non-blank-env (:app email-sender-env-vars))})
 
 (defn team-email-sender []
+  ;; SidekickDB: the default sender name is SidekickDB (upstream: Instant).
   {:name (or (non-blank-env "INSTANT_TEAM_EMAIL_SENDER_NAME")
-             "Instant")
+             "SidekickDB")
    :email (non-blank-env (:team email-sender-env-vars))})
 
 (defn email-provider
@@ -652,9 +684,45 @@
          :webhook 1
          :webhook-config 2)))
 
+;; SidekickDB: the default weight limit of each app's datalog query cache
+;; (reactive/store.clj). Upstream fixes it at 500 MiB, most of the heap the
+;; self-hosted stack gives the server. INSTANT_QUERY_CACHE_MAX_BYTES sets it;
+;; unset, it is a quarter of the maximum heap, at most upstream's 500 MiB.
+(def upstream-query-cache-max-bytes (* 1024 1024 500))
+
+(defn parse-query-cache-max-bytes
+  "The limit in bytes. `value` is a positive number of bytes, optionally with a
+   k, m or g suffix (powers of 1024); nil or blank means a quarter of
+   `max-heap`, at most 500 MiB."
+  [value max-heap]
+  (if-let [value (some-> value string/trim not-empty)]
+    (let [[_ n unit] (re-matches #"(?i)(\d{1,18})([kmg]?)" value)
+          bytes (some-> n
+                        parse-long
+                        (*' (case (string/lower-case unit)
+                              "" 1
+                              "k" 1024
+                              "m" (* 1024 1024)
+                              "g" (* 1024 1024 1024))))]
+      (when-not (and bytes (pos? bytes) (<= bytes Long/MAX_VALUE))
+        (throw (ex-info (str (env/describe "INSTANT_QUERY_CACHE_MAX_BYTES")
+                             " is " (pr-str value) ". Use a positive number of"
+                             " bytes, optionally with a k, m or g suffix (512m).")
+                        {:value value})))
+      (long bytes))
+    (min (quot max-heap 4) upstream-query-cache-max-bytes)))
+
+(defn query-cache-max-bytes []
+  (parse-query-cache-max-bytes (env/getenv "INSTANT_QUERY_CACHE_MAX_BYTES")
+                               (Runtime/.maxMemory (Runtime/getRuntime))))
+
 (defn init []
   (when-let [errors (seq (runtime-mode-errors))]
     (throw (ex-info (string/join " " errors) {:runtime-mode (runtime-mode-value)})))
+  ;; SidekickDB: fail at startup on an invalid query cache size
+  (query-cache-max-bytes)
+  ;; SidekickDB: and on an invalid shutdown drain, not only when stopping
+  (shutdown-drain-opts)
   ;; instantiate the config-map so we can fail early if it's not
   ;; valid
   (let [config @config-map]

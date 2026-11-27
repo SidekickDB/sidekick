@@ -111,6 +111,14 @@ encrypted, so never regenerate or replace the secret of a running deployment.
   publishes port 8890 on `127.0.0.1` only, and `swarm.yml` does not publish it.
   See [Postgres port](#postgres-port) if a tool on another machine connects to
   it.
+- Postgres now runs with JIT off; see [Postgres JIT](#postgres-jit). The
+  setting is a flag in the container's command, so it applies when the
+  Postgres container restarts with the new file: `docker compose up -d`
+  recreates it because its command changed, and `docker stack deploy` (which
+  `deploy-swarm.sh` runs) restarts the single Postgres replica. Either way the
+  database is unavailable while Postgres restarts. The server is not
+  restarted; it reconnects on its own. Nothing is written to the data volume,
+  so removing the flag later turns JIT back on.
 
 ### Renaming the storage keys
 
@@ -207,6 +215,30 @@ Postgres over the Docker network and needs no published port.
 
   `deploy-swarm.sh` deploys `swarm.yml` alone.
 
+## Postgres JIT
+
+The compose files and `swarm.yml` start Postgres with `-c jit=off`, so
+Postgres does not compile parts of a query to machine code with LLVM. JIT can
+make long analytical queries faster, but it adds compile time to every query
+whose estimated cost passes `jit_above_cost`.
+
+To check a transaction's permissions, the server loads every entity the
+transaction touches in one query, with one sub-query per entity. For a large
+transaction that is one large query, and JIT spends its time compiling it. In
+CI, that query for a cascade delete of 1,365 entities took 3.6 s with JIT on
+(9,556 functions compiled) and about 0.3 s with JIT off. In four other CI runs
+the same query passed the server's 30 s query timeout; that JIT caused those
+timeouts is inferred from where they happened, not measured. Nothing was
+measured on a production-sized database.
+
+To turn JIT back on, delete the two lines `- "-c"` and `- "jit=off"` from the
+`command:` of the `postgres` service and recreate the container. To keep the
+shipped file unchanged, set `command:` for `postgres` in a compose override
+file instead; Compose replaces the whole list, so repeat the other flags
+without `jit=off`. A flag on the command line takes precedence over
+`ALTER SYSTEM`, so `ALTER SYSTEM SET jit = on` has no effect while the flag is
+there. A single session can still run `SET jit = on`.
+
 ## Server memory
 
 The server container has a memory limit, `SERVER_MEMORY_LIMIT` (default `2g`),
@@ -229,6 +261,21 @@ grow as large as the heap, so heap plus direct memory can in principle exceed
 the container limit, and the kernel then kills the container. If that happens,
 raise `SERVER_MEMORY_LIMIT`, or lower `-XX:MaxRAMPercentage` or add
 `-XX:MaxDirectMemorySize=...` in `JAVA_OPTS`.
+
+### Query cache
+
+The server keeps recent query results in a cache, one per app with connected
+clients. Its limit is a weight that estimates the heap the results take (four
+times the size of the result rows Postgres sends). By default the limit is a
+quarter of the maximum heap, at most 500 MiB (upstream's fixed limit): about
+300 MiB with the defaults above, growing with the heap when you raise
+`SERVER_MEMORY_LIMIT` until the heap reaches 2 GiB. Set
+`SIDEKICK_QUERY_CACHE_MAX_BYTES` to choose it yourself, in bytes or with a `k`,
+`m` or `g` suffix (`512m`, `2g`). An invalid value stops the server at startup.
+
+The limit applies to each app's cache on its own, so with several busy apps the
+caches together can take more. Lower the limit, or raise `SERVER_MEMORY_LIMIT`,
+if the server runs out of heap with many active apps.
 
 ## Runtime mode
 
@@ -261,6 +308,26 @@ In the self-hosted mode:
 
 To switch it off, set `SIDEKICK_RUNTIME_MODE=default` in `.env` (or pass
 `-e INSTANT_RUNTIME_MODE=default` to `docker run`) and recreate the server.
+
+## Restarts and rolling updates
+
+When the server stops (`docker compose restart`, a new image, or a rolling
+update of the two replicas in `swarm.yml`), it stops accepting new requests and
+then closes its WebSockets at a steady rate over 20 seconds, at most one per
+second apart. Clients reconnect on their own and send again any changes that
+were not yet acknowledged, so a restart reaches them as reconnects spread over
+that time instead of all at once.
+
+Set `SIDEKICK_SHUTDOWN_DRAIN_SECONDS` (or `INSTANT_SHUTDOWN_DRAIN_SECONDS`) to
+a whole number of seconds from 0 to 3600 to change it; `0` closes every
+connection at once. Any other value stops the server at startup with a message
+naming the variable (earlier versions logged a warning and used 20 seconds).
+The compose files and
+`swarm.yml` give the server 60 seconds to stop (`stop_grace_period`) before
+Docker kills it. After the drain the server waits up to 20 seconds for open
+requests and then stops its background jobs, so keep the drain below about 35
+seconds or raise `stop_grace_period` with it. Outside the self-hosted mode, an unset value keeps
+upstream's drain: 1 second in development and 4 minutes otherwise.
 
 ## Startup and DNS
 

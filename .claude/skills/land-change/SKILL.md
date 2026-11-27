@@ -26,9 +26,14 @@ Never commit to `main`.
   `UPSTREAM.md` under "Intentional divergences" (with how to resolve it at the
   next sync) and `scripts/upstream/divergences/<key>.mjs` (title and hint; a
   pull request for an existing divergence skips this), with the pull request
-  number as one line `<number> <key>` at the end of
-  `scripts/upstream/divergence-prs.txt`. Write that line only after
-  `gh pr create` has returned the number; never guess the next number. No PR
+  number as a file of its own, `scripts/upstream/divergence-prs/<number>`,
+  holding the key. Write that file only after `gh pr create` has returned the
+  number; never guess the next number. CI (`sidekick-checks.yml`) fails a pull
+  request that changes an inherited file (one that exists in the last merged
+  upstream commit) until that file is on the branch, so the first push of such
+  a pull request fails: that is expected. The log prints the commands to add
+  it; `node scripts/upstream/divergence-entry.mjs --pr <number>` runs the same
+  check locally. Upstream syncs are exempt. No PR
   number goes into an `UPSTREAM.md` heading. Details: "Maintaining the
   tooling" in `UPSTREAM.md`.
 - New workflow file: name it `sidekick-*.yml`, pin actions to full commit SHAs
@@ -63,8 +68,13 @@ Commit and push only when asked.
 
 ```sh
 git push -u origin <branch>
-gh pr create -R SidekickDB/sidekick --base main --title "<type(scope): summary>" --body "<what, why, how it was checked>"
+gh pr create -R SidekickDB/sidekick --base main --title "<type(scope): summary>" --body-file <file>
 ```
+
+Write the description (what, why, how it was checked) to a uniquely named
+temporary file with the Write tool and pass it with `--body-file`, also for
+`gh pr edit` and `gh pr comment`. Text inside the command can trip the
+upstream deny rules in `.claude/settings.json` when it quotes them.
 
 The repository is public: nothing confidential in titles, descriptions, commit
 messages or comments. Put the PR link in the card.

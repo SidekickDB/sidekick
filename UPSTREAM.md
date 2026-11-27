@@ -95,7 +95,7 @@ described below.
 | `rename.mjs` | Rename map, excluded paths, allowlist and guards |
 | `divergences.mjs` | Loads the divergences and attributes changed paths to them |
 | `divergences/<key>.mjs` | Title and resolution hint of one divergence |
-| `divergence-prs.txt` | Which PR belongs to which divergence, one per line |
+| `divergence-prs/<PR number>` | Which divergence a PR belongs to, one file per PR |
 | `*.test.mjs` | Tests: `node --test scripts/upstream/*.test.mjs` |
 
 ### 1. Report
@@ -230,7 +230,7 @@ Each row is a deliberate difference from upstream, the PR that introduced it, an
 how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences/<key>.mjs`). The PR numbers of
-each row are in `scripts/upstream/divergence-prs.txt`, not in the headings
+each row are files in `scripts/upstream/divergence-prs/`, not in the headings
 below, so that two open PRs do not edit the same line.
 
 ### CI lockdown
@@ -531,6 +531,19 @@ The self-hosted stack works without Instant infrastructure.
   `sidekick-self-hosting-check.yml`) runs the script with stand-ins for
   `docker` and `ssh` and fails when `swarm.yml` reads a variable it does not
   pass.
+- PR #84: the default weight limit of each app's datalog query cache in
+  `reactive/store.clj` is `config/query-cache-max-bytes`, a quarter of the
+  maximum heap, at most upstream's fixed 500 MiB, so it is smaller only on
+  heaps under 2 GiB. `INSTANT_QUERY_CACHE_MAX_BYTES` sets it; an invalid value
+  fails in `config/init`. The `:datalog-cache-max-weight` flag still wins.
+  The compose files, `swarm.yml`, `deploy-swarm.sh`, `.env.example` and
+  `README.md` carry the variable; tests in `config_test.clj`. If upstream
+  changes that default, keep the call to `config/query-cache-max-bytes`.
+- PR #94: the Postgres `command:` of the three compose files and `swarm.yml`
+  ends with `-c jit=off` (`README.md`, "Postgres JIT"). Upstream leaves JIT
+  on. `render-check.mjs` asserts the flag and the two-node smoke test fails
+  unless the running Postgres answers `show jit` with `off`. At a sync, keep
+  the flag; if upstream adds `-c` flags, add them next to it.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
@@ -674,6 +687,11 @@ Changes outside `config.clj`, each one small on purpose:
 - The three OAuth cookie sites (`runtime/routes.clj`, `oauth_apps/routes.clj`,
   `dash/routes.clj`) use `secure-cookies?`.
 - `db/hint_testing.clj`: queueing is a no-op until `start` runs.
+- `core.clj` `stop`: the WebSocket drain comes from
+  `config/shutdown-drain-opts` when it returns one (self-hosted, 20 s, or
+  `INSTANT_SHUTDOWN_DRAIN_SECONDS`), else upstream's `dev?` choice; covered by
+  `shutdown_drain_test.clj`. `config/init` checks the value, so an invalid
+  one fails at startup.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
@@ -763,6 +781,13 @@ and take its other changes in the file.
   `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
   `child-tracked-futures-are-canceled` in
   `server/test/instant/util/async_test.clj` (PR #69).
+- PR #93: `.github/workflows/clojure.yml` turns off Postgres JIT for the
+  test database. `on-delete-cascade-perf` in
+  `server/test/instant/db/transaction_test.clj` sometimes hit the 30 s query
+  timeout. With JIT on, its 1,365-CTE entity query was measured at 3.6 s when
+  its cost estimate crossed `jit_above_cost` (9,556 functions compiled); that
+  it passes 30 s once `jit_optimize_above_cost` is crossed is inferred, not
+  measured. Keep the setting if upstream rewrites the "Prepare database" step.
 - PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
   the receive timeout no longer removes the session's queries.
   `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
@@ -809,6 +834,30 @@ and take its other changes in the file.
   the security headers too. Tests `unmatched-routes-are-not-found` in
   `server/test/instant/core_test.clj` and `sunset-routes-are-gone` in
   `server/test/instant/dash/removed_routes_test.clj`.
+- PR #90: the essay live preview route,
+  `client/www/pages/api/intern/posts/watch/[slug].ts`, answers 404 unless
+  `NODE_ENV` is `development`. It and `getPostBySlug` in
+  `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
+  (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
+- PR #92: the self-hosted catch-all redirect in `client/www/next.config.js`
+  also leaves `/platform/oauth` alone. The server sends platform OAuth users
+  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
+  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
+- PR #85: `ensure-attrs-on-system-catalog-app` in
+  `server/src/instant/system_catalog_migration.clj` reads the system catalog
+  attrs and inserts the missing ones in one transaction on the write pool,
+  after `pg_advisory_xact_lock(hashtext('instant-system-catalog-migration'))`.
+  Upstream read and inserted without a lock, so of two nodes starting at once
+  on an empty database one could insert attrs the other had just inserted,
+  hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
+  Test `concurrent-boots-insert-catalog-attrs-once` in
+  `server/test/instant/system_catalog_migration_test.clj`.
+- PR #99: the example page, `client/www/app/examples/[slug]/page.tsx`,
+  serves only the slugs from `generateStaticParams` (`dynamicParams = false`)
+  and answers 404 for any other. `getExampleAppBySlug` in
+  `client/www/lib/examples/server.ts` looks the slug up in `appMetas` before
+  reading its file (`isExampleSlug`). Test
+  `client/www/__tests__/examples.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
@@ -851,7 +900,7 @@ upstream raised a server version minimum above SidekickDB's version; raise
 stack in `self-hosting/docker-compose.yml`: start-up time and its phases,
 per-step init times from the server log, per-service and server JVM memory,
 a small live-query workload, and smoke checks (`smoke.mjs`: dev headers,
-presence, streams, SSE). Since PR #23 it compares runtime modes
+presence, streams, SSE, dashboard login, file upload, on-demand backup). Since PR #23 it compares runtime modes
 (`--modes default,self-hosted`) in one job. See the README there for
 what is and is not measured. The workflow is read-only (`contents: read`, no
 secrets), runs on demand and on pull requests that change the harness, and
@@ -1041,6 +1090,18 @@ same file compares the message as a string and it names the `Instant-Signature`
 header; the `knownKeys` entry for `https://api.instantdb.com`; the instantdb.com
 addresses in test data; identifiers and `X-Instant-*` headers.
 
+Server emails and messages: the dashboard and team sender names default to
+"SidekickDB" (`config.clj`, and `self-hosting/.env.example`, which also says
+the app sender name is unused because app emails use the app's title). The
+team-invite and app-transfer emails say "[SidekickDB]" in the subject and
+"SidekickDB" as link text; the custom-sender verification email says "this
+server" and `postmark-user-note` names SidekickDB. Without a superuser email
+the rate-limit error asks users to contact the administrator of this server.
+The schema errors in `model/schema.clj` link to `config/dashboard-origin`
+instead of www.instantdb.com/dash. The signup-denied message says "this
+deployment" and the login-code log banner reads "SIDEKICKDB DASHBOARD LOGIN
+CODE". Each edit has a `SidekickDB:` comment.
+
 **Resolving the SDK links:** upstream edits these doc comments often, so a sync
 that touches a line next to a swapped link conflicts. Take upstream's line and
 swap the host again (`instantdb.com/docs` or `www.instantdb.com/docs` becomes
@@ -1094,9 +1155,8 @@ keeping `messageEvent`. If upstream moves to public `eventsource`, check that
 
 ### Upstream sync tooling
 
-`UPSTREAM.md`, `scripts/upstream/` and `.gitattributes`. Upstream has none of
-them, so they never conflict. If upstream adds a `.gitattributes`, keep its
-lines and SidekickDB's `merge=union` line for `divergence-prs.txt`.
+`UPSTREAM.md` and `scripts/upstream/`. Upstream has neither, so they never
+conflict.
 
 ## Re-check after every sync
 
@@ -1152,33 +1212,38 @@ instructions.
 - A new intentional divergence: add `scripts/upstream/divergences/<key>.mjs`
   (`export default { title, resolve }`; the file name is the key), a section
   under "Intentional divergences" with no PR number in its heading (directly
-  before "Upstream sync tooling", which stays last), and a line for the PR in
-  `scripts/upstream/divergence-prs.txt`. A PR for an existing divergence needs
-  only that line. Unlisted PRs are still attributed, under their own title.
-- `divergence-prs.txt`: one line per PR, `<PR number> <key>`, appended at the
-  end once `gh pr create` has returned the number. A PR with two concerns lists
-  both keys and needs an entry in `SPLIT` in `divergences.mjs` that picks one
-  by path. Lines starting with `#` are comments; keep the one header line as it
-  is. A union merge also keeps a line that one side deleted while the other
-  side appended: after merging a change that removes or re-keys a line, check
-  the file by hand.
+  before "Upstream sync tooling", which stays last), and a file for the PR in
+  `scripts/upstream/divergence-prs/`. A PR for an existing divergence needs
+  only that file. Unlisted PRs are still attributed, under their own title.
+- `divergence-prs/<PR number>`: one file per PR, holding its key, written once
+  `gh pr create` has returned the number
+  (`echo '<key>' > scripts/upstream/divergence-prs/<PR number>`, then
+  `git add` that file). A PR with two
+  concerns lists both keys on the one line and needs an entry in `SPLIT` in
+  `divergences.mjs` that picks one by path.
+- `sidekick-checks.yml` runs `scripts/upstream/divergence-entry.mjs` on every
+  PR. It fails when the PR changes, deletes or renames a path that exists in
+  the last upstream commit merged into the base and the head has no
+  `divergence-prs/<PR number>`; the first push of such a PR fails until the
+  file is added. That commit is read from origin's history (SidekickDB's
+  commits descend from its first commit, upstream's do not), so the job checks
+  out with `fetch-depth: 0` and fetches nothing from upstream. A sync PR is
+  exempt when it merges an upstream commit the base lacks and updates
+  [Last synced upstream commit](#last-synced-upstream-commit) to that commit.
 - Why this layout: two PRs that each record a divergence add different key
-  files and different lines in `divergence-prs.txt`, so the tooling data
-  merges without a conflict. The prose in this file still conflicts when two
-  such PRs add text in the same place (two new sections before "Upstream sync
-  tooling", or text in the same section): resolve it by hand and keep both.
-  `.gitattributes` merges `divergence-prs.txt` with `merge=union` (both added
-  lines are kept); everything else merges normally, so two edits of the same
-  hint still conflict. The union merge is relied on for a local `git merge`
-  only: do not count on GitHub's mergeability check or its "Update branch"
-  button applying it. `divergences.mjs` refuses to load, and
-  `divergences.test.mjs` fails, on what a union merge can leave behind (a
-  conflict marker, a PR listed twice, an unknown key, a malformed line).
+  files and different PR files, so the tooling data merges without a conflict,
+  in a local `git merge` and on GitHub alike. The prose in this file still
+  conflicts when two such PRs add text in the same place (two new sections
+  before "Upstream sync tooling", or text in the same section): resolve it by
+  hand and keep both. `divergences.mjs` refuses to load, and
+  `divergences.test.mjs` fails, on a PR file whose name is not a number, whose
+  content is not one or two keys (a conflict marker, a stray character), or
+  that names an unknown key, a key twice or a split that `SPLIT` does not know.
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
 - After changing the rules, run `node --test scripts/upstream/*.test.mjs` and
   `node scripts/upstream/normalize-rename.mjs --all --check`. On `main` the
   second must report no leftovers and no files to change (apart from
-  `client/www/recipes.ts` until its fix merges). CI does not run these tests
-  yet; run them by hand.
+  `client/www/recipes.ts` until its fix merges). CI runs the tests
+  (`sidekick-checks.yml`) but not the normalizer check; run that by hand.

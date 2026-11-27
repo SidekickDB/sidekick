@@ -74,7 +74,15 @@ P0 either.
 
 1. No work without a card; no card without the planner's review of its
    facts.
-2. One card in progress at a time.
+2. Several cards may be In progress at once, each with its own implementer,
+   branch and worktree. The guards:
+   - one card per implementer at a time;
+   - never two roles on the same card (see "Roles");
+   - an implementer changes only what its card needs, never files for other
+     cards; a finding outside the card is proposed to the planner;
+   - after another pull request merges to `main`, an open pull request may
+     have to merge `main`, rerun its checks and get a new review of its new
+     head before it can merge.
 3. A review finding is fixed in the same pull request if it belongs to the
    card. Anything else is proposed to the planner.
 4. A card is Done only when its "Done when" is observably true, not when the

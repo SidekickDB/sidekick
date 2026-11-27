@@ -46,7 +46,8 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
    `${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}` although
    `STORAGE_ACCESS_KEY` was set).
 3. Uses `self-hosting/docker-compose.yml` unchanged, plus `compose.bench.yml`,
-   which only publishes the server on `127.0.0.1:8888`.
+   which only publishes the server on `127.0.0.1:8888` and the storage API on
+   `127.0.0.1:9000` (the `S3_PUBLIC_ENDPOINT` file URLs are presigned for).
    Only postgres, storage and createbuckets are pulled; `up` runs with
    `--pull never`, and each sample checks that the server and dashboard
    containers run the image IDs built in step 1 (their local tags would
@@ -75,6 +76,13 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
      (one session writes, another reads it back) and SSE (a session whose
      WebSocket cannot connect falls back to SSE, which needs Node's
      `--experimental-eventsource`, and receives writes made over WebSocket);
+     and three paths a self-hoster uses first: dashboard login (no email
+     provider is set, so the one-time code is read from the server log),
+     file upload (a session uploads a file and downloads the same bytes from
+     its presigned URL) and an on-demand backup (the signed-in user creates
+     an app, writes to it, backs it up, waits for the job and checks that the
+     backup holds `config.json` and a non-empty `entities/items.jsonl`, the
+     entity type it wrote);
    - from the server log of the cold start: the phases container start,
      `Starting server...`, first init step and `Finished initializing`, the
      duration of every `init.finish.<step>` span, and the `init.skip.<step>`
@@ -96,7 +104,8 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
 - Many apps, large apps, large frames, deep permissions, bulk writes,
   pagination, presence, streams, files, backups, sync tables, webhooks,
   offline clients or SSE. Only WebSocket live queries and single writes are
-  timed; the smoke checks only confirm that presence, streams and SSE work.
+  timed; the smoke checks only confirm that presence, streams, SSE, login,
+  a file upload and a backup work.
 - PostgreSQL internals (WAL bytes, slot lag, query plans, walsender memory),
   GC pauses, metaspace (JDK 26's `GC.heap_info` no longer prints it), native
   memory breakdown (NMT is off), CPU time, disk I/O.
