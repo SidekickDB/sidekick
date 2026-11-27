@@ -102,7 +102,7 @@ export class InstantSolidDatabase<
   /**
    * Use this to write data! You can create, update, delete, and link objects
    *
-   * @see https://instantdb.com/docs/instaml
+   * @see https://sidekickdb.co/docs/instaml
    *
    * @example
    *   const goalId = id();
@@ -117,7 +117,7 @@ export class InstantSolidDatabase<
   /**
    * One time query for the logged in state.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *   const user = await db.getAuth();
    *   console.log('logged in as', user.email)
@@ -130,7 +130,7 @@ export class InstantSolidDatabase<
    * Use this for one-off queries.
    * Returns local data if available, otherwise fetches from the server.
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *  const resp = await db.queryOnce({ goals: {} });
@@ -152,7 +152,7 @@ export class InstantSolidDatabase<
   /**
    * Use this to query your data!
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *   const state = db.useQuery({ goals: {} });
@@ -216,7 +216,7 @@ export class InstantSolidDatabase<
    *
    * Only one top level namespace in the query is allowed.
    *
-   * @see https://instantdb.com/docs/instaql
+   * @see https://sidekickdb.co/docs/instaql
    *
    * @example
    *   const state = db.useInfiniteQuery({
@@ -298,7 +298,7 @@ export class InstantSolidDatabase<
    * Listen for the logged in state. This is useful
    * for deciding when to show a login screen.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *  function App() {
    *    const auth = db.useAuth();
@@ -325,7 +325,7 @@ export class InstantSolidDatabase<
    * Subscribe to the currently logged in user.
    * If the user is not logged in, this will throw an Error.
    *
-   * @see https://instantdb.com/docs/auth
+   * @see https://sidekickdb.co/docs/auth
    * @example
    *  function UserDisplay() {
    *    const user = db.useUser();
@@ -348,7 +348,7 @@ export class InstantSolidDatabase<
   /**
    * Listen for connection status changes to Instant.
    *
-   * @see https://www.instantdb.com/docs/patterns#connection-status
+   * @see https://sidekickdb.co/docs/patterns#connection-status
    * @example
    *  function App() {
    *    const status = db.useConnectionStatus();
@@ -402,7 +402,7 @@ export class InstantSolidDatabase<
   /**
    * Obtain a handle to a room, which allows you to listen to topics and presence data
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    *
    * @example
    *  const room = db.room('chat', roomId);
@@ -418,7 +418,7 @@ export class InstantSolidDatabase<
   /**
    * Hooks for working with rooms
    *
-   * @see https://instantdb.com/docs/presence-and-topics
+   * @see https://sidekickdb.co/docs/presence-and-topics
    *
    * @example
    *  const room = db.room('chat', roomId);
@@ -434,7 +434,7 @@ export class InstantSolidDatabase<
 /**
  * The first step: init your application!
  *
- * Visit https://instantdb.com/dash to get your `appId` :)
+ * Find your `appId` in your SidekickDB dashboard.
  *
  * @example
  *  import { init } from "@sidekickdb/solidjs"
