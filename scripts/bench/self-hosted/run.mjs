@@ -638,7 +638,10 @@ function smoke(mode) {
       '--server-container',
       containerId('server'),
     ],
-    { timeout: 180_000 },
+    // Worst case, every check runs into its own timeout (the backup poll
+    // alone may take 60 s): allow that rather than kill smoke.mjs and lose
+    // its per-check results.
+    { timeout: 600_000 },
   );
   const line = r.stdout.trim().split('\n').filter(Boolean).at(-1);
   try {

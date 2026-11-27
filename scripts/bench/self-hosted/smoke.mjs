@@ -21,7 +21,8 @@
 //             storage service must be reachable at that address);
 // - backup:   the signed-in user creates an app, writes to it, starts an
 //             on-demand backup, waits for the job to complete, and lists the
-//             backup's files, which must include config.json.
+//             backup's files, which must include config.json and a
+//             non-empty entities/items.jsonl (the entity type written).
 //
 // Prints one JSON object. Exits 1 if any check fails.
 
@@ -68,17 +69,26 @@ function track(db) {
   return db;
 }
 
-// A dashboard API call; throws on a non-2xx response.
+// A dashboard API call; throws on a non-2xx response or after timeoutMs.
 async function dash(path, { token, body } = {}) {
-  const res = await fetch(`${apiURI}${path}`, {
-    method: body ? 'POST' : 'GET',
-    headers: {
-      ...(body ? { 'content-type': 'application/json' } : {}),
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
-  const text = await res.text();
+  let res, text;
+  try {
+    res = await fetch(`${apiURI}${path}`, {
+      method: body ? 'POST' : 'GET',
+      headers: {
+        ...(body ? { 'content-type': 'application/json' } : {}),
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    text = await res.text();
+  } catch (e) {
+    if (e.name === 'TimeoutError') {
+      throw new Error(`${path}: no response after ${timeoutMs} ms`);
+    }
+    throw e;
+  }
   if (!res.ok) throw new Error(`${path}: ${res.status} ${text.slice(0, 300)}`);
   return JSON.parse(text);
 }
@@ -310,10 +320,13 @@ await check('backup', async () => {
     `/dash/apps/${appId}/backups/${job.app_backup_id}/files`,
     { token },
   );
+  const names = files.map((f) => `${f.name} (${f.size})`).join(', ');
   if (!files.some((f) => f.name === 'config.json')) {
-    throw new Error(
-      `backup has no config.json: ${files.map((f) => f.name).join(', ')}`,
-    );
+    throw new Error(`backup has no config.json: ${names}`);
+  }
+  // One zstd-compressed JSONL file per entity type: the write must be there.
+  if (!files.some((f) => f.name === 'entities/items.jsonl' && f.size > 0)) {
+    throw new Error(`backup has no non-empty entities/items.jsonl: ${names}`);
   }
   return {
     files: files.length,

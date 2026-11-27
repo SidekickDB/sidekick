@@ -439,7 +439,7 @@ export function smokeSection(groups) {
       (c) => `| ${c} | ${groups.map(([, s]) => checkCell(s, c)).join(' | ')} |`,
     ),
     '',
-    'headers: `X-Instant-Server-Hostname` on `GET /` is expected in `default` and absent in `self-hosted`. presence: two sessions see each other in a room. streams: one session writes, a second reads the same bytes back. sse: a session whose WebSocket cannot connect falls back to SSE and receives 5 writes made over WebSocket. login: dashboard sign-in with the one-time code the server logs when no email provider is set. storage: a session uploads a file and downloads the same bytes from its presigned URL. backup: the signed-in user starts an on-demand backup of a new app, the job completes, and the backup holds config.json.',
+    'headers: `X-Instant-Server-Hostname` on `GET /` is expected in `default` and absent in `self-hosted`. presence: two sessions see each other in a room. streams: one session writes, a second reads the same bytes back. sse: a session whose WebSocket cannot connect falls back to SSE and receives 5 writes made over WebSocket. login: dashboard sign-in with the one-time code the server logs when no email provider is set. storage: a session uploads a file and downloads the same bytes from its presigned URL. backup: the signed-in user starts an on-demand backup of a new app, the job completes, and the backup holds config.json and a non-empty entities/items.jsonl.',
     '',
   ];
   const sse = groups.map(([, samples]) =>

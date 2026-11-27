@@ -81,7 +81,8 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
      file upload (a session uploads a file and downloads the same bytes from
      its presigned URL) and an on-demand backup (the signed-in user creates
      an app, writes to it, backs it up, waits for the job and checks that the
-     backup holds `config.json`);
+     backup holds `config.json` and a non-empty `entities/items.jsonl`, the
+     entity type it wrote);
    - from the server log of the cold start: the phases container start,
      `Starting server...`, first init step and `Finished initializing`, the
      duration of every `init.finish.<step>` span, and the `init.skip.<step>`
