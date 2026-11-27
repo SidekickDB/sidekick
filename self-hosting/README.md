@@ -2,7 +2,7 @@
 
 # Self-hosting SidekickDB
 
-The self-hosting guides are in this repository: [overview](../client/www/app/docs/self-hosting/page.md), [VPS](../client/www/app/docs/self-hosting/vps/page.md), [AWS](../client/www/app/docs/self-hosting/aws/page.md) and [migrating](../client/www/app/docs/self-hosting/migrate/page.md). Where a guide and this file disagree, this file is right for SidekickDB: the guides are inherited and still name upstream's images in places.
+The self-hosting guides are in this repository: [overview](../client/www/app/docs/self-hosting/page.md), [VPS](../client/www/app/docs/self-hosting/vps/page.md), [AWS](../client/www/app/docs/self-hosting/aws/page.md) and [migrating](../client/www/app/docs/self-hosting/migrate/page.md). Where a guide and this file disagree, this file is right for SidekickDB.
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
 

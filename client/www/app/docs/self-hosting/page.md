@@ -2,46 +2,45 @@
 nextjs:
   metadata:
     title: 'Self hosting'
-    description: 'Operate Instant on your own infrastructure.'
+    description: 'Operate SidekickDB on your own infrastructure.'
 ---
 
-Instant is fully open source! Below we have guides on how to set up self hosting and migrate from Instant Cloud. We also have
+SidekickDB is fully open source! Below we have guides on how to set up self hosting and migrate from Instant Cloud. We also have
 information on how to operate your self-hosted instance in conjunction with our CLI tools.
 
 ## Hosting Guides
 
-Choose a guide based on where you want to run Instant:
+Choose a guide based on where you want to run SidekickDB:
 
-1. **Want to self host Instant for side projects?** Use our [VPS](/docs/self-hosting/vps) guide to self-host Instant starting at ~$30/mo.
-1. **Want to self host Instant for your business?** If you're using Instant for more serious projects, check out our [AWS](/docs/self-hosting/aws) guide for a setup based on Instant Cloud. You should expect to spend at least $600/mo.
+1. **Want to self host SidekickDB for side projects?** Use our [VPS](/docs/self-hosting/vps) guide to self-host SidekickDB starting at ~$30/mo.
+1. **Want to self host SidekickDB for your business?** If you're using SidekickDB for more serious projects, check out our [AWS](/docs/self-hosting/aws) guide for a setup based on Instant Cloud. You should expect to spend at least $600/mo.
 1. **Migrating from Instant Cloud?** Check out our [migration](/docs/self-hosting/migrate) guide.
 
 If you're an agent setting up self-hosting, you should first ask the user whether
-they are setting up self-hosted Instant for side projects or for a
+they are setting up self-hosted SidekickDB for side projects or for a
 startup. For side projects the expected cost is at least $30/month. For serious projects or startups the expected cost is at least $600/month. Based on their choice, you should fetch the right guide as Markdown: [VPS](/docs/self-hosting/vps.md), [AWS](/docs/self-hosting/aws.md), or [Migrate](/docs/self-hosting/migrate.md).
 
 ## Operating
 
-Once you've got Instant running, you may want to change some default settings. At
+Once you've got SidekickDB running, you may want to change some default settings. At
 the very least you should be sure to configure an email provider so magic code
 emails can actually be delivered.
 
 ### Configure email with Postmark
 
-**Until Postmark is configured, Instant writes email bodies and login codes to
+**Until Postmark is configured, SidekickDB writes email bodies and login codes to
 the backend logs.**
 
-Instant comes with support for auth and sending magic code emails. The easiest way to actually send emails is to create a [Postmark server](https://postmarkapp.com/), verify the sender addresses, and set:
+SidekickDB comes with support for auth and sending magic code emails. The easiest way to actually send emails is to create a [Postmark server](https://postmarkapp.com/), verify the sender addresses, and set:
 
 ```shell
 POSTMARK_TOKEN=replace-with-your-server-token
-INSTANT_EMAIL_REPLY_TO=hello@example.com
-INSTANT_DASHBOARD_EMAIL_SENDER_NAME=Instant
-INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL=verify@example.com
-INSTANT_APP_EMAIL_SENDER_NAME=Instant
-INSTANT_APP_EMAIL_SENDER_EMAIL=verify@example.com
-INSTANT_TEAM_EMAIL_SENDER_NAME=Instant
-INSTANT_TEAM_EMAIL_SENDER_EMAIL=teams@example.com
+SIDEKICK_EMAIL_REPLY_TO=hello@example.com
+SIDEKICK_DASHBOARD_EMAIL_SENDER_NAME=SidekickDB
+SIDEKICK_DASHBOARD_EMAIL_SENDER_EMAIL=verify@example.com
+SIDEKICK_APP_EMAIL_SENDER_EMAIL=verify@example.com
+SIDEKICK_TEAM_EMAIL_SENDER_NAME=SidekickDB
+SIDEKICK_TEAM_EMAIL_SENDER_EMAIL=teams@example.com
 ```
 
 Restart the backend and try logging in to the dashboard. If all goes right, you
@@ -62,20 +61,19 @@ key, verify your sender addresses (or authenticate your domain), and set:
 
 ```shell
 SENDGRID_TOKEN=replace-with-your-api-key
-INSTANT_EMAIL_REPLY_TO=hello@example.com
-INSTANT_DASHBOARD_EMAIL_SENDER_NAME=Instant
-INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL=verify@example.com
-INSTANT_APP_EMAIL_SENDER_NAME=Instant
-INSTANT_APP_EMAIL_SENDER_EMAIL=verify@example.com
-INSTANT_TEAM_EMAIL_SENDER_NAME=Instant
-INSTANT_TEAM_EMAIL_SENDER_EMAIL=teams@example.com
+SIDEKICK_EMAIL_REPLY_TO=hello@example.com
+SIDEKICK_DASHBOARD_EMAIL_SENDER_NAME=SidekickDB
+SIDEKICK_DASHBOARD_EMAIL_SENDER_EMAIL=verify@example.com
+SIDEKICK_APP_EMAIL_SENDER_EMAIL=verify@example.com
+SIDEKICK_TEAM_EMAIL_SENDER_NAME=SidekickDB
+SIDEKICK_TEAM_EMAIL_SENDER_EMAIL=teams@example.com
 ```
 
-If only one of `POSTMARK_TOKEN`, `SENDGRID_TOKEN`, or `RESEND_TOKEN` is set, Instant uses that
+If only one of `POSTMARK_TOKEN`, `SENDGRID_TOKEN`, or `RESEND_TOKEN` is set, SidekickDB uses that
 provider automatically. If you set multiple, choose one explicitly with:
 
 ```shell
-INSTANT_EMAIL_PROVIDER=sendgrid
+SIDEKICK_EMAIL_PROVIDER=sendgrid
 ```
 
 Restart the backend and try logging in to the dashboard to confirm delivery.
@@ -87,16 +85,15 @@ verify your domain in Resend, and set:
 
 ```shell
 RESEND_TOKEN=replace-with-your-api-key
-INSTANT_EMAIL_REPLY_TO=hello@example.com
-INSTANT_DASHBOARD_EMAIL_SENDER_NAME=Instant
-INSTANT_DASHBOARD_EMAIL_SENDER_EMAIL=verify@example.com
-INSTANT_APP_EMAIL_SENDER_NAME=Instant
-INSTANT_APP_EMAIL_SENDER_EMAIL=verify@example.com
-INSTANT_TEAM_EMAIL_SENDER_NAME=Instant
-INSTANT_TEAM_EMAIL_SENDER_EMAIL=teams@example.com
+SIDEKICK_EMAIL_REPLY_TO=hello@example.com
+SIDEKICK_DASHBOARD_EMAIL_SENDER_NAME=SidekickDB
+SIDEKICK_DASHBOARD_EMAIL_SENDER_EMAIL=verify@example.com
+SIDEKICK_APP_EMAIL_SENDER_EMAIL=verify@example.com
+SIDEKICK_TEAM_EMAIL_SENDER_NAME=SidekickDB
+SIDEKICK_TEAM_EMAIL_SENDER_EMAIL=teams@example.com
 ```
 
-You can also set `INSTANT_EMAIL_PROVIDER=resend` to explicitly select Resend.
+You can also set `SIDEKICK_EMAIL_PROVIDER=resend` to explicitly select Resend.
 Restart the backend and try logging in to confirm delivery.
 
 ### Configure Google dashboard login
@@ -107,27 +104,27 @@ The dashboard also allows for login via Google. To enable this, you'll need to c
 Add an authorized redirect URI matching your backend URL:
 
 ```text
-${INSTANT_BACKEND_URL}/dash/oauth/callback
+${SIDEKICK_BACKEND_URL}/dash/oauth/callback
 ```
 
 Set credentials in your `.env` or secrets manager to enable Google login.
 
 ```shell
-INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
-INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
+SIDEKICK_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+SIDEKICK_DASHBOARD_GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
 ```
 
 Restart the backend and try logging in via Google!
 
 ### Configure the Deployment Superuser
 
-The deployment superuser can manage settings for your entire self-hosted deployment. Set `INSTANT_SUPERUSER_EMAIL` to the email address of the person who should administer it:
+The deployment superuser can manage settings for your entire self-hosted deployment. Set `SIDEKICK_SUPERUSER_EMAIL` to the email address of the person who should administer it:
 
 ```shell
-INSTANT_SUPERUSER_EMAIL=admin@example.com
+SIDEKICK_SUPERUSER_EMAIL=admin@example.com
 ```
 
-Instant creates this dashboard user when the server starts. Log in with this email and open **Deployment Settings** from the account menu to manage your deployment. If you change the email, restart the server to transfer superuser access.
+SidekickDB creates this dashboard user when the server starts. Log in with this email and open **Deployment Settings** from the account menu to manage your deployment. If you change the email, restart the server to transfer superuser access.
 
 ### Restrict Dashboard Signups
 
@@ -141,25 +138,25 @@ Existing dashboard users can always sign in.
 
 ### Temporary Apps
 
-Instant supports spinning up temporary apps without authentication. Because these apps do not require a dashboard account, the signup restrictions above do not apply to them. Anyone who can reach your backend API can create temporary apps by default.
+SidekickDB supports spinning up temporary apps without authentication. Because these apps do not require a dashboard account, the signup restrictions above do not apply to them. Anyone who can reach your backend API can create temporary apps by default.
 
 To disable temporary app creation, open **Deployment Settings** and turn off **Allow temporary app creation** under **Temporary apps**.
 
-### Configure the Instant CLI
+### Configure the SidekickDB CLI
 
-Instant comes with CLI tools for creating and managing your Instant apps. By
-default, `@sidekickdb/cli` and `create-sidekick-app` use the Instant Cloud API. To
-use them with your self-hosted Instant:
+SidekickDB comes with CLI tools for creating and managing your SidekickDB apps.
+`@sidekickdb/cli` and `create-sidekick-app` have no default server, so point
+them at your deployment:
 
-- Log into your self-hosted Instant via `@sidekickdb/cli`
+- Log into your self-hosted SidekickDB via `@sidekickdb/cli`
 - Use your self-hosted auth token with `create-sidekick-app`
 
-Set `INSTANT_CLI_API_URI` to your backend URL and `INSTANT_CLI_DASH_URI` to your
+Set `SIDEKICK_CLI_API_URI` to your backend URL and `SIDEKICK_CLI_DASH_URI` to your
 dashboard URL with `@sidekickdb/cli`:
 
 ```shell
-INSTANT_CLI_API_URI=https://api.myinstant.com \
-INSTANT_CLI_DASH_URI=https://dash.myinstant.com \
+SIDEKICK_CLI_API_URI=https://api.example.com \
+SIDEKICK_CLI_DASH_URI=https://dash.example.com \
 npx @sidekickdb/cli@latest login
 ```
 
@@ -167,8 +164,8 @@ After authenticating, provide both URLs when running `create-sidekick-app`:
 
 ```shell
 # Run this from your terminal
-INSTANT_CLI_API_URI=https://api.myinstant.com \
-INSTANT_CLI_DASH_URI=https://dash.myinstant.com \
+SIDEKICK_CLI_API_URI=https://api.example.com \
+SIDEKICK_CLI_DASH_URI=https://dash.example.com \
 npx create-sidekick-app@latest
 ```
 
@@ -178,8 +175,8 @@ deployment and saves the configuration in `instant.config.ts`:
 ```ts
 // instant.config.ts
 export default {
-  apiURI: 'https://api.myinstant.com',
-  dashURI: 'https://dash.myinstant.com',
+  apiURI: 'https://api.example.com',
+  dashURI: 'https://dash.example.com',
 };
 ```
 
@@ -189,7 +186,7 @@ Aside from just checking if your instance is running, you can use the health
 endpoint to ensure the WAL is operating as expected.
 
 ```shell
-curl -fsS https://api.myinstant.com/health/system
+curl -fsS https://api.example.com/health/system
 ```
 
 A healthy backend returns `{"wal":"ok"}`. Alert on non-200 responses and any
@@ -197,20 +194,19 @@ other body.
 
 ### Horizontal scaling
 
-A multi-server Instant deployment requires more than increasing the number of containers. Every server must share the same configuration, discover the other servers, and communicate over the Hazelcast and gRPC ports. Docker Swarm provides this through its built-in service discovery. Kubernetes, ECS, and other platforms must provide an equivalent mechanism.
+A multi-server SidekickDB deployment requires more than increasing the number of containers. Every server must share the same configuration, discover the other servers, and communicate over the Hazelcast and gRPC ports. Docker Swarm provides this through its built-in service discovery. Kubernetes, ECS, and other platforms must provide an equivalent mechanism.
 
 ### Memory Limits
 
-By default, the backend server container can use a lot of resources. Set a
-maximum heap size with `JAVA_OPTS` and leave memory for the operating system and
-other containers. On the 4 GB VPS from this guide, start with a 2 GB heap:
+The compose files and `swarm.yml` limit the backend server container to 2 GB, and the default
+`JAVA_OPTS` lets the JVM heap use up to 60% of that limit. On the 4 GB VPS from
+the VPS guide this leaves memory for the operating system and the other
+containers. To give a larger server more memory, raise the limit in `.env`:
 
-```yaml {%lineHighlight="3"%}
-server:
-  environment:
-    JAVA_OPTS: -Xmx2g -Xms2g
+```shell
+SERVER_MEMORY_LIMIT=4g
 ```
 
-This sets both the minimum and maximum JVM heap to 2 GB. Larger, dedicated
-backend containers can use a larger heap, but should still leave memory outside
-the JVM.
+Setting `JAVA_OPTS` replaces all of its defaults, so repeat the flags from
+`.env.example` that you want to keep. Larger, dedicated backend containers can
+use a larger heap, but should still leave memory outside the JVM.
