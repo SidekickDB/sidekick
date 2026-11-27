@@ -800,6 +800,10 @@ and take its other changes in the file.
   the security headers too. Tests `unmatched-routes-are-not-found` in
   `server/test/instant/core_test.clj` and `sunset-routes-are-gone` in
   `server/test/instant/dash/removed_routes_test.clj`.
+- PR #NNN: the self-hosted catch-all redirect in `client/www/next.config.js`
+  also leaves `/platform/oauth` alone. The server sends platform OAuth users
+  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
+  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
