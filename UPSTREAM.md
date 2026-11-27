@@ -842,6 +842,12 @@ and take its other changes in the file.
   hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
   Test `concurrent-boots-insert-catalog-attrs-once` in
   `server/test/instant/system_catalog_migration_test.clj`.
+- PR #99: the example page, `client/www/app/examples/[slug]/page.tsx`,
+  serves only the slugs from `generateStaticParams` (`dynamicParams = false`)
+  and answers 404 for any other. `getExampleAppBySlug` in
+  `client/www/lib/examples/server.ts` looks the slug up in `appMetas` before
+  reading its file (`isExampleSlug`). Test
+  `client/www/__tests__/examples.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
