@@ -70,7 +70,15 @@ function getMinutesForContent(content: string): number {
   return Math.max(1, Math.round(content.split(/\s+/).length / 250));
 }
 
+// SidekickDB: a slug is a plain file name in _posts.
+export function isPostSlug(slug: unknown): slug is string {
+  return typeof slug === 'string' && /^[a-z0-9_-]+$/i.test(slug);
+}
+
 export function getPostBySlug(slug: string): Post {
+  if (!isPostSlug(slug)) {
+    throw new Error('Invalid post slug');
+  }
   const file = fs.readFileSync(`${postsDir}/${slug}.md`, 'utf-8');
   const { data, content } = matter(file);
 

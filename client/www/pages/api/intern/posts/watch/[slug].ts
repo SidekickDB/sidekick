@@ -4,10 +4,14 @@
 import fs from 'fs';
 import path from 'path';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getPostBySlug } from '../../../../../lib/posts';
+import { getPostBySlug, isPostSlug } from '../../../../../lib/posts';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const slug = req.query.slug as string;
+  const slug = req.query.slug;
+  // SidekickDB: the live preview is for development only and takes a plain slug.
+  if (process.env.NODE_ENV !== 'development' || !isPostSlug(slug)) {
+    return res.status(404).json({ error: 'Post not found' });
+  }
   const filePath = path.resolve(process.cwd(), `_posts/${slug}.md`);
 
   if (!fs.existsSync(filePath)) {
