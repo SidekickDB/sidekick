@@ -957,6 +957,8 @@ project as SidekickDB:
   `discordInviteUrl`, `discordOAuthAppsFeedbackInviteUrl` and
   `bugsAndQuestionsInviteUrl` (nothing imported them from the package; the
   dashboard keeps its own copies in `client/www/lib/config.ts`).
+  The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
+  asks for an issue here instead of a message on upstream's Discord.
 - Docs links in what the CLI and `create-sidekick-app` print and write, the
   headers `platform/src/perms.ts` and `schema.ts` generate (and their tests),
   the agent rules and the 12 starters under `examples/` point at

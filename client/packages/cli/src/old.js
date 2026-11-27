@@ -64,7 +64,8 @@ function indexingJobCompletedActionMessage(job) {
   if (job.job_type === 'remove-required') {
     return `removing required constraint from ${job.attr_name}`;
   }
-  return `unexpected job type ${job.job_type} - please ping us on discord with this job id (${job.id})`;
+  // SidekickDB: points at this project's issue tracker, not upstream's chat.
+  return `unexpected job type ${job.job_type} - please open an issue at https://github.com/SidekickDB/sidekick/issues with this job id (${job.id})`;
 }
 
 function truncate(s, maxLen) {
