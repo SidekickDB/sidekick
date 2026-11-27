@@ -2,6 +2,7 @@
   (:require
    [clojure.test :refer [deftest is]]
    [honey.sql :as hsql]
+   [instant.config :as config]
    [instant.db.model.attr :as attr-model]
    [instant.jdbc.aurora :as aurora]
    [instant.jdbc.sql :as sql]
@@ -11,13 +12,17 @@
   (:import
    (java.util.concurrent CountDownLatch TimeUnit)))
 
+;; Uses its own connection, as the migration does: once a session has set
+;; these settings, they read as "" there afterwards and the delete triggers
+;; fail to cast them on any later transaction from the pool.
 (defn- delete-catalog-attr! [attr-id]
-  (next.jdbc/with-transaction [conn (aurora/conn-pool :write)]
-    (doseq [setting ["instant.allow_system_catalog_app_attr_delete"
-                     "instant.allow_system_catalog_app_ident_delete"]]
-      (sql/execute! conn (hsql/format {:select [[[:set_config setting "true" true]]]})))
-    (sql/execute! conn (hsql/format {:delete-from :attrs
-                                     :where [:= :id attr-id]})))
+  (with-open [new-conn (next.jdbc/get-connection (config/get-aurora-config))]
+    (next.jdbc/with-transaction [conn new-conn]
+      (doseq [setting ["instant.allow_system_catalog_app_attr_delete"
+                       "instant.allow_system_catalog_app_ident_delete"]]
+        (sql/execute! conn (hsql/format {:select [[[:set_config setting "true" true]]]})))
+      (sql/execute! conn (hsql/format {:delete-from :attrs
+                                       :where [:= :id attr-id]}))))
   (attr-model/evict-app-id-from-cache system-catalog/system-catalog-app-id))
 
 ;; SidekickDB: two nodes starting at once must not both insert the same
@@ -62,9 +67,12 @@
           (.countDown start)
           (is (= [:ok :ok] (mapv #(deref % 30000 :timeout) nodes)))
           (is (= 1 @insert-calls))))
-      (is (attr-model/seek-by-id (:id attr)
-                                 (attr-model/get-by-app-id*
-                                  (aurora/conn-pool :read)
-                                  system-catalog/system-catalog-app-id)))
+      ;; The inferred types are set after the locked transaction commits.
+      (is (= #{:string}
+             (:inferred-types
+              (attr-model/seek-by-id (:id attr)
+                                     (attr-model/get-by-app-id*
+                                      (aurora/conn-pool :read)
+                                      system-catalog/system-catalog-app-id)))))
       (finally
         (delete-catalog-attr! (:id attr))))))
