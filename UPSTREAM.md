@@ -1100,6 +1100,29 @@ swap the host again (`instantdb.com/docs` or `www.instantdb.com/docs` becomes
 reword a new `instantdb.com/dash` or other non-docs instantdb.com link without
 a URL. In `exception.clj` take upstream's change and keep the host swap.
 
+Dashboard (`client/www`, all builds): the login page and the platform OAuth
+consent page (`pages/platform/oauth/start.tsx`) show the plain text
+"SidekickDB" instead of Instant's logo. `app/layout.tsx` (`metadata.icons`)
+and `pages/_app.tsx` (`FavIconMeta`) link no favicons, touch icons or tiles
+and set the application name "SidekickDB"; Instant's files stay in
+`public/img/icon` until a SidekickDB mark is approved. `metadataBase` is unset
+outside Vercel and dev instead of falling back to www.instantdb.com. Page
+titles and visible text in `components/dash`, `pages/dash`,
+`components/admin/AdminPage.tsx`, `pages/_devtool`, `pages/debug-uri`,
+`app/intern`, `pages/intern/signup.tsx` and `components/Dev.tsx` say
+"SidekickDB"; text that named a server feature says what it is ("shared dev
+keys", "the server's callback", "the server's address"), and "Contact the
+Instant team" reads "Contact your deployment administrator". The two docs
+links (`Schema.tsx`, the devtool help) are relative `/docs/...` links like the
+dashboard's others, the placeholders are at example.com, and the "Join the
+community" Discord button on an app's home page is hidden when self-hosted.
+Only the structural edits carry a `SidekickDB:` comment. Left as upstream's:
+identifiers (`type InstantDB` in `Sandbox.tsx`, `InstantIssue`,
+`X-Instant-*`), comments, hosted-only branches and the hosted check in
+`Backups.tsx`. **Resolving:** keep SidekickDB's text and give a string upstream
+adds to these pages the same treatment; if upstream adds icons back to
+`metadata` or `FavIconMeta`, drop them.
+
 ### NOTICE file
 
 `NOTICE`: SidekickDB's own attribution notice. It names InstantDB as the

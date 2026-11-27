@@ -149,7 +149,7 @@ export default function InternIndexPage() {
           <div className="mt-12 mb-8 text-center">
             <H2>Access Denied</H2>
             <p className="mt-4 text-gray-600">
-              You need to be an Instant admin to access this page.
+              You need to be an admin of this server to access this page.
             </p>
           </div>
         </Section>
@@ -197,7 +197,7 @@ export default function InternIndexPage() {
           </div>
           <div className="space-y-2 text-gray-700">
             {isSelfHosted ? (
-              <p>Manage this Instant installation with the tools below.</p>
+              <p>Manage this SidekickDB installation with the tools below.</p>
             ) : (
               <>
                 <p>

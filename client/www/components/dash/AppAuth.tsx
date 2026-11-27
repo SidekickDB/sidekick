@@ -563,7 +563,7 @@ function ClientDetail({
           ) : null}
           {client.use_shared_credentials ? (
             <span className="rounded-full border px-2 py-0.5 text-xs text-gray-500 dark:border-neutral-700 dark:text-neutral-400">
-              Instant dev keys
+              Shared dev keys
             </span>
           ) : null}
         </div>
@@ -900,7 +900,7 @@ export function AppAuth({
           key={emailFormKey}
           app={app}
           defaultSenderEmail={
-            data.default_sender_email ?? 'verify@auth-pm.instantdb.com'
+            data.default_sender_email ?? "the server's default address"
           }
         />
       </AuthDetailLayout>

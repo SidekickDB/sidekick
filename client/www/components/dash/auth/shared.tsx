@@ -209,9 +209,8 @@ function RedirectUrlLabel() {
       <InfoTip>
         <div className="max-w-sm space-y-3 p-2 text-sm leading-relaxed text-gray-700 dark:text-neutral-300">
           <p>
-            By default, OAuth providers redirect users to Instant's callback.
-            During this redirect, users see "Redirecting to
-            api.instantdb.com..."
+            By default, OAuth providers redirect users to the server's callback.
+            During this redirect, users see "Redirecting to api.example.com..."
           </p>
           <p>
             With a custom redirect URI, users will instead see "Redirecting to
@@ -287,12 +286,13 @@ export function TestRedirectButton({ redirectTo }: { redirectTo: string }) {
 }
 
 // Shown under the redirect URI when a custom redirect is set: a reminder that
-// the user's URL must forward to Instant's callback, plus the callback to copy.
+// the user's URL must forward to the server's callback, plus the callback to
+// copy.
 export function RedirectForwardingNote({ redirectTo }: { redirectTo: string }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-gray-500 dark:text-neutral-400">
-        Your redirect URI must forward all query parameters to Instant's
+        Your redirect URI must forward all query parameters to the server's
         callback.
       </p>
       <Copyable label="Callback" value={defaultOAuthCallbackURL} />
