@@ -133,20 +133,23 @@ export const GUARDS = [
   },
   // Session `versions` keys, read by server/src/instant/reactive/session.clj:
   // '@instantdb/<pkg>': version / coreVersion / pkg.version / '1.2.3'.
-  // check.mjs also fails if the set of these keys changes.
+  // check.mjs also fails if the set of these keys changes. Not in a
+  // package.json, where "@instantdb/<pkg>": "1.2.3" is a dependency.
   {
     re: /(['"])@instantdb\/[\w-]+\1(?=\s*:\s*(?:[\w.]*[vV]ersion\b|(['"`])\d+\.\d+))/g,
     why: "session versions key (wire protocol)",
+    skip: (file) => path.posix.basename(file) === "package.json",
   },
 ];
 
 const MASK_RE = /\u0000(\d+)\u0000/g;
 
 /** Replace guarded spans with placeholders no rule can match. */
-function mask(line) {
+function mask(file, line) {
   const saved = [];
   let masked = line;
   for (const g of GUARDS) {
+    if (g.skip?.(file)) continue;
     masked = masked.replace(g.re, (m) => {
       saved.push(m);
       return `\u0000${saved.length - 1}\u0000`;
@@ -556,7 +559,7 @@ export function normalizeText(file, text) {
     if (!/instantdb|instant-cli|instant-app/.test(line)) return line;
     if (lineIsProtected(file, line)) return line;
     const orig = line;
-    const { masked, unmask } = mask(line);
+    const { masked, unmask } = mask(file, line);
     line = masked;
     const applicable = rules.filter((r) => {
       if (!sections) return true;
@@ -638,8 +641,7 @@ const LEFTOVER_CHECKS = [
   {
     id: "vendored-package",
     re: /@instantdb\\?\/([a-z0-9][a-z0-9-]*)/g,
-    // Unmasked: the session-versions guard would otherwise hide a
-    // dependency line such as "@instantdb/eventsource": "4.1.0-2".
+    // Unmasked: a vendored package is reported even where a guard masks it.
     unmasked: true,
     test: (m) => VENDORED.has(m[1]),
     hint: (m) => vendoredHint(m[1]),
@@ -730,7 +732,7 @@ export function scanLeftovers(file, text) {
   splitLines(text).forEach((line, i) => {
     if (!/instantdb|instant-cli|instant-app/.test(line)) return;
     if (lineIsProtected(file, line)) return;
-    const scan = mask(line).masked;
+    const scan = mask(file, line).masked;
     for (const c of LEFTOVER_CHECKS) {
       for (const m of (c.unmasked ? line : scan).matchAll(c.re)) {
         if (c.test(m, file)) {
