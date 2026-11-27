@@ -1,6 +1,7 @@
 # SidekickDB: boots two server nodes against one Postgres, found by each other
 # the way the replicas of self-hosting/swarm.yml are, and checks that a write
-# on one node reaches a subscriber on the other and that presence is shared
+# on one node reaches a subscriber on the other, that a stream written on one
+# node can be read on the other and that presence is shared
 # (scripts/smoke/two-node). See the README there for what is and is not the
 # same as a swarm deployment.
 #
@@ -28,6 +29,7 @@ on:
       - 'server/src/instant/reactive/invalidator.clj'
       - 'server/src/instant/util/hazelcast.clj'
       - 'server/src/instant/grpc*.clj'
+      - 'server/src/instant/model/app_stream.clj'
       - 'scripts/smoke/two-node/**'
       - 'scripts/bench/self-hosted/client.mjs'
       - '.github/workflows/sidekick-two-node-smoke.yml'

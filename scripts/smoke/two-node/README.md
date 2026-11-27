@@ -8,14 +8,22 @@ cluster:
   node A writes, and B sees the write. A subscriber on A watches the same
   query, so a failure shows whether the write reached its own node.
 - **write-b-to-a**: the same in the other direction.
+- **stream-a-to-b**: a client on A opens a write stream and writes part of
+  it, a client on B starts reading it, A writes the rest and closes it, and B
+  must read it in full. A reader asks the node that holds the stream's writer
+  for it over gRPC (port 5801); once a stream is closed it is served from file
+  storage instead, which is why B starts reading while the stream is open.
+- **stream-b-to-a**: the same in the other direction.
 - **presence**: a client on A and a client on B join one room and each sees
   the other (Hazelcast's shared rooms map, port 5701).
 
-Only presence needs the nodes to form a cluster. Each node invalidates its
-live queries from its own Postgres replication slot
-(`invalidator_<process-id>`), so the write checks pass even when the nodes do
-not find each other: with `SWARM_SERVICE_NAME` removed, both write checks
-passed and presence failed. The singleton invalidator, which holds one shared
+The stream checks and presence need the nodes to form a cluster; the write
+checks do not. Each node invalidates its live queries from its own Postgres
+replication slot (`invalidator_<process-id>`), so the write checks pass even
+when the nodes do not find each other. A node finds the node that holds a
+stream's writer through Hazelcast's member list; without it the reader gets no
+data. With `SWARM_SERVICE_NAME` removed, both write checks passed and presence
+and both stream checks failed. The singleton invalidator, which holds one shared
 slot and forwards WAL records to the other nodes over gRPC (port 5801), has
 no effect a client can see, so this test does not check it.
 
@@ -30,7 +38,8 @@ On GitHub: **Actions → Two-node smoke test → Run workflow**. The `restart`
 input also restarts node A after the first pass and runs the checks again.
 It also runs on pull requests that change `self-hosting/` (other than
 Markdown files), the server's clustering code (`server/src/instant/reactive/ephemeral.clj`,
-`reactive/invalidator.clj`, `util/hazelcast.clj`, `grpc*.clj`, `config.clj`),
+`reactive/invalidator.clj`, `util/hazelcast.clj`, `grpc*.clj`, `config.clj`,
+`model/app_stream.clj`),
 `server/deps.edn` (Hazelcast and gRPC versions), the self-hosted Dockerfile,
 the shared client helper
 (`scripts/bench/self-hosted/client.mjs`), this directory or the workflow. The job summary
@@ -87,4 +96,5 @@ deployment: the same server image, environment, startup script and ports.
 - Two nodes only, one Postgres, one runner. It says nothing about load,
   failover of Postgres or more than two nodes.
 - Not covered: the gRPC forwarding of the singleton invalidator (see above),
-  streams, SSE, files, the dashboard, rate limits shared across nodes.
+  a stream whose writer moves to another node, SSE, files, the dashboard,
+  rate limits shared across nodes.
