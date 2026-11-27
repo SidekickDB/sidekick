@@ -111,6 +111,9 @@ services:
       retries: 5
       start_period: 180s
     mem_limit: ${SERVER_MEMORY_LIMIT:-2g}
+    # SidekickDB: room for the shutdown drain (20 s by default) and the rest
+    # of shutdown before Docker kills the server; its default is 10 s.
+    stop_grace_period: 60s
     environment:
       # JVM flags. Defaults: heap up to 60% of the container memory limit, and
       # upstream's native-memory bounds (cap on cached NIO buffers, periodic
@@ -130,6 +133,9 @@ services:
       # DNS-over-HTTPS resolvers for outbound requests (webhooks, OAuth); "system"
       # uses the system resolver. Unset means Cloudflare and Google DoH.
       INSTANT_DNS_OVER_HTTPS_URLS: ${SIDEKICK_DNS_OVER_HTTPS_URLS:-${INSTANT_DNS_OVER_HTTPS_URLS:-}}
+      # Seconds over which a stopping server closes its WebSockets; see
+      # README.md, "Restarts and rolling updates". Unset means 20.
+      INSTANT_SHUTDOWN_DRAIN_SECONDS: ${SIDEKICK_SHUTDOWN_DRAIN_SECONDS:-${INSTANT_SHUTDOWN_DRAIN_SECONDS:-}}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}
