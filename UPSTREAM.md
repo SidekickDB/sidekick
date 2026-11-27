@@ -854,8 +854,9 @@ against one Postgres with `self-hosting/docker-compose.yml` and an override
 that sets `SWARM_SERVICE_NAME=server`, a shared `tasks.server` network alias
 and one shared `override.edn`, so the nodes find each other through the same
 `init-hz` swarm branch as the replicas of `swarm.yml`. It checks that a write
-on one node reaches a subscriber on the other, in both directions, and that
-presence is shared. The README there says what is and is not the same as a
+on one node reaches a subscriber on the other, that a stream written on one
+node can be read on the other, both in both directions, and that presence is
+shared. The README there says what is and is not the same as a
 swarm deployment. The workflow is read-only (`contents: read`, no secrets; the
 image is built with `push: false` and loaded locally), runs on demand and on
 pull requests that change self-hosting or clustering files, and `check.mjs`
