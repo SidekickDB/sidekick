@@ -431,6 +431,13 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `test:ci` script in `client/packages/components/package.json` is left out:
   SidekickDB already has it (higher up in `scripts`). When upstream merges
   #2956, keep a single `test:ci` there.
+- PR #80: instantdb/instant#2943 (after a local write, or a rejected or
+  timed-out mutation, notify only the live queries the write can affect;
+  fixes instantdb/instant#2942). Paths:
+  `client/packages/core/src/{Reactor.js,notifyScope.ts}` and
+  `client/packages/core/__tests__/src/notifyScope.test.ts`. In
+  `_cleanupQuery`, `this._queryFootprints.delete(hash)` sits after the
+  `_dataForQueryMemo` deletes from #2940: keep both lines.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
