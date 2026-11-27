@@ -1147,7 +1147,8 @@ instructions.
   only that file. Unlisted PRs are still attributed, under their own title.
 - `divergence-prs/<PR number>`: one file per PR, holding its key, written once
   `gh pr create` has returned the number
-  (`echo '<key>' > scripts/upstream/divergence-prs/<PR number>`). A PR with two
+  (`echo '<key>' > scripts/upstream/divergence-prs/<PR number>`, then
+  `git add` that file). A PR with two
   concerns lists both keys on the one line and needs an entry in `SPLIT` in
   `divergences.mjs` that picks one by path.
 - Why this layout: two PRs that each record a divergence add different key
@@ -1165,5 +1166,5 @@ instructions.
 - After changing the rules, run `node --test scripts/upstream/*.test.mjs` and
   `node scripts/upstream/normalize-rename.mjs --all --check`. On `main` the
   second must report no leftovers and no files to change (apart from
-  `client/www/recipes.ts` until its fix merges). CI does not run these tests
-  yet; run them by hand.
+  `client/www/recipes.ts` until its fix merges). CI runs the tests
+  (`sidekick-checks.yml`) but not the normalizer check; run that by hand.

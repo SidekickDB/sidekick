@@ -59,6 +59,10 @@ export function parseDivergencePrs(files) {
   for (const [name, text] of files) {
     if (name.startsWith(".")) continue;
     const where = `divergence-prs/${name}`;
+    if (text === null) {
+      problems.push(`${where}: a directory, not a file`);
+      continue;
+    }
     if (!/^\d+$/.test(name)) {
       problems.push(`${where}: not a PR number`);
       continue;
@@ -89,10 +93,14 @@ export const DIVERGENCE_PRS_DIR = fileURLToPath(
   new URL("./divergence-prs/", import.meta.url),
 );
 
+/** [file name, content] for each entry; content is null for a directory. */
 export function readDivergencePrs(dir = DIVERGENCE_PRS_DIR) {
   return fs
-    .readdirSync(dir)
-    .map((f) => [f, fs.readFileSync(path.join(dir, f), "utf8")]);
+    .readdirSync(dir, { withFileTypes: true })
+    .map((e) => [
+      e.name,
+      e.isDirectory() ? null : fs.readFileSync(path.join(dir, e.name), "utf8"),
+    ]);
 }
 
 // divergence-prs/ replaced a single list beside it, the same name plus .txt.
@@ -117,7 +125,10 @@ export function oldListMigration(text, entries) {
     const pr = Number(m[1]);
     const keys = m[2].trim().split(/ +/).join(" ");
     if (!have.has(pr))
-      commands.push(`echo '${keys}' > scripts/upstream/divergence-prs/${pr}`);
+      commands.push(
+        `echo '${keys}' > scripts/upstream/divergence-prs/${pr}`,
+        `git add scripts/upstream/divergence-prs/${pr}`,
+      );
     else if (have.get(pr) !== keys)
       commands.push(
         `# PR ${pr}: the old list says "${keys}", divergence-prs/${pr} says "${have.get(pr)}": keep the right one`,

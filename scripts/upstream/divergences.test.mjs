@@ -1,5 +1,8 @@
 // Run with: node --test scripts/upstream/*.test.mjs
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import {
   DIVERGENCES,
@@ -89,6 +92,7 @@ test("the reader reports bad names and contents, duplicates and unknown keys", (
     ["74", "selfhost,\n"],
     ["75.txt", "brand\n"],
     ["76", "\n"],
+    ["77", null],
   ];
   const { entries, problems } = parseDivergencePrs(files);
   assert.deepEqual(problems, [
@@ -101,11 +105,29 @@ test("the reader reports bad names and contents, duplicates and unknown keys", (
     'divergence-prs/74: not "<key>": "selfhost,\\n"',
     "divergence-prs/75.txt: not a PR number",
     'divergence-prs/76: not "<key>": "\\n"',
+    "divergence-prs/77: a directory, not a file",
   ]);
   assert.deepEqual(
     entries.map((e) => e.pr),
     [1, 4, 14, 71, 71, 72, 73],
   );
+});
+
+test("readDivergencePrs gives a directory null content", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "divergence-prs-"));
+  try {
+    fs.writeFileSync(path.join(dir, "4"), "selfhost\n");
+    fs.mkdirSync(path.join(dir, "5"));
+    assert.deepEqual(
+      readDivergencePrs(dir).sort(([a], [b]) => a.localeCompare(b)),
+      [
+        ["4", "selfhost\n"],
+        ["5", null],
+      ],
+    );
+  } finally {
+    fs.rmSync(dir, { recursive: true });
+  }
 });
 
 test("the old list gets the commands that move its new lines", () => {
@@ -128,7 +150,9 @@ test("the old list gets the commands that move its new lines", () => {
   assert.deepEqual(commands.slice(0, -1), [
     '  # PR 70: the old list says "brand", divergence-prs/70 says "js-test-guard": keep the right one',
     "  echo 'brand' > scripts/upstream/divergence-prs/82",
+    "  git add scripts/upstream/divergence-prs/82",
     "  echo 'ci-lockdown' > scripts/upstream/divergence-prs/83",
+    "  git add scripts/upstream/divergence-prs/83",
   ]);
   assert.match(commands.at(-1), /^ {2}git rm -f scripts\/upstream\/divergence-prs\.txt$/);
 });
