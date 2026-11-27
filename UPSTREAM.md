@@ -717,7 +717,9 @@ and take its other changes in the file.
   `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
   `server/test/instant/reactive/session_test.clj` (PR #6),
   `server/test/instant/custodian_test.clj` and
-  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8).
+  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
+  `child-tracked-futures-are-canceled` in
+  `server/test/instant/util/async_test.clj` (PR #69).
 - PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
   the receive timeout no longer removes the session's queries.
   `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
