@@ -43,7 +43,7 @@
   "scripts": {
     "test": "vitest",
     "test:types": "tsc -p tsconfig.test.json --noEmit",
-    "test:ci": "pnpm run test:types",
+    "test:ci": "vitest run && pnpm run test:types",
     "dev": "tsc --watch --preserveWatchOutput -p tsconfig.dev.json",
     "clean": "rm -rf dist",
     "check-exports": "attw --pack .",
@@ -66,7 +66,7 @@
     "@sidekickdb/version": "workspace:*",
     "@sidekickdb/webhooks": "workspace:*",
     "cookie": "^1.1.1",
-    "@instantdb/eventsource": "4.1.0-2",
+    "eventsource-parser": "^3.0.6",
     "uuid": "^11.1.0"
   }
 }
