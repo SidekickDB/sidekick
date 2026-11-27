@@ -130,6 +130,8 @@ const nextConfig = {
   },
   // Proxy to PostHog to avoid ad blockers
   async rewrites() {
+    // SidekickDB: PostHog is off when self-hosted; proxy nothing to it.
+    if (process.env.NEXT_PUBLIC_SELF_HOSTED === 'true') return [];
     return [
       {
         source: '/a/static/:path*',

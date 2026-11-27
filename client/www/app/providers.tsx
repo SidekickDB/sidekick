@@ -11,6 +11,8 @@ import { localStorageProvider } from '@/lib/swrCache';
 import { isDev } from '@/lib/config';
 import { Dev } from '@/components/Dev';
 import posthog from '@/lib/posthog';
+// SidekickDB: load the code editor from the dashboard, not a CDN.
+import '@/lib/monacoLoader';
 import {
   patchFirefoxClicks,
   patchNumberInputScroll,

@@ -388,11 +388,28 @@ Google" shows only when configured (`dashboardGoogleOAuth`). Files:
 `lib/config.ts`, `lib/config.selfHosted.test.ts`, `pages/dash/{index,org}.tsx`,
 and the `self-hosting/` compose files (variable passed to `www`).
 
+No outside loads: the code editor comes from the dashboard itself.
+`scripts/copy-editor-assets.mjs` (run by `predev` and `prebuild`) copies
+Monaco's `min/vs` and the `@sidekickdb/core` type declarations into
+`public/monaco` (git-ignored); `lib/monacoLoader.ts` points
+`@monaco-editor/react` there (imported by `pages/_app.tsx` and
+`app/providers.tsx`) and `lib/monaco.ts` reads the types from it instead of
+unpkg. The Google Analytics id is read from `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`
+(no default) in `app/layout.tsx` and `pages/_app.tsx`. `pages/document.tsx`
+(a stray route linking Google Fonts) is deleted. When self-hosted, docs videos
+are links (`components/docs/YouTube.tsx`), docs search (Algolia) is hidden
+(`components/docs/Layout.jsx`), the Cursor badge in
+`app/docs/using-llms/page.md` is hosted-only and `next.config.js` has no
+PostHog rewrites. `__tests__/self-hosted-network.test.tsx` checks all of this
+(with `vitest.config.ts` rendering JSX).
+
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
 feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Take upstream's other
-changes.
+changes. Keep the local editor assets and the analytics id from the
+environment; if upstream adds a CDN, font or analytics load, make it local or
+hosted-only (the test names it).
 
 ### Upstream fixes taken early
 
@@ -581,8 +598,6 @@ Old names that stay on purpose (the allowlist and guards in
 - legacy-project detection and aliasing in the CLI (`projectInfo.ts`,
   `loadConfig.ts`, `findConfigCandidates.ts`, `legacyPackageCompat.test.ts`);
 - the `instant-cli` binary alias in `client/packages/cli/package.json`;
-- `www/lib/monaco.ts`, which loads editor types from the published upstream
-  `@instantdb/core` until `@sidekickdb/core` is published;
 - paths and routes: `packages/create-instant-app`, `/docs/create-instant-app`,
   `/docs/instant-cli`;
 - history: Instant's timeline in `www/app/about/content.tsx`, essays in
