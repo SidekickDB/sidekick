@@ -150,12 +150,17 @@
   (let [heap (* 1200 1024 1024)]
     (testing "unset or blank is a quarter of the heap"
       (is (= (* 300 1024 1024) (config/parse-query-cache-max-bytes nil heap)))
-      (is (= (* 300 1024 1024) (config/parse-query-cache-max-bytes " " heap)))
-      (is (= (* 1024 1024 1024)
-             (config/parse-query-cache-max-bytes nil (* 4 1024 1024 1024)))))
-    (testing "a heap with no limit keeps 500 MB"
+      (is (= (* 300 1024 1024) (config/parse-query-cache-max-bytes " " heap))))
+    (testing "at most upstream's 500 MiB"
+      (is (= (* 500 1024 1024)
+             (config/parse-query-cache-max-bytes nil (* 2000 1024 1024))))
+      (is (= (* 500 1024 1024)
+             (config/parse-query-cache-max-bytes nil (* 8 1024 1024 1024))))
       (is (= (* 500 1024 1024)
              (config/parse-query-cache-max-bytes nil Long/MAX_VALUE))))
+    (testing "a set value is not capped"
+      (is (= (* 2 1024 1024 1024)
+             (config/parse-query-cache-max-bytes "2g" (* 16 1024 1024 1024)))))
     (testing "bytes, or a k, m or g suffix"
       (is (= 1000 (config/parse-query-cache-max-bytes "1000" heap)))
       (is (= (* 64 1024) (config/parse-query-cache-max-bytes "64k" heap)))
@@ -174,7 +179,8 @@
                                       {"SIDEKICK_QUERY_CACHE_MAX_BYTES" "64m"
                                        "INSTANT_QUERY_CACHE_MAX_BYTES" "1g"})]
       (is (= (* 64 1024 1024) (config/query-cache-max-bytes)))))
-  (testing "unset, a quarter of this JVM's heap"
+  (testing "unset, a quarter of this JVM's heap, at most 500 MiB"
     (with-redefs [env/getenv (constantly nil)]
-      (is (= (quot (Runtime/.maxMemory (Runtime/getRuntime)) 4)
+      (is (= (min (quot (Runtime/.maxMemory (Runtime/getRuntime)) 4)
+                  (* 500 1024 1024))
              (config/query-cache-max-bytes))))))

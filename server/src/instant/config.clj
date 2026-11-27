@@ -675,13 +675,15 @@
          :webhook-config 2)))
 
 ;; SidekickDB: the default weight limit of each app's datalog query cache
-;; (reactive/store.clj). Upstream fixes it at 500 MB, most of the heap the
+;; (reactive/store.clj). Upstream fixes it at 500 MiB, most of the heap the
 ;; self-hosted stack gives the server. INSTANT_QUERY_CACHE_MAX_BYTES sets it;
-;; unset, it is a quarter of the maximum heap.
+;; unset, it is a quarter of the maximum heap, at most upstream's 500 MiB.
+(def upstream-query-cache-max-bytes (* 1024 1024 500))
+
 (defn parse-query-cache-max-bytes
   "The limit in bytes. `value` is a positive number of bytes, optionally with a
    k, m or g suffix (powers of 1024); nil or blank means a quarter of
-   `max-heap`, or 500 MB when the heap has no limit."
+   `max-heap`, at most 500 MiB."
   [value max-heap]
   (if-let [value (some-> value string/trim not-empty)]
     (let [[_ n unit] (re-matches #"(?i)(\d{1,18})([kmg]?)" value)
@@ -698,9 +700,7 @@
                              " bytes, optionally with a k, m or g suffix (512m).")
                         {:value value})))
       (long bytes))
-    (if (= Long/MAX_VALUE max-heap)
-      (* 1024 1024 500)
-      (quot max-heap 4))))
+    (min (quot max-heap 4) upstream-query-cache-max-bytes)))
 
 (defn query-cache-max-bytes []
   (parse-query-cache-max-bytes (env/getenv "INSTANT_QUERY_CACHE_MAX_BYTES")

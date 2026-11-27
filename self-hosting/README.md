@@ -235,8 +235,9 @@ raise `SERVER_MEMORY_LIMIT`, or lower `-XX:MaxRAMPercentage` or add
 The server keeps recent query results in a cache, one per app with connected
 clients. Its limit is a weight that estimates the heap the results take (four
 times the size of the result rows Postgres sends). By default the limit is a
-quarter of the maximum heap, about 300 MiB with the defaults above, and it
-grows with the heap when you raise `SERVER_MEMORY_LIMIT`. Set
+quarter of the maximum heap, at most 500 MiB (upstream's fixed limit): about
+300 MiB with the defaults above, growing with the heap when you raise
+`SERVER_MEMORY_LIMIT` until the heap reaches 2 GiB. Set
 `SIDEKICK_QUERY_CACHE_MAX_BYTES` to choose it yourself, in bytes or with a `k`,
 `m` or `g` suffix (`512m`, `2g`). An invalid value stops the server at startup.
 

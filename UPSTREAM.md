@@ -524,8 +524,8 @@ The self-hosted stack works without Instant infrastructure.
   pass.
 - PR #84: the default weight limit of each app's datalog query cache in
   `reactive/store.clj` is `config/query-cache-max-bytes`, a quarter of the
-  maximum heap (500 MB when the heap has no limit), instead of upstream's
-  fixed 500 MB. `INSTANT_QUERY_CACHE_MAX_BYTES` sets it; an invalid value
+  maximum heap, at most upstream's fixed 500 MiB, so it is smaller only on
+  heaps under 2 GiB. `INSTANT_QUERY_CACHE_MAX_BYTES` sets it; an invalid value
   fails in `config/init`. The `:datalog-cache-max-weight` flag still wins.
   The compose files, `swarm.yml`, `deploy-swarm.sh`, `.env.example` and
   `README.md` carry the variable; tests in `config_test.clj`. If upstream

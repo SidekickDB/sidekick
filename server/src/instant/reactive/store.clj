@@ -224,9 +224,9 @@
 (defn create-datalog-query-cache []
   ;; Maintenance must survive query cancellation.
   (cache/make-async {:max-weight (flags/flag :datalog-cache-max-weight
-                                             ;; SidekickDB: a quarter of the heap, or
-                                             ;; INSTANT_QUERY_CACHE_MAX_BYTES, instead
-                                             ;; of upstream's fixed 500mb
+                                             ;; SidekickDB: a quarter of the heap, at
+                                             ;; most upstream's 500mb, or
+                                             ;; INSTANT_QUERY_CACHE_MAX_BYTES
                                              (config/query-cache-max-bytes))
                      :ttl (flags/flag :datalog-cache-ttl
                                       ;; 1 hour
