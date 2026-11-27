@@ -6,6 +6,9 @@
 // command it cannot parse is blocked (exit 2). Commands that do not mention
 // `instantdb` or `upstream` are not parsed at all.
 //
+// `.claude/settings.json` runs this file through an inline loader; see
+// "Upstream write guard" in `.claude/rules/sidekickdb.md`.
+//
 // Tests: node --test .claude/hooks/upstream-write-guard.test.mjs
 
 import { readFileSync } from "node:fs";
@@ -41,6 +44,10 @@ const GH_READS = new Set([
   "ruleset list",
   "ruleset view",
   "ruleset check",
+  "project view",
+  "project list",
+  "project field-list",
+  "project item-list",
 ]);
 const GH_READ_GROUPS = new Set(["browse", "search", "status"]);
 
@@ -82,16 +89,18 @@ function parseAt(src, start, inSub) {
   let words = [];
   let word = null;
   let skip = null; // "target" after a redirection, "heredoc" after << or <<-
+  let quoted = false; // the current word has quoted parts
   let depth = 0; // open subshell parentheses
   let i = start;
 
   const add = (s) => (word = (word ?? "") + s);
   const endWord = () => {
     if (word === null) return;
-    if (skip === "heredoc") heredocs.push(word);
+    if (skip === "heredoc") heredocs.push({ delimiter: word, quoted });
     else if (skip !== "target") words.push(word);
     skip = null;
     word = null;
+    quoted = false;
   };
   const endCommand = () => {
     endWord();
@@ -118,9 +127,29 @@ function parseAt(src, start, inSub) {
       i = inner.end + 1;
     }
   };
+  // An unquoted here-document body expands `$(...)` and backticks.
+  const bodySubstitutions = (body) => {
+    for (let k = 0; k < body.length; k++) {
+      let inner = null;
+      if (body[k] === "\\") k++;
+      else if (body[k] === "$" && body[k + 1] === "(") {
+        inner = parseAt(body, k + 2, true);
+        k = inner.end;
+      } else if (body[k] === "`") {
+        let end = k + 1;
+        while (end < body.length && body[end] !== "`")
+          end += body[end] === "\\" ? 2 : 1;
+        if (end >= body.length) throw new ParseError("unbalanced backtick");
+        inner = parseAt(body.slice(k + 1, end), 0, false);
+        k = end;
+      }
+      if (inner) nested.push(...inner.commands, ...inner.nested);
+    }
+  };
   const skipHeredocs = () => {
     while (heredocs.length) {
-      const delimiter = heredocs.shift();
+      const { delimiter, quoted: literal } = heredocs.shift();
+      const body = [];
       for (;;) {
         if (i >= src.length) throw new ParseError("unterminated here-document");
         let end = src.indexOf("\n", i);
@@ -128,7 +157,9 @@ function parseAt(src, start, inSub) {
         const line = src.slice(i, end);
         i = end + 1;
         if (line.replace(/^\t+/, "") === delimiter) break;
+        body.push(line);
       }
+      if (!literal) bodySubstitutions(body.join("\n"));
     }
   };
 
@@ -136,13 +167,30 @@ function parseAt(src, start, inSub) {
     const c = src[i];
     if (c === "\\") {
       if (src[i + 1] !== "\n") add(src[i + 1] ?? "");
+      quoted = true;
       i += 2;
     } else if (c === "'") {
       const end = src.indexOf("'", i + 1);
       if (end < 0) throw new ParseError("unterminated single quote");
       add(src.slice(i + 1, end));
+      quoted = true;
       i = end + 1;
+    } else if (c === "$" && src[i + 1] === "'") {
+      // ANSI-C quoting: $'...' with backslash escapes.
+      quoted = true;
+      add("");
+      for (i += 2; ; ) {
+        if (i >= src.length) throw new ParseError("unterminated $' quote");
+        if (src[i] === "'") break;
+        if (src[i] === "\\") {
+          const e = src[i + 1] ?? "";
+          add({ n: "\n", t: "\t" }[e] ?? e);
+          i += 2;
+        } else add(src[i++]);
+      }
+      i++;
     } else if (c === '"') {
+      quoted = true;
       add("");
       i++;
       for (;;) {
@@ -189,9 +237,11 @@ function parseAt(src, start, inSub) {
       if (heredocs.length) throw new ParseError("unterminated here-document");
       return { commands, nested, end: i };
     } else if (";&|()".includes(c)) {
-      if (c === "(") depth++;
-      else if (c === ")") depth--;
       endCommand();
+      if (c === "(") {
+        depth++;
+        skip = null; // `<(...)` is process substitution, not a file name
+      } else if (c === ")") depth--;
       i++;
       while (i < src.length && ";&|".includes(src[i])) i++;
     } else {
@@ -228,17 +278,30 @@ export function normalizeRepo(value) {
     .toLowerCase()
     .replace(/^[a-z+]+:\/\//, "")
     .replace(/^[^@/]+@/, "")
-    .replace(/^www\./, "")
-    .replace(/^github\.com[:/]/, "")
+    .replace(/^(?:www\.|ssh\.)?github\.com(?::\d+)?[:/]/, "")
     .replace(/\.git$/, "")
     .replace(/\/+$/, "");
 }
 
 const isUpstreamRepo = (value) => normalizeRepo(value).split("/")[0] === OWNER;
-const isUpstreamUrl = (value) =>
-  /^(?:[a-z+]+:\/\/)?(?:[^@/\s]+@)?(?:www\.)?github\.com[:/]instantdb(?:[/.]\S*)?$/i.test(
+// A GitHub URL (HTTPS, SSH, scp form, with or without a port) of `instantdb`.
+export const isUpstreamUrl = (value) =>
+  /^(?:[a-z+]+:\/\/)?(?:[^@/\s]+@)?(?:www\.|ssh\.)?github\.com(?::\d+)?[:/]instantdb(?:[/.]\S*)?$/i.test(
     value.trim(),
   );
+
+// gh flags whose value is free text, never a target.
+const GH_TEXT_FLAGS = new Set([
+  "-b",
+  "--body",
+  "-t",
+  "--title",
+  "-m",
+  "--message",
+  "--subject",
+  "--notes",
+  "-n",
+]);
 
 function checkGh(args, env) {
   const targets = [];
@@ -249,6 +312,11 @@ function checkGh(args, env) {
     if (a === "-R" || a === "--repo") targets.push(args[++i] ?? "");
     else if (a.startsWith("--repo=")) targets.push(a.slice(7));
     else if (/^-R./.test(a)) targets.push(a.slice(2));
+    else if (a === "--owner" || a === "--org") targets.push(args[++i] ?? "");
+    else if (/^--(owner|org)=/.test(a))
+      targets.push(a.slice(a.indexOf("=") + 1));
+    else if (GH_TEXT_FLAGS.has(a)) i++;
+    else if (/^--(body|title|message|subject|notes)=/.test(a)) continue;
     else {
       if (isUpstreamUrl(a)) targets.push(a);
       words.push(a);
@@ -272,6 +340,16 @@ function checkGh(args, env) {
   return unresolved(target)
     ? `\`gh ${group} ${sub}\` with a repository the guard cannot resolve (${target}) in a command that mentions upstream`
     : `\`gh ${group} ${sub}\` writes to ${normalizeRepo(target)}`;
+}
+
+// A REST path with `instantdb` as one of its segments: repos/instantdb/...,
+// orgs/instantdb, user/following/instantdb, user/starred/instantdb/...
+function apiNamesUpstream(endpoint) {
+  let path = endpoint.replace(/^https?:\/\/api\.github\.com/i, "");
+  try {
+    path = decodeURIComponent(path);
+  } catch {}
+  return path.split(/[/?#]/).some((segment) => segment.toLowerCase() === OWNER);
 }
 
 function checkGhApi(args, env) {
@@ -308,119 +386,197 @@ function checkGhApi(args, env) {
   if (endpoint === null) return null;
   method = (method ?? (fields ? "POST" : "GET")).toUpperCase();
   if (method === "GET" || method === "HEAD") return null;
-  if (endpoint === "graphql") {
-    return args.some((a) => /\bmutation\b/i.test(a)) &&
-      args.some((a) => /instantdb/i.test(a))
-      ? "a GraphQL mutation that names instantdb"
-      : null;
-  }
-  const path = endpoint
-    .replace(/^https?:\/\/api\.github\.com/i, "")
-    .replace(/^\/+/, "");
+  // GraphQL addresses objects by node ID; the text cannot say whose they are.
+  if (endpoint === "graphql") return null;
   const ghRepo = env.get("GH_REPO") ?? "";
   const upstream =
-    /^(repos|orgs)\/instantdb(\/|$)/i.test(path) ||
-    (path.includes("{owner}") &&
+    apiNamesUpstream(endpoint) ||
+    (endpoint.includes("{owner}") &&
       (isUpstreamRepo(ghRepo) || unresolved(ghRepo)));
   if (upstream) return `\`gh api -X ${method} ${endpoint}\` writes to upstream`;
-  if (unresolved(path))
+  if (unresolved(endpoint))
     return `\`gh api -X ${method}\` with an endpoint the guard cannot resolve (${endpoint}) in a command that mentions upstream`;
   return null;
 }
 
+// A git config setting that sends pushes to upstream: any value that is an
+// instantdb GitHub URL (other than upstream's own fetch settings), a
+// url.<instantdb URL>.insteadOf or pushInsteadOf key, a push remote set to
+// upstream, or an upstream push URL other than DISABLED.
+function badGitConfig(key, value) {
+  const k = key.toLowerCase();
+  if (/^url\..*instantdb.*\.(push)?insteadof$/.test(k))
+    return `\`${key}\` rewrites URLs to upstream`;
+  if (/^(remote\.pushdefault|branch\..*\.pushremote)$/.test(k))
+    return value?.toLowerCase() === "upstream"
+      ? `\`${key}=upstream\` sends pushes to upstream`
+      : null;
+  if (k === "remote.upstream.pushurl")
+    return value === "DISABLED"
+      ? null
+      : "changing remote.upstream.pushurl would enable pushing to upstream";
+  if (k === "remote.upstream.url" || k === "remote.upstream.fetch") return null;
+  if (value !== undefined && isUpstreamUrl(value))
+    return `\`${key}\` set to an upstream URL`;
+  return null;
+}
+
+const GIT_CONFIG_READS = new Set([
+  "--get",
+  "--get-all",
+  "--get-regexp",
+  "--get-urlmatch",
+  "-l",
+  "--list",
+  "get",
+  "list",
+]);
+const GIT_CONFIG_UNSET = new Set(["--unset", "--unset-all", "unset"]);
+const GIT_CONFIG_VALUE_FLAGS = new Set([
+  "-f",
+  "--file",
+  "--blob",
+  "-t",
+  "--type",
+  "--default",
+  "--comment",
+  "--value",
+]);
+
+function checkGitConfig(rest) {
+  if (rest.some((a) => GIT_CONFIG_READS.has(a))) return null;
+  const unset = rest.some((a) => GIT_CONFIG_UNSET.has(a));
+  const operands = [];
+  for (let j = 0; j < rest.length; j++) {
+    if (GIT_CONFIG_VALUE_FLAGS.has(rest[j])) j++;
+    else if (!rest[j].startsWith("-")) operands.push(rest[j]);
+  }
+  if (
+    ["set", "unset", "rename-section", "remove-section"].includes(operands[0])
+  )
+    operands.shift();
+  const [key, value] = operands;
+  if (key === undefined) return null;
+  if (unset)
+    return /^remote\.upstream\.pushurl$/i.test(key)
+      ? "unsetting remote.upstream.pushurl would enable pushing to upstream"
+      : null;
+  // `git config <key>` with no value only reads it.
+  if (value === undefined) return null;
+  return badGitConfig(key, value);
+}
+
+const GIT_GLOBAL_VALUE_FLAGS = [
+  "-C",
+  "-c",
+  "--git-dir",
+  "--work-tree",
+  "--namespace",
+  "--config-env",
+];
+
 function checkGit(args) {
   let i = 0;
-  const config = [];
   for (; i < args.length && args[i].startsWith("-"); i++) {
     const a = args[i];
-    if (
-      [
-        "-C",
-        "-c",
-        "--git-dir",
-        "--work-tree",
-        "--namespace",
-        "--config-env",
-      ].includes(a)
-    ) {
-      if (a === "-c") config.push(args[i + 1] ?? "");
-      i++;
+    if (a === "-c" || a.startsWith("-c")) {
+      const kv = a === "-c" ? (args[i + 1] ?? "") : a.slice(2);
+      const eq = kv.indexOf("=");
+      const reason = badGitConfig(
+        eq < 0 ? kv : kv.slice(0, eq),
+        eq < 0 ? undefined : kv.slice(eq + 1),
+      );
+      if (reason) return `\`git -c\`: ${reason}`;
     }
+    if (GIT_GLOBAL_VALUE_FLAGS.includes(a)) i++;
   }
   const sub = args[i];
   const rest = args.slice(i + 1);
-  if (sub === "push") {
-    if (
-      config.some((c) =>
-        /^(remote\.pushdefault|branch\..*\.pushremote)=upstream$/i.test(c),
-      )
-    )
-      return "`git push` with the push remote set to upstream";
+  const nestedPush = (sub === "subtree" || sub === "lfs") && rest[0] === "push";
+  if (sub === "push" || nestedPush) {
     let remote = null;
-    for (let j = 0; j < rest.length; j++) {
+    for (let j = nestedPush ? 1 : 0; j < rest.length; j++) {
       const a = rest[j];
       if (a === "--repo") remote = rest[++j] ?? "";
       else if (a.startsWith("--repo=")) remote = a.slice(7);
-      else if (["-o", "--push-option", "--receive-pack", "--exec"].includes(a))
+      else if (
+        [
+          "-o",
+          "--push-option",
+          "--receive-pack",
+          "--exec",
+          "-P",
+          "--prefix",
+          "-m",
+          "--message",
+        ].includes(a)
+      )
         j++;
       else if (!a.startsWith("-") && remote === null) remote = a;
     }
+    const name = nestedPush ? `git ${sub} push` : "git push";
     if (remote === null) return null;
     if (remote.toLowerCase() === "upstream" || isUpstreamUrl(remote))
-      return `\`git push\` to ${remote}`;
+      return `\`${name}\` to ${remote}`;
     if (unresolved(remote))
-      return `\`git push\` to a remote the guard cannot resolve (${remote}) in a command that mentions upstream`;
+      return `\`${name}\` to a remote the guard cannot resolve (${remote}) in a command that mentions upstream`;
     return null;
   }
   if (sub === "remote") {
     const action = rest[0];
     const operands = rest.slice(1).filter((a) => !a.startsWith("-"));
-    if (
-      action === "set-url" &&
-      rest.includes("--push") &&
-      operands[0] === "upstream" &&
-      operands[1] !== "DISABLED"
-    )
-      return "`git remote set-url --push upstream` would enable pushing to upstream";
+    const [name, url] = operands;
+    if (action === "set-url" && url !== undefined) {
+      if (name === "upstream")
+        return rest.includes("--push") && url !== "DISABLED"
+          ? "`git remote set-url --push upstream` would enable pushing to upstream"
+          : null;
+      return isUpstreamUrl(url)
+        ? `\`git remote set-url ${name}\` to an upstream URL`
+        : null;
+    }
     if (action === "add" && operands.slice(1).some(isUpstreamUrl))
       return '`git remote add` for upstream enables pushing; set it up as in UPSTREAM.md "Setup"';
     return null;
   }
-  if (sub === "config") {
-    const key = rest.findIndex((a) => /^remote\.upstream\.pushurl$/i.test(a));
-    if (key < 0) return null;
-    if (
-      rest.some((a) =>
-        ["--get", "--get-all", "-l", "--list", "get"].includes(a),
-      )
-    )
-      return null;
-    if (rest[key + 1] === "DISABLED") return null;
-    return "changing remote.upstream.pushurl would enable pushing to upstream";
-  }
+  if (sub === "config") return checkGitConfig(rest);
   return null;
 }
+
+// curl short options that take a value; the rest of a bundle is that value.
+const CURL_VALUE_SHORTS = "AbcCDeEHKmoPQrtuUwxYyz";
 
 // curl or wget against the GitHub REST API of upstream with a body or a
 // method other than GET or HEAD.
 function checkHttp(prog, args) {
-  const url = args.find((a) =>
-    /api\.github\.com\/(repos|orgs)\/instantdb(\/|$)/i.test(a),
+  const url = args.find(
+    (a) =>
+      /api\.github\.com\//i.test(a) &&
+      apiNamesUpstream(a.replace(/^.*?api\.github\.com/i, "")),
   );
   if (!url) return null;
-  const write = args.some(
-    (a, j) =>
-      /^(-d|-F|-T|--data.*|--form.*|--upload-file|--json|--post-data.*|--post-file.*|--body-data.*|--body-file.*)$/.test(
+  const notRead = (m) => !/^(GET|HEAD)$/i.test(m ?? "");
+  const write = args.some((a, j) => {
+    if (
+      /^--(data|data-\w+|form|form-string|json|upload-file|post-data|post-file|body-data|body-file)(=|$)/.test(
         a,
-      ) ||
-      /^(--data|--form|--json|--post-data|--post-file|--body-data|--body-file)=/.test(
-        a,
-      ) ||
-      /^-[dFT]./.test(a) ||
-      ((a === "-X" || a === "--request" || a === "--method") &&
-        !/^(GET|HEAD)$/i.test(args[j + 1] ?? "")) ||
-      /^(-X|--request=|--method=)(?!GET$|HEAD$)./i.test(a),
-  );
+      )
+    )
+      return true;
+    if (/^--(request|method)$/.test(a)) return notRead(args[j + 1]);
+    if (/^--(request|method)=/.test(a))
+      return notRead(a.slice(a.indexOf("=") + 1));
+    if (prog !== "curl" || !/^-[A-Za-z]/.test(a)) return false;
+    // A bundle of short options such as -sX POST or -sd '{}'.
+    for (let k = 1; k < a.length; k++) {
+      const c = a[k];
+      if ("dFT".includes(c)) return true;
+      if (c === "X")
+        return notRead(k + 1 < a.length ? a.slice(k + 1) : args[j + 1]);
+      if (CURL_VALUE_SHORTS.includes(c)) return false;
+    }
+    return false;
+  });
   return write ? `\`${prog}\` writes to ${url}` : null;
 }
 
@@ -487,9 +643,31 @@ function checkSimple(words, env, depth) {
       w = w.slice(j + 1);
     } else if (SHELLS.has(prog)) {
       const flag = w.findIndex((a, j) => j > 0 && /^-[a-z]*c[a-z]*$/i.test(a));
-      return flag > 0 && w[flag + 1] !== undefined
-        ? check(w[flag + 1], local, depth + 1)
-        : null;
+      if (flag > 0) {
+        const script = w[flag + 1] === "--" ? w[flag + 2] : w[flag + 1];
+        return script === undefined ? null : check(script, local, depth + 1);
+      }
+      // A shell with no script file reads its commands from standard input:
+      // a pipe, a here-document or `<(...)`. The guard cannot see them.
+      const options = w.slice(1);
+      if (options.some((a) => /^(--?(version|help)|-n)$/.test(a))) return null;
+      if (
+        options.includes("-s") ||
+        !options.some((a) => !a.startsWith("-") && !a.startsWith("+"))
+      )
+        return `\`${prog}\` reading commands from standard input in a command that mentions upstream`;
+      return null;
+    } else if (prog === "find") {
+      // Each -exec/-execdir/-ok runs the words up to `;` or `+`.
+      for (let j = 1; j < w.length; j++) {
+        if (!/^-(exec|execdir|ok|okdir)$/.test(w[j])) continue;
+        let end = j + 1;
+        while (end < w.length && w[end] !== ";" && w[end] !== "+") end++;
+        const reason = checkSimple(w.slice(j + 1, end), local, depth + 1);
+        if (reason) return reason;
+        j = end;
+      }
+      return null;
     } else if (prog === "eval") {
       return check(w.slice(1).join(" "), local, depth + 1);
     } else break;

@@ -65,7 +65,8 @@
             "type": "command",
             "command": "node",
             "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/upstream-write-guard.mjs"
+              "-e",
+              "const fs = require(\"fs\"), path = require(\"path\"), cp = require(\"child_process\"); const input = fs.readFileSync(0, \"utf8\"); const roots = [process.env.CLAUDE_PROJECT_DIR]; try { roots.push(cp.execFileSync(\"git\", [\"-C\", JSON.parse(input).cwd, \"rev-parse\", \"--show-toplevel\"], { encoding: \"utf8\", stdio: [\"ignore\", \"pipe\", \"ignore\"], timeout: 3000 }).trim()); } catch {} const guard = roots.filter(Boolean).map((r) => path.join(r, \".claude/hooks/upstream-write-guard.mjs\")).find((p) => fs.existsSync(p)); if (!guard) { process.stderr.write(\"upstream write guard not found in \" + roots.filter(Boolean).join(\" or \") + \"; only the deny rules apply\\n\"); process.exit(0); } const r = cp.spawnSync(process.execPath, [guard], { input, encoding: \"utf8\", timeout: 8000 }); process.stderr.write(r.stderr || \"\"); if (r.status === 0) process.exit(0); if (r.status !== 2) process.stderr.write(\"Blocked: the upstream write guard failed (\" + (r.error ? r.error.message : \"exit \" + r.status + \", signal \" + r.signal) + \")\\n\"); process.exit(2);"
             ],
             "timeout": 10,
             "onFailure": "block"
