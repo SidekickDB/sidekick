@@ -146,6 +146,9 @@ services:
       # DNS-over-HTTPS resolvers for outbound requests (webhooks, OAuth); "system"
       # uses the system resolver. Unset means Cloudflare and Google DoH.
       INSTANT_DNS_OVER_HTTPS_URLS: ${INSTANT_DNS_OVER_HTTPS_URLS:-}
+      # Seconds over which a stopping server closes its WebSockets; see
+      # README.md, "Restarts and rolling updates". Unset means 20.
+      INSTANT_SHUTDOWN_DRAIN_SECONDS: ${INSTANT_SHUTDOWN_DRAIN_SECONDS:-}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}
@@ -170,6 +173,9 @@ services:
       # header: content-encoding"). Backups set Content-Encoding: zstd, and the AWS
       # SDK's default checksum mode adds aws-chunked. when_required avoids that.
       AWS_REQUEST_CHECKSUM_CALCULATION: ${AWS_REQUEST_CHECKSUM_CALCULATION:-when_required}
+    # SidekickDB: room for the shutdown drain (20 s by default) and the rest
+    # of shutdown before Docker kills the server; its default is 10 s.
+    stop_grace_period: 60s
     secrets:
       - source: server_config
         target: /app/resources/config/override.edn

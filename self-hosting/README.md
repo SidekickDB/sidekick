@@ -262,6 +262,24 @@ In the self-hosted mode:
 To switch it off, set `SIDEKICK_RUNTIME_MODE=default` in `.env` (or pass
 `-e INSTANT_RUNTIME_MODE=default` to `docker run`) and recreate the server.
 
+## Restarts and rolling updates
+
+When the server stops (`docker compose restart`, a new image, or a rolling
+update of the two replicas in `swarm.yml`), it stops accepting new requests and
+then closes its WebSockets at a steady rate over 20 seconds, at most one per
+second apart. Clients reconnect on their own and send again any changes that
+were not yet acknowledged, so a restart reaches them as reconnects spread over
+that time instead of all at once.
+
+Set `SIDEKICK_SHUTDOWN_DRAIN_SECONDS` (or `INSTANT_SHUTDOWN_DRAIN_SECONDS`) to
+a whole number of seconds to change it; `0` closes every connection at once.
+An invalid value logs a warning and the default is used. The compose files and
+`swarm.yml` give the server 60 seconds to stop (`stop_grace_period`) before
+Docker kills it. After the drain the server waits up to 20 seconds for open
+requests and then stops its background jobs, so keep the drain below about 35
+seconds or raise `stop_grace_period` with it. Outside the self-hosted mode, an unset value keeps
+upstream's drain: 1 second in development and 4 minutes otherwise.
+
 ## Startup and DNS
 
 The server only prefetches Google's OpenID configuration and signing keys at

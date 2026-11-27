@@ -78,6 +78,26 @@
   []
   (and (dev?) (not (self-hosted?))))
 
+;; SidekickDB: how long `instant.core/stop` spreads the closing of WebSockets
+;; over. INSTANT_SHUTDOWN_DRAIN_SECONDS (or SIDEKICK_SHUTDOWN_DRAIN_SECONDS)
+;; sets it in any mode. Unset, a self-hosted server drains for 20 s, and nil
+;; leaves upstream's drain (1 s in :dev, 4 minutes otherwise) to the caller.
+(def default-self-hosted-drain-seconds 20)
+
+(defn shutdown-drain-opts []
+  (let [value (non-blank-env "INSTANT_SHUTDOWN_DRAIN_SECONDS")
+        seconds (some-> value parse-long)
+        seconds (cond
+                  (and seconds (<= 0 seconds)) seconds
+                  value (do (log/warn (env/describe "INSTANT_SHUTDOWN_DRAIN_SECONDS")
+                                      "is" (pr-str value)
+                                      "but must be a whole number of seconds; using the default")
+                            nil))]
+    (when-let [seconds (or seconds
+                           (when (self-hosted?) default-self-hosted-drain-seconds))]
+      {:total-ms (* 1000 seconds)
+       :max-gap-ms 1000})))
+
 (defn runtime-mode-errors
   "Problems with the runtime mode setting, as messages. Empty when it is fine."
   []
