@@ -319,8 +319,10 @@ were not yet acknowledged, so a restart reaches them as reconnects spread over
 that time instead of all at once.
 
 Set `SIDEKICK_SHUTDOWN_DRAIN_SECONDS` (or `INSTANT_SHUTDOWN_DRAIN_SECONDS`) to
-a whole number of seconds to change it; `0` closes every connection at once.
-An invalid value logs a warning and the default is used. The compose files and
+a whole number of seconds from 0 to 3600 to change it; `0` closes every
+connection at once. Any other value stops the server at startup with a message
+naming the variable (earlier versions logged a warning and used 20 seconds).
+The compose files and
 `swarm.yml` give the server 60 seconds to stop (`stop_grace_period`) before
 Docker kills it. After the drain the server waits up to 20 seconds for open
 requests and then stops its background jobs, so keep the drain below about 35
