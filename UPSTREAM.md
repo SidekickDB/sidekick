@@ -814,6 +814,19 @@ and take its other changes in the file.
   `NODE_ENV` is `development`. It and `getPostBySlug` in
   `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
   (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
+- PR #92: the self-hosted catch-all redirect in `client/www/next.config.js`
+  also leaves `/platform/oauth` alone. The server sends platform OAuth users
+  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
+  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
+- PR #85: `ensure-attrs-on-system-catalog-app` in
+  `server/src/instant/system_catalog_migration.clj` reads the system catalog
+  attrs and inserts the missing ones in one transaction on the write pool,
+  after `pg_advisory_xact_lock(hashtext('instant-system-catalog-migration'))`.
+  Upstream read and inserted without a lock, so of two nodes starting at once
+  on an empty database one could insert attrs the other had just inserted,
+  hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
+  Test `concurrent-boots-insert-catalog-attrs-once` in
+  `server/test/instant/system_catalog_migration_test.clj`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
