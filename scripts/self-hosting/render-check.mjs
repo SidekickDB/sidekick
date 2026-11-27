@@ -715,7 +715,8 @@ for (const cmd of composes) {
   }
   record('docker stack config', 'swarm.yml', 'postgres port: none', p3);
   record('docker stack config', 'swarm.yml', 'postgres: jit=off', p4);
-  // deploy-swarm.sh passes SIDEKICK_NREPL on as INSTANT_NREPL.
+  // INSTANT_NREPL in the environment reaches the server. (deploy-swarm.sh
+  // maps SIDEKICK_NREPL to it; deploy-swarm.test.mjs covers that.)
   const nrepl = stack({
     POSTGRES_PASSWORD: PG,
     STORAGE_ACCESS_KEY: AK,
