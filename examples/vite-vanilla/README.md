@@ -1,6 +1,6 @@
 # Welcome to your SidekickDB Vanilla JS app 👋
 
-[SidekickDB Docs](https://www.instantdb.com/docs)
+[SidekickDB Docs](https://sidekickdb.co/docs)
 
 This is a Vite project scaffolded with create-sidekick-app.
 

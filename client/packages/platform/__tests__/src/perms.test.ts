@@ -19,7 +19,7 @@ test('generates perms file', () => {
       },
       '@sidekickdb/core',
     ),
-  ).toEqual(`// Docs: https://www.instantdb.com/docs/permissions
+  ).toEqual(`// Docs: https://sidekickdb.co/docs/permissions
 
 import type { InstantRules } from "@sidekickdb/core";
 
@@ -42,7 +42,7 @@ export default rules;
 
 test('generates empty perms file', () => {
   expect(generatePermsTypescriptFile(null, '@sidekickdb/core'))
-    .toEqual(`// Docs: https://www.instantdb.com/docs/permissions
+    .toEqual(`// Docs: https://sidekickdb.co/docs/permissions
 
 import type { InstantRules } from "@sidekickdb/core";
 
@@ -50,7 +50,7 @@ const rules = {
   /**
    * Welcome to SidekickDB's permission system!
    * Right now your rules are empty. To start filling them in, check out the docs:
-   * https://www.instantdb.com/docs/permissions
+   * https://sidekickdb.co/docs/permissions
    *
    * Here's an example to give you a feel:
    * posts: {
@@ -70,7 +70,7 @@ export default rules;
 });
 
 test('readsPermsFromFile', () => {
-  const content = `// Docs: https://www.instantdb.com/docs/permissions
+  const content = `// Docs: https://sidekickdb.co/docs/permissions
 
 import type { InstantRules } from "@sidekickdb/core";
 

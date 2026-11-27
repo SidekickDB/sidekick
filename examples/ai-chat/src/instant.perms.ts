@@ -1,4 +1,4 @@
-// Docs: https://www.instantdb.com/docs/permissions
+// Docs: https://sidekickdb.co/docs/permissions
 
 import type { InstantRules } from '@sidekickdb/react';
 

@@ -84,7 +84,7 @@
       </a>
       <a
         target="_blank"
-        href="https://www.instantdb.com/docs"
+        href="https://sidekickdb.co/docs"
         rel="noopener noreferrer"
         class="border shadow flex flex-col py-8 gap-2 hover:bg-neutral-100 items-center justify-center font-semibold border-neutral-200 rounded"
       >

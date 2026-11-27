@@ -5,6 +5,8 @@
 //   @instantdb/<name>   -> @sidekickdb/<name>   (the 16 workspace packages)
 //   instant-cli         -> @sidekickdb/cli (package), sidekick-cli (binary)
 //   create-instant-app  -> create-sidekick-app  (directory name unchanged)
+// and, in the files listed in DOCS_HOST_PATHS only,
+//   https://(www.)instantdb.com/docs/... -> https://sidekickdb.co/docs/...
 // together with the paths that are never touched and the allowlist of old
 // names that stay on purpose (wire identifiers, legacy-project detection,
 // history). @instantdb/eventsource is not renamed either: admin has its own
@@ -371,7 +373,51 @@ const COMMON_RULES = [
     re: /(?<![\w/.@:-])create-instant-app(?![\w/-])/g,
     to: "create-sidekick-app",
   },
+  {
+    id: "docs-host",
+    // Docs links in what the CLI and create-sidekick-app print and write, the
+    // agent rules and the offered starters point at SidekickDB's docs site;
+    // the path stays.
+    re: /https?:\/\/(?:www\.)?instantdb\.com(?=\/docs(?![\w-]))/g,
+    to: "https://sidekickdb.co",
+    only: isDocsHostPath,
+  },
 ];
+
+// Files whose instantdb.com docs links are rewritten by "docs-host"; any
+// other instantdb.com link left in them is reported as a leftover.
+export const DOCS_HOST_PATHS = [
+  "client/packages/cli/src/",
+  "client/packages/create-instant-app/src/",
+  "client/packages/create-instant-app/template/",
+  "client/packages/platform/src/perms.ts",
+  "client/packages/platform/src/schema.ts",
+  "client/packages/platform/__tests__/src/perms.test.ts",
+  "client/packages/platform/__tests__/src/schema.test.ts",
+  "client/www/lib/intern/instant-rules.md",
+  // The starters create-sidekick-app offers.
+  ...[
+    "next-js-app-dir",
+    "vite-react",
+    "vite-vanilla",
+    "expo",
+    "tanstack-start",
+    "tanstack-start-with-tanstack-query",
+    "bun-react",
+    "solidjs-vite",
+    "sveltekit",
+    "vue-vite",
+    "vercel-ai-sdk",
+    "ai-chat",
+  ].map((s) => `examples/${s}/`),
+];
+
+export function isDocsHostPath(file) {
+  const f = toPosix(file);
+  return DOCS_HOST_PATHS.some((p) =>
+    p.endsWith("/") ? f.startsWith(p) : f === p,
+  );
+}
 
 // Extra rules for package.json files only.
 const PACKAGE_JSON_RULES = [
@@ -432,7 +478,7 @@ function workspaceSpecRule(file) {
 const USER_FACING = /^(client\/www\/|examples\/)/;
 
 function rulesFor(file) {
-  const rules = COMMON_RULES.map((r) =>
+  const rules = COMMON_RULES.filter((r) => !r.only || r.only(file)).map((r) =>
     r.perFile ? { ...r, to: r.to(file) } : r,
   );
   if (path.posix.basename(file) === "package.json") {
@@ -652,6 +698,15 @@ const LEFTOVER_CHECKS = [
     test: (_m, file) =>
       /^client\/packages\/(?!python\/)[^/]+\/package\.json$/.test(file),
     hint: () => "package metadata should point at SidekickDB/sidekick",
+  },
+  {
+    id: "instant-site-link",
+    // An instantdb.com link "docs-host" does not rewrite (essays, pricing,
+    // Discord, the hosted dashboard, a docs link without a scheme).
+    re: /(?<![\w.@-])(?:https?:\/\/)?(?:www\.)?instantdb\.com(?![\w-])/g,
+    test: (_m, file) => isDocsHostPath(file),
+    hint: () =>
+      "instantdb.com link: remove it, or point at the user's SidekickDB dashboard; docs links are https://sidekickdb.co/docs/...",
   },
 ];
 
