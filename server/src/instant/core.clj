@@ -176,7 +176,10 @@
                          ;; browser infer it
                          "X-Content-Type-Options" "nosniff"}
         headers (apply dissoc default-headers (flags/flag :filter-security-headers []))]
-    (update resp :headers merge headers)))
+    ;; SidekickDB: leave a nil response (no route matched) nil, so the outer
+    ;; `routes` in `handler` falls through to `not-found`. A headers-only map
+    ;; has no :status and Undertow sends it as an empty 200.
+    (some-> resp (update :headers merge headers))))
 
 (defn wrap-security-headers [handler]
   (fn [request]
@@ -190,11 +193,13 @@
   (if-not (config/dev-only?)
     handler
     (fn [request]
-      (update (handler request)
-              :headers merge
-              {"X-Instant-Server-Hostname" @config/hostname
-               "X-Instant-Server-Port" (str (config/get-server-port))
-               "Access-Control-Expose-Headers" "X-Instant-Server-Hostname, X-Instant-Server-Port"}))))
+      ;; SidekickDB: `some->` keeps an unmatched route nil, as in
+      ;; `add-security-headers`.
+      (some-> (handler request)
+              (update :headers merge
+                      {"X-Instant-Server-Hostname" @config/hostname
+                       "X-Instant-Server-Port" (str (config/get-server-port))
+                       "Access-Control-Expose-Headers" "X-Instant-Server-Hostname, X-Instant-Server-Port"})))))
 
 (defn not-found [_req]
   (response/not-found {:message "Oops! We couldn't match this route."}))
@@ -238,7 +243,8 @@
               wrap-dev-server-info
               wrap-security-headers
               (http-util/tracer-wrap-span))
-          (wrap-json-response not-found)))
+          ;; SidekickDB: the 404 carries the same security headers.
+          (wrap-security-headers (wrap-json-response not-found))))
 
 (defonce ^Server server
   nil)

@@ -54,7 +54,31 @@ storage variables to your AWS access key ID and secret access key.
 `deploy-swarm.sh` reads the same variables, plus `SSH_HOST`, `DASHBOARD_URL`,
 `SERVER_URL` and `S3_PUBLIC_ENDPOINT`, from the environment and stops if one is
 missing. It does not generate secrets, because a new value on every deploy
-would not match the existing volumes.
+would not match the existing volumes. It passes every other variable
+`swarm.yml` reads (email, S3, Postgres user and database, images and the
+rest) from the environment too, and nothing else.
+
+### The server_config secret (swarm)
+
+`swarm.yml` also needs the Docker secret `server_config`. It is mounted as the
+server's `/app/resources/config/override.edn` and holds the keys that encrypt
+app secrets and sign webhooks, so every server replica must get the same file.
+`docker stack deploy` refuses the stack while the secret is missing, and
+`deploy-swarm.sh` stops with these commands instead of deploying. Create it
+once, on the swarm manager:
+
+```sh
+mkdir -m 700 sidekick-config
+docker run --rm -v "$PWD/sidekick-config:/out" ghcr.io/sidekickdb/server:latest \
+  /app/start.sh generate-override-config /out/override.edn
+docker secret create server_config sidekick-config/override.edn
+```
+
+Use your `SERVER_IMAGE` if you set one. Copy `sidekick-config/override.edn`
+somewhere safe with your other secrets, then delete it from the manager.
+Generate it once and keep it: a new file cannot decrypt what the old one
+encrypted, so never regenerate or replace the secret of a running deployment.
+`deploy-swarm.sh` never creates, replaces or removes it.
 
 ### Upgrading an existing deployment
 
@@ -289,3 +313,13 @@ The upstream `minio/minio` and `minio/mc` images are no longer on Docker Hub.
 Like the compose files, `swarm.yml` reads only `STORAGE_ACCESS_KEY` and
 `STORAGE_SECRET_KEY` (formerly `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`) and
 refuses to deploy without them.
+
+### Cloudflare R2
+
+File URLs are presigned with `S3_PUBLIC_ENDPOINT`, with the bucket in the path.
+For R2, set both `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` to R2's S3 API domain,
+`https://<ACCOUNT_ID>.r2.cloudflarestorage.com`. Do not point
+`S3_PUBLIC_ENDPOINT` at an R2 custom domain: R2 does not accept presigned URLs
+on custom domains (see Cloudflare's
+[presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)
+page), so file URLs would not load.

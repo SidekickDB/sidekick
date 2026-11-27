@@ -13,6 +13,11 @@
 //   queries from its own replication slot (invalidator_<process-id>), so the
 //   write checks pass whether or not the nodes form a cluster: they show that
 //   both nodes see writes made through the other, not that the nodes talk;
+// - stream-a-to-b: a session on A opens a write stream and a session on B
+//   reads it back in full. B asks the node that holds the writer for the
+//   stream over gRPC (port 5801), so this fails when the nodes do not form a
+//   cluster;
+// - stream-b-to-a: the same in the other direction;
 // - presence: a session on A and a session on B join one room, and each must
 //   see the other. This goes through Hazelcast's shared rooms map and fails
 //   when the nodes do not form a cluster.
@@ -140,11 +145,66 @@ async function crossWrite(from, to, detail) {
   }
 }
 
+// A reader on another node subscribes to the stream on the node that holds
+// its writer (connect-to-stream in server/src/instant/model/app_stream.clj).
+// A closed stream is served from file storage instead, so the reader
+// subscribes while the writer is open, and the rest is written after that.
+async function crossStream(from, to, detail) {
+  const clientId = `two-node-${id()}`;
+  const parts = ["written before the reader subscribes, ", "then the rest"];
+  const writer = open(from, `stream-writer-${from}`);
+  const reader = open(to, `stream-reader-${to}`);
+  detail.writer = from;
+  detail.reader = to;
+  let text = "";
+  let readError = null;
+  try {
+    const ws = writer.streams.createWriteStream({ clientId });
+    const w = ws.getWriter();
+    await withTimeout(
+      ws.streamId(),
+      timeoutMs,
+      `stream created on node ${from}`,
+    );
+    await w.write(parts[0]);
+    const read = (async () => {
+      for await (const chunk of reader.streams.createReadStream({ clientId }))
+        text += chunk;
+    })().catch((e) => (readError = e));
+    await waitFor(
+      () => readError || text.length >= parts[0].length,
+      `reader on node ${to} receives the first part while the writer on node ${from} is open`,
+    );
+    if (readError) throw readError;
+    await w.write(parts[1]);
+    await w.close();
+    await withTimeout(
+      read,
+      timeoutMs,
+      `reader on node ${to} sees the stream end`,
+    );
+    if (readError) throw readError;
+    const expected = parts.join("");
+    if (text !== expected) {
+      throw new Error(
+        `read ${JSON.stringify(text)}, wrote ${JSON.stringify(expected)}`,
+      );
+    }
+  } finally {
+    detail.received = text;
+  }
+}
+
 // The app is created through node A; node B only ever reads it from Postgres.
-const app = await createApp(nodes.A);
+// Streams are denied when no rule exists.
+const app = await createApp(nodes.A, {
+  rules: { code: { $streams: { allow: { create: "true", view: "true" } } } },
+});
 
 await check("write-a-to-b", (d) => crossWrite("A", "B", d));
 await check("write-b-to-a", (d) => crossWrite("B", "A", d));
+await check("stream-a-to-b", (d) => crossStream("A", "B", d));
+await check("stream-b-to-a", (d) => crossStream("B", "A", d));
 
 await check("presence", async (detail) => {
   const roomId = id();
