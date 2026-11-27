@@ -197,16 +197,16 @@
   (some-> @config-map :s3-storage-secret-key crypt-util/secret-value))
 
 (defn s3-endpoint []
-  (or (System/getenv "S3_ENDPOINT")
+  (or (env/getenv "S3_ENDPOINT")
       (some-> @config-map :s3-endpoint)))
 
 (defn s3-public-endpoint []
-  (or (System/getenv "S3_PUBLIC_ENDPOINT")
+  (or (env/getenv "S3_PUBLIC_ENDPOINT")
       (some-> @config-map :s3-public-endpoint)
       (s3-endpoint)))
 
 (defn s3-region []
-  (or (System/getenv "AWS_REGION")
+  (or (env/getenv "AWS_REGION")
       (some-> @config-map :s3-region)
       "us-east-1"))
 
