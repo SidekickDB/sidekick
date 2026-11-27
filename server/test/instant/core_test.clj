@@ -2,7 +2,8 @@
   (:require
    [clojure.string :as string]
    [clojure.test :refer [deftest is testing]]
-   [instant.core :as core]))
+   [instant.core :as core]
+   [instant.util.json :refer [<-json]]))
 
 (defn- csp [resp]
   (get-in (core/add-security-headers resp) [:headers "Content-Security-Policy"]))
@@ -42,3 +43,16 @@
 
   (testing "inline <style> blocks on the OAuth landing pages stay allowed"
     (is (= "style-src 'unsafe-inline'" (directive (csp {:headers {}}) "style-src")))))
+
+(deftest unmatched-routes-are-not-found
+  (doseq [[method uri] [[:get "/dash/does-not-exist"]
+                        [:post "/dash/does-not-exist"]
+                        [:get "/no-such-path"]]]
+    (testing (str (name method) " " uri " reaches not-found")
+      (let [resp ((core/handler) {:request-method method
+                                  :uri uri
+                                  :headers {}})]
+        (is (= 404 (:status resp)))
+        (is (= {"message" "Oops! We couldn't match this route."}
+               (<-json (:body resp))))
+        (is (= "nosniff" (get-in resp [:headers "X-Content-Type-Options"])))))))

@@ -4,6 +4,7 @@
    [clojure.java.io :as io]
    [clojure.string :as string]
    [clojure.test :refer [deftest is testing]]
+   [instant.core :as core]
    [instant.dash.routes :as dash-routes])
   (:import
    (java.security MessageDigest)))
@@ -42,7 +43,11 @@
     (testing (str (name method) " " uri " matches no route")
       (is (nil? (dash-routes/routes {:request-method method
                                      :uri uri
-                                     :headers {}})))))
+                                     :headers {}}))))
+    (testing (str (name method) " " uri " is a 404 from the server")
+      (is (= 404 (:status ((core/handler) {:request-method method
+                                           :uri uri
+                                           :headers {}}))))))
   (testing "the sunset namespace is not on the classpath"
     (is (nil? (io/resource "instant/sunset.clj")))))
 
