@@ -760,3 +760,97 @@ test("runChecks fails on a raised server minimum and names it", () => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("the turbo cache prune job keeps actions: write only while it is main-only and uses no action", () => {
+  const guard =
+    "    if: github.ref == 'refs/heads/main' && needs.build.result == 'success'\n";
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, "js.yml", guard, "    if: needs.build.result == 'success'\n"),
+    ),
+    'job "prune-turbo-cache" holds a write right and must be guarded',
+    'enabled job "prune-turbo-cache" asks for a write permission',
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(
+        d,
+        "js.yml",
+        guard,
+        "    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'\n",
+      ),
+    ),
+    'job "prune-turbo-cache" holds a write right and must be guarded',
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(
+        d,
+        "js.yml",
+        "      - name: Delete older turbo entries on main\n",
+        "      - uses: actions/checkout@v4\n      - name: Delete older turbo entries on main\n",
+      ),
+    ),
+    'job "prune-turbo-cache" holds a write right and may not contain this line',
+  );
+  for (const step of ["      - { uses: actions/checkout@v4 }\n", '      - "uses": actions/checkout@v4\n'])
+    failsWith(
+      withWorkflows((d) =>
+        edit(
+          d,
+          "js.yml",
+          "      - name: Delete older turbo entries on main\n",
+          `${step}      - name: Delete older turbo entries on main\n`,
+        ),
+      ),
+      'job "prune-turbo-cache" holds a write right and may not contain this line',
+    );
+  for (const [from, to] of [
+    ["      actions: write\n", "      actions: write\n    steps: *bsteps\n"],
+    ["      actions: write\n", "      actions: write\n    <<: *defaults\n"],
+    ["      actions: write\n", "      actions: write\n    steps: *b.steps\n"],
+    ["      actions: write\n", "      actions: write\n    steps: [*bsteps]\n"],
+    ["      actions: write\n", "      actions: write\n    steps: [ *co, *setup ]\n"],
+    [
+      "      - name: Delete older turbo entries on main\n",
+      "      - ? uses\n        : actions/checkout@v4\n      - name: Delete older turbo entries on main\n",
+    ],
+    [
+      "      - name: Delete older turbo entries on main\n",
+      "      - name: Delete older turbo entries on main\n        with:\n          a: b\n",
+    ],
+    ["      actions: write\n", "      actions: write\n    env: &shared\n      A: b\n"],
+    [
+      "      - name: Delete older turbo entries on main\n",
+      '      - "u\\x73es": actions/checkout@v4\n      - name: Delete older turbo entries on main\n',
+    ],
+  ])
+    failsWith(
+      withWorkflows((d) => edit(d, "js.yml", from, to)),
+      'job "prune-turbo-cache" holds a write right and may not contain this line',
+    );
+  for (const key of ["container: node:22", "services:\n      db:\n        image: postgres"])
+    failsWith(
+      withWorkflows((d) =>
+        edit(d, "js.yml", "      actions: write\n", `      actions: write\n    ${key}\n`),
+      ),
+      'job "prune-turbo-cache" holds a write right and may not contain this line',
+    );
+  failsWith(
+    withWorkflows((d) =>
+      edit(d, "js.yml", "      actions: write\n", "      actions: write\n      contents: write\n"),
+    ),
+    'enabled job "prune-turbo-cache" asks for a write permission: contents: write',
+  );
+  failsWith(
+    withWorkflows((d) =>
+      edit(
+        d,
+        "js.yml",
+        "    container:\n      image: mcr.microsoft.com/playwright:v1.58.2-noble\n",
+        "    permissions:\n      actions: write\n    container:\n      image: mcr.microsoft.com/playwright:v1.58.2-noble\n",
+      ),
+    ),
+    'enabled job "build" asks for a write permission',
+  );
+});
