@@ -116,8 +116,9 @@ encrypted, so never regenerate or replace the secret of a running deployment.
   Postgres container restarts with the new file: `docker compose up -d`
   recreates it because its command changed, and `docker stack deploy` (which
   `deploy-swarm.sh` runs) restarts the single Postgres replica. Either way the
-  database is unavailable while Postgres restarts. Nothing is written to the
-  data volume, so removing the flag later turns JIT back on.
+  database is unavailable while Postgres restarts. The server is not
+  restarted; it reconnects on its own. Nothing is written to the data volume,
+  so removing the flag later turns JIT back on.
 
 ### Renaming the storage keys
 

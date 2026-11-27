@@ -280,13 +280,18 @@ try {
   );
 
   // The shipped compose file starts Postgres with -c jit=off.
-  const jit = tryDc(
-    "exec",
-    "-T",
-    "postgres",
-    "sh",
-    "-c",
-    'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "show jit"',
+  const jit = tryRun(
+    "docker",
+    [
+      ...dcArgs,
+      "exec",
+      "-T",
+      "postgres",
+      "sh",
+      "-c",
+      'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "show jit"',
+    ],
+    { timeout: 30_000 },
   );
   result.postgres_jit = jit.ok ? jit.stdout.trim() : null;
   log(`postgres: show jit -> ${result.postgres_jit ?? jit.stderr.trim()}`);
