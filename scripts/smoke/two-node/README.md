@@ -17,6 +17,10 @@ cluster:
 - **presence**: a client on A and a client on B join one room and each sees
   the other (Hazelcast's shared rooms map, port 5701).
 
+Before those checks, `run.mjs` asks the running Postgres `show jit` and fails
+unless it answers `off`, the setting the shipped compose file passes (see
+"Postgres JIT" in `self-hosting/README.md`).
+
 The stream checks and presence need the nodes to form a cluster; the write
 checks do not. Each node invalidates its live queries from its own Postgres
 replication slot (`invalidator_<process-id>`), so the write checks pass even

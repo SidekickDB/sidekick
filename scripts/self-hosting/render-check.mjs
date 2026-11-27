@@ -3,7 +3,8 @@
 // and checks that each one either renders with the right credentials or stops
 // with a message that names the variable to set. It also checks that no file
 // publishes the Postgres port beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
-// asks for another address. Client-side only: no
+// asks for another address, and that every file starts Postgres with JIT off.
+// Client-side only: no
 // containers, images or daemon are used.
 //
 //   node scripts/self-hosting/render-check.mjs \
@@ -539,6 +540,41 @@ for (const cmd of composes) {
     }
   }
 
+  // Postgres runs with JIT off in every compose file (see README.md,
+  // "Postgres JIT").
+  for (const file of [
+    'docker-compose.yml',
+    'docker-compose.with-caddy.yml',
+    'docker-compose.local.yml',
+  ]) {
+    const r = renderCompose(
+      cmd,
+      file,
+      envFile(`${file}-jit`, {
+        POSTGRES_PASSWORD: PG,
+        STORAGE_ACCESS_KEY: AK,
+        STORAGE_SECRET_KEY: SK,
+      }),
+    );
+    const problems = [];
+    if (!r.ok)
+      problems.push(`did not render: ${r.stderr.trim().split('\n').at(-1)}`);
+    else {
+      const command = r.config.services?.postgres?.command ?? [];
+      if (!command.includes('jit=off'))
+        problems.push(
+          `postgres command ${JSON.stringify(command)} lacks jit=off`,
+        );
+    }
+    record(
+      label,
+      file,
+      'postgres: jit=off',
+      problems,
+      r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+    );
+  }
+
   // Informational: the bare nested ":-" form. The compose files rely on it
   // for the SIDEKICK_* aliases, which the cases above assert. What Compose
   // 2.38 rejects is a required ":?" inside a default, which no file uses.
@@ -603,21 +639,29 @@ for (const cmd of composes) {
   // indented two spaces and their keys four: take the lines from "  postgres:"
   // to the next service or top-level key.
   const p3 = [];
-  if (!set.ok)
+  const p4 = [];
+  if (!set.ok) {
     p3.push(`did not render: ${set.stderr.trim().split('\n').at(-1)}`);
-  else {
+    p4.push(...p3);
+  } else {
     const lines = set.stdout.split('\n');
     const start = lines.indexOf('  postgres:');
-    if (start === -1) p3.push('output has no postgres service');
-    else {
+    if (start === -1) {
+      p3.push('output has no postgres service');
+      p4.push(...p3);
+    } else {
       const rest = lines.slice(start + 1);
       const end = rest.findIndex((l) => /^ {0,2}\S/.test(l));
       const block = end === -1 ? rest : rest.slice(0, end);
       if (block.some((l) => /^ {4}ports:/.test(l)))
         p3.push('postgres service publishes a port, expected none');
+      // The command is a list, one "- item" line per argument.
+      if (!block.some((l) => /^\s+- "?jit=off"?$/.test(l)))
+        p4.push('postgres command lacks jit=off');
     }
   }
   record('docker stack config', 'swarm.yml', 'postgres port: none', p3);
+  record('docker stack config', 'swarm.yml', 'postgres: jit=off', p4);
   const none = stack({ POSTGRES_PASSWORD: PG });
   const p2 = none.ok
     ? ['rendered without storage keys']
