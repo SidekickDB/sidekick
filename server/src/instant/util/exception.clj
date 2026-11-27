@@ -443,11 +443,13 @@
 ;; ----------
 ;; Rate limit
 
+;; SidekickDB: without a superuser email the message sends users to the
+;; server's administrator (upstream: Instant's support address and Discord).
 (defn throw-rate-limited! []
   (throw+ {::type ::rate-limited
            ::message (if (config/superuser-email)
                        "You're making too many requests. Please contact your deployment administrator."
-                       "You're making too many requests. Please email support@instantdb.com or ask for help in the Discord.")}))
+                       "You're making too many requests. Please contact the administrator of this server.")}))
 
 (defn throw-record-email-rate-limited! []
   (throw+ {::type ::rate-limited

@@ -42,8 +42,8 @@ changes regularly. To keep those merges cheap:
 - Mark an intentional difference with a `SidekickDB:` comment that says why,
   where the file format allows a comment.
 - Record it in [`UPSTREAM.md`](./UPSTREAM.md) under "Intentional divergences"
-  and in `scripts/upstream/divergences/<key>.mjs` plus a line in
-  `scripts/upstream/divergence-prs.txt` (see "Maintaining the tooling" in `UPSTREAM.md`).
+  and in `scripts/upstream/divergences/<key>.mjs` plus a file
+  `scripts/upstream/divergence-prs/<PR number>` (see "Maintaining the tooling" in `UPSTREAM.md`).
 
 [`UPSTREAM.md`](./UPSTREAM.md) explains how the fork relates to upstream.
 
