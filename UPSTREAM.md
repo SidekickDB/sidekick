@@ -505,6 +505,16 @@ The self-hosted stack works without Instant infrastructure.
   `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
   `ghcr.io/instantdb/*`, and the Postgres service of
   `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
+- `deploy-swarm.sh` runs under bash with `set -euo pipefail`, passes every
+  variable `swarm.yml` reads (one list, `STACK_VARS`; upstream passed a few and
+  dropped email, S3, Postgres user and database and the rest), and renders
+  before it connects. Before deploying it checks over ssh that the external
+  secret `server_config` exists and otherwise stops with the commands to
+  create it once; it never creates or replaces it. `README.md` documents the
+  secret. `scripts/self-hosting/deploy-swarm.test.mjs` (run by
+  `sidekick-self-hosting-check.yml`) runs the script with stand-ins for
+  `docker` and `ssh` and fails when `swarm.yml` reads a variable it does not
+  pass.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults
@@ -519,6 +529,8 @@ the same tag from SidekickDB first). Run
 after a sync that touches `self-hosting/`. In server
 config keep "no default outside tests" for buckets, ARNs and sender addresses.
 Port upstream's new settings into that form.
+When upstream adds a variable to `swarm.yml`, add it to `STACK_VARS` in
+`deploy-swarm.sh` (the test names it), and keep the `server_config` check.
 Keep the required `POSTGRES_PASSWORD` and the memory and `JAVA_OPTS` defaults
 (PR #13); if upstream changes its JVM flags in `server/docker-compose.yml`,
 consider the same change in the default `JAVA_OPTS`. In `jwt.clj` and
@@ -546,7 +558,6 @@ Old names that stay on purpose (the allowlist and guards in
   the `X-Instant-Source` header values, the CLI `User-Agent` and the
   `instant-cli-version` header, `BroadcastChannel('@instantdb')`, Effect
   `Context.Tag` ids such as `instant-cli/new/...`;
-- the third-party `@instantdb/eventsource` dependency;
 - legacy-project detection and aliasing in the CLI (`projectInfo.ts`,
   `loadConfig.ts`, `findConfigCandidates.ts`, `legacyPackageCompat.test.ts`);
 - the `instant-cli` binary alias in `client/packages/cli/package.json`;
@@ -575,7 +586,8 @@ the CLI. One place PR #7 missed, the escaped `@instantdb\/react` in
 
 Path forms are renamed only for our packages: `node_modules/@instantdb/react`
 and `join(..., 'node_modules', '@instantdb', 'react')` become `@sidekickdb`;
-`@instantdb/eventsource` paths are left alone; the bare
+`@instantdb/eventsource` is not renamed but reported wherever it appears (see
+"Own copy of eventsource in admin"); the bare
 `node_modules/@instantdb` directory and unknown packages are reported as
 leftovers. Guards mask only the protected token, so other old names on the same
 line are still renamed or reported.
@@ -959,6 +971,14 @@ project as SidekickDB:
   rules (`client/www/lib/intern/instant-rules.md` and its identical copy
   `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
   mention the Python SDK.
+- Upstream's community invite links: the seven offered starters whose README
+  invited feedback on upstream's Discord now point at this repository's issue
+  tracker, and `client/packages/components/src/config.ts` no longer exports
+  `discordInviteUrl`, `discordOAuthAppsFeedbackInviteUrl` and
+  `bugsAndQuestionsInviteUrl` (nothing imported them from the package; the
+  dashboard keeps its own copies in `client/www/lib/config.ts`).
+  The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
+  asks for an issue here instead of a message on upstream's Discord.
 - Docs links in what the CLI and `create-sidekick-app` print and write, the
   headers `platform/src/perms.ts` and `schema.ts` generate (and their tests),
   the agent rules and the 12 starters under `examples/` point at
@@ -981,7 +1001,10 @@ and take upstream's other changes. For printed text keep SidekickDB's wording,
 give a string upstream adds the same treatment, and update the tests that
 assert it. In the starters and the rules file keep SidekickDB's name and add no
 image from instantdb.com; copy the rules file to its template copy after
-every edit.
+every edit. If upstream edits a starter's "Got any feedback or questions?"
+sentence, keep SidekickDB's line pointing at the issue tracker; if upstream
+changes the three invite constants in `components/src/config.ts`, drop them
+again.
 
 SDK source and server error links: in `client/packages/*/src` of admin, core,
 react, react-common, react-native, solidjs, svelte and vue, every docs link
@@ -1016,6 +1039,41 @@ files were changed.
 
 **Resolving:** upstream has no `NOTICE`. If it adds one, keep its attribution
 notices and SidekickDB's text in the same file (section 4(d) of the licence).
+
+### Own copy of eventsource in admin
+
+`@sidekickdb/admin` no longer depends on `@instantdb/eventsource`, a package in
+Instant's npm scope. That package is the MIT-licensed `eventsource` 4.0.0 (by
+Espen Hovlandsdal, github.com/EventSource/eventsource) with one addition: a
+`messageEvent` init option, which admin uses to pass `MessageEventPolyfill`
+because the Vercel edge runtime defines a `MessageEvent` that throws. Public
+`eventsource` has no such option (up to 5.1.5).
+
+- `client/packages/admin/src/eventsource/`: the `src` of
+  `@instantdb/eventsource@4.1.0-2` from the npm registry tarball, unchanged
+  apart from `ReaderLike` and `BodyChunk` in `types.ts`, which are taken from
+  `eventsource` 5.1.5 so the code type-checks with TypeScript 5.9 (marked
+  `SidekickDB:`). Its MIT `LICENSE` and a `.prettierrc.json` with the
+  original formatting are next to it, and `NOTICE` names it. The `LICENSE`
+  ships in the package tarball (admin packs `src/`), as does `NOTICE`.
+- `client/packages/admin/src/index.ts` and `subscribe.ts` import
+  `./eventsource/index.ts`; `client/packages/admin/package.json` depends on
+  `eventsource-parser` (the copy's only dependency) instead.
+- `client/packages/admin/__tests__/src/subscribe.test.ts` runs `subscribe`
+  against a stub `fetch` with a throwing global `MessageEvent`, and admin's
+  `test:ci` now runs vitest, so CI covers the streaming path.
+- `scripts/upstream/rename.mjs`: `@instantdb/eventsource` is in
+  `VENDORED_SCOPED`, so `check.mjs` reports it (`vendored-package`) in any
+  file upstream changes, including a dependency line in a `package.json`.
+
+**Resolving:** the copy does not follow upstream. If upstream bumps or
+changes `@instantdb/eventsource` (a new version in `package.json`, a new
+import, a new option at a call site), keep the dependency out and the imports
+on `./eventsource/index.ts`; diff the new version's `src` against the copy
+(`npm pack @instantdb/eventsource@<version>`) and bring over what admin needs,
+keeping `messageEvent`. If upstream moves to public `eventsource`, check that
+`MessageEventPolyfill` still reaches the edge runtime before following.
+`client/pnpm-lock.yaml` is regenerated by pnpm.
 
 ### Upstream sync tooling
 

@@ -49,6 +49,7 @@
 61 brand
 62 brand
 63 own-fixes
+76 own-fixes
 64 removed-sunset
 65 removed-sunset
 71 ci-lockdown
@@ -57,4 +58,6 @@
 69 own-fixes
 74 brand
 73 brand
-76 own-fixes
+75 brand
+79 selfhost
+78 admin-eventsource
