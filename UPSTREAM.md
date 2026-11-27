@@ -95,7 +95,7 @@ described below.
 | `rename.mjs` | Rename map, excluded paths, allowlist and guards |
 | `divergences.mjs` | Loads the divergences and attributes changed paths to them |
 | `divergences/<key>.mjs` | Title and resolution hint of one divergence |
-| `divergence-prs.txt` | Which PR belongs to which divergence, one per line |
+| `divergence-prs/<PR number>` | Which divergence a PR belongs to, one file per PR |
 | `*.test.mjs` | Tests: `node --test scripts/upstream/*.test.mjs` |
 
 ### 1. Report
@@ -230,7 +230,7 @@ Each row is a deliberate difference from upstream, the PR that introduced it, an
 how to resolve the conflict it is expected to cause. `sync.mjs` groups conflicts
 by these rows (from git history, so later PRs appear automatically; names and
 hints come from `scripts/upstream/divergences/<key>.mjs`). The PR numbers of
-each row are in `scripts/upstream/divergence-prs.txt`, not in the headings
+each row are files in `scripts/upstream/divergence-prs/`, not in the headings
 below, so that two open PRs do not edit the same line.
 
 ### CI lockdown
@@ -1078,9 +1078,8 @@ keeping `messageEvent`. If upstream moves to public `eventsource`, check that
 
 ### Upstream sync tooling
 
-`UPSTREAM.md`, `scripts/upstream/` and `.gitattributes`. Upstream has none of
-them, so they never conflict. If upstream adds a `.gitattributes`, keep its
-lines and SidekickDB's `merge=union` line for `divergence-prs.txt`.
+`UPSTREAM.md` and `scripts/upstream/`. Upstream has neither, so they never
+conflict.
 
 ## Re-check after every sync
 
@@ -1136,28 +1135,23 @@ instructions.
 - A new intentional divergence: add `scripts/upstream/divergences/<key>.mjs`
   (`export default { title, resolve }`; the file name is the key), a section
   under "Intentional divergences" with no PR number in its heading (directly
-  before "Upstream sync tooling", which stays last), and a line for the PR in
-  `scripts/upstream/divergence-prs.txt`. A PR for an existing divergence needs
-  only that line. Unlisted PRs are still attributed, under their own title.
-- `divergence-prs.txt`: one line per PR, `<PR number> <key>`, appended at the
-  end once `gh pr create` has returned the number. A PR with two concerns lists
-  both keys and needs an entry in `SPLIT` in `divergences.mjs` that picks one
-  by path. Lines starting with `#` are comments; keep the one header line as it
-  is. A union merge also keeps a line that one side deleted while the other
-  side appended: after merging a change that removes or re-keys a line, check
-  the file by hand.
+  before "Upstream sync tooling", which stays last), and a file for the PR in
+  `scripts/upstream/divergence-prs/`. A PR for an existing divergence needs
+  only that file. Unlisted PRs are still attributed, under their own title.
+- `divergence-prs/<PR number>`: one file per PR, holding its key, written once
+  `gh pr create` has returned the number
+  (`echo '<key>' > scripts/upstream/divergence-prs/<PR number>`). A PR with two
+  concerns lists both keys on the one line and needs an entry in `SPLIT` in
+  `divergences.mjs` that picks one by path.
 - Why this layout: two PRs that each record a divergence add different key
-  files and different lines in `divergence-prs.txt`, so the tooling data
-  merges without a conflict. The prose in this file still conflicts when two
-  such PRs add text in the same place (two new sections before "Upstream sync
-  tooling", or text in the same section): resolve it by hand and keep both.
-  `.gitattributes` merges `divergence-prs.txt` with `merge=union` (both added
-  lines are kept); everything else merges normally, so two edits of the same
-  hint still conflict. The union merge is relied on for a local `git merge`
-  only: do not count on GitHub's mergeability check or its "Update branch"
-  button applying it. `divergences.mjs` refuses to load, and
-  `divergences.test.mjs` fails, on what a union merge can leave behind (a
-  conflict marker, a PR listed twice, an unknown key, a malformed line).
+  files and different PR files, so the tooling data merges without a conflict,
+  in a local `git merge` and on GitHub alike. The prose in this file still
+  conflicts when two such PRs add text in the same place (two new sections
+  before "Upstream sync tooling", or text in the same section): resolve it by
+  hand and keep both. `divergences.mjs` refuses to load, and
+  `divergences.test.mjs` fails, on a PR file whose name is not a number, whose
+  content is not one or two keys (a conflict marker, a stray character), or
+  that names an unknown key, a key twice or a split that `SPLIT` does not know.
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.

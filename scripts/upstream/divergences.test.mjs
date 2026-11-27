@@ -1,22 +1,18 @@
 // Run with: node --test scripts/upstream/*.test.mjs
-// divergence-prs.txt is merged with merge=union (.gitattributes), which keeps
-// both sides without asking. These tests catch what that can leave behind.
 import assert from "node:assert/strict";
-import fs from "node:fs";
 import { test } from "node:test";
 import {
   DIVERGENCES,
   DIVERGENCE_FILES,
-  DIVERGENCE_PRS_FILE,
   PR_CATEGORY,
   divergenceFiles,
+  oldListMigration,
   parseDivergencePrs,
+  readDivergencePrs,
 } from "./divergences.mjs";
 
-test("divergence-prs.txt reads without problems", () => {
-  const { entries, problems } = parseDivergencePrs(
-    fs.readFileSync(DIVERGENCE_PRS_FILE, "utf8"),
-  );
+test("divergence-prs/ reads without problems", () => {
+  const { entries, problems } = parseDivergencePrs(readDivergencePrs());
   assert.deepEqual(problems, []);
   assert.ok(entries.length > 0);
 });
@@ -41,10 +37,8 @@ test("the loader skips dotfiles and rejects other names", () => {
     assert.throws(() => divergenceFiles(["brand.mjs", bad]), /not <key>\.mjs/, bad);
 });
 
-test("every key in divergence-prs.txt has a file in divergences/", () => {
-  const { entries } = parseDivergencePrs(
-    fs.readFileSync(DIVERGENCE_PRS_FILE, "utf8"),
-  );
+test("every key in divergence-prs/ has a file in divergences/", () => {
+  const { entries } = parseDivergencePrs(readDivergencePrs());
   for (const { pr, keys } of entries)
     for (const k of keys)
       assert.ok(
@@ -81,26 +75,60 @@ test("every prs entry is a PR number listed once per divergence", () => {
   }
 });
 
-test("the reader reports conflict markers, duplicates and unknown keys", () => {
-  const text = [
-    "# comment",
-    "4 selfhost",
-    "<<<<<<< HEAD",
-    "70 selfhost",
-    "=======",
-    "70 brand",
-    ">>>>>>> other",
-    "71 no-such-key",
-    "72 selfhost brand",
-    "73 selfhost,",
-  ].join("\n");
-  assert.deepEqual(parseDivergencePrs(text).problems, [
-    'divergence-prs.txt:3: not "<number> <key>": <<<<<<< HEAD',
-    'divergence-prs.txt:5: not "<number> <key>": =======',
-    "divergence-prs.txt:6: PR 70 listed twice",
-    'divergence-prs.txt:7: not "<number> <key>": >>>>>>> other',
-    "divergence-prs.txt:8: unknown divergence key no-such-key",
-    "divergence-prs.txt:9: PR 72 needs an entry in SPLIT",
-    'divergence-prs.txt:10: not "<number> <key>": 73 selfhost,',
+test("the reader reports bad names and contents, duplicates and unknown keys", () => {
+  const files = [
+    ["4", "selfhost\n"],
+    [".DS_Store", "\0\0"],
+    ["70", "<<<<<<< HEAD\nselfhost\n=======\nbrand\n>>>>>>> other\n"],
+    ["071", "brand\n"],
+    ["71", "brand"],
+    ["72", "no-such-key\n"],
+    ["73", "selfhost brand\n"],
+    ["14", "dashboard\n"],
+    ["1", "own-fixes own-fixes\n"],
+    ["74", "selfhost,\n"],
+    ["75.txt", "brand\n"],
+    ["76", "\n"],
+  ];
+  const { entries, problems } = parseDivergencePrs(files);
+  assert.deepEqual(problems, [
+    'divergence-prs/70: not "<key>": "<<<<<<< HEAD\\nselfhost\\n=======\\nbrand\\n>>>>>>> other\\n"',
+    "divergence-prs/71: PR 71 listed twice",
+    "divergence-prs/72: unknown divergence key no-such-key",
+    "divergence-prs/73: PR 73 needs an entry in SPLIT",
+    "divergence-prs/14: PR 14 needs both keys, as it is in SPLIT",
+    "divergence-prs/1: a key listed twice",
+    'divergence-prs/74: not "<key>": "selfhost,\\n"',
+    "divergence-prs/75.txt: not a PR number",
+    'divergence-prs/76: not "<key>": "\\n"',
   ]);
+  assert.deepEqual(
+    entries.map((e) => e.pr),
+    [1, 4, 14, 71, 71, 72, 73],
+  );
+});
+
+test("the old list gets the commands that move its new lines", () => {
+  const text = [
+    "# <PR number> <divergence key>, one per line",
+    "4 selfhost",
+    "14 dashboard selfhost",
+    "70 brand",
+    "82 brand",
+    "83 ci-lockdown",
+  ].join("\n");
+  const entries = [
+    { pr: 4, keys: ["selfhost"] },
+    { pr: 14, keys: ["dashboard", "selfhost"] },
+    { pr: 70, keys: ["js-test-guard"] },
+  ];
+  const msg = oldListMigration(text, entries);
+  assert.match(msg, /replaced by one file per PR in scripts\/upstream\/divergence-prs\//);
+  const commands = msg.split("\n").filter((l) => l.startsWith("  "));
+  assert.deepEqual(commands.slice(0, -1), [
+    '  # PR 70: the old list says "brand", divergence-prs/70 says "js-test-guard": keep the right one',
+    "  echo 'brand' > scripts/upstream/divergence-prs/82",
+    "  echo 'ci-lockdown' > scripts/upstream/divergence-prs/83",
+  ]);
+  assert.match(commands.at(-1), /^ {2}git rm -f scripts\/upstream\/divergence-prs\.txt$/);
 });
