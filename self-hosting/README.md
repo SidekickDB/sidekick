@@ -111,6 +111,14 @@ encrypted, so never regenerate or replace the secret of a running deployment.
   publishes port 8890 on `127.0.0.1` only, and `swarm.yml` does not publish it.
   See [Postgres port](#postgres-port) if a tool on another machine connects to
   it.
+- Postgres now runs with JIT off; see [Postgres JIT](#postgres-jit). The
+  setting is a flag in the container's command, so it applies when the
+  Postgres container restarts with the new file: `docker compose up -d`
+  recreates it because its command changed, and `docker stack deploy` (which
+  `deploy-swarm.sh` runs) restarts the single Postgres replica. Either way the
+  database is unavailable while Postgres restarts. The server is not
+  restarted; it reconnects on its own. Nothing is written to the data volume,
+  so removing the flag later turns JIT back on.
 
 ### Renaming the storage keys
 
@@ -206,6 +214,30 @@ Postgres over the Docker network and needs no published port.
   ```
 
   `deploy-swarm.sh` deploys `swarm.yml` alone.
+
+## Postgres JIT
+
+The compose files and `swarm.yml` start Postgres with `-c jit=off`, so
+Postgres does not compile parts of a query to machine code with LLVM. JIT can
+make long analytical queries faster, but it adds compile time to every query
+whose estimated cost passes `jit_above_cost`.
+
+To check a transaction's permissions, the server loads every entity the
+transaction touches in one query, with one sub-query per entity. For a large
+transaction that is one large query, and JIT spends its time compiling it. In
+CI, that query for a cascade delete of 1,365 entities took 3.6 s with JIT on
+(9,556 functions compiled) and about 0.3 s with JIT off. In four other CI runs
+the same query passed the server's 30 s query timeout; that JIT caused those
+timeouts is inferred from where they happened, not measured. Nothing was
+measured on a production-sized database.
+
+To turn JIT back on, delete the two lines `- "-c"` and `- "jit=off"` from the
+`command:` of the `postgres` service and recreate the container. To keep the
+shipped file unchanged, set `command:` for `postgres` in a compose override
+file instead; Compose replaces the whole list, so repeat the other flags
+without `jit=off`. A flag on the command line takes precedence over
+`ALTER SYSTEM`, so `ALTER SYSTEM SET jit = on` has no effect while the flag is
+there. A single session can still run `SET jit = on`.
 
 ## Server memory
 

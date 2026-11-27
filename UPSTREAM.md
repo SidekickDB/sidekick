@@ -530,6 +530,11 @@ The self-hosted stack works without Instant infrastructure.
   The compose files, `swarm.yml`, `deploy-swarm.sh`, `.env.example` and
   `README.md` carry the variable; tests in `config_test.clj`. If upstream
   changes that default, keep the call to `config/query-cache-max-bytes`.
+- PR #94: the Postgres `command:` of the three compose files and `swarm.yml`
+  ends with `-c jit=off` (`README.md`, "Postgres JIT"). Upstream leaves JIT
+  on. `render-check.mjs` asserts the flag and the two-node smoke test fails
+  unless the running Postgres answers `show jit` with `off`. At a sync, keep
+  the flag; if upstream adds `-c` flags, add them next to it.
 
 **Resolving:** keep the `storage` service, the required `STORAGE_*` variables
 (plain `${VAR:?message}`, never a `:?` inside a default; nested `:-` defaults

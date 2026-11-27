@@ -30,6 +30,9 @@ services:
       - "shared_preload_libraries=pg_hint_plan"
       - "-c"
       - "random_page_cost=1.1"
+      # SidekickDB: JIT off, its compile time made large transactions slow; delete these two lines to turn it back on (README.md, "Postgres JIT").
+      - "-c"
+      - "jit=off"
 
   www:
     depends_on:
