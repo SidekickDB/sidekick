@@ -152,6 +152,9 @@ services:
       # Seconds over which a stopping server closes its WebSockets; see
       # README.md, "Restarts and rolling updates". Unset means 20.
       INSTANT_SHUTDOWN_DRAIN_SECONDS: ${INSTANT_SHUTDOWN_DRAIN_SECONDS:-}
+      # Weight limit of each app's query cache, in bytes or with a k, m or g
+      # suffix. Unset means a quarter of the server's maximum heap.
+      INSTANT_QUERY_CACHE_MAX_BYTES: ${INSTANT_QUERY_CACHE_MAX_BYTES:-}
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_TOKEN: ${POSTMARK_TOKEN:-}
       SENDGRID_TOKEN: ${SENDGRID_TOKEN:-}

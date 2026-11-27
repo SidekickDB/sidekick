@@ -261,6 +261,21 @@ the container limit, and the kernel then kills the container. If that happens,
 raise `SERVER_MEMORY_LIMIT`, or lower `-XX:MaxRAMPercentage` or add
 `-XX:MaxDirectMemorySize=...` in `JAVA_OPTS`.
 
+### Query cache
+
+The server keeps recent query results in a cache, one per app with connected
+clients. Its limit is a weight that estimates the heap the results take (four
+times the size of the result rows Postgres sends). By default the limit is a
+quarter of the maximum heap, at most 500 MiB (upstream's fixed limit): about
+300 MiB with the defaults above, growing with the heap when you raise
+`SERVER_MEMORY_LIMIT` until the heap reaches 2 GiB. Set
+`SIDEKICK_QUERY_CACHE_MAX_BYTES` to choose it yourself, in bytes or with a `k`,
+`m` or `g` suffix (`512m`, `2g`). An invalid value stops the server at startup.
+
+The limit applies to each app's cache on its own, so with several busy apps the
+caches together can take more. Lower the limit, or raise `SERVER_MEMORY_LIMIT`,
+if the server runs out of heap with many active apps.
+
 ## Runtime mode
 
 The server runs in the **self-hosted** runtime mode, set by
