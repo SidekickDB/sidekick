@@ -28,7 +28,12 @@ Never commit to `main`.
   pull request for an existing divergence skips this), with the pull request
   number as a file of its own, `scripts/upstream/divergence-prs/<number>`,
   holding the key. Write that file only after `gh pr create` has returned the
-  number; never guess the next number. No PR
+  number; never guess the next number. CI (`sidekick-checks.yml`) fails a pull
+  request that changes an inherited file (one that exists in the last merged
+  upstream commit) until that file is on the branch, so the first push of such
+  a pull request fails: that is expected. The log prints the commands to add
+  it; `node scripts/upstream/divergence-entry.mjs --pr <number>` runs the same
+  check locally. Upstream syncs are exempt. No PR
   number goes into an `UPSTREAM.md` heading. Details: "Maintaining the
   tooling" in `UPSTREAM.md`.
 - New workflow file: name it `sidekick-*.yml`, pin actions to full commit SHAs

@@ -1212,6 +1212,15 @@ instructions.
   `git add` that file). A PR with two
   concerns lists both keys on the one line and needs an entry in `SPLIT` in
   `divergences.mjs` that picks one by path.
+- `sidekick-checks.yml` runs `scripts/upstream/divergence-entry.mjs` on every
+  PR. It fails when the PR changes, deletes or renames a path that exists in
+  the last upstream commit merged into the base and the head has no
+  `divergence-prs/<PR number>`; the first push of such a PR fails until the
+  file is added. That commit is read from origin's history (SidekickDB's
+  commits descend from its first commit, upstream's do not), so the job checks
+  out with `fetch-depth: 0` and fetches nothing from upstream. A sync PR is
+  exempt when it merges an upstream commit the base lacks and updates
+  [Last synced upstream commit](#last-synced-upstream-commit) to that commit.
 - Why this layout: two PRs that each record a divergence add different key
   files and different PR files, so the tooling data merges without a conflict,
   in a local `git merge` and on GitHub alike. The prose in this file still
