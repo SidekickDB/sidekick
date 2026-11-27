@@ -42,13 +42,30 @@ export interface EventSourceFetchInit {
   redirect: 'error' | 'follow' | 'manual'
 }
 
+// SidekickDB: BodyChunk and the read() result below are taken from eventsource 5.1.5, so that
+// EventSource.ts type-checks with TypeScript 5.9 (a TextDecoder does not accept `unknown`).
+/**
+ * A chunk read off a response body.
+ *
+ * Chunks are handed to a `TextDecoder`, which only accepts buffers, so this is what a reader has
+ * to yield to be usable. The union is spelled out because the node (`TypedArray | DataView`) and
+ * DOM (`ArrayBufferView`) typings describe "any buffer view" differently, and these three members
+ * are accepted by both.
+ */
+type BodyChunk = Uint8Array | DataView | ArrayBuffer
+
 /**
  * Stripped down version of `ReadableStreamDefaultReader`, only defining the parts we care about.
+ *
+ * Note that the `done: true` result allows `value` to be missing _or_ explicitly `undefined`:
+ * TypeScript 5.9's DOM lib types `ReadableStreamDefaultReader.read()`'s done-result as
+ * `{done: true, value: T | undefined}`, so under `exactOptionalPropertyTypes` an optional
+ * property alone would reject standard readers.
  *
  * @public
  */
 export interface ReaderLike {
-  read(): Promise<{done: false; value: unknown} | {done: true; value?: undefined}>
+  read(): Promise<{done: false; value: BodyChunk} | {done: true; value?: BodyChunk | undefined}>
   cancel(): Promise<void>
 }
 
