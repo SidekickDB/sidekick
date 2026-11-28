@@ -410,6 +410,11 @@ test("docs links get SidekickDB's host only in the listed paths", () => {
       "[x](https://www.instantdb.com/docs/x.md)\n",
       "[x](https://sidekickdb.co/docs/x.md)\n",
     ],
+    [
+      "client/packages/mcp/src/index.ts",
+      "    https://instantdb.com/docs/instaql`,\n",
+      "    https://sidekickdb.co/docs/instaql`,\n",
+    ],
   ];
   for (const [f, t, want] of cases) {
     assert.equal(norm(f, t), want, f);
