@@ -6,7 +6,9 @@ Docker 29.8.2 and Docker Compose 5.5.0 on a macOS host on 2026-11-28. Not
 tested: the Caddy setup, swarm, a Linux host (where the owners of the files in
 the bind-mounted `backups/` folder can differ), and `backup.sh` under dash as
 `/bin/sh` (the test host's `/bin/sh` is bash; a review ran the script's trap
-pattern under dash and bash with the same result).
+pattern under dash and bash with the same result). Restore step 6 was tested
+the same day with the v2.0.1 images and the Postgres image, settings and
+volume of `docker-compose.yml`.
 
 ## What holds state
 
@@ -241,7 +243,104 @@ docker compose exec -T postgres sh -c \
 
 It prints nothing when it succeeds.
 
-### 6. Recreate the aggregator replication slot
+### 6. Move the database past the positions it already holds
+
+Do this after step 5 and before step 7, while only Postgres runs and before
+the server has ever started on the new database.
+
+The server numbers every write with its position in Postgres' write-ahead log
+(WAL), and stores those numbers in four tables: `history` and
+`webhook_events` (for webhooks), `app_backups` and `backup_jobs`. The restored
+database is a new Postgres cluster whose log starts near the beginning again,
+so without this step the server hands out numbers that are already stored.
+In the test, the restored database started 12.7 MB of log below the highest
+stored position, and of 3,000 writes made after the restore, 1 in one run and
+2 in another got a number that was already stored. For such a write:
+
+- no history record is saved and the webhook is not sent; nothing reports an
+  error;
+- a webhook created after the restore is sent the data of the older write that
+  holds that number.
+
+The app data of that write is saved as usual. This stops once the new
+database's log passes the highest stored position, that is once it has written
+about as much log as the old database had.
+
+This query prints what to do. It reads the highest position stored in those
+four tables and compares it with the database's current one:
+
+```sh
+docker compose exec -T postgres sh -c \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atq' <<'SQL'
+create function pg_temp.max_stored_lsn() returns pg_lsn language plpgsql as $$
+declare
+  t text;
+  m pg_lsn;
+  s int;
+  r pg_lsn;
+begin
+  foreach t in array array['history', 'webhook_events', 'app_backups', 'backup_jobs'] loop
+    if to_regclass(t) is not null then
+      execute format('select max((isn).lsn), max((isn).slot_num) from %I', t) into m, s;
+      if s is distinct from null and s <> 2 then
+        raise exception 'STOP: % holds positions with slot number %, not 2. Do not run pg_resetwal.', t, s;
+      end if;
+      r := greatest(r, m);
+    end if;
+  end loop;
+  return coalesce(r, '0/0');
+end $$;
+
+select case
+  when pg_current_wal_lsn() > stored then
+    'No step needed: the database is already past every stored position (' || stored || ').'
+  when (select count(*) from pg_replication_slots) > 0 then
+    'STOP: the database has replication slots, so this step comes too late. See the guide.'
+  else
+    'Run: docker compose stop -t 300 postgres && docker compose run --rm --no-deps --user postgres --entrypoint pg_resetwal postgres -l '
+      || pg_walfile_name(stored + (select setting::numeric from pg_settings where name = 'wal_segment_size'))
+      || ' /var/lib/postgresql/data && docker compose up -d --wait postgres'
+  end
+from (select pg_temp.max_stored_lsn() as stored) s;
+SQL
+```
+
+It prints one line:
+
+- `No step needed: ...`: go on with step 7.
+- `Run: ...`: run the command after `Run: ` exactly as printed (with your `-f`
+  and `-p` options added to each `docker compose`), then run the query again.
+  It must now print `No step needed`. In the test, a restore printed
+  `Run: ... -l 000000010000000000000004 ...`.
+- `STOP: ...`: do not run `pg_resetwal`. If it names replication slots, see
+  [If the server started without this step](#if-the-server-started-without-this-step).
+
+The printed command stops Postgres and waits up to 300 seconds for it to shut
+down cleanly, runs `pg_resetwal -l` from the Postgres image on the same volume
+as the `postgres` user, and starts Postgres again. `pg_resetwal -l` moves the
+start of the write-ahead log forward to the file it is given, one 16 MB file
+past the highest stored position (the query reads the file size and the
+timeline from the database). It removes the old log files, which after a clean
+shutdown hold nothing that is not already in the data files, and it does not
+change any table. In the test, every app, row, history record and webhook
+event was there afterwards. Running the same command a second time moved the
+position one more file forward and did no harm.
+
+Two rules keep it safe:
+
+- Postgres must have stopped cleanly. If it did not, `pg_resetwal` stops with
+  `lock file "postmaster.pid" exists` and changes nothing. Start Postgres
+  again with `docker compose up -d --wait postgres` and run the query again.
+  Never delete that file and never add `-f`.
+- Never run it on a database that has replication slots or standby servers
+  reading from it: they keep positions in the old log files that it removes.
+  At this point the restored database has neither. The dump holds no slots
+  (the query prints `STOP` if there are any) and the shipped stack runs no
+  standby. That is why this step comes before step 7, which creates the
+  `aggregator` slot, and before the server first starts, which creates the
+  others.
+
+### 7. Recreate the aggregator replication slot
 
 The server reads Postgres' write-ahead log through logical replication slots.
 A dump does not contain them, so the new database has none.
@@ -269,7 +368,7 @@ This prints `UPDATE 1`. `UPDATE 0` means the old server never set up the
 aggregator; the slot stays uncreated and the server sets it up on its first
 start. This is the same step as in [UPGRADE_DB.md](UPGRADE_DB.md).
 
-### 7. Start the stack
+### 8. Start the stack
 
 ```sh
 docker compose up -d --wait
@@ -286,6 +385,35 @@ docker compose exec -T postgres sh -c \
   'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select slot_name, plugin, active from pg_replication_slots"'
 ```
 
+### If the server started without this step
+
+This applies to a database restored before step 6 was in this guide, or when
+step 6 was skipped. Writes made since the restore may be missing history
+records or webhooks as described in step 6; this does not bring those back,
+it stops new ones from being skipped.
+
+1. Stop your apps' writes, then the server: `docker compose stop server`.
+2. Run the query from step 6. `No step needed` means the database is already
+   past every stored position: start the server again and you are done.
+3. `STOP: the database has replication slots` is expected here. With the
+   server stopped, drop them:
+
+   ```sh
+   docker compose exec -T postgres sh -c \
+     'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select pg_drop_replication_slot(slot_name) from pg_replication_slots"'
+   ```
+
+   Changes the server had not yet read from its slot when it stopped get no
+   history record or webhook, which is why the writes stop first.
+4. Run the query again, run the command it prints, and run the query once
+   more: it must print `No step needed`.
+5. Do step 7 (it prints `UPDATE 1`) and step 8. The server creates its own
+   slots again when it starts.
+
+In the test, a restored database whose server had already started and taken
+writes went through these steps, and the 3,000 writes after them all got a
+history record and a webhook with their own data.
+
 ## Swarm
 
 `swarm.yml` uses the same Postgres image, service names and volumes, but the
@@ -295,5 +423,6 @@ server keys are the Docker secret `server_config`, which you already keep (see
 and `psql` commands with
 `docker exec -i $(docker ps -q -f name=instant_postgres) sh -c '...'` on the
 node that runs Postgres, and scale the server to zero before restoring
-(`docker service scale instant_server=0`). This guide has no tested swarm
-procedure.
+(`docker service scale instant_server=0`). Step 6 is needed there too, but the
+command its query prints is written for Compose. This guide has no tested
+swarm procedure.

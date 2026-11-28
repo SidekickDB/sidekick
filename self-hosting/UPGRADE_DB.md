@@ -32,7 +32,7 @@ Do this **before** pulling the PostgreSQL 17 image. Check out the previous
 revision if you have already pulled it, so the `postgres` service is still
 `postgresql-16-...`, then:
 
-<!-- SidekickDB: pg_dump reads the user and database from the container, as steps 3 and 4 do. -->
+<!-- SidekickDB: pg_dump reads the user and database from the container, as steps 3 to 5 do. -->
 
 ```bash
 docker compose up -d postgres
@@ -98,7 +98,67 @@ docker compose exec -T postgres sh -c \
   'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --single-transaction' < instant-pg16.dump
 ```
 
-### 4. Reset the aggregator replication slot
+<!-- SidekickDB: step 4 is new; see BACKUP.md, restore step 6. -->
+
+### 4. Move the database past the positions it already holds
+
+The server numbers every write with its position in the write-ahead log and
+stores those numbers in `history`, `webhook_events`, `app_backups` and
+`backup_jobs`. The PostgreSQL 17 database is a new cluster whose log starts
+near the beginning again, so without this step some writes get a number that
+is already stored: they get no history record and no webhook, and a webhook
+created after the upgrade can be sent an older write's data. App data is not
+affected. [BACKUP.md](BACKUP.md#6-move-the-database-past-the-positions-it-already-holds)
+explains this, what the command does and how to recover if the server already
+started without this step.
+
+Run this query. It prints `No step needed`, a `Run:` line, or `STOP`:
+
+```bash
+docker compose exec -T postgres sh -c \
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atq' <<'SQL'
+create function pg_temp.max_stored_lsn() returns pg_lsn language plpgsql as $$
+declare
+  t text;
+  m pg_lsn;
+  s int;
+  r pg_lsn;
+begin
+  foreach t in array array['history', 'webhook_events', 'app_backups', 'backup_jobs'] loop
+    if to_regclass(t) is not null then
+      execute format('select max((isn).lsn), max((isn).slot_num) from %I', t) into m, s;
+      if s is distinct from null and s <> 2 then
+        raise exception 'STOP: % holds positions with slot number %, not 2. Do not run pg_resetwal.', t, s;
+      end if;
+      r := greatest(r, m);
+    end if;
+  end loop;
+  return coalesce(r, '0/0');
+end $$;
+
+select case
+  when pg_current_wal_lsn() > stored then
+    'No step needed: the database is already past every stored position (' || stored || ').'
+  when (select count(*) from pg_replication_slots) > 0 then
+    'STOP: the database has replication slots, so this step comes too late. See the guide.'
+  else
+    'Run: docker compose stop -t 300 postgres && docker compose run --rm --no-deps --user postgres --entrypoint pg_resetwal postgres -l '
+      || pg_walfile_name(stored + (select setting::numeric from pg_settings where name = 'wal_segment_size'))
+      || ' /var/lib/postgresql/data && docker compose up -d --wait postgres'
+  end
+from (select pg_temp.max_stored_lsn() as stored) s;
+SQL
+```
+
+On a `Run:` line, run the command after `Run: ` exactly as printed (with your
+`-f`/`-p` options added to each `docker compose`), then run the query again: it
+must print `No step needed`. The command stops PostgreSQL cleanly, runs
+`pg_resetwal -l` to move the start of its log past the highest stored position,
+and starts it again; it does not change any table. It is only safe here, before
+step 5 creates the `aggregator` slot and before the server first starts. On
+`STOP`, do not run `pg_resetwal`; see the link above.
+
+### 5. Reset the aggregator replication slot
 
 The server keeps an internal count of your data (the "attr sketches") up to date
 by streaming Postgres' write-ahead log from a logical replication slot named
@@ -129,9 +189,9 @@ SQL
 This should print `UPDATE 1`. If it prints `UPDATE 0`, this deployment never
 initialized the aggregator (no status row) — the slot is left uncreated and the
 server will bootstrap it itself on first start, which is fine; continue to
-step 5.
+step 6.
 
-### 5. Start the rest of the stack
+### 6. Start the rest of the stack
 
 ```bash
 docker compose up -d
