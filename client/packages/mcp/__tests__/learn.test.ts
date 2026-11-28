@@ -1,5 +1,13 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, expect, test } from 'vitest';
 import { findRules, handleLearn, learnDescription } from '../src/learn.ts';
 
@@ -34,5 +42,22 @@ describe('learn tool', () => {
       '../dist/esm/learn.js',
     ])
       expect(findRules(new URL(p, import.meta.url).href)).toBe(want);
+  });
+
+  test('never returns a rules file from outside the package', () => {
+    const project = mkdtempSync(join(tmpdir(), 'sk-mcp-rules-'));
+    try {
+      mkdirSync(join(project, 'rules'));
+      writeFileSync(join(project, 'rules', 'AGENTS.md'), 'foreign rules\n');
+      const pkg = join(project, 'node_modules', '@sidekickdb', 'mcp');
+      for (const d of ['dist', join('dist', 'esm')]) {
+        const learn = join(pkg, d, 'learn.js');
+        expect(() => findRules(pathToFileURL(learn).href)).toThrow(
+          `SidekickDB rules file not found at ${join(pkg, 'rules', 'AGENTS.md')}`,
+        );
+      }
+    } finally {
+      rmSync(project, { recursive: true, force: true });
+    }
   });
 });

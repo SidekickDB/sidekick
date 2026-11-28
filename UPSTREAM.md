@@ -1109,8 +1109,9 @@ project as SidekickDB:
   OAuth consent page in `oauth-service-provider.ts`, the stdio startup line,
   the package description and the README say SidekickDB; the README describes
   building from a checkout, has no hosted server and gives the commands that
-  start HTTP mode. `learn.ts` finds the nearest `rules/AGENTS.md` above the
-  compiled file, so the dev build in `dist/esm` works too. The
+  start HTTP mode. `learn.ts` reads the package's own `rules/AGENTS.md` from
+  `src/`, `dist/` or the dev build's `dist/esm/` and never looks outside the
+  package. The
   `learn` bullet in `using-llms/page.md` says what it returns. Resolving: keep
   `learn.ts`, the copy and the host swap; write upstream's README changes into
   SidekickDB's text by hand.
