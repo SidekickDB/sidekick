@@ -29,6 +29,7 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema.ts';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   devtool: {
@@ -49,6 +50,7 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema.ts';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   devtool: {
@@ -91,6 +93,7 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema.ts';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   devtool: false,

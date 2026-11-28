@@ -41,7 +41,7 @@ const schema = i.schema({
 
 type Color = InstaQLEntity<typeof schema, 'colors'>;
 
-const db = init({ appId: APP_ID, schema });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID, schema });
 
 const selectId = '4d39508b-9ee2-48a3-b70d-8192d9c5a059';
 
@@ -162,6 +162,7 @@ import { init } from '@sidekickdb/react-native';
 import Store from '@sidekickdb/react-native-mmkv';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
   Store: Store,
 });
@@ -205,6 +206,7 @@ import { init } from '@sidekickdb/react-native';
 import Store from '@sidekickdb/expo-sqlite';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
   Store: Store,
 });
@@ -264,6 +266,7 @@ Then pass your custom store class to `init`:
 import { init } from '@sidekickdb/react-native';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
   Store: InMemoryStore,
 });

@@ -51,7 +51,7 @@ import { init } from '@sidekickdb/react';
 const APP_ID = '__APP_ID__';
 
 // db will export all the presence hooks you need!
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 // Specifying a room type and room id gives you the power to
 // restrict sharing to a specific room. However you can also just use
@@ -71,7 +71,7 @@ import schema from '../instant.schema.ts';
 // Instant app
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID, schema });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID, schema });
 
 const roomId = 'hacker-chat-room-id';
 // The `chat` room is typed automatically from schema!
@@ -129,7 +129,7 @@ import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const room = db.room('chat', 'hacker-chat-room-id');
 const randomId = Math.random().toString(36).slice(2, 6);
@@ -227,6 +227,7 @@ const emoji = {
 type EmojiName = keyof typeof emoji;
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
 });
 
@@ -371,7 +372,7 @@ import { init, Cursors } from '@sidekickdb/react';
 // Instant app
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const room = db.room('chat', 'main');
 
@@ -423,7 +424,7 @@ import { init } from '@sidekickdb/react';
 // Instant app
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const randomId = Math.random().toString(36).slice(2, 6);
 const user = {

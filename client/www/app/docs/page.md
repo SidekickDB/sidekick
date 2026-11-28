@@ -12,6 +12,8 @@ Instant is the easy-to-use backend for your frontend. With Instant you can build
 
 The fastest way to get started with Instant is to use `npx create-sidekick-app` to scaffold a new project with Instant already set up.
 
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL, which it opens to log you in.
+
 To get started with Next.js run:
 
 ```bash {% showCopy=true %}
@@ -43,6 +45,8 @@ npm i @sidekickdb/react
 Set up and connect your Instant app.
 This will log you in if you are not logged in already, then create schema and permissions files, and update your `.env` file.
 
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already.
+
 ```shell
 npx @sidekickdb/cli init
 ```
@@ -56,6 +60,7 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   useDateObjects: true,

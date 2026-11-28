@@ -1014,6 +1014,16 @@ project as SidekickDB:
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.
+- `client/www/components/docs/Fence.jsx` fills the `__API_URI__` placeholder
+  in docs code samples with a self-hosted dashboard's own server URL, and
+  elsewhere shows `https://sidekick.example.com` with a line asking the reader
+  to replace it; `client/www/lib/markdoc.ts` writes that host into the
+  Markdown copies. Every `init`, `<Explorer>`, `PlatformApi` and
+  `createResumableStreamContext` sample in `client/www/app/docs` passes
+  `apiURI` (first, as `create-sidekick-app` writes it), and the getting-started
+  pages name `SIDEKICK_CLI_API_URI` and `SIDEKICK_CLI_DASH_URI` before the
+  first command. `client/www/__tests__/docs-samples.test.ts` fails on a sample
+  without `apiURI`: give a sample upstream adds `apiURI: '__API_URI__'`.
 - `client/packages/*/README.md` of the 17 published packages: a plain-text
   header (package name, one line on the relation to InstantDB) instead of
   Instant's logo, badges and link row; docs links to this repository;

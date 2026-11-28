@@ -136,7 +136,7 @@ import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const url = db.auth.createAuthorizationURL({
   // Use the linkedin client name in the Instant dashboard auth tab
@@ -246,7 +246,7 @@ import {
 } from 'expo-auth-session';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (

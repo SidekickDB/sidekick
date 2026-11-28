@@ -70,7 +70,7 @@ Successfully created new app!
 ```typescript
 import { PlatformApi, i } from '@sidekickdb/platform';
 
-const api = new PlatformApi({});
+const api = new PlatformApi({ apiURI: '__API_URI__' });
 
 const schema = i.schema({
   entities: {
@@ -167,12 +167,13 @@ Pretty nice!
 import { PlatformApi } from '@sidekickdb/platform';
 
 const api = new PlatformApi({
-  auth: { token: 'YOUR_TOKEN' } })
+  apiURI: '__API_URI__',
+  auth: { token: 'YOUR_TOKEN' },
 });
 
 const app = await api.createApp({
-  title: 'my-new-app'
-})
+  title: 'my-new-app',
+});
 ```
 
 With that, you'll have long-lived apps!

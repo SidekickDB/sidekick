@@ -6,6 +6,7 @@ import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import Highlight, { defaultProps, Prism } from 'prism-react-renderer';
 import { SelectedAppContext } from '@/lib/SelectedAppContext';
 import { rosePineDawnTheme } from '@/lib/rosePineDawnTheme';
+import { config, isSelfHosted } from '@/lib/config';
 
 // prism-react-renderer 1.x ships with a small set of languages built in.
 // Hang its Prism off the global so additional language packs from `prismjs`
@@ -44,6 +45,20 @@ function useLazyPrismLanguage(language) {
   }, [language]);
 }
 
+// SidekickDB: there is no default server, so samples carry an `__API_URI__`
+// placeholder. A self-hosted dashboard fills in its own server URL; elsewhere
+// the samples show a placeholder host and say to replace it. The URL is set
+// after mount because the self-hosted one is only known at run time.
+const placeholderApiURI = 'https://sidekick.example.com';
+
+function useDocsApiURI() {
+  const [apiURI, setApiURI] = useState(placeholderApiURI);
+  useEffect(() => {
+    if (isSelfHosted) setApiURI(config.apiURI);
+  }, []);
+  return apiURI;
+}
+
 function parseLineHighlights(lineHighlight) {
   if (!lineHighlight) {
     return new Set();
@@ -78,10 +93,12 @@ export function Fence({ children, language, showCopy, lineHighlight }) {
   const [copyLabel, setCopyLabel] = useState('Copy');
 
   const app = useContext(SelectedAppContext);
+  const apiURI = useDocsApiURI();
   const highlightedLines = parseLineHighlights(lineHighlight);
   useLazyPrismLanguage(language);
 
   const code = children
+    .replaceAll('__API_URI__', apiURI)
     .trimEnd()
     .replace(
       '// Instant app',
@@ -131,6 +148,12 @@ export function Fence({ children, language, showCopy, lineHighlight }) {
               );
             })}
           </pre>
+          {apiURI === placeholderApiURI && children.includes('__API_URI__') && (
+            <p className="mt-1 text-xs text-gray-500">
+              Replace <code>{placeholderApiURI}</code> with your SidekickDB
+              server's URL.
+            </p>
+          )}
           {showCopy && (
             <div className="absolute top-0 right-0 m-2">
               <CopyToClipboard text={code}>

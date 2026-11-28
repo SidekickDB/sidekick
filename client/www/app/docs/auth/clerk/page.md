@@ -75,7 +75,7 @@ import { useEffect } from 'react';
 // Instant app
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 // Use the clerk client name you set in the Instant dashboard auth tab
 const CLERK_CLIENT_NAME = 'REPLACE_ME';

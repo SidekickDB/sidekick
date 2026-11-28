@@ -176,7 +176,7 @@ via a CDN through [unpkg](https://www.unpkg.com/@sidekickdb/core/).
   const { init, id } = instant;
   // Instant app
   const APP_ID = '__APP_ID__';
-  const db = init({ appId: APP_ID });
+  const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
   async function createMessage() {
     await db.transact(
@@ -199,7 +199,7 @@ import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const id = await db.getLocalId('guest');
 
@@ -213,7 +213,7 @@ import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   const id = db.useLocalId('guest');
@@ -328,7 +328,7 @@ import { init } from '@sidekickdb/react';
 
 const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID;
 
-export const db = init({ appId: APP_ID });
+export const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 ```
 
 Then in your environment files:
@@ -399,6 +399,7 @@ The solution is to run an admin script to backfill the null values before pushin
 import { init, tx } from '@sidekickdb/admin';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.INSTANT_APP_ID!,
   adminToken: process.env.INSTANT_ADMIN_TOKEN!,
 });
