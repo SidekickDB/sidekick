@@ -7,22 +7,6 @@ nextjs:
 
 You can supercharge your Instant experience by using it with LLMs. Just add our Instant rules and you're off to the races!
 
-## Instant Skill
-
-The fastest way to add rules to your LLM tool is to add the Instant skill.
-
-```text {% showCopy="true" %}
-npx skills add instantdb/skills
-```
-
-This will give your agent the context it needs to work with InstantDB.
-
-You can verify you set up the rules correctly by asking your LLM "How do you
-make queries and transactions in InstantDB?" If everything is set up correctly,
-you should see a response with information about `db.useQuery` and `db.transact`.
-
-If you'd prefer to manually install the rules instead, see the section below.
-
 ## Instant Rules
 
 We've created a set of rules to help LLMs understand how Instant works. If you
@@ -163,8 +147,12 @@ server active and enabled!
 
 Below is a list of the current tools we expose:
 
-- `learn` Fetch rules files if needed to help the LLM understand InstantDB.
+- `learn` Fetch rules files if needed to help the LLM understand InstantDB. It
+  still points at Instant's rules file; give your agent the
+  [rules file](/llm-rules/AGENTS.md) above instead.
 - `get-schema` Retrieves the schema for a specific app.
 - `get-perms` Retrieves permission rules for an app.
 - `push-schema` Applies schema changes to an app.
 - `push-perms` Updates permission rules for an app.
+- `query` Runs an InstaQL query against an app.
+- `transact` Executes a transaction against an app.

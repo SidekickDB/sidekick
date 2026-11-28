@@ -1197,7 +1197,10 @@ aside) and their chrome present the product as SidekickDB.
   required and that `websocketURI` is derived from it, and its samples pass
   `apiURI`. `using-llms` has no hosted MCP server: `@sidekickdb/mcp` is not
   published, so the page builds it from a checkout and runs
-  `client/packages/mcp/dist/index.js` with `--api-url`. The SolidJS page quotes
+  `client/packages/mcp/dist/index.js` with `--api-url`; the page has no
+  "Instant Skill" section (it installed Instant's skill from Instant's
+  repository), and the `learn` tool entry says to give the agent the rules
+  file instead. The SolidJS page quotes
   `examples/solidjs-vite/src/App.tsx` as it is.
 - `client/www/app/docs/`, `components/docs/`, `DocsPage.jsx` and
   `docsNavigation.js` are in `DOCS_HOST_PATHS` in
