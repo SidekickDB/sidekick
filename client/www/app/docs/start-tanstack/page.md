@@ -5,11 +5,11 @@ nextjs:
     description: 'How to use SidekickDB with TanStack Start'
 ---
 
-## Automatic Setup With Create Instant App
+## Automatic Setup With create-sidekick-app
 
-The fastest way to get started with Instant on TanStack Start is to use npx create-sidekick-app to scaffold a new project with Instant already set up.
+The fastest way to get started with SidekickDB on TanStack Start is to use npx create-sidekick-app to scaffold a new project with SidekickDB already set up.
 
-SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL, which it opens to log you in.
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL in your shell before you run it (it opens the dashboard to log you in). If you don't have a server yet, [set one up](/docs/self-hosting) first.
 
 To get started, run:
 
@@ -19,7 +19,7 @@ npx create-sidekick-app -b tanstack-start
 
 ## Manual Setup
 
-The following guide demonstrates the basics for manually scaffolding a new TanStack project with Instant and managing data. In general, we recommend the automatic setup above, which includes all of this, a basic auth flow, and other useful full-stack utilities.
+The following guide demonstrates the basics for manually scaffolding a new TanStack project with SidekickDB and managing data. In general, we recommend the automatic setup above, which includes all of this, a basic auth flow, and other useful full-stack utilities.
 
 Create a blank TanStack Start app:
 
@@ -27,15 +27,15 @@ Create a blank TanStack Start app:
 npx @tanstack/cli create my-app
 ```
 
-Add the InstantDB React Library:
+Add the SidekickDB React Library:
 
 ```shell
 npm i @sidekickdb/react
 ```
 
-Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+Use `@sidekickdb/cli` to set up a new SidekickDB project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
-The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already.
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already. You can put the two variables in your project's `.env` file, which the CLI reads before it starts. See [Configure the SidekickDB CLI](/docs/self-hosting#configure-the-sidekick-db-cli).
 
 ```shell
 npx @sidekickdb/cli init
@@ -263,6 +263,6 @@ Go to `localhost:3000`, and huzzah 🎉 You've got a fully functional todo list 
 
 For the advanced use case of integrating with TanStack Query and enabling SSR, refer to our [tanstack-start-with-tanstack-query](https://github.com/SidekickDB/sidekick/tree/main/examples/tanstack-start-with-tanstack-query) example. It can be scaffolded using `npx create-sidekick-app -b tanstack-start-with-tanstack-query`.
 
-You can also check out the [Working with data](/docs/init) section to learn more about Instant concepts.
+You can also check out the [Working with data](/docs/init) section to learn more about SidekickDB concepts.
 
-As you get more familiar with Instant, check out our [Recommended Workflow](/docs/workflow) docs for using Instant in your projects.
+As you get more familiar with SidekickDB, check out our [Recommended Workflow](/docs/workflow) docs for using SidekickDB in your projects.

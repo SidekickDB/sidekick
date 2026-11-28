@@ -5,7 +5,7 @@ nextjs:
     description: 'How to use SidekickDB with React Native'
 ---
 
-You can use Instant in React Native projects too! Below is an example using Expo.
+You can use SidekickDB in React Native projects too! Below is an example using Expo.
 
 Open up your terminal and do the following:
 
@@ -14,7 +14,7 @@ Open up your terminal and do the following:
 npx create-expo-app instant-rn-demo
 cd instant-rn-demo
 
-# Install instant
+# Install SidekickDB
 npm i @sidekickdb/react-native
 
 # Install peer dependencies
@@ -132,11 +132,11 @@ npm run start
 
 Scan the QR code with your phone and follow the instructions on the screen :)
 
-Huzzah 🎉 You've got your first React Native Instant app running! Check out the [Working with data](/docs/init) section to learn more about how to use Instant!
+Huzzah 🎉 You've got your first React Native SidekickDB app running! Check out the [Working with data](/docs/init) section to learn more about how to use SidekickDB!
 
 ## Using MMKV for faster storage (optional)
 
-By default, Instant uses [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) to persist data on the device. If you want faster read/write performance, you can use [MMKV](https://github.com/mrousavy/react-native-mmkv) instead.
+By default, SidekickDB uses [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) to persist data on the device. If you want faster read/write performance, you can use [MMKV](https://github.com/mrousavy/react-native-mmkv) instead.
 
 ### Install the MMKV package
 
@@ -153,7 +153,7 @@ Note: MMKV requires native code, so you'll need to run a prebuild:
 npx expo prebuild
 ```
 
-### Configure Instant to use MMKV
+### Configure SidekickDB to use MMKV
 
 Import `Store` from `@sidekickdb/react-native-mmkv` and pass it to `init`:
 
@@ -174,13 +174,13 @@ Then run your app on a device or simulator:
 npx expo run:ios # or npx expo run:android
 ```
 
-That's it! Instant will now use MMKV for local persistence instead of AsyncStorage.
+That's it! SidekickDB will now use MMKV for local persistence instead of AsyncStorage.
 
 When you use a custom store, `@react-native-async-storage/async-storage` becomes optional, so you can remove it from your dependencies.
 
 ## Using expo-sqlite for storage (optional)
 
-If your app already uses [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/), you can use it for Instant's local persistence too.
+If your app already uses [expo-sqlite](https://docs.expo.dev/versions/latest/sdk/sqlite/), you can use it for SidekickDB's local persistence too.
 
 ### Install the expo-sqlite package
 
@@ -197,7 +197,7 @@ Note: expo-sqlite is included in Expo Go, so no prebuild is needed to try it out
 npx expo prebuild
 ```
 
-### Configure Instant to use expo-sqlite
+### Configure SidekickDB to use expo-sqlite
 
 Import `Store` from `@sidekickdb/expo-sqlite` and pass it to `init`:
 
@@ -218,7 +218,7 @@ Then run your app on a device or simulator:
 npx expo run:ios # or npx expo run:android
 ```
 
-That's it! Instant will now use expo-sqlite for local persistence instead of AsyncStorage.
+That's it! SidekickDB will now use expo-sqlite for local persistence instead of AsyncStorage.
 
 When you use a custom store, `@react-native-async-storage/async-storage` becomes optional, so you can remove it from your dependencies.
 
@@ -274,18 +274,20 @@ const db = init({
 
 ## Next Steps
 
-Want a more in-depth tutorial on building an Expo app with Instant? Check out [Beto's](https://x.com/betomoedano) video on building a chat app below!
+The two videos below were made for InstantDB, the project SidekickDB continues. The SDK calls are the same apart from the package names (`@sidekickdb/*` on SidekickDB) and the `apiURI` that `init` requires on SidekickDB.
 
-This video goes through core concepts of using Instant like setting up schema, writing queries, and using transactions!
+Want a more in-depth tutorial on building an Expo app? Check out [Beto's](https://x.com/betomoedano) video on building a chat app below!
+
+This video goes through core concepts like setting up schema, writing queries, and using transactions!
 
 {% youtube src="https://www.youtube.com/watch?v=jyVR5NDjNJ4" title="Building a Real-Time Chat App with Instant DB" /%}
 
-For more advanced features, check out [Simon Grimm](https://x.com/schlimmson) building a mobile app builder with Instant!
+For more advanced features, check out [Simon Grimm](https://x.com/schlimmson) building a mobile app builder with InstantDB!
 
 In this video, Simon builds on top of the concepts from Beto's video and shows off how to use Storage for uploading assets and the Platform API for programmatically spinning up databases.
 
 {% youtube src="https://www.youtube.com/watch?v=HRACNTmikZI" title="Use React Native + InstantDB to Build a Self-Building App" /%}
 
-If you prefer reading docs, you can also check out the [Working with data](/docs/init) section to learn more about Instant concepts.
+If you prefer reading docs, you can also check out the [Working with data](/docs/init) section to learn more about SidekickDB concepts.
 
-As you get more familiar with Instant, check out our [Recommended Workflow](/docs/workflow) docs for using Instant in your projects.
+As you get more familiar with SidekickDB, check out our [Recommended Workflow](/docs/workflow) docs for using SidekickDB in your projects.

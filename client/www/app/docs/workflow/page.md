@@ -5,9 +5,9 @@ nextjs:
     description: 'How to develop with SidekickDB'
 ---
 
-At a high level, here is the recommended workflow for developing with Instant:
+At a high level, here is the recommended workflow for developing with SidekickDB:
 
-1. Authenticate with Instant in your terminal via `npx @sidekickdb/cli login`.
+1. Authenticate with SidekickDB in your terminal via `npx @sidekickdb/cli login`.
 1. Create new projects via `npx create-sidekick-app`.
 1. Push changes to your schema and permissions via `npx @sidekickdb/cli push`.
 1. Use the [Sandbox](/dash?t=sandbox) to debug queries,
@@ -16,18 +16,18 @@ At a high level, here is the recommended workflow for developing with Instant:
 1. If you need more help, check out our [patterns page](/docs/patterns) for common
    recipes.
 
-## Authenticating with Instant in your terminal
+## Authenticating with SidekickDB in your terminal
 
-Use the [Instant CLI](/docs/instant-cli) to authenticate with Instant in your
+Use the [SidekickDB CLI](/docs/cli) to authenticate with SidekickDB in your
 terminal. After authenticating, you'll be able to create new projects
-and have them associated with your Instant account. This will also enable you to
+and have them associated with your SidekickDB account. This will also enable you to
 push and pull changes to your projects. To authenticate, run:
 
 ```
 npx @sidekickdb/cli login
 ```
 
-This will open a browser window where you can log in or sign up for an account.
+This will open your SidekickDB dashboard in a browser window, where you can log in or sign up for an account (if your server allows signups). The CLI needs to know where your server and dashboard are first: see [Configure the SidekickDB CLI](/docs/self-hosting#configure-the-sidekick-db-cli).
 
 ## Starting a new project
 
@@ -35,7 +35,7 @@ After authenticating, you can create a new project with
 [create-sidekick-app](/docs/create-instant-app). This will give you some starter code and set up rules for your LLM
 agent. If your agent supports it, we also recommend setting up the [SidekickDB MCP Server](/docs/using-llms#sidekick-db-mcp-server).
 
-The default rules cover the basics of using InstantDB. But if you want to add
+The default rules cover the basics of using SidekickDB. But if you want to add
 more docs for specific functionality, you can append `.md` to the end of any doc
 page URL to get the raw Markdown. For example, here are the docs for
 [adding auth](/docs/auth/magic-codes.md).
@@ -43,10 +43,10 @@ page URL to get the raw Markdown. For example, here are the docs for
 ## Updating schema and permissions
 
 As your project evolves, you'll likely need to update your schema and permissions. We
-recommend using the Instant CLI to do this. You can make
+recommend using the SidekickDB CLI to do this. You can make
 edits to your local schema and permission files, and then run `npx @sidekickdb/cli push` to push changes to your project.
 
-If you prefer a GUI, you can also make changes via the explorer in the [Instant
+If you prefer a GUI, you can also make changes via the explorer in the [SidekickDB
 dashboard](/dash?t=explorer). To pull these changes
 into your local files, run `npx @sidekickdb/cli pull`.
 
@@ -71,7 +71,7 @@ Some examples of debug info you can see in the sandbox:
 
 ### Dealing with timeout errors
 
-InstantDB has the following timeouts for queries and transactions:
+SidekickDB has the following timeouts for queries and transactions:
 
 - 5 seconds for queries and transactions with the client SDK.
 - 30 seconds for queries and transactions in the Admin SDK and sandbox.
@@ -121,8 +121,8 @@ production.
 
 ## Best practices and getting help
 
-We highly recommend going through our docs to understand how Instant works. We
+We highly recommend going through our docs to understand how SidekickDB works. We
 tried our best to keep them delightful and example-driven!
 
 We've also made a [patterns page](/docs/patterns) with common recipes for using
-InstantDB.
+SidekickDB.

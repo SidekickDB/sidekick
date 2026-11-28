@@ -5,9 +5,9 @@ nextjs:
     description: 'How to use SidekickDB with Vanilla JS'
 ---
 
-You can use Instant with plain ol' JavaScript/TypeScript too. You may find this helpful to integrate Instant with a framework that doesn't have an official SDK yet.
+You can use SidekickDB with plain ol' JavaScript/TypeScript too. You may find this helpful to integrate SidekickDB with a framework that doesn't have an official SDK yet.
 
-To use Instant in a brand new project, fire up your terminal and set up a new project with Vite.
+To use SidekickDB in a brand new project, fire up your terminal and set up a new project with Vite.
 
 ```shell {% showCopy=true %}
 npx create-vite@latest -t vanilla-ts instant-vanilla
@@ -281,4 +281,4 @@ function submitForm(event: Event) {
 
 Go to `localhost:5173` and follow the final instruction to load the app!
 
-Huzzah 🎉 You've got your first Instant web app running! Check out the [Working with data](/docs/init) section to learn more about how to use Instant :)
+Huzzah 🎉 You've got your first SidekickDB web app running! Check out the [Working with data](/docs/init) section to learn more about how to use SidekickDB :)

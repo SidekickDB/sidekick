@@ -5,11 +5,11 @@ nextjs:
     description: How to use SidekickDB with SvelteKit and Svelte 5
 ---
 
-## Automatic Setup With Create Instant App
+## Automatic Setup With create-sidekick-app
 
-The fastest way to get started with Instant and SvelteKit is to use create-sidekick-app to scaffold a new project with Instant already set up.
+The fastest way to get started with SidekickDB and SvelteKit is to use create-sidekick-app to scaffold a new project with SidekickDB already set up.
 
-SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL, which it opens to log you in.
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL in your shell before you run it (it opens the dashboard to log you in). If you don't have a server yet, [set one up](/docs/self-hosting) first.
 
 To get started, run:
 
@@ -25,15 +25,15 @@ Create a blank SvelteKit app:
 npx sv create my-app
 ```
 
-Add the InstantDB Svelte Library:
+Add the SidekickDB Svelte Library:
 
 ```shell
 npm i @sidekickdb/svelte
 ```
 
-Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+Use `@sidekickdb/cli` to set up a new SidekickDB project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
-The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already.
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already. You can put the two variables in your project's `.env` file, which the CLI reads before it starts. See [Configure the SidekickDB CLI](/docs/self-hosting#configure-the-sidekick-db-cli).
 
 ```shell
 npx @sidekickdb/cli init
@@ -110,8 +110,8 @@ Push the schema:
 npx @sidekickdb/cli push
 ```
 
-Instant doesn't support SSR with SvelteKit yet (let us know if you want this!)
-so you need to disable SSR for routes that use Instant.
+SidekickDB doesn't support SSR with SvelteKit yet (let us know if you want this!)
+so you need to disable SSR for routes that use SidekickDB.
 
 {% file label="src/routes/+page.ts" /%}
 
@@ -202,7 +202,7 @@ Go to `localhost:5173`, and huzzah 🎉 You've got a fully functional todo list 
 
 ## Reactivity
 
-In Svelte 5, Instant's hooks return `$state` proxies. You read properties directly off the returned object, and Svelte automatically tracks them for re-rendering.
+In Svelte 5, SidekickDB's hooks return `$state` proxies. You read properties directly off the returned object, and Svelte automatically tracks them for re-rendering.
 
 ```svelte
 <script lang="ts">
@@ -300,7 +300,7 @@ To learn more, see our [writing data](/docs/instaml) docs.
 
 ## Auth
 
-The Svelte SDK supports all of Instant's [auth methods](/docs/auth): [magic codes](/docs/auth/magic-codes), [guest auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), and more.
+The Svelte SDK supports all of SidekickDB's [auth methods](/docs/auth): [magic codes](/docs/auth/magic-codes), [guest auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), and more.
 
 ### useAuth
 

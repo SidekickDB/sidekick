@@ -21,7 +21,11 @@ module.exports = function docsOgMetadataLoader(source) {
   ...frontmatter.nextjs?.metadata,
   openGraph: {
     ...frontmatter.nextjs?.metadata?.openGraph,
-    images: ["/api/docs-og?slug=${slug}"],
+    // SidekickDB: a self-hosted dashboard does not serve /api/docs-og.
+    images:
+      process.env.NEXT_PUBLIC_SELF_HOSTED === 'true'
+        ? []
+        : ["/api/docs-og?slug=${slug}"],
   },
 };`,
   );

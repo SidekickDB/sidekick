@@ -5,26 +5,26 @@ nextjs:
     description: 'Use create-sidekick-app to scaffold a new SidekickDB project'
 ---
 
-Once you know the basics of Instant, you may find it useful to be able to
-quickly scaffold a new Instant project. We built `create-sidekick-app` to do just
+Once you know the basics of SidekickDB, you may find it useful to be able to
+quickly scaffold a new SidekickDB project. We built `create-sidekick-app` to do just
 that.
 
 We currently offer templates for Next.js, Vite + React, Expo, and Vanilla TypeScript. Follow the quick start below to give it a spin!
 
 ## Quick start
 
-If you haven't already, authenticate with the [Instant CLI](/docs/cli) in your
+If you haven't already, authenticate with the [SidekickDB CLI](/docs/cli) in your
 terminal.
 
 ```shell {% showCopy=true %}
 npx @sidekickdb/cli login
 ```
 
-This will open a browser window where you can log in or sign up for an account.
+This will open your SidekickDB dashboard in a browser window, where you can log in or sign up for an account (if your server allows signups). The CLI needs to know where your server and dashboard are first: see [Configure the SidekickDB CLI](/docs/self-hosting#configure-the-sidekick-db-cli).
 Once you've authenticated, any app you create with `create-sidekick-app` will be
-associated with your Instant account!
+associated with your SidekickDB account!
 
-After authenticating, run the following command to scaffold a new Instant app.
+After authenticating, run the following command to scaffold a new SidekickDB app.
 
 ```shell {% showCopy=true %}
 npx create-sidekick-app instant-demo
@@ -37,11 +37,11 @@ cd instant-demo
 npm run dev
 ```
 
-Huzzah! 🎉 You now have a brand new Instant project to play around with!
+Huzzah! 🎉 You now have a brand new SidekickDB project to play around with!
 
 ## One-shot with Claude Code
 
-Got Claude Code? You can use it to one-shot a full-stack Instant app!
+Got Claude Code? You can use it to one-shot a full-stack SidekickDB app!
 
 Use `create-sidekick-app` with the `--ai` flag and you'll be prompted to describe the app you want to build. Give it a try!
 
