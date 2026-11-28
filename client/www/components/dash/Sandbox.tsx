@@ -235,7 +235,7 @@ export function Sandbox({
       );
       monacoDisposables.current.push(
         monaco.languages.typescript.typescriptDefaults.addExtraLib(
-          tsTypesWithSchema,
+          baseTsTypes,
           'file:///global.d.ts',
         ).dispose,
       );
