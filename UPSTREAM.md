@@ -401,7 +401,7 @@ unless they start with `client/`):
   `/status` and `/discord`, whose redirects to Instant's site are left out.
   Tested in `__tests__/self-hosted-redirects.test.ts`; the benchmark workflow
   checks the built image on pull requests that change these files.
-- **No actions the self-hosted server refuses** (PR #NNN):
+- **No actions the self-hosted server refuses** (PR #121):
   `client/www/components/admin/AdminPage.tsx` shows "Activate Pro for free"
   only to an owner (the server's default `:owner` role for the app endpoint);
   other admins read that an owner can activate it.
