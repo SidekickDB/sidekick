@@ -949,7 +949,10 @@ test("every agent rules copy must equal the canonical file", () => {
       `${LLM_RULES[0]} and ${LLM_RULES[2]} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
     ]);
     fs.rmSync(path.join(root, LLM_RULES[1]));
-    assert.equal(checkLlmRules(root).length, 2);
+    assert.deepEqual(checkLlmRules(root), [
+      `${LLM_RULES[1]} is missing (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+      `${LLM_RULES[0]} and ${LLM_RULES[2]} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+    ]);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -1133,9 +1133,13 @@ project as SidekickDB:
   writes and `check.mjs` compares with the canonical file; nothing is fetched.
   The docs links in the tool texts, the OAuth metadata, `index.html.ts` and the
   `db/` headers point at `https://sidekickdb.co/docs/...` with upstream's path;
-  `client/packages/mcp/src/` is in `DOCS_HOST_PATHS`. `index.html.ts`, the stdio
-  startup line, the package description and the README say SidekickDB; the
-  README describes building from a checkout and has no hosted server. The
+  `client/packages/mcp/src/` is in `DOCS_HOST_PATHS`. `index.html.ts`, the
+  OAuth consent page in `oauth-service-provider.ts`, the stdio startup line,
+  the package description and the README say SidekickDB; the README describes
+  building from a checkout, has no hosted server and gives the commands that
+  start HTTP mode. `learn.ts` reads the package's own `rules/AGENTS.md` from
+  `src/`, `dist/` or the dev build's `dist/esm/` and never looks outside the
+  package. The
   `learn` bullet in `using-llms/page.md` says what it returns. Resolving: keep
   `learn.ts`, the copy and the host swap; write upstream's README changes into
   SidekickDB's text by hand.
