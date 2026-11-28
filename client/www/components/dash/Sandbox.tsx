@@ -1222,7 +1222,7 @@ function EmailInput({
           }
         }}
         autoComplete="off"
-        placeholder="happyuser@instantdb.com"
+        placeholder="happyuser@example.com"
       />
       <ComboboxOptions
         anchor="bottom start"

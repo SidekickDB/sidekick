@@ -107,7 +107,7 @@ OrgSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ClientOnly>
       <Head>
-        <title>Instant - Organization Settings</title>
+        <title>SidekickDB - Organization Settings</title>
       </Head>
       <MainDashLayout className="bg-gray-100">{page}</MainDashLayout>
     </ClientOnly>

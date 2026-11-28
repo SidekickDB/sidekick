@@ -614,7 +614,9 @@ function Dashboard() {
       </div>
       <div className="flex w-full grow flex-col overflow-hidden md:flex-row">
         <Head>
-          <title>Instant - {mainTabIndex.get(tab as MainTabId)?.title}</title>
+          <title>
+            SidekickDB - {mainTabIndex.get(tab as MainTabId)?.title}
+          </title>
         </Head>
         <Nav
           apps={apps}
@@ -835,25 +837,28 @@ function Home({ app, token }: { app: InstantApp; token: string }) {
               })
             }
           >
-            Jump into our docs to start learning how to use Instant.
+            Jump into our docs to start learning how to use SidekickDB.
           </HomeButton>
         </div>
-        <div className="md:w-[calc(50%-0.5rem)]">
-          <HomeButton
-            href="https://discord.com/invite/VU53p7uQcE"
-            title="Join the community"
-            target="_blank"
-            onClick={() =>
-              posthog.capture('getting_started_click', {
-                action: 'join_discord',
-                app_id: appId,
-              })
-            }
-          >
-            Join our Discord to meet like-minded hackers, and to give us
-            feedback too!
-          </HomeButton>
-        </div>
+        {/* SidekickDB: no link to Instant's Discord when self-hosted. */}
+        {isSelfHosted ? null : (
+          <div className="md:w-[calc(50%-0.5rem)]">
+            <HomeButton
+              href="https://discord.com/invite/VU53p7uQcE"
+              title="Join the community"
+              target="_blank"
+              onClick={() =>
+                posthog.capture('getting_started_click', {
+                  action: 'join_discord',
+                  app_id: appId,
+                })
+              }
+            >
+              Join our Discord to meet like-minded hackers, and to give us
+              feedback too!
+            </HomeButton>
+          </div>
+        )}
       </div>
 
       {/* Your Public App ID Section */}

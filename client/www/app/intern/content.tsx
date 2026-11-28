@@ -4,7 +4,6 @@ import { useState } from 'react';
 import {
   LandingContainer,
   LandingFooter,
-  LegacyNav,
   Link,
   Section,
   H2,
@@ -13,7 +12,7 @@ import { Button, FullscreenLoading } from '@/components/ui';
 import { useAdmin } from '@/lib/auth';
 import { isSelfHosted } from '@/lib/config';
 import { useIsHydrated } from '@/lib/hooks/useIsHydrated';
-import { Footer } from '@/components/new-landing/Footer';
+import { InternFooter, InternNav } from '@/components/intern/InternChrome';
 
 type ToolCard = {
   title: string;
@@ -130,13 +129,13 @@ export default function InternIndexPage() {
   if (!isHydrated || isLoading) {
     return (
       <LandingContainer>
-        <LegacyNav />
+        <InternNav />
         <Section>
           <div className="flex min-h-64 items-center justify-center">
             <FullscreenLoading />
           </div>
         </Section>
-        <Footer />
+        <InternFooter />
       </LandingContainer>
     );
   }
@@ -144,16 +143,16 @@ export default function InternIndexPage() {
   if (error || !isAdmin) {
     return (
       <LandingContainer>
-        <LegacyNav />
+        <InternNav />
         <Section>
           <div className="mt-12 mb-8 text-center">
             <H2>Access Denied</H2>
             <p className="mt-4 text-gray-600">
-              You need to be an Instant admin to access this page.
+              You need to be an admin of this server to access this page.
             </p>
           </div>
         </Section>
-        <Footer />
+        <InternFooter />
       </LandingContainer>
     );
   }
@@ -189,7 +188,7 @@ export default function InternIndexPage() {
 
   return (
     <LandingContainer>
-      <LegacyNav />
+      <InternNav />
       <Section>
         <div className="mt-12 mb-8">
           <div className="mb-6 text-center">
@@ -197,7 +196,7 @@ export default function InternIndexPage() {
           </div>
           <div className="space-y-2 text-gray-700">
             {isSelfHosted ? (
-              <p>Manage this Instant installation with the tools below.</p>
+              <p>Manage this SidekickDB installation with the tools below.</p>
             ) : (
               <>
                 <p>
@@ -254,7 +253,7 @@ export default function InternIndexPage() {
           )}
         </div>
       </Section>
-      <Footer />
+      <InternFooter />
     </LandingContainer>
   );
 }

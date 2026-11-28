@@ -315,6 +315,19 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
   `node scripts/upstream/check.mjs --base HEAD^1` and a probe that fails unless
   the guard refuses outbound requests to reserved addresses. Upstream has no
   file with this name, and it gets no exception from `check.mjs`'s rules.
+- `.github/workflows/sidekick-e2e.yml`, started by hand only: builds the
+  server image, starts `self-hosting/docker-compose.yml` with
+  `scripts/e2e/compose.e2e.yml` (server on `127.0.0.1:8888`, no dashboard)
+  and runs each networked suite through the guard with
+  `SIDEKICK_E2E_API_URI=http://localhost:8888`; core's browser suite runs in
+  the Playwright image of `js.yml` on the host network.
+  `scripts/e2e/summarize.mjs` fails the run when a suite fails, leaves no
+  report or a broken one, or runs fewer tests than the minimum the workflow
+  gives it. create-sidekick-app's dependency install is replaced by a stub
+  `npm` (it would reach the npm registry), and the summary says so.
+  Read-only, no secrets; `check.mjs` lists it in `E2E_WORKFLOWS` without any
+  exception from its rules, and fails unless every `SIDEKICK_E2E_API_URI`
+  in it is a localhost URL.
 
 **Resolving:** keep the step's two empty variables and `pnpm run test`, the
 guarded `test`/`bench` scripts, and the e2e helpers that skip without
@@ -1014,6 +1027,35 @@ project as SidekickDB:
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.
+- `client/www/app/layout.tsx` and `client/www/pages/_app.tsx` (`FavIconMeta`)
+  link no favicons, touch icons or tiles and set the application name
+  "SidekickDB"; Instant's files stay in `public/img/icon` until a SidekickDB
+  mark is approved. `metadataBase` is unset outside Vercel and dev instead of
+  falling back to www.instantdb.com, so Next builds Open Graph URLs from
+  localhost there and warns once at build time; `app/opengraph-image.tsx` has
+  the alt text "SidekickDB". The login page (`components/dash/Auth.tsx`) and
+  the platform OAuth consent page (`pages/platform/oauth/start.tsx`) show the
+  plain text "SidekickDB" instead of Instant's logo. Self-hosted, `/intern` and
+  `/intern/restore` render `components/intern/InternChrome.tsx` (the text
+  "SidekickDB" linking to `/dash`, no footer) instead of the marketing nav and
+  footer. Page titles and visible text in `components/dash`, `pages/dash`,
+  `components/admin/AdminPage.tsx`, `pages/_devtool`, `pages/debug-uri`,
+  `app/intern`, `pages/intern/{signup,storage,deployment-settings}.tsx` and
+  `components/Dev.tsx` say "SidekickDB" or "this deployment"; text that named
+  a server feature says what it is ("shared dev keys", "the server's
+  callback", "the config app"), shared Google dev credentials are described
+  as available only if the server has them configured, and "Contact the
+  Instant team" reads "Contact your deployment administrator". The redirect
+  hint shows the host of the server's OAuth callback. The two docs links
+  (`Schema.tsx`, the devtool help) are relative `/docs/...` links like the
+  dashboard's others, the placeholders are at example.com, and the "Join the
+  community" Discord button on an app's home page is hidden when self-hosted.
+  Only the structural edits carry a `SidekickDB:` comment. Left as upstream's:
+  identifiers (`type InstantDB` in `Sandbox.tsx`, `InstantIssue`,
+  `X-Instant-*`), comments, hosted-only branches and the hosted check in
+  `Backups.tsx`. Resolving: keep SidekickDB's text and give a string upstream
+  adds to these pages the same treatment; if upstream adds icons back to
+  `metadata` or `FavIconMeta`, drop them.
 - `client/www/components/docs/Fence.jsx` fills the `__API_URI__` placeholder
   in docs code samples with a self-hosted dashboard's own server URL, and
   elsewhere shows `https://sidekick.example.com` with a line asking the reader
