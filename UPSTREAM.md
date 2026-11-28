@@ -575,7 +575,7 @@ The self-hosted stack works without Instant infrastructure.
   `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
   server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
   `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
-- `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
+- PR #120: `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
   `docker-compose.with-caddy.yml` and `swarm.yml` pass
   `POSTMARK_ACCOUNT_TOKEN` to the server next to `POSTMARK_TOKEN`;
   `deploy-swarm.sh` (`STACK_VARS`) and `.env.example` carry it and
