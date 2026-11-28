@@ -1286,10 +1286,12 @@ chrome present the product as SidekickDB.
   teams and has no Billing tab, a platform OAuth app is released by the
   deployment's administrator, app backups are made on demand (the server
   makes no nightly backups), streams are buffered on the reader's server, and
-  a webhook delivery attempt is capped at the server's 20 seconds. Claims about Instant's own site (the homepage emoji
-  panel, the OAuth demo page, setup-time and LLM marketing lines) are
-  removed. Identifiers stay: `Instant-Signature`, the "Instant Sequence
-  Number" that `isn` stands for, Java's `Instant`.
+  a webhook endpoint must start responding within 10 seconds (the HTTP
+  client's default read timeout) and the whole attempt is capped at 20
+  seconds. Claims about Instant's own site (the homepage emoji panel, the
+  OAuth demo page, setup-time and LLM marketing lines) are removed.
+  Identifiers stay: `Instant-Signature`, the "Instant Sequence Number" that
+  `isn` stands for, Java's `Instant`.
 - Removed: `client/www/app/docs/start-python/page.md` (Instant's `instantdb`
   Python package, which defaults to Instant's hosted server) and the link to
   it in `client/www/app/docs/backend/page.md`.

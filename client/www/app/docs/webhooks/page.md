@@ -43,7 +43,7 @@ SidekickDB retries failed deliveries with backoff. An event moves through these 
 - `error`: an attempt failed; another retry is scheduled
 - `failed`: all retries exhausted; will not be retried automatically
 
-Each delivery attempt is capped at **20 seconds** in total, including the DNS lookup. An attempt that times out is recorded as a `timeout` error and SidekickDB retries. Respond within 10 seconds to stay well inside the limit. Do any slow work (sending emails, calling third-party APIs, etc.) asynchronously, and respond with `2xx` as soon as you've durably enqueued the work.
+Your endpoint must start responding within 10 seconds. The whole attempt, including the DNS lookup, is capped at **20 seconds**. An attempt that times out is recorded as a `timeout` error and SidekickDB retries. Do any slow work (sending emails, calling third-party APIs, etc.) asynchronously, and respond with `2xx` as soon as you've durably enqueued the work.
 
 A webhook that fails too many times in a row is automatically disabled. You can re-enable it from the dashboard or via the SDK once you've fixed the receiver.
 

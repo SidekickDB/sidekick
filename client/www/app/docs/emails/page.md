@@ -9,7 +9,7 @@ You can customize your SidekickDB app's "magic code" email: the body (plain text
 
 ## Dashboard
 
-To start, go to your Dashboard's [auth tab](/dash?s=main&t=auth). Click "Custom Magic Code Email", and you're ready to go.
+To start, go to your Dashboard's [auth tab](/dash?s=main&t=auth). Under "Magic codes", click the email card to open "Magic code email", and you're ready to go.
 
 ### Variables
 
@@ -18,6 +18,7 @@ We provide a handful of variables you can use in both your subject line and body
 - `{code}`, the magic code, e.g. _123456_. Note, this variable is required in both the subject and body.
 - `{user_email}`, the recipient user's email address, e.g. *happyuser@gmail.com*
 - `{app_title}`, your app's name
+- `{expiration}`, how long the code stays valid, e.g. _24 hours_
 
 Using a variable is as easy as adding the variable's name in curly brackets, e.g. `{variable_name}`.
 
