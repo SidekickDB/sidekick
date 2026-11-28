@@ -7,10 +7,14 @@
 #
 # Read-only: no secrets, no write permissions, nothing is pushed or published.
 # It runs on demand, and on pull requests that change the harness, this
-# file, or what the dashboard image carries and serves (client/Dockerfile.www,
-# client/www/next.config.js, client/www/public). A pull request that changes
-# only results/ does not start it; on one that also changes the harness,
-# every push runs it, because GitHub matches the paths against the whole pull
+# file, or anything the dashboard image is built from: client/www, the
+# client packages it bundles, and the client's workspace, lockfile and build
+# files (client/Dockerfile.www and what it copies). The browser smoke check
+# exists to catch dashboard code that breaks only in a browser, such as the
+# code editor's workers (#113), so every such change runs it: about 15
+# minutes per run, next to the JS checks. A pull request that changes only
+# results/ does not start it; on one that also changes the harness, every
+# push runs it, because GitHub matches the paths against the whole pull
 # request.
 #
 # A pull request run is a check that the harness still works, not a baseline:
@@ -40,8 +44,14 @@ on:
       - '!scripts/bench/self-hosted/results/**'
       - '.github/workflows/sidekick-self-hosted-bench.yml'
       - 'client/Dockerfile.www'
-      - 'client/www/next.config.js'
-      - 'client/www/public/**'
+      - 'client/.dockerignore'
+      - 'client/package.json'
+      - 'client/pnpm-lock.yaml'
+      - 'client/pnpm-workspace.yaml'
+      - 'client/turbo.json'
+      - 'client/tsconfig.base.json'
+      - 'client/www/**'
+      - 'client/packages/**'
 
 permissions:
   contents: read
