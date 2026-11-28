@@ -93,9 +93,10 @@ Playwright image for the browser check, at the playwright version in
      `http://localhost:3000/dash`, signs in with the code from the server
      log, creates an app with the onboarding form, waits for the dashboard
      to show it, opens its Sandbox tab, and checks that the code editor's
-     TypeScript worker starts and returns quick info
-     for `db`, that its JSON worker starts, and that no console message says
-     a worker failed to load. Then it opens `/_devtool?appId=<id>` and waits
+     TypeScript worker starts and types `itemId` in the default code as
+     `string` (only the `@sidekickdb/core` types do; without them it is
+     `any`), that its JSON worker starts and reports an error in `{`, and
+     that no console message says a worker failed to load. Then it opens `/_devtool?appId=<id>` and waits
      for the app's explorer. It records the host of every request and
      WebSocket and fails on any host other than `localhost:3000` and
      `localhost:8888`. The job log shows the quick info, the worker scripts
