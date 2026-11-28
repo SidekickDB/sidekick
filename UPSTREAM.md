@@ -380,8 +380,10 @@ unless they start with `client/`):
   tools**: `client/Dockerfile.www` copies only the `public/` files those load:
   `fonts`, `img/docs`, the `img/*.svg` logos, the two scripts at the top level,
   and `docs`, `docs.md`, `llm-rules`, `llms.txt` and `llms-full.txt`, which
-  the build writes. Instant's icons, website media, sitemap and feed stay
-  out. The self-hosted
+  the build writes. Instant's website media, sitemap and feed stay out, and
+  so does `img/icon`: its only reference on a served page was `LogoIcon`
+  (`client/packages/components`) in the website navigation, which the
+  self-hosted docs and `/intern` pages no longer render. The self-hosted
   allowlist in `next.config.js` serves `/dash`, `/docs`, `/logout`,
   `/_devtool`, `/debug-uri`, `/platform/oauth`, `/intern` with its three tools,
   and static files at the top level or in `selfHostedStaticDirs`. Everything
