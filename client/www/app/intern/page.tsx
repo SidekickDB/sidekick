@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Content from './content';
 
 export const metadata: Metadata = {
-  title: 'Instant Intern tools',
-  description: 'Internal tools and analytics for InstantDB',
+  title: 'SidekickDB Intern tools',
+  description: 'Internal tools and analytics for SidekickDB',
 };
 
 export default function Page() {

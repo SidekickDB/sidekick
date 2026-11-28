@@ -1,7 +1,7 @@
 import { asClientOnlyPage, useReadyRouter } from '@/components/clientOnlyPage';
 import Auth from '@/components/dash/Auth';
 import { AppLogo } from '@/components/dash/OAuthApps';
-import { Button, Content, FullscreenLoading, LogoIcon } from '@/components/ui';
+import { Button, Content, FullscreenLoading } from '@/components/ui';
 import { useAuthToken } from '@/lib/auth';
 import config, { discordInviteUrl, isSelfHosted } from '@/lib/config';
 import { messageFromInstantError } from '@/lib/errors';
@@ -27,17 +27,15 @@ function InvalidRedirect({
   return (
     <div className="flex h-full items-center justify-center p-4">
       <div className="flex max-w-sm flex-col gap-4">
+        {/* SidekickDB: plain-text name instead of Instant's logo. */}
         <span className="inline-flex items-center space-x-2">
-          <LogoIcon />
-          <span className="font-mono text-sm text-gray-400 lowercase">
-            Instant
-          </span>
+          <span className="font-mono text-sm text-gray-400">SidekickDB</span>
         </span>
 
         <Content>
           <p>
             It looks like you're trying to give an external service access to
-            your Instant account, but {explanation}.
+            your SidekickDB account, but {explanation}.
           </p>
           {instantError ? (
             <p className="border-l-4 pl-2">{instantError}</p>
@@ -69,38 +67,38 @@ function InvalidRedirect({
 const scopeDescriptions = [
   {
     description:
-      'Read access to all of your Instant apps, including schema and permission rules.',
+      'Read access to all of your SidekickDB apps, including schema and permission rules.',
     applies: (scopes: string[]) =>
       scopes.includes('apps-read') && !scopes.includes('apps-write'),
   },
   {
     description:
-      'Read and write access to all of your Instant apps, including schema and permission rules.',
+      'Read and write access to all of your SidekickDB apps, including schema and permission rules.',
     applies: (scopes: string[]) => scopes.includes('apps-write'),
   },
   {
-    description: 'Create new apps in your Instant account.',
+    description: 'Create new apps in your SidekickDB account.',
     applies: (scopes: string[]) => scopes.includes('apps-write'),
   },
   {
-    description: 'Query all of the data in any of your Instant databases.',
+    description: 'Query all of the data in any of your SidekickDB databases.',
     applies: (scopes: string[]) =>
       scopes.includes('data-read') || scopes.includes('data-write'),
   },
   {
     description:
-      'Create, update, and delete data in any of your Instant databases.',
+      'Create, update, and delete data in any of your SidekickDB databases.',
     applies: (scopes: string[]) => scopes.includes('data-write'),
   },
   {
     description:
-      'Download storage ($files) data from any of your Instant databases.',
+      'Download storage ($files) data from any of your SidekickDB databases.',
     applies: (scopes: string[]) =>
       scopes.includes('storage-read') || scopes.includes('storage-write'),
   },
   {
     description:
-      'Upload, update, and delete storage ($files) data from any of your Instant databases.',
+      'Upload, update, and delete storage ($files) data from any of your SidekickDB databases.',
     applies: (scopes: string[]) => scopes.includes('storage-write'),
   },
 ];
@@ -164,11 +162,9 @@ function OAuthForm({ redirectId }: { redirectId: string }) {
   return (
     <div className="flex h-full items-center justify-center p-4">
       <div className="flex max-w-sm flex-col gap-4">
+        {/* SidekickDB: plain-text name instead of Instant's logo. */}
         <span className="inline-flex items-center space-x-2">
-          <LogoIcon />
-          <span className="font-mono text-sm text-gray-400 lowercase">
-            Instant
-          </span>
+          <span className="font-mono text-sm text-gray-400">SidekickDB</span>
         </span>
         <span className="text-sm text-gray-700 italic">
           Logged in as <span className="font-semibold">{data.userEmail}</span>
@@ -180,7 +176,7 @@ function OAuthForm({ redirectId }: { redirectId: string }) {
           <Content>
             <p>
               <span className="font-bold">{data.appName}</span> wants access to
-              your Instant account.
+              your SidekickDB account.
             </p>
           </Content>
         </div>

@@ -311,9 +311,7 @@ function DevtoolWithData({
       <DevtoolWindow>
         <div className="flex h-full w-full items-center justify-center">
           <div className="mx-auto max-w-md space-y-4">
-            <ScreenHeading>
-              🤕 Failed connect to Instant's backend
-            </ScreenHeading>
+            <ScreenHeading>🤕 Failed to connect to the server</ScreenHeading>
             {message ? (
               <div className="mx-auto flex w-full max-w-2xl flex-col">
                 <div className="rounded-sm bg-red-100 p-4 text-red-700">
@@ -324,13 +322,12 @@ function DevtoolWithData({
             <AppIdLabel appId={appId} />
             {isSelfHosted ? (
               <p>
-                We had some trouble connecting to Instant's backend. Contact
-                your deployment administrator with details.
+                We had some trouble connecting to the server. Contact your
+                deployment administrator with details.
               </p>
             ) : (
               <p>
-                We had some trouble connecting to Instant's backend. Please ping
-                us on{' '}
+                We had some trouble connecting to the server. Please ping us on{' '}
                 <a
                   className="font-bold text-blue-500"
                   href="https://discord.com/invite/VU53p7uQcE"
@@ -430,7 +427,7 @@ function DevtoolWindow({
       <div className="flex h-full w-full flex-col">
         <div className="flex border-b bg-gray-100 p-2 text-xs">
           <div className="flex-1 font-mono">
-            Instant Devtools {app?.title ? `• ${app?.title}` : ''}
+            SidekickDB Devtools {app?.title ? `• ${app?.title}` : ''}
             {isLocalHost ? ' • localhost' : ''}
           </div>
           <XMarkIcon
@@ -625,10 +622,10 @@ function Admin({
 function Help() {
   return (
     <Stack className="max-w-sm gap-2 text-sm">
-      <SectionHeading>Instant Devtools</SectionHeading>
+      <SectionHeading>SidekickDB Devtools</SectionHeading>
       <p>
-        This widget embeds a data explorer and sandbox for your Instant app. We
-        added it to make it easier to interact with your data and test
+        This widget embeds a data explorer and sandbox for your SidekickDB app.
+        We added it to make it easier to interact with your data and test
         operations.
       </p>
       <p>
@@ -636,7 +633,7 @@ function Help() {
         <Code>ctrl + shift + 0</Code>. To learn more, check out the{' '}
         <a
           className="font-bold text-blue-500"
-          href="https://instantdb.com/docs/devtool"
+          href="/docs/devtool"
           target="_blank"
         >
           docs.
