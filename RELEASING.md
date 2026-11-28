@@ -157,6 +157,9 @@ Actions → **Release Docker images (SidekickDB)** → Run workflow, branch `mai
   `postgresql-17-pg-hint-plan` and `<sha>` for postgresql. The per-arch tags
   stay in the public packages next to the multi-arch ones.
 
+The image `version` is numbered separately from the npm packages' version in
+`version.ts`: an image release does not need a matching npm release.
+
 Every image has the repository's `LICENSE.md` and `NOTICE` in `/licenses/`.
 The Dockerfiles are upstream's and are not changed for this: the workflow
 builds from a copy of the Dockerfile with one more `COPY` step at the end.
