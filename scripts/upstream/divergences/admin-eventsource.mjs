@@ -1,6 +1,6 @@
 export default {
   title:
-    "Own copy of eventsource in @sidekickdb/admin instead of the @instantdb/eventsource dependency",
+    "Own copy of eventsource in @sidekickdb/admin",
   resolve:
     "Keep @instantdb/eventsource out of client/packages/admin/package.json and the imports on " +
     "./eventsource/index.ts. If upstream bumps or changes the package, diff its src " +

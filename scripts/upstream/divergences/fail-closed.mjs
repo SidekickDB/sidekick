@@ -1,6 +1,6 @@
 export default {
   title:
-    "SDKs, CLI and MCP fail closed: no default server URL (no api.instantdb.com, no localhost default)",
+    "Clients fail closed: no default server URL",
   resolve:
     "Keep SidekickDB's side: init()/clients require apiURI (websocketURI derived from it), the CLI needs " +
     "INSTANT_CLI_API_URI or instant.config.ts, MCP needs --api-url/INSTANT_API_URL, the devtool loads " +
