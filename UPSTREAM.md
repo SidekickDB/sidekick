@@ -1224,10 +1224,11 @@ chrome present the product as SidekickDB.
   the dashboard serves); links to Instant's hosted
   dashboard are relative `/dash...` links, which open the reader's own
   dashboard that serves the docs; code samples that need a server URL use
-  the `__API_URI__` placeholder (see the Fence bullet below); the literal
-  `https://sidekick.example.com` is only for server URLs in prose, curl and
-  JWKS URLs and OAuth callback URLs, with a sentence on the page saying to use
-  the reader's server URL; example addresses are at
+  the `__API_URI__` placeholder (see the Fence bullet below), also curl,
+  JWKS and platform OAuth URLs and the LinkedIn callback in fenced blocks; the
+  literal `https://sidekick.example.com` is only for server URLs in prose and
+  inline code, with a sentence on the page saying to use the reader's server
+  URL; example addresses are at
   example.com; links to Instant's recipes page and examples gallery are
   removed; links into upstream's GitHub repository point at the same path in
   `SidekickDB/sidekick`; the `hosted-only` blocks that only invited readers
@@ -1248,10 +1249,26 @@ chrome present the product as SidekickDB.
 - Prose: `client/www/app/docs/cli/page.md` and the other getting started, CLI
   and SDK pages say SidekickDB where they mean the product. The CLI login
   steps link to the self-hosting page's CLI section; the shared OAuth dev
-  credentials are the server's, when it has them. The quoted output of `push schema` and `push perms` in `modeling-data`
+  credentials are the server's, when it has them. The quoted output of
+  `push schema` and `push perms` in `modeling-data`
   is a sentence that describes what the CLI does now. The React Native videos
   are named as made for InstantDB, with the package names and the required
   `apiURI` as the differences.
+- Hosted service: `client/www/app/docs/emails/page.md` and the other data,
+  API, platform and auth pages say SidekickDB where they mean the product, and
+  describe the reader's own server where upstream described Instant's hosted
+  service: magic codes and the default sender come from the server's email
+  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses need
+  Postmark with `POSTMARK_ACCOUNT_TOKEN`, OAuth callbacks are the server's
+  `/runtime/oauth/callback` as the dashboard's Auth tab shows them, Google's
+  shared dev credentials exist only if the operator configured them, the
+  devtool needs `dashURI`, a self-hosted server includes the Pro plan for app
+  teams and has no Billing tab, a platform OAuth app is released by the
+  deployment's administrator, and the webhook delivery timeout is the
+  server's 20 seconds. Claims about Instant's own site (the homepage emoji
+  panel, the OAuth demo page, setup-time and LLM marketing lines) are
+  removed. Identifiers stay: `Instant-Signature`, the "Instant Sequence
+  Number" that `isn` stands for, Java's `Instant`.
 - Removed: `client/www/app/docs/start-python/page.md` (Instant's `instantdb`
   Python package, which defaults to Instant's hosted server) and the link to
   it in `client/www/app/docs/backend/page.md`.
@@ -1267,14 +1284,19 @@ chrome present the product as SidekickDB.
   `SIDEKICK_CLI_API_URI` and `SIDEKICK_CLI_DASH_URI` before the first
   command.
   `client/www/__tests__/docs-samples.test.ts` fails on a sample without
-  `apiURI` (also `instant.init(` of a script-tag build): give a sample
-  upstream adds `apiURI: '__API_URI__'`.
+  `apiURI` (also `instant.init(` of a script-tag build), and on a code fence
+  that carries the literal `https://sidekick.example.com`: give a sample
+  upstream adds `apiURI: '__API_URI__'` and use `__API_URI__` for the host.
 
 **Resolving:** keep SidekickDB's words and links. For a new
 `www.instantdb.com/dash` link use the same path relative (`/dash...`); a new
-code sample that needs a server URL gets `__API_URI__`; a new
-`api.instantdb.com` URL in prose or an OAuth callback URL becomes
-`https://sidekick.example.com` with the page's sentence about the server URL;
+code sample that needs a server URL (also a curl, JWKS or callback URL in a
+fenced block) gets `__API_URI__`; a new `api.instantdb.com` URL in prose or
+inline code becomes `https://sidekick.example.com` with the page's sentence
+about the server URL; a new sentence about Instant's hosted service (plans,
+billing, sender addresses, shared credentials, its website) is checked
+against the server and rewritten to what a self-hosted server does, or
+dropped;
 if upstream changes `start-python/page.md`, keep it deleted (a modify/delete
 conflict: `git rm` it); remove a new link to
 Discord, essays, pricing, recipes or the examples gallery; never invent a

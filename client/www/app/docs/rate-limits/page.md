@@ -229,7 +229,7 @@ Rate limit by IP address with `request.ip`. Useful for limiting unauthenticated 
 
 ## Error handling
 
-When a rate limit is exceeded, Instant returns an error with `type: "rate-limited"` and a `hint` containing `retry-after` (seconds until the bucket refills):
+When a rate limit is exceeded, SidekickDB returns an error with `type: "rate-limited"` and a `hint` containing `retry-after` (seconds until the bucket refills):
 
 ```json
 {

@@ -5,7 +5,7 @@ nextjs:
     description: 'How to upload and serve files with SidekickDB.'
 ---
 
-Instant Storage makes it simple to upload and serve files for your app.
+SidekickDB Storage makes it simple to upload and serve files for your app.
 You can store images, videos, documents, and any other file type.
 
 ## Storage quick start
@@ -72,7 +72,7 @@ const rules = {
 export default rules;
 ```
 
-Push up both the schema and permissions to your Instant app with the following command:
+Push up both the schema and permissions to your SidekickDB app with the following command:
 
 ```shell {% showCopy=true %}
 npx @sidekickdb/cli@latest push

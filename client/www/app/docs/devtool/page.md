@@ -5,7 +5,7 @@ nextjs:
     description: 'Use the SidekickDB devtool to inspect your app in development.'
 ---
 
-When you load your app in development, you'll notice a little "Instant" icon show up:
+When you load your app in development with `dashURI` set (see [Self-hosted dashboards](#self-hosted-dashboards)), you'll notice a little devtool icon show up. The icon is still Instant's logo:
 
 {% screenshot src="/img/docs/devtool-pointer.jpg" /%}
 
@@ -61,8 +61,8 @@ const db = init({
 
 ## Self-hosted dashboards
 
-When connecting to a self-hosted Instant deployment, set `dashURI` to the
-deployment's dashboard URL:
+SidekickDB has no default dashboard, so the devtool is shown only when
+`dashURI` is set. Set it to your deployment's dashboard URL:
 
 ```typescript
 import { init } from '@sidekickdb/react';

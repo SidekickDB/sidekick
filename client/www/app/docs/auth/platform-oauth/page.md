@@ -5,44 +5,42 @@ nextjs:
     description: 'Allow third-party applications to access SidekickDB resources on behalf of users using OAuth 2.0.'
 ---
 
-Instant supports the standard OAuth 2.0 Authorization Code grant flow, enabling users to authorize your application to access their Instant data and perform actions on their behalf, like reading app details or managing apps.
+SidekickDB supports the standard OAuth 2.0 Authorization Code grant flow, enabling users to authorize your application to access their SidekickDB data and perform actions on their behalf, like reading app details or managing apps.
 
-This guide walks you through the steps required to integrate your application with Instant using OAuth. You can also [walk through a demo](/labs/oauth_apps_demo) to see it in action.
+This guide walks you through the steps required to integrate your application with SidekickDB using OAuth.
 
 ## OAuth flow
 
 ### 1. Create an OAuth App and Client
 
-The first step is to register your OAuth application with Instant. This is done through the Instant Dashboard:
+The first step is to register your OAuth application with SidekickDB. This is done through the SidekickDB Dashboard:
 
-1.  Navigate to the **[OAuth Apps section of the Instant Dashboard](/dash?s=main&t=oauth-apps)**
-2.  Create a new "OAuth App" associated with your Instant App. Give it a descriptive name.
+1.  Navigate to the **[OAuth Apps section of the SidekickDB Dashboard](/dash?s=main&t=oauth-apps)**
+2.  Create a new "OAuth App" associated with your SidekickDB App. Give it a descriptive name.
 3.  Within that OAuth App, create a new "OAuth Client".
     - Provide a name for the client (e.g., "My Web App Integration").
-    - Specify one or more **Authorized Redirect URIs**. These are the exact URLs that Instant is allowed to redirect the user back to after they authorize (or deny) your application.
+    - Specify one or more **Authorized Redirect URIs**. These are the exact URLs that SidekickDB is allowed to redirect the user back to after they authorize (or deny) your application.
 4.  Upon creating the client, you will be provided with:
     - **Client ID:** A public identifier for your application.
-    - **Client Secret:** A confidential secret known only to your application and Instant. **Treat this like a password and keep it secure.**
+    - **Client Secret:** A confidential secret known only to your application and SidekickDB. **Treat this like a password and keep it secure.**
 
 You will need the Client ID and Client Secret for subsequent steps.
 
 {% callout type="note" %}
 
-Your OAuth app will start in test mode. Only members of your Instant app will be able to authorize with the app.
+Your OAuth app will start in test mode. Only members of your SidekickDB app will be able to authorize with the app. Once your integration works, ask your deployment's administrator to release the app to the public.
 
 {% /callout %}
 
 ### 2. Redirect User for Authorization
 
-To start the flow, redirect the user from your application to the Instant authorization endpoint. Construct the URL as follows:
+To start the flow, redirect the user from your application to the SidekickDB authorization endpoint. Construct the URL as follows:
 
 **Base URL:**
 
 ```text
-https://sidekick.example.com/platform/oauth/start
+__API_URI__/platform/oauth/start
 ```
-
-Replace `https://sidekick.example.com` with your SidekickDB server's URL. The same applies to every URL below.
 
 **Query Parameters:**
 
@@ -57,14 +55,14 @@ Replace `https://sidekick.example.com` with your SidekickDB server's URL. The sa
 **Example Authorization URL:**
 
 ```text
-https://sidekick.example.com/platform/oauth/start?client_id=YOUR_CLIENT_ID&response_type=code&redirect_uri=YOUR_REDIRECT_URI&scope=apps-read%20apps-write&state=RANDOM_STATE_STRING
+__API_URI__/platform/oauth/start?client_id=YOUR_CLIENT_ID&response_type=code&redirect_uri=YOUR_REDIRECT_URI&scope=apps-read%20apps-write&state=RANDOM_STATE_STRING
 ```
 
-When the user visits this URL, they will be prompted by Instant to log in (if they aren't already) and asked to grant your application the requested permissions (scopes).
+When the user visits this URL, they will be prompted by SidekickDB to log in (if they aren't already) and asked to grant your application the requested permissions (scopes).
 
-### 3. Handle the Redirect from Instant
+### 3. Handle the Redirect from SidekickDB
 
-After the user grants or denies authorization, Instant redirects them back to the `redirect_uri` you specified.
+After the user grants or denies authorization, SidekickDB redirects them back to the `redirect_uri` you specified.
 
 **If Successful:**
 
@@ -89,12 +87,12 @@ Handle these errors appropriately (e.g., display a message to the user).
 
 ### 4. Exchange Authorization Code for Tokens
 
-Once you have verified the `state` and obtained the `code`, exchange the code for an access token and a refresh token by making a `POST` request from your backend server to the Instant token endpoint.
+Once you have verified the `state` and obtained the `code`, exchange the code for an access token and a refresh token by making a `POST` request from your backend server to the SidekickDB token endpoint.
 
 **Endpoint:**
 
 ```text
-https://sidekick.example.com/platform/oauth/token
+__API_URI__/platform/oauth/token
 ```
 
 **Method:** `POST`
@@ -123,7 +121,7 @@ export CLIENT_SECRET="YOUR_CLIENT_SECRET"
 export REDIRECT_URI="YOUR_REDIRECT_URI"
 export CODE="YOUR_AUTHORIZATION_CODE"
 
-curl -v -X POST "https://sidekick.example.com/platform/oauth/token" \
+curl -v -X POST "__API_URI__/platform/oauth/token" \
   -H "Content-Type: application/json" \
   -d "{
         \"client_id\": \"$CLIENT_ID\",
@@ -155,7 +153,7 @@ Store the `access_token`, `refresh_token`, and expiration time securely on your 
 
 ### 5. Use the Access Token
 
-To make authenticated API calls to Instant on behalf of the user, include the `access_token` in the `Authorization` header of your requests:
+To make authenticated API calls to SidekickDB on behalf of the user, include the `access_token` in the `Authorization` header of your requests:
 
 ```text
 Authorization: Bearer ACCESS_TOKEN_VALUE
@@ -166,7 +164,7 @@ Authorization: Bearer ACCESS_TOKEN_VALUE
 ```bash
 export ACCESS_TOKEN="ACCESS_TOKEN_VALUE"
 
-curl -v "https://sidekick.example.com/superadmin/apps" \
+curl -v "__API_URI__/superadmin/apps" \
   -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
@@ -181,7 +179,7 @@ Make a `POST` request from your **backend server** to the token endpoint:
 **Endpoint:**
 
 ```text
-https://sidekick.example.com/platform/oauth/token
+__API_URI__/platform/oauth/token
 ```
 
 **Method:** `POST`
@@ -208,7 +206,7 @@ export CLIENT_ID="YOUR_CLIENT_ID"
 export CLIENT_SECRET="YOUR_CLIENT_SECRET"
 export REFRESH_TOKEN="REFRESH_TOKEN_VALUE"
 
-curl -v -X POST "https://sidekick.example.com/platform/oauth/token" \
+curl -v -X POST "__API_URI__/platform/oauth/token" \
   -H "Content-Type: application/json" \
   -d "{
         \"client_id\": \"$CLIENT_ID\",
@@ -242,7 +240,7 @@ You can invalidate an access token or a refresh token through the `revoke` endpo
 **Endpoint:**
 
 ```text
-https://sidekick.example.com/platform/oauth/revoke
+__API_URI__/platform/oauth/revoke
 ```
 
 **Method:** `POST`
@@ -254,7 +252,7 @@ https://sidekick.example.com/platform/oauth/revoke
 **Example URL:**
 
 ```text
-https://sidekick.example.com/platform/oauth/revoke?token=YOUR_TOKEN
+__API_URI__/platform/oauth/revoke?token=YOUR_TOKEN
 ```
 
 ## Endpoints

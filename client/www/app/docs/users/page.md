@@ -211,7 +211,7 @@ db.auth.signInWithIdToken({
 
 **OAuth with web redirect** (Google, GitHub, LinkedIn)
 
-For the redirect flow, pass `extraFields` when creating the authorization URL. Instant stores them and applies them when the user is created after the redirect.
+For the redirect flow, pass `extraFields` when creating the authorization URL. SidekickDB stores them and applies them when the user is created after the redirect.
 
 ```javascript
 const url = db.auth.createAuthorizationURL({

@@ -5,7 +5,7 @@ nextjs:
     description: "How to secure your data with SidekickDB's Rule Language."
 ---
 
-To secure user data, you can use Instant's Rule Language. Our rule language
+To secure user data, you can use SidekickDB's Rule Language. Our rule language
 takes inspiration from Rails' ActiveRecord, Google's CEL, and JSON.
 Here's an example ruleset below.
 
@@ -33,19 +33,19 @@ export default rules;
 ```
 <!-- prettier-ignore-end -->
 
-You can manage permissions via configuration files or through the Instant dashboard.
+You can manage permissions via configuration files or through the SidekickDB dashboard.
 
 You can also add [rate limits](/docs/rate-limits) to your rules to control how often users can perform actions.
 
 ## Permissions as code
 
-With Instant you can define your permissions in code. If you haven't already, use the [CLI](/docs/cli) to generate an `instant.perms.ts` file:
+With SidekickDB you can define your permissions in code. If you haven't already, use the [CLI](/docs/cli) to generate an `instant.perms.ts` file:
 
 ```shell {% showCopy=true %}
 npx @sidekickdb/cli@latest init
 ```
 
-The CLI will guide you through picking an Instant app and generate this file for you. Once you've made changes to `instant.perms.ts`, you can use the CLI to push those changes to production:
+The CLI will guide you through picking a SidekickDB app and generate this file for you. Once you've made changes to `instant.perms.ts`, you can use the CLI to push those changes to production:
 
 ```shell {% showCopy=true %}
 npx @sidekickdb/cli@latest push perms

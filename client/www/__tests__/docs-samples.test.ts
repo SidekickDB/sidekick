@@ -134,3 +134,14 @@ test('llms.txt links the Markdown copies relative when self-hosted', () => {
     'https://sidekickdb.co/docs/init.md',
   );
 });
+
+test('code samples use __API_URI__ instead of the placeholder host', () => {
+  const literal = markdownFiles(docsDir)
+    .map((file) => path.relative(docsDir, file))
+    .flatMap((rel) =>
+      codeFences(fs.readFileSync(path.join(docsDir, rel), 'utf8'))
+        .filter((fence) => fence.code.includes('https://sidekick.example.com'))
+        .map((fence) => `${rel}:${fence.line}`),
+    );
+  expect(literal).toEqual([]);
+});

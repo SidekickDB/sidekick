@@ -7,7 +7,7 @@ nextjs:
 
 If you use Next.js and want to do server-side rendering, we have an experimental library for you.
 
-`@sidekickdb/react/nextjs` can let you run Instant queries both on the server and the client, and for the first time, _share caches between them_. (If you don’t get what this means yet, no worries, we’ll explain in detail in the document! Suffice it to say it’s pretty cool.)
+`@sidekickdb/react/nextjs` can let you run SidekickDB queries both on the server and the client, and for the first time, _share caches between them_. (If you don’t get what this means yet, no worries, we’ll explain in detail in the document! Suffice it to say it’s pretty cool.)
 
 This is an experimental feature, and you may not need SSR for many applications. But when you do, you can get some exceptional UX from it.
 
@@ -15,7 +15,7 @@ In this essay we’ll cover:
 
 1. What server-side rendering is
 2. When SSR is a good idea
-3. How Instant works over SSR, particularly on caches
+3. How SidekickDB works over SSR, particularly on caches
 4. And how to add SSR in your projects
 
 ## What is server-side rendering?
@@ -40,7 +40,7 @@ At first glance, server-side rendering can sound great. Why not run your code ri
 
 ### The costs
 
-**The biggest cost is complexity**: Your code runs in two environments. Once on the server, and once on the client. Next.js and Instant can do a good job of hiding the difference, but sometimes those differences leak out (as a basic example, there’s no `window` on the server). For many applications, you may not want the added complexity.
+**The biggest cost is complexity**: Your code runs in two environments. Once on the server, and once on the client. Next.js and SidekickDB can do a good job of hiding the difference, but sometimes those differences leak out (as a basic example, there’s no `window` on the server). For many applications, you may not want the added complexity.
 
 **The second cost relates to client-heavy applications:** If you want your application to _feel_ like a desktop app, you’ll want to reduce the number of times your application pauses while navigating. This means that you have to be proactive with fallback states when using `<Suspense />`, or prefetch anticipated queries more aggressively.
 
@@ -56,13 +56,13 @@ But there are also some clear benefits.
 
 **SSR can be great for search engines.** Web crawlers are getting better with JavaScript, but they generally do the best job at indexing websites when the content is there on the first load. SSR can do this for you.
 
-**SSR can remove loading screens, especially if you use Next.js Routes.** Sometimes you load an app and see _lots_ of loading spinners. SSR can help you remove those spinners. Since there’s content on the first load, you can often ignore loading states completely. You may wonder, won’t the first load be slower if you’re fetching data? Not by much, for two reasons. First, if you use Next.js routing, it will try to pre-fetch as much as possible. By the time a user clicks a link, the data is often already there. Second, if you use Vercel, their servers are close to Instant servers, which means queries often take milliseconds to transfer.
+**SSR can remove loading screens, especially if you use Next.js Routes.** Sometimes you load an app and see _lots_ of loading spinners. SSR can help you remove those spinners. Since there’s content on the first load, you can often ignore loading states completely. You may wonder, won’t the first load be slower if you’re fetching data? Not by much, for two reasons. First, if you use Next.js routing, it will try to pre-fetch as much as possible. By the time a user clicks a link, the data is often already there. Second, if you use Vercel, their servers are close to SidekickDB servers, which means queries often take milliseconds to transfer.
 
 Put these benefits together, and sometimes SSR really is worth it.
 
-## How Instant works with SSR
+## How SidekickDB works with SSR
 
-So, if the benefits are worth it for you, how can you use Instant with SSR? That’s where `@sidekickdb/react/nextjs` comes in.
+So, if the benefits are worth it for you, how can you use SidekickDB with SSR? That’s where `@sidekickdb/react/nextjs` comes in.
 
 With `@sidekickdb/react/nextjs` you get a special package with a new hook: `db.useSuspenseQuery`:
 
@@ -124,7 +124,7 @@ export const { POST } = createInstantRouteHandler({
 });
 ```
 
-Once we do this, Instant can start to detect the logged-in user both in the browser and on the server.
+Once we do this, SidekickDB can start to detect the logged-in user both in the browser and on the server.
 
 ### 3. Create an InstantProvider
 
@@ -175,7 +175,7 @@ export default async function RootLayout({ children }) {
 
 If using the Next.js pages directory, you can use `getServerSideProps` to get the user and pass it to the provider via the PageProps.
 
-This (a) fetches the current user, and (b) puts the Instant provider in the React tree.
+This (a) fetches the current user, and (b) puts the SidekickDB provider in the React tree.
 
 At this point...we’re ready to use SSR queries!
 

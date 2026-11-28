@@ -1,7 +1,7 @@
 ---
 nextjs:
   metadata:
-    title: 'Create SidekickDB App'
+    title: 'create-sidekick-app'
     description: 'Use create-sidekick-app to scaffold a new SidekickDB project'
 ---
 

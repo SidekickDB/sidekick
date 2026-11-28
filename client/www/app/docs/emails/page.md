@@ -5,7 +5,7 @@ nextjs:
     description: 'How to customize magic code emails.'
 ---
 
-You can customize all aspects of your Instant app's "magic code" email: the body (plain text or HTML), subject, sender name, and even the `from` address.
+You can customize all aspects of your SidekickDB app's "magic code" email: the body (plain text or HTML), subject, sender name, and even the `from` address.
 
 ## Dashboard
 
@@ -29,8 +29,6 @@ Using a variable is as easy as adding the variable's name in curly brackets, e.g
 
 ## Custom sender addresses
 
-You can also set the `from` and `reply-to` fields on Instant's emails to an address on your own domain.
+You can also set the `from` and `reply-to` fields on your app's magic code emails to an address on your own domain. Custom sender addresses use Postmark sender signatures, so they work only when your SidekickDB server sends email through Postmark and has a Postmark account token (`POSTMARK_ACCOUNT_TOKEN`) set.
 
-If you provide a custom sender address, you'll need to confirm it before we can start delivering from it.
-
-Our email partner, Postmark, will send a confirmation to the provided address with a link to verify it. Until the address is verified, emails will continue to be sent from Instant's default auth sender (`auth@pm.instantdb.com`).
+A custom sender address has to be confirmed before your server delivers from it. Your server emails a verification code to the address, which you enter in the dashboard, and Postmark sends a confirmation link to the same address. Until the address is verified, emails continue to be sent from your server's default app sender (the address in `SIDEKICK_APP_EMAIL_SENDER_EMAIL`; see [Configure email](/docs/self-hosting#configure-email-with-postmark)).
