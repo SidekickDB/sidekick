@@ -9,10 +9,19 @@ One card, one branch, one pull request.
 
 ## 1. Branch
 
+Each implementer works on its own branch in its own worktree, so cards in
+progress at the same time do not share a checkout:
+
 ```sh
 git fetch origin
-git switch -c <area>/<short-name> origin/main
+git worktree add ../<short-name> -b <area>/<short-name> origin/main
+cd ../<short-name>
 ```
+
+Or start one with `EnterWorktree` and create the branch inside it:
+`git switch -c <area>/<short-name> origin/main`. After the merge, remove the
+worktree (`git worktree remove ../<short-name>`, or `ExitWorktree`) and delete
+the local branch.
 
 Never commit to `main`.
 
