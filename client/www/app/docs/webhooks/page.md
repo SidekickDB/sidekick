@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Webhooks'
-    description: 'How to receive, verify, and manage Instant webhooks.'
+    description: 'How to receive, verify, and manage SidekickDB webhooks.'
 ---
 
 Webhooks allow you to subscribe to changes to your entities via POST requests to your server.
@@ -298,7 +298,7 @@ Every webhook arrives as a `POST` with two things you care about:
 - A JSON body containing a short-lived URL and JWT:
 
   ```json
-  { "payloadUrl": "https://api.instantdb.com/...", "token": "eyJ..." }
+  { "payloadUrl": "https://sidekick.example.com/...", "token": "eyJ..." }
   ```
 
 ### 2. Verify the signature
@@ -306,8 +306,10 @@ Every webhook arrives as a `POST` with two things you care about:
 The signed message is `t` + `.` + the raw request body, as UTF-8 bytes. Verify the `v1` signature against the Ed25519 public key whose `kid` matches the header. The public keys are published as a JWK Set at:
 
 ```text
-https://api.instantdb.com/.well-known/webhooks/jwks.json
+https://sidekick.example.com/.well-known/webhooks/jwks.json
 ```
+
+Replace `https://sidekick.example.com` with your SidekickDB server's URL.
 
 Reject requests where `t` is older than a few minutes (the SDK defaults to 300 seconds) to prevent replays.
 
@@ -318,7 +320,7 @@ Reject requests where `t` is older than a few minutes (the SDK defaults to 300 s
 import base64, json, time, requests
 from nacl.signing import VerifyKey
 
-JWKS_URL = "https://api.instantdb.com/.well-known/webhooks/jwks.json"
+JWKS_URL = "https://sidekick.example.com/.well-known/webhooks/jwks.json"
 TOLERANCE_SECONDS = 300
 
 def _b64url_decode(s: str) -> bytes:
@@ -358,7 +360,7 @@ import (
 )
 
 const (
-	jwksURL          = "https://api.instantdb.com/.well-known/webhooks/jwks.json"
+	jwksURL          = "https://sidekick.example.com/.well-known/webhooks/jwks.json"
 	toleranceSeconds = 300
 )
 
@@ -425,7 +427,7 @@ require "base64"
 require "json"
 require "net/http"
 
-JWKS_URL = "https://api.instantdb.com/.well-known/webhooks/jwks.json"
+JWKS_URL = "https://sidekick.example.com/.well-known/webhooks/jwks.json"
 TOLERANCE_SECONDS = 300
 
 def verify_key_for(kid)
@@ -464,7 +466,7 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 
 public class WebhookVerifier {
-  static final String JWKS_URL = "https://api.instantdb.com/.well-known/webhooks/jwks.json";
+  static final String JWKS_URL = "https://sidekick.example.com/.well-known/webhooks/jwks.json";
   static final long TOLERANCE_SECONDS = 300;
   static final ObjectMapper JSON = new ObjectMapper();
 

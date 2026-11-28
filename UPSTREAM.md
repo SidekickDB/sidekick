@@ -315,6 +315,19 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
   `node scripts/upstream/check.mjs --base HEAD^1` and a probe that fails unless
   the guard refuses outbound requests to reserved addresses. Upstream has no
   file with this name, and it gets no exception from `check.mjs`'s rules.
+- `.github/workflows/sidekick-e2e.yml`, started by hand only: builds the
+  server image, starts `self-hosting/docker-compose.yml` with
+  `scripts/e2e/compose.e2e.yml` (server on `127.0.0.1:8888`, no dashboard)
+  and runs each networked suite through the guard with
+  `SIDEKICK_E2E_API_URI=http://localhost:8888`; core's browser suite runs in
+  the Playwright image of `js.yml` on the host network.
+  `scripts/e2e/summarize.mjs` fails the run when a suite fails, leaves no
+  report or a broken one, or runs fewer tests than the minimum the workflow
+  gives it. create-sidekick-app's dependency install is replaced by a stub
+  `npm` (it would reach the npm registry), and the summary says so.
+  Read-only, no secrets; `check.mjs` lists it in `E2E_WORKFLOWS` without any
+  exception from its rules, and fails unless every `SIDEKICK_E2E_API_URI`
+  in it is a localhost URL.
 
 **Resolving:** keep the step's two empty variables and `pnpm run test`, the
 guarded `test`/`bench` scripts, and the e2e helpers that skip without
@@ -373,11 +386,11 @@ unless they start with `client/`):
   `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` (no default) in `app/layout.tsx` and
   `pages/_app.tsx`. Deleted: `pages/document.tsx` (a stray route linking
   Google Fonts). When self-hosted, docs videos are links
-  (`components/docs/YouTube.tsx`), docs search (Algolia) is hidden
-  (`components/docs/Layout.jsx`), the Cursor badge in
-  `app/docs/using-llms/page.md` is hosted-only and `next.config.js` has no
-  PostHog rewrites. `__tests__/self-hosted-network.test.tsx` checks this
-  (`vitest.config.ts` renders JSX).
+  (`components/docs/YouTube.tsx`) and `next.config.js` has no PostHog
+  rewrites. A self-hosted dashboard has no docs search: it queries Instant's
+  Algolia index, so `components/docs/Layout.jsx` hides it.
+  `__tests__/self-hosted-network.test.tsx` checks this (`vitest.config.ts`
+  renders JSX).
 - **GitHub star count removed** (`984dcb9b`): `fetchStarCount()` in
   `next.config.js`, `components/marketingUi.tsx`; deleted
   `lib/starCountContext.tsx`.
@@ -501,6 +514,17 @@ The self-hosted stack works without Instant infrastructure.
   its resolvers from that setting; a failed DoH lookup never falls back to the
   system resolver, which is used only with `system`. Tests in `jwt_test.clj`,
   `oauth_test.clj`, `config_test.clj` and `webhook_sender_test.clj`.
+- PR #104: `client/www/app/docs/self-hosting/` (the four guides) says
+  "SidekickDB" where the product is meant ("Instant Cloud" only where
+  upstream's hosted service is meant) and uses the `SIDEKICK_*` names,
+  `ghcr.io/sidekickdb` images, a clone of this repository, example.com
+  hostnames and the shipped required secrets and memory defaults; the CLI has
+  no default server and `PRODUCTION=true` stops the server. No figures for
+  upstream's own deployment. The development stack
+  `server/docker-compose-dev.yml` uses `ghcr.io/sidekickdb/postgresql` (with
+  the wal2json fix of PR #44); `server/dev-postgres/Makefile` keeps upstream's
+  tag because SidekickDB publishes images only through
+  `sidekick-release-images.yml`.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
 - PR #21: no required `:?` inside a default in the compose files. Compose 2.38
@@ -1018,6 +1042,35 @@ project as SidekickDB:
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.
+- `client/www/app/layout.tsx` and `client/www/pages/_app.tsx` (`FavIconMeta`)
+  link no favicons, touch icons or tiles and set the application name
+  "SidekickDB"; Instant's files stay in `public/img/icon` until a SidekickDB
+  mark is approved. `metadataBase` is unset outside Vercel and dev instead of
+  falling back to www.instantdb.com, so Next builds Open Graph URLs from
+  localhost there and warns once at build time; `app/opengraph-image.tsx` has
+  the alt text "SidekickDB". The login page (`components/dash/Auth.tsx`) and
+  the platform OAuth consent page (`pages/platform/oauth/start.tsx`) show the
+  plain text "SidekickDB" instead of Instant's logo. Self-hosted, `/intern` and
+  `/intern/restore` render `components/intern/InternChrome.tsx` (the text
+  "SidekickDB" linking to `/dash`, no footer) instead of the marketing nav and
+  footer. Page titles and visible text in `components/dash`, `pages/dash`,
+  `components/admin/AdminPage.tsx`, `pages/_devtool`, `pages/debug-uri`,
+  `app/intern`, `pages/intern/{signup,storage,deployment-settings}.tsx` and
+  `components/Dev.tsx` say "SidekickDB" or "this deployment"; text that named
+  a server feature says what it is ("shared dev keys", "the server's
+  callback", "the config app"), shared Google dev credentials are described
+  as available only if the server has them configured, and "Contact the
+  Instant team" reads "Contact your deployment administrator". The redirect
+  hint shows the host of the server's OAuth callback. The two docs links
+  (`Schema.tsx`, the devtool help) are relative `/docs/...` links like the
+  dashboard's others, the placeholders are at example.com, and the "Join the
+  community" Discord button on an app's home page is hidden when self-hosted.
+  Only the structural edits carry a `SidekickDB:` comment. Left as upstream's:
+  identifiers (`type InstantDB` in `Sandbox.tsx`, `InstantIssue`,
+  `X-Instant-*`), comments, hosted-only branches and the hosted check in
+  `Backups.tsx`. Resolving: keep SidekickDB's text and give a string upstream
+  adds to these pages the same treatment; if upstream adds icons back to
+  `metadata` or `FavIconMeta`, drop them.
 - `client/packages/*/README.md` of the 17 published packages: a plain-text
   header (package name, one line on the relation to InstantDB) instead of
   Instant's logo, badges and link row; docs links to this repository;
@@ -1159,6 +1212,53 @@ on `./eventsource/index.ts`; diff the new version's `src` against the copy
 keeping `messageEvent`. If upstream moves to public `eventsource`, check that
 `MessageEventPolyfill` still reaches the edge runtime before following.
 `client/pnpm-lock.yaml` is regenerated by pnpm.
+
+### Docs pages: SidekickDB name and links
+
+The docs in `client/www/app/docs` (the self-hosting pages and `start-python`
+aside) and their chrome present the product as SidekickDB.
+
+- Chrome: `app/docs/layout.tsx` adds " - SidekickDB Docs" to every docs tab
+  title; the text logo in `components/docs/Logo.jsx` says SidekickDB; the
+  hidden LLM link list in `components/docs/Layout.jsx` names SidekickDB and
+  links to `https://sidekickdb.co` with the docs path; the `// Instant app`
+  marker in samples still matches in `components/docs/Fence.jsx`, which shows
+  "Get your APP_ID from your dashboard" without a link when no app is picked;
+  navigation titles in `data/docsNavigation.js` say SidekickDB ("Migrate from
+  Instant Cloud" names upstream's service and stays); the dead
+  `components/DocsPage.jsx` says "SidekickDB Docs" too. Page titles and
+  descriptions in the front matter say SidekickDB.
+- Links: absolute docs links get the host `sidekickdb.co` with upstream's
+  path (also `llms-full.txt` in `using-llms`); links to Instant's hosted
+  dashboard are relative `/dash...` links, which open the reader's own
+  dashboard that serves the docs; `api.instantdb.com` in samples and OAuth
+  callback URLs is `https://sidekick.example.com`, with a sentence on each
+  page saying to use the reader's server URL; example addresses are at
+  example.com; links to Instant's recipes page and examples gallery are
+  removed; links into upstream's GitHub repository point at the same path in
+  `SidekickDB/sidekick`; the `hosted-only` blocks that only invited readers
+  to Instant's Discord are removed. The `init` options say that `apiURI` is
+  required and that `websocketURI` is derived from it, and its samples pass
+  `apiURI`. `using-llms` has no hosted MCP server: `@sidekickdb/mcp` is not
+  published, so the page builds it from a checkout and runs
+  `client/packages/mcp/dist/index.js` with `--api-url`; the page has no
+  "Instant Skill" section (it installed Instant's skill from Instant's
+  repository), and the `learn` tool entry says to give the agent the rules
+  file instead. The SolidJS page quotes
+  `examples/solidjs-vite/src/App.tsx` as it is.
+- `client/www/app/docs/`, `components/docs/`, `DocsPage.jsx` and
+  `docsNavigation.js` are in `DOCS_HOST_PATHS` in
+  `scripts/upstream/rename.mjs`, so the `docs-host` rule rewrites upstream's
+  absolute docs links there and any other instantdb.com site link is an
+  `instant-site-link` leftover.
+
+**Resolving:** keep SidekickDB's words and links. For a new
+`www.instantdb.com/dash` link use the same path relative (`/dash...`); for a
+new `api.instantdb.com` URL in a sample use `https://sidekick.example.com`
+and keep the page's sentence about the server URL; remove a new link to
+Discord, essays, pricing, recipes or the examples gallery; never invent a
+URL. Identifiers, file names (`instant.schema.ts`), environment variables,
+`X-Instant-*` headers and API names stay upstream's.
 
 ### Upstream sync tooling
 

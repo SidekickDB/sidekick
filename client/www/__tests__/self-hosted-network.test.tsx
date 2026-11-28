@@ -9,6 +9,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { getPathMatch } from 'next/dist/shared/lib/router/utils/path-match';
 
 const require = createRequire(import.meta.url);
+
+const monacoLoader = vi.hoisted(() => ({ config: vi.fn() }));
+vi.mock('@monaco-editor/react', () => ({ loader: monacoLoader }));
 const www = path.resolve(__dirname, '..');
 const components = path.resolve(www, '../packages/components/src');
 
@@ -104,8 +107,10 @@ test('the code editor loads Monaco from the dashboard', async () => {
   );
   expect(defaults).toMatch(cdnHosts);
 
-  const { monacoPath } = await import('../lib/monacoLoader');
-  expect(monacoPath).toMatch(/^\/[^/]/);
+  await import('../lib/monacoLoader');
+  expect(monacoLoader.config).toHaveBeenCalledWith({
+    paths: { vs: '/monaco/vs' },
+  });
 
   // Both routers configure the loader before any editor mounts.
   for (const file of ['pages/_app.tsx', 'app/providers.tsx']) {
@@ -123,10 +128,20 @@ test('docs pages load no images from other hosts when self-hosted', () => {
     const shown = readFileSync(file, 'utf8')
       .replace(/^```[\s\S]*?^```/gm, '')
       .replace(/\{% hosted-only %\}[\s\S]*?\{% \/hosted-only %\}/g, '');
-    for (const m of shown.matchAll(
-      /!\[[^\]]*\]\((https?:\/\/[^)\s]+)|<img[^>]*src="(https?:\/\/[^"]+)"/g,
-    )) {
+    const inline =
+      /!\[[^\]]*\]\(\s*<?(https?:\/\/[^)\s>]+)|<img[^>]*src=["'](https?:\/\/[^"']+)/gi;
+    for (const m of shown.matchAll(inline)) {
       found.push(`${rel(file)}: ${m[1] ?? m[2]}`);
+    }
+    // Reference-style images: ![alt][label], ![alt][] and ![alt].
+    const defs = new Map(
+      [...shown.matchAll(/^ {0,3}\[([^\]]+)\]:\s*<?(\S+?)>?(?:\s|$)/gm)].map(
+        (m) => [m[1].toLowerCase(), m[2]],
+      ),
+    );
+    for (const m of shown.matchAll(/!\[([^\]]*)\](?:\[([^\]]*)\])?(?!\()/g)) {
+      const url = defs.get((m[2] || m[1]).toLowerCase());
+      if (url && /^https?:\/\//i.test(url)) found.push(`${rel(file)}: ${url}`);
     }
   }
   expect(found).toEqual([]);

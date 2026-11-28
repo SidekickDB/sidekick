@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Getting started with TanStack Start'
-    description: 'How to use Instant with TanStack Start'
+    description: 'How to use SidekickDB with TanStack Start'
 ---
 
 ## Automatic Setup With Create Instant App
@@ -256,9 +256,7 @@ Go to `localhost:3000`, and huzzah 🎉 You've got a fully functional todo list 
 
 ## Next Steps
 
-Want to dive deeper on how this todo app works? Check out our step-by-step [Todo List Tutorial](/examples/todos). In this tutorial we walk through how to build a todo list app from scratch, and explain how the queries and transactions work in more detail.
-
-For the advanced use case of integrating with TanStack Query and enabling SSR, refer to our [tanstack-start-with-tanstack-query](https://github.com/instantdb/instant/tree/main/examples/tanstack-start-with-tanstack-query) example. It can be scaffolded using `npx create-sidekick-app -b tanstack-start-with-tanstack-query`.
+For the advanced use case of integrating with TanStack Query and enabling SSR, refer to our [tanstack-start-with-tanstack-query](https://github.com/SidekickDB/sidekick/tree/main/examples/tanstack-start-with-tanstack-query) example. It can be scaffolded using `npx create-sidekick-app -b tanstack-start-with-tanstack-query`.
 
 You can also check out the [Working with data](/docs/init) section to learn more about Instant concepts.
 

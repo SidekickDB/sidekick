@@ -63,7 +63,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "template/base/**"]
+      "outputs": ["dist/**", ".next/**", "template/base/**", "public/monaco/**"]
     },
     "publish-package": {
       "cache": false,

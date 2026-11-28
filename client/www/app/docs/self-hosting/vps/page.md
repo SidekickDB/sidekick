@@ -2,10 +2,10 @@
 nextjs:
   metadata:
     title: 'Self hosting on VPS'
-    description: 'Run Instant on a VPS.'
+    description: 'Run SidekickDB on a VPS.'
 ---
 
-You can run the Instant backend, dashboard, PostgreSQL, RustFS (S3-compatible
+You can run the SidekickDB backend, dashboard, PostgreSQL, RustFS (S3-compatible
 object storage), and Caddy on a single VPS. A server with 2 vCPUs and 4 GB of
 RAM is enough to get started and usually costs around $30 per month.
 
@@ -30,9 +30,9 @@ Start with:
 You will also need a domain where you can create DNS records. This guide uses:
 
 ```text
-dash.myinstant.com
-api.myinstant.com
-files.myinstant.com
+dash.example.com
+api.example.com
+files.example.com
 ```
 
 Point each hostname to the server.
@@ -67,13 +67,13 @@ sudo apt update
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
-## Configure Instant
+## Configure SidekickDB
 
-Clone Instant and copy the example environment file:
+Clone SidekickDB and copy the example environment file:
 
 ```sh {% showCopy=true %}
-git clone https://github.com/instantdb/instant.git
-cd instant/self-hosting
+git clone https://github.com/SidekickDB/sidekick.git
+cd sidekick/self-hosting
 cp .env.example .env
 nano .env
 ```
@@ -81,27 +81,36 @@ nano .env
 Set the public URLs and the domains Caddy should use:
 
 ```shell {% showCopy=true %}
-INSTANT_BACKEND_URL=https://api.myinstant.com
-INSTANT_DASHBOARD_URL=https://dash.myinstant.com
-S3_PUBLIC_ENDPOINT=https://files.myinstant.com
+SIDEKICK_BACKEND_URL=https://api.example.com
+SIDEKICK_DASHBOARD_URL=https://dash.example.com
+S3_PUBLIC_ENDPOINT=https://files.example.com
 
-DASHBOARD_DOMAIN=dash.myinstant.com
-BACKEND_DOMAIN=api.myinstant.com
-STORAGE_DOMAIN=files.myinstant.com
+DASHBOARD_DOMAIN=dash.example.com
+BACKEND_DOMAIN=api.example.com
+STORAGE_DOMAIN=files.example.com
 ```
 
 The `_DOMAIN` variables are only used by Caddy. You can ignore them if you use a
 different reverse proxy.
 
 `S3_PUBLIC_ENDPOINT` must be an origin without a path, such as
-`https://files.myinstant.com`. The S3 API cannot be served from a path such as
+`https://files.example.com`. The S3 API cannot be served from a path such as
 `/storage`.
 
-Review the rest of `.env` and replace the default PostgreSQL and RustFS
-credentials (`STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY`). The storage bucket
-is private and Instant serves files with signed URLs.
+The compose files refuse to start until the PostgreSQL and RustFS credentials
+are set. Generate them once and keep them, because changing them later locks the
+server out of the existing database and storage volumes:
 
-## Start Instant
+```sh {% showCopy=true %}
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 32)" >> .env
+echo "STORAGE_ACCESS_KEY=$(openssl rand -hex 16)" >> .env
+echo "STORAGE_SECRET_KEY=$(openssl rand -hex 32)" >> .env
+```
+
+Review the rest of `.env`. The storage bucket is private and SidekickDB serves
+files with signed URLs.
+
+## Start SidekickDB
 
 Once the DNS records resolve to the server, run:
 
@@ -114,7 +123,7 @@ and backend health:
 
 ```sh {% showCopy=true %}
 sudo docker compose -f docker-compose.with-caddy.yml --env-file .env ps
-curl -fsS https://api.myinstant.com/health/system
+curl -fsS https://api.example.com/health/system
 ```
 
 A healthy backend returns `{"wal":"ok"}`. Open the dashboard and create an app
@@ -136,5 +145,5 @@ vCPUs and 8 GB of RAM, but you can size the server to match your workload.
 If you want to scale application servers and PostgreSQL independently, use the
 [AWS guide](/docs/self-hosting/aws).
 
-Once Instant is running, see [Operating Instant](/docs/self-hosting#operating)
+Once SidekickDB is running, see [Operating SidekickDB](/docs/self-hosting#operating)
 to configure email, dashboard access, the CLI, and health checks.

@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Common mistakes'
-    description: 'Common mistakes when working with Instant'
+    description: 'Common mistakes when working with SidekickDB'
 ---
 
 Below are some common mistakes when working with Instant.

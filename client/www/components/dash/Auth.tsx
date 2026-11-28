@@ -1,13 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { sendMagicCode, verifyMagicCode } from '../../lib/auth';
-import {
-  Button,
-  Content,
-  Divider,
-  LogoIcon,
-  ScreenHeading,
-  TextInput,
-} from '../ui';
+import { Button, Content, Divider, ScreenHeading, TextInput } from '../ui';
 import config, {
   isDashboardGoogleOAuthEnabled,
   isDev,
@@ -230,9 +223,9 @@ export default function Auth(props: {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center p-4 dark:bg-neutral-900">
       <div className="max-w-sm">
+        {/* SidekickDB: plain-text name instead of Instant's logo. */}
         <span className="inline-flex items-center space-x-2">
-          <LogoIcon />
-          <span className="font-mono text-sm lowercase">Instant</span>
+          <span className="font-mono text-sm">SidekickDB</span>
         </span>
         <div className="flex flex-col gap-4">
           {sentEmail ? (

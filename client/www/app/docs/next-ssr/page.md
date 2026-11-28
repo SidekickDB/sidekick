@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: '(Experimental) Next.js SSR'
-    description: 'Use server-side rendering with InstantDB and Next.js.'
+    description: 'Use server-side rendering with SidekickDB and Next.js.'
 ---
 
 If you use Next.js and want to do server-side rendering, we have an experimental library for you.
@@ -195,11 +195,3 @@ export default function Page() {
 Note how there’s no `isLoading` or `error` state from db.useSuspenseQuery! This is handled using [React Suspense](https://react.dev/reference/react/Suspense), which makes sure we have the data when we render this page.
 
 If your code uses `useUser`, `useAuth`, or `db.SignedIn`/`db.SignedOut`, it will initially use the `user` value you provided to `InstantProvider` instead of a pending state. These hooks/components will continue to be reactive.
-
-## Questions
-
-{% hosted-only %}
-
-This is still a beta. We'd love to hear your feedback on [Discord](https://discord.com/invite/VU53p7uQcE)!
-
-{% /hosted-only %}

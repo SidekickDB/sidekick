@@ -1,8 +1,8 @@
 ---
 nextjs:
   metadata:
-    title: 'Initializing Instant'
-    description: 'How to integrate Instant with your app.'
+    title: 'Initializing SidekickDB'
+    description: 'How to integrate SidekickDB with your app.'
 ---
 
 ## Basic Initialization
@@ -16,14 +16,14 @@ import { init } from '@sidekickdb/react';
 // Instant app
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ appId: APP_ID, apiURI: 'https://sidekick.example.com' });
 
 function App() {
   return <Main />;
 }
 ```
 
-With that, you can use `db` to [write data](/docs/instaml), [make queries](/docs/instaql), [handle auth](/docs/auth), and more!
+Replace `https://sidekick.example.com` with your SidekickDB server's URL. With that, you can use `db` to [write data](/docs/instaml), [make queries](/docs/instaql), [handle auth](/docs/auth), and more!
 
 ## Typesafety
 
@@ -52,7 +52,11 @@ const schema = i.schema({
   },
 });
 
-const db = init({ appId: APP_ID, schema });
+const db = init({
+  appId: APP_ID,
+  apiURI: 'https://sidekick.example.com',
+  schema,
+});
 ```
 
 To learn more about writing schemas, head on over to the [Modeling your data](/docs/modeling-data) section.
@@ -73,7 +77,11 @@ import schema from '../instant.schema';
 
 // Instant app
 const APP_ID = '__APP_ID__';
-export const db = init({ appId: APP_ID, schema });
+export const db = init({
+  appId: APP_ID,
+  apiURI: 'https://sidekick.example.com',
+  schema,
+});
 
 // app/page.tsx
 "use client";
@@ -91,16 +99,16 @@ export default App;
 
 ## Configuration Options
 
-`init` accepts a few options. For most use cases you'll want to provide `appId`
-and `schema`. Here are all the options you can provide:
+`init` accepts a few options. For most use cases you'll want to provide `appId`,
+`apiURI` and `schema`. Here are all the options you can provide:
 
 - **appId** (required): Your InstantDB application ID. This identifies your app and is used to connect to the correct backend.
 
 - **schema?**: Instant schema export from your `instant.schema.ts` file. Provide this for typesafety and auto-completion in queries, transactions, and ephemeral features.
 
-- **websocketURI?**: Custom WebSocket endpoint for real-time connections. Defaults to `'wss://api.instantdb.com/runtime/session'`. Change this for connecting to development or self-hosted instances.
+- **websocketURI?**: Custom WebSocket endpoint for real-time connections. Derived from `apiURI` when not set (`https://sidekick.example.com` becomes `wss://sidekick.example.com/runtime/session`).
 
-- **apiURI?**: Custom HTTP API endpoint for auth and storage operations. Defaults to `'https://api.instantdb.com'`. Change this for connecting to development or self-hosted instances.
+- **apiURI** (required): URL of your SidekickDB server, for example `https://sidekick.example.com`. There is no default server, and `init` throws without it.
 
 - **devtool?**: Controls the Instant dev tool. Defaults to `true` on localhost. Set to `false` to disable, or configure its `position`, `allowedHosts`, and `dashURI`. Set `dashURI` when using a self-hosted dashboard.
 

@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Permissions'
-    description: "How to secure your data with Instant's Rule Language."
+    description: "How to secure your data with SidekickDB's Rule Language."
 ---
 
 To secure user data, you can use Instant's Rule Language. Our rule language
@@ -248,7 +248,7 @@ Inside each rule, you can write CEL code that evaluates to either `true` or `fal
       "view": "auth.id != null",
       "create": "auth.id in data.ref('creator.id')",
       "update": "!(newData.title == data.title)",
-      "delete": "'joe@instantdb.com' in data.ref('users.email')"
+      "delete": "'joe@example.com' in data.ref('users.email')"
     }
   }
 }
@@ -299,7 +299,7 @@ In `update`, you'll also have access to `newData`. This refers to the changes th
     },
     "bind": {
       "isOwner": "auth.id != null && auth.id == data.creatorId",
-      "isAdmin": "auth.email in ['joe@instantdb.com', 'stopa@instantdb.com']"
+      "isAdmin": "auth.email in ['joe@example.com', 'stopa@example.com']"
     }
   }
 }
@@ -314,7 +314,7 @@ delete to only succeed on todos associated with a specific user email.
 {
   "todos": {
     "allow": {
-      "delete": "'joe@instantdb.com' in data.ref('users.email')"
+      "delete": "'joe@example.com' in data.ref('users.email')"
     }
   }
 }
