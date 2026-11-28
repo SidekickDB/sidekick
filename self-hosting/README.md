@@ -180,9 +180,13 @@ The compose files and `swarm.yml` pull SidekickDB's images from
 is needed. To stay on one release, set a version tag in `.env`:
 
 ```
-SERVER_IMAGE=ghcr.io/sidekickdb/server:v2.0.0
-DASHBOARD_IMAGE=ghcr.io/sidekickdb/dashboard:v2.0.0
+SERVER_IMAGE=ghcr.io/sidekickdb/server:v2.0.1
+DASHBOARD_IMAGE=ghcr.io/sidekickdb/dashboard:v2.0.1
 ```
+
+Image versions are numbered separately from the `@sidekickdb/*` npm packages.
+A `v2.0.1` image does not mean the npm packages have a 2.0.1 release, or the
+other way round.
 
 Each image has the licence in `/licenses/`.
 

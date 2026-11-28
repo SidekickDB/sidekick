@@ -343,6 +343,15 @@ The JS packages have no default server any more: no `api.instantdb.com`, no
 - About 80 files under `client/packages/*` (sources, tests and READMEs), plus
   `client/sandbox/react-nextjs/pages/play/explorer.tsx` and three dashboard
   files that pass the URL explicitly.
+- PR #53: a blank server URL counts as unset: `INSTANT_CLI_API_URI` and
+  `INSTANT_CLI_DASH_URI` in `client/packages/cli/src/lib/config.ts`,
+  `--api-url` and `INSTANT_API_URL` in `client/packages/mcp/src/tools.ts`
+  (`resolveApiURL`) and `client/packages/mcp/src/index.ts`. In hosted mode
+  MCP's `ensureEnv` treats a blank variable as missing. `readEnv` in
+  `client/packages/resumable-stream/src/index.ts` does the same for the app
+  id and admin token as well as the URL. Upstream takes a set but blank value
+  as the URL in the CLI, and a whitespace-only one in MCP and
+  resumable-stream.
 - admin, platform (`PlatformApi`, OAuth helpers), webhooks and the components
   `<Explorer>` require `apiURI`; resumable-stream falls back only to
   `INSTANT_API_URI`.
