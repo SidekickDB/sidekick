@@ -429,13 +429,26 @@ rule import` of this rule:
 
 It removes files tagged `expire=true` 32 days after they were written, rounded
 up to the next midnight UTC, and leaves every other file in the bucket alone.
-32 days is the limit the server keeps a backup's expiry under. To see the rule:
+32 days is the limit the server keeps a backup's expiry under. To see the rule,
+run this next to your compose file (add `-f <file>` after `docker compose` if
+it is not `docker-compose.yml`):
 
 ```sh
-docker compose run --rm --no-deps --entrypoint sh createbuckets -c \
+docker compose run --rm --no-deps --entrypoint /bin/sh createbuckets -c \
   'rc alias set local http://storage:9000 "$ACCESS_KEY" "$SECRET_KEY" >/dev/null &&
-   rc bucket lifecycle rule list "local/$S3_APP_BACKUPS_BUCKET"'
+   rc bucket lifecycle rule export "local/$S3_APP_BACKUPS_BUCKET"'
 ```
+
+The rule in the output must have `"tags"` with `"expire": "true"`:
+
+```
+      "tags": {
+        "expire": "true"
+      },
+```
+
+A rule without that tag would apply to every file in the bucket.
+`rc bucket lifecycle rule list` does not show the tag, so use `export`.
 
 - The import runs on every start and replaces every lifecycle rule on that
   bucket, so a rule you add there by hand is removed at the next start.
