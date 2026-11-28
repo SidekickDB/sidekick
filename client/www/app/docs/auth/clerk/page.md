@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Clerk'
-    description: "How to integrate Clerk's auth flow with Instant."
+    description: "How to integrate Clerk's auth flow with SidekickDB."
 ---
 
 Instant supports auth with Clerk.

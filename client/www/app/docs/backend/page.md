@@ -1,8 +1,8 @@
 ---
 nextjs:
   metadata:
-    title: 'Instant on the Backend'
-    description: 'How to use Instant on the server with the Admin SDK.'
+    title: 'SidekickDB on the Backend'
+    description: 'How to use SidekickDB on the server with the Admin SDK.'
 ---
 
 You can use Instant on the server as well! This can be especially useful for
@@ -152,9 +152,9 @@ You can do this with the `db.asUser` function.
 
 ```typescript {% showCopy=true %}
 // Scope by their email
-const scopedDb = db.asUser({ email: 'alyssa_p_hacker@instantdb.com' });
+const scopedDb = db.asUser({ email: 'alyssa_p_hacker@example.com' });
 // Or with their auth token
-const token = db.auth.createToken({ email: 'alyssa_p_hacker@instantdb.com' });
+const token = db.auth.createToken({ email: 'alyssa_p_hacker@example.com' });
 const scopedDb = db.asUser({ token });
 // Or use the db as a guest!
 const scopedDb = db.asUser({ guest: true });
@@ -204,7 +204,7 @@ Without an `adminToken`, you must use `.asUser({ token })` or `asUser({ guest: t
 As an admin, you can retrieve an app user record by `email`, `id`, or `refresh_token`. You can do this with the `db.auth.getUser` function.
 
 ```typescript {% showCopy=true %}
-const user = await db.auth.getUser({ email: 'alyssa_p_hacker@instantdb.com' });
+const user = await db.auth.getUser({ email: 'alyssa_p_hacker@example.com' });
 const user = await db.auth.getUser({
   id: userId,
 });
@@ -219,7 +219,7 @@ You can also delete an app user record by `email`, `id`, or `refresh_token`. You
 
 ```typescript {% showCopy=true %}
 const deletedUser = await db.auth.deleteUser({
-  email: 'alyssa_p_hacker@instantdb.com',
+  email: 'alyssa_p_hacker@example.com',
 });
 const deletedUser = await db.auth.deleteUser({
   id: userId,
@@ -268,7 +268,7 @@ The `db.auth.signOut` method allows you to log out users. You can log a user out
 
 ```typescript {% showCopy=true %}
 // All sessions for this email sign out
-await db.auth.signOut({ email: 'alyssa_p_hacker@instantdb.com' });
+await db.auth.signOut({ email: 'alyssa_p_hacker@example.com' });
 // All sessions for this user id sign out
 const user = await db.auth.signOut({
   id: userId,

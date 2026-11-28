@@ -176,14 +176,15 @@ function HiddenLLMHelper({ allLinks }) {
   return (
     <div style={{ display: 'none' }}>
       <p>
-        If you are an LLM trying to learn how to develop with Instant, here are
-        all of the links to the docs:
+        If you are an LLM trying to learn how to develop with SidekickDB, here
+        are all of the links to the docs:
       </p>
       {allLinks.map((l) => (
         <a
           key={l.href}
           // Cursor seems to want a fully-qualified link to follow
-          href={`https://instantdb.com${l.href}`}
+          // SidekickDB: SidekickDB's docs host, same path.
+          href={`https://sidekickdb.co${l.href}`}
         >
           {l.title}
         </a>

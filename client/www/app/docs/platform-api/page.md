@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Platform API'
-    description: 'Spin up Instant apps on demand and manage schema with the Platform API.'
+    description: 'Spin up SidekickDB apps on demand and manage schema with the Platform API.'
 ---
 
 You can use Instant to programmatically create apps, push schemas and manage permissions. This is particularly powerful in two scenarios:
@@ -125,7 +125,7 @@ You have two options to authenticate and create long-lived apps:
 
 **Option 1: Personal Access Tokens**
 
-The quickest way to get started is to create a Personal Access Token. You can create Personal Access Tokens by going to user settings in "Dashboard -> Settings -> New Access Token". Here's a direct [link](https://www.instantdb.com/dash/user-settings).
+The quickest way to get started is to create a Personal Access Token. You can create Personal Access Tokens by going to user settings in "Dashboard -> Settings -> New Access Token". Here's a direct [link](/dash/user-settings).
 
 Once you click "New Access Token", you'll get a token that looks like this:
 
@@ -139,7 +139,7 @@ When you use this token to create apps, they will get associated with the accoun
 
 Alternatively, you can create a "Sign in with Instant" button in your app. This button would let end-users provide their own Instant accounts and give you permissions to manage apps on their behalf.
 
-To do this, you can use the Platform SDK and set up OAuth. Follow the tutorial in the [Platform OAuth Guide](https://github.com/instantdb/instant/tree/main/client/packages/platform#oauth-flow) to see how to do that.
+To do this, you can use the Platform SDK and set up OAuth. Follow the tutorial in the [Platform OAuth Guide](https://github.com/SidekickDB/sidekick/tree/main/client/packages/platform#oauth-flow) to see how to do that.
 
 When you're done and a user clicks "Sign in with Instant" in your app, you'll get a token that looks like this:
 
@@ -231,7 +231,7 @@ await api.schemaPush(YOUR_APP_ID, {
 });
 ```
 
-To see more examples, check out the [Platform SDK reference](https://github.com/instantdb/instant/tree/main/client/packages/platform#making-api-requests).
+To see more examples, check out the [Platform SDK reference](https://github.com/SidekickDB/sidekick/tree/main/client/packages/platform#making-api-requests).
 
 ### Note: scoping tokens per app
 
@@ -246,11 +246,3 @@ What you really want in those cases is to get a token _scoped_ to a particular a
 ```bash
 npx @sidekickdb/cli push schema --token YOUR_ADMIN_TOKEN
 ```
-
-### Questions?
-
-{% hosted-only %}
-
-This is a living document. If you have any questions, reach out to us on [Discord](https://discord.com/invite/VU53p7uQcE)!
-
-{% /hosted-only %}

@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Modeling data'
-    description: "How to model data with Instant's schema."
+    description: "How to model data with SidekickDB's schema."
 ---
 
 In this section we’ll learn how to model data using Instant's schema. By the end of this document you’ll know how to:
@@ -442,7 +442,7 @@ You can always modify or delete attributes after creating them. **You can't use 
 
 Say we wanted to rename `posts.createdAt` to `posts.publishedAt`:
 
-1. Go to your [Dashboard](https://instantdb.com/dash)
+1. Go to your [Dashboard](/dash)
 2. Click "Explorer"
 3. Click "posts"
 4. Click "Edit Schema"

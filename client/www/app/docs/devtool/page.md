@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Devtool'
-    description: 'Use the Instant devtool to inspect your app in development.'
+    description: 'Use the SidekickDB devtool to inspect your app in development.'
 ---
 
 When you load your app in development, you'll notice a little "Instant" icon show up:
@@ -103,11 +103,3 @@ const db = init({
 ## Shortcuts
 
 To quickly toggle the window, you can use the shortcut `ctrl` + `shift` + `0` (zero).
-
-{% hosted-only %}
-
-## Feedback?
-
-If you have any feedback, let us know on [Discord](https://discord.com/invite/VU53p7uQcE).
-
-{% /hosted-only %}

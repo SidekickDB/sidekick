@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Writing data'
-    description: 'How to write data with Instant using InstaML.'
+    description: 'How to write data with SidekickDB using InstaML.'
 ---
 
 Instant uses a **Firebase-inspired** interface for mutations. We call our mutation language **InstaML**.
@@ -242,7 +242,7 @@ If your entity has a unique attribute, you can use `lookup` in place of the id t
 
 ```javascript
 db.transact(
-  db.tx.profiles.lookup('email', 'eva_lu_ator@instantdb.com').update({
+  db.tx.profiles.lookup('email', 'eva_lu_ator@example.com').update({
     name: 'Eva Lu Ator',
   }),
 );
@@ -260,7 +260,7 @@ When used with links, it can also be used in place of the linked entity's id.
 
 ```javascript
 db.transact(
-  db.tx.users.lookup('email', 'eva_lu_ator@instantdb.com').link({
+  db.tx.users.lookup('email', 'eva_lu_ator@example.com').link({
     posts: lookup('number', 15), // using a lookup in place of the id
   }),
 );

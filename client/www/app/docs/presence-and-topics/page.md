@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Presence, Cursors, and Activity'
-    description: 'How to add ephemeral features like presence and cursors to your Instant app.'
+    description: 'How to add ephemeral features like presence and cursors to your SidekickDB app.'
 ---
 
 Sometimes you want to show real-time updates to users without persisting the
@@ -205,7 +205,7 @@ const { publishPresence } = db.rooms.usePresence(room, {
 
 Instant provides 2 hooks for sending and handling events for a given topic. `usePublishTopic` returns a function you can call to publish an event, and `useTopicEffect` will be called each time a peer in the same room publishes a topic event.
 
-Here's a live reaction feature using topics. You can also play with it live on [our recipes page](https://www.instantdb.com/recipes?#5-reactions)
+Here's a live reaction feature using topics.
 
 ```tsx {% showCopy=true %}
 'use client';

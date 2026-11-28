@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Reading data'
-    description: 'How to read data with Instant using InstaQL.'
+    description: 'How to read data with SidekickDB using InstaQL.'
 ---
 
 Instant uses a declarative syntax for querying. It's like GraphQL without the configuration. Here's how you can query data with **InstaQL.**
@@ -627,7 +627,7 @@ const query = {
   todos: {
     $: {
       where: {
-        'owner.name': 'alyssa.p.hacker@instantdb.com',
+        'owner.name': 'alyssa.p.hacker@example.com',
       },
     },
   },

@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Sign In with Apple'
-    description: 'How to add Sign In with Apple to your Instant app.'
+    description: 'How to add Sign In with Apple to your SidekickDB app.'
 ---
 
 {% nav-default value="web-popup" %}
@@ -56,8 +56,8 @@ Instant supports Sign In with Apple on the Web and in native applications.
 - Enable _Sign In with Apple_
 - Click _Configure_
 - Select _Primary App ID_ from Step 1
-- To _Domains_, add `api.instantdb.com`
-- To _Return URLs_, add `https://api.instantdb.com/runtime/oauth/callback`
+- To _Domains_, add your SidekickDB server's host, for example `sidekick.example.com`
+- To _Return URLs_, add your server's URL followed by `/runtime/oauth/callback`, for example `https://sidekick.example.com/runtime/oauth/callback`
 - Click _Continue_ → _Save_
 
 ## Step 3.5: Generate Private Key (Web Redirect flow only)

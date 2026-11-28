@@ -104,7 +104,8 @@ export function Fence({ children, language, showCopy, lineHighlight }) {
       '// Instant app',
       app
         ? `// ID for app: ${app.title}`
-        : `// Visit https://instantdb.com/dash to get your APP_ID :)`,
+        : // SidekickDB: no hosted dashboard to link to.
+          `// Get your APP_ID from your dashboard`,
     )
     .replace('__APP_ID__', app ? app.id : '__APP_ID__');
 
