@@ -5,7 +5,7 @@ nextjs:
     description: 'Use the SidekickDB devtool to inspect your app in development.'
 ---
 
-When you load your app in development with `dashURI` set (see [Self-hosted dashboards](#self-hosted-dashboards)), you'll notice a little devtool icon show up. The icon is still Instant's logo:
+When you load your app on `localhost` with `dashURI` set (see [Self-hosted dashboards](#self-hosted-dashboards)), you'll notice a little devtool icon show up. The icon is still Instant's logo:
 
 {% screenshot src="/img/docs/devtool-pointer.jpg" /%}
 
@@ -33,6 +33,7 @@ const db = init({
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   devtool: {
+    dashURI: '__DASH_URI__',
     position: 'bottom-right',
   },
 });
@@ -42,7 +43,7 @@ You can set it to `bottom-left`, `top-left`, `top-right`, or `bottom-right`.
 
 ## Custom Hosts
 
-By default, the devtool only shows up on `localhost`. But you can decide which hosts to show it on too. Pass in the `allowedHosts` option:
+By default, the devtool only shows up on `localhost` (and only with `dashURI` set). But you can decide which hosts to show it on too. Pass in the `allowedHosts` option:
 
 ```typescript
 import { init } from '@sidekickdb/react';
@@ -54,10 +55,13 @@ const db = init({
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   devtool: {
+    dashURI: '__DASH_URI__',
     allowedHosts: ['localhost', 'site.local'],
   },
 });
 ```
+
+The list replaces the default, so keep `localhost` in it if you still want the devtool there.
 
 ## Self-hosted dashboards
 
@@ -70,18 +74,17 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema.ts';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
-  apiURI: 'https://api.myinstant.com',
-  websocketURI: 'wss://api.myinstant.com/runtime/session',
   devtool: {
-    dashURI: 'https://dash.myinstant.com',
+    dashURI: '__DASH_URI__',
   },
 });
 ```
 
 The devtool will use your self-hosted dashboard for authentication and app
-management.
+management. You sign in to your dashboard inside the devtool.
 
 ## Disabling the devtool
 

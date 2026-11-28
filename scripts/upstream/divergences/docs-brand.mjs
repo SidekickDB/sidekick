@@ -14,5 +14,6 @@ export default {
     "'// Instant app' marker that Fence.jsx matches. Identifiers, file names, " +
     "environment variables, X-Instant-* headers and API names stay upstream's. Docs samples pass " +
     "apiURI: '__API_URI__' (Fence.jsx fills it in); give a sample upstream adds the same, docs-samples.test.ts " +
-    "names any that lacks it. Links to files the dashboard serves (llms-full.txt) stay relative.",
+    "names any that lacks it. Links to files the dashboard serves (llms-full.txt) stay relative. " +
+    "A devtool config sample sets dashURI: '__DASH_URI__' (Fence.jsx fills in the dashboard's origin).",
 };

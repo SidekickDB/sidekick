@@ -49,14 +49,22 @@ function useLazyPrismLanguage(language) {
 // placeholder. A self-hosted dashboard fills in its own server URL; elsewhere
 // the samples show a placeholder host and say to replace it. The URL is set
 // after mount because the self-hosted one is only known at run time.
+// `__DASH_URI__` works the same way: the docs are served by the dashboard, so
+// a self-hosted dashboard fills in its own origin.
 const placeholderApiURI = 'https://sidekick.example.com';
+const placeholderDashURI = 'https://dash.sidekick.example.com';
 
-function useDocsApiURI() {
-  const [apiURI, setApiURI] = useState(placeholderApiURI);
+function useDocsURIs() {
+  const [uris, setURIs] = useState({
+    apiURI: placeholderApiURI,
+    dashURI: placeholderDashURI,
+  });
   useEffect(() => {
-    if (isSelfHosted) setApiURI(config.apiURI);
+    if (isSelfHosted) {
+      setURIs({ apiURI: config.apiURI, dashURI: window.location.origin });
+    }
   }, []);
-  return apiURI;
+  return uris;
 }
 
 function parseLineHighlights(lineHighlight) {
@@ -93,12 +101,13 @@ export function Fence({ children, language, showCopy, lineHighlight }) {
   const [copyLabel, setCopyLabel] = useState('Copy');
 
   const app = useContext(SelectedAppContext);
-  const apiURI = useDocsApiURI();
+  const { apiURI, dashURI } = useDocsURIs();
   const highlightedLines = parseLineHighlights(lineHighlight);
   useLazyPrismLanguage(language);
 
   const code = children
     .replaceAll('__API_URI__', apiURI)
+    .replaceAll('__DASH_URI__', dashURI)
     .trimEnd()
     .replace(
       '// Instant app',
@@ -155,6 +164,13 @@ export function Fence({ children, language, showCopy, lineHighlight }) {
               server's URL.
             </p>
           )}
+          {dashURI === placeholderDashURI &&
+            children.includes('__DASH_URI__') && (
+              <p className="mt-1 text-xs text-gray-500">
+                Replace <code>{placeholderDashURI}</code> with your SidekickDB
+                dashboard's URL.
+              </p>
+            )}
           {showCopy && (
             <div className="absolute top-0 right-0 m-2">
               <CopyToClipboard text={code}>
