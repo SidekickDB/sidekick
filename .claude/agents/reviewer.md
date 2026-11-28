@@ -43,7 +43,11 @@ not `rm`: deleting the directory leaves the worktree registered. Afterwards
    - Inherited files: edit small and marked `SidekickDB:`.
    - An intentional difference from upstream is recorded in `UPSTREAM.md`,
      `scripts/upstream/divergences/<key>.mjs` and a file
-     `scripts/upstream/divergence-prs/<PR number>`.
+     `scripts/upstream/divergence-prs/<PR number>`. A fix for an existing
+     key leaves the key's `title` alone and puts its `UPSTREAM.md` bullet at
+     its sorted place: the bullet names a backticked path with a `/` and sits
+     after the last bullet with the greatest key not above its own
+     ("Maintaining the tooling" in `UPSTREAM.md`).
    - Nothing enables a publishing or deploying job, adds a secret, or points at
      an Instant-owned host: in the worktree, `node scripts/upstream/check.mjs`
      must print `Result: OK` and `node --test scripts/upstream/*.test.mjs` must

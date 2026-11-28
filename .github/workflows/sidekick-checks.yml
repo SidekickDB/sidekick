@@ -3,6 +3,9 @@
 #   - the upstream tooling tests (scripts/upstream/*.test.mjs);
 #   - scripts/upstream/check.mjs, which fails when a publishing job is
 #     re-enabled or an added line points at an Instant-owned host;
+#   - on pull requests, scripts/upstream/divergence-entry.mjs, which fails
+#     when an inherited file changes without
+#     scripts/upstream/divergence-prs/<PR number>;
 #   - a self-check that the JS network guard (client/scripts/
 #     with-network-guard.mjs) still blocks outbound requests.
 #
@@ -26,12 +29,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      # Depth 2: check.mjs compares the tree with HEAD^1, which is main for
-      # the pull request merge commit and the previous main after a merge.
+      # Full history of this repository: divergence-entry.mjs finds the last
+      # merged upstream commit in it (nothing is fetched from upstream).
+      # check.mjs compares the tree with HEAD^1, which is main for the pull
+      # request merge commit and the previous main after a merge.
       - name: Check out code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Node.js environment
@@ -48,6 +53,14 @@ jobs:
 
       - name: Post-sync checks
         run: node scripts/upstream/check.mjs --base HEAD^1
+
+      # HEAD is GitHub's merge commit for the pull request, HEAD^1 the base.
+      # A pull request's first push fails here until its entry is added.
+      - name: Divergence entry for inherited files
+        if: github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/upstream/divergence-entry.mjs --pr "$PR_NUMBER" --base HEAD^1 --head HEAD
 
       # The probe swallows every error and exits 0, so the run fails only if
       # the wrapper saw the blocked attempts. Targets are reserved: a .invalid
