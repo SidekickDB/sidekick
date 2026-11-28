@@ -27,11 +27,14 @@ Locally, on a disposable Linux machine with Docker, Node 24 and pnpm:
 
 ```sh
 (cd client && pnpm i --frozen-lockfile && pnpm exec turbo run build --filter='@sidekickdb/core...')
-node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted --out bench-out
+node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted --out bench-out \
+  --browser-image mcr.microsoft.com/playwright:v1.58.2-noble
 ```
 
 `--skip-build` reuses the `sidekick-bench/server:local` and
-`sidekick-bench/dashboard:local` images.
+`sidekick-bench/dashboard:local` images. `--browser-image` names the
+Playwright image for the browser check, at the playwright version in
+`client/pnpm-lock.yaml`; without it the check is left out.
 
 ## What a run does
 
@@ -46,8 +49,9 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
    `${STORAGE_ACCESS_KEY:-${MINIO_ROOT_USER:?...}}` although
    `STORAGE_ACCESS_KEY` was set).
 3. Uses `self-hosting/docker-compose.yml` unchanged, plus `compose.bench.yml`,
-   which only publishes the server on `127.0.0.1:8888` and the storage API on
-   `127.0.0.1:9000` (the `S3_PUBLIC_ENDPOINT` file URLs are presigned for).
+   which only publishes the server on `127.0.0.1:8888`, the dashboard on
+   `127.0.0.1:3000` and the storage API on `127.0.0.1:9000` (the
+   `S3_PUBLIC_ENDPOINT` file URLs are presigned for).
    Only postgres, storage and createbuckets are pulled; `up` runs with
    `--pull never`, and each sample checks that the server and dashboard
    containers run the image IDs built in step 1 (their local tags would
@@ -83,6 +87,18 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
      an app, writes to it, backs it up, waits for the job and checks that the
      backup holds `config.json` and a non-empty `entities/items.jsonl`, the
      entity type it wrote);
+   - in the first sample of the run only, with `--browser-image`, the
+     `browser` smoke check (`browser.mjs`): Chromium from that image (a
+     `playwright run-server` container on the host network) opens
+     `http://localhost:3000/dash`, signs in with the code from the server
+     log, opens a new app in the dashboard and its Sandbox tab, and checks
+     that the code editor's TypeScript worker starts and returns quick info
+     for `db`, that its JSON worker starts, and that no console message says
+     a worker failed to load. Then it opens `/_devtool?appId=<id>` and waits
+     for the app's explorer. It records the host of every request and
+     WebSocket and fails on any host other than `localhost:3000` and
+     `localhost:8888`. The job log shows the quick info, the worker scripts
+     and the hosts; a failure saves `browser-sample-1.png` to the artifact;
    - from the server log of the cold start: the phases container start,
      `Starting server...`, first init step and `Finished initializing`, the
      duration of every `init.finish.<step>` span, and the `init.skip.<step>`
@@ -105,7 +121,7 @@ node scripts/bench/self-hosted/run.mjs --samples 3 --modes default,self-hosted -
   pagination, presence, streams, files, backups, sync tables, webhooks,
   offline clients or SSE. Only WebSocket live queries and single writes are
   timed; the smoke checks only confirm that presence, streams, SSE, login,
-  a file upload and a backup work.
+  a file upload, a backup and the dashboard in a browser work.
 - PostgreSQL internals (WAL bytes, slot lag, query plans, walsender memory),
   GC pauses, metaspace (JDK 26's `GC.heap_info` no longer prints it), native
   memory breakdown (NMT is off), CPU time, disk I/O.

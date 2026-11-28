@@ -131,3 +131,20 @@ test('three modes get a stated verdict, not an empty cell', () => {
   );
   assert.match(md, /Only the modes within this run are comparable with each other/);
 });
+
+test('the browser check counts only in the first sample of the run', () => {
+  const first = pass();
+  first.checks.browser = { ok: true, ms: 30000 };
+  const md = summarizeModes(
+    results(['default', 'self-hosted'], [first, pass(), pass(), pass()]),
+  );
+  assert.match(rowOf(md, 'browser'), /\| 1 of 1 passed \| first sample only \|$/);
+  assert.match(md, /Smoke passed in all 4 samples\./);
+
+  const failed = pass();
+  failed.ok = false;
+  failed.checks.browser = { ok: false, ms: 40000, error: 'sandbox editor: worker error' };
+  const md2 = summarize(results(['self-hosted'], [failed, pass(), pass()]));
+  assert.match(rowOf(md2, 'browser'), /\| 0 of 1 passed \(sandbox editor: worker error\) \|$/);
+  assert.match(md2, /\*\*Smoke FAILED\*\* in 1 of 3 samples: #1 self-hosted: browser\./);
+});

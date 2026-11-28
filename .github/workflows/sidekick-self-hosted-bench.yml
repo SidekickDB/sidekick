@@ -65,6 +65,9 @@ jobs:
       IDLE_SECONDS: ${{ github.event_name == 'pull_request' && '20' || inputs.idle_seconds || '120' }}
       # The commit under test: the PR head, not GitHub's merge commit.
       GITHUB_SHA_UNDER_TEST: ${{ github.event.pull_request.head.sha || github.sha }}
+      # Chromium for the browser smoke check. Must match the playwright
+      # version in client/pnpm-lock.yaml (checked below), as in sidekick-e2e.yml.
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.58.2-noble@sha256:6446946a1d9fd62d9ae501312a2d76a43ee688542b21622056a372959b65d63d
     steps:
       - name: Check out code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
@@ -85,6 +88,14 @@ jobs:
       # Synthetic results only, a second; fails before the long run starts.
       - name: Test the summary on synthetic results
         run: node --test scripts/bench/self-hosted/summarize.test.mjs
+
+      - name: Check the Playwright image matches the lockfile
+        run: |
+          v=$(echo "$PLAYWRIGHT_IMAGE" | sed -E 's/.*:v([0-9.]+)-.*/\1/')
+          grep -q "^  playwright@$v:" client/pnpm-lock.yaml || {
+            echo "::error::PLAYWRIGHT_IMAGE is v$v; client/pnpm-lock.yaml has another playwright version"
+            exit 1
+          }
 
       - name: Get pnpm cache directory path
         id: pnpm-cache-dir-path
@@ -158,8 +169,9 @@ jobs:
       # (client/Dockerfile.www, client/www/next.config.js). Every same-origin
       # file that the server-rendered HTML of a few served pages (and their
       # stylesheets) asks for must answer 200; files that only client-side
-      # rendering requests are not seen. HTTP answers only: signing in on /dash
-      # and using the devtool are not exercised here.
+      # rendering requests are not seen. HTTP answers only: the browser smoke
+      # check of the benchmark run signs in, opens the code editor and the
+      # devtool.
       - name: Check what the dashboard image serves
         if: github.event_name == 'pull_request'
         env:
@@ -248,6 +260,12 @@ jobs:
           [ "$public" -le "$MAX_PUBLIC_BYTES" ] || { echo "::error::www/public is $public bytes, more than $MAX_PUBLIC_BYTES"; fail=1; }
           exit $fail
 
+      - name: Pull the Playwright image
+        run: |
+          t0=$(date +%s)
+          docker pull --quiet "$PLAYWRIGHT_IMAGE"
+          echo "Pulled in $(( $(date +%s) - t0 )) s"
+
       - name: Run the benchmark
         env:
           SKIP_BUILD: ${{ github.event_name == 'pull_request' && '--skip-build' || '' }}
@@ -256,6 +274,7 @@ jobs:
             --samples "$SAMPLES" \
             --modes "$MODES" \
             --idle-seconds "$IDLE_SECONDS" \
+            --browser-image "$PLAYWRIGHT_IMAGE" \
             --out "$RUNNER_TEMP/bench-out"
 
       - name: Summary
@@ -276,5 +295,6 @@ jobs:
       - name: Remove containers and volumes
         if: always()
         run: |
+          docker rm -f sidekickbench-browser > /dev/null 2>&1 || true
           docker ps -aq --filter label=com.docker.compose.project=sidekickbench | xargs -r docker rm -f
           docker volume ls -q --filter label=com.docker.compose.project=sidekickbench | xargs -r docker volume rm
