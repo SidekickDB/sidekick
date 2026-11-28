@@ -935,10 +935,25 @@ export function checkConflictMarkers(files, root) {
   return bad;
 }
 
+// The canonical agent rules file first, then its committed copies.
 export const LLM_RULES = [
   "client/www/lib/intern/instant-rules.md",
   "client/packages/create-instant-app/template/rules/AGENTS.md",
+  "client/packages/mcp/rules/AGENTS.md",
 ];
+
+export function checkLlmRules(root) {
+  const [a, ...copies] = LLM_RULES.map((f) => path.join(root, f));
+  if (!fs.existsSync(a)) return [];
+  const want = fs.readFileSync(a, "utf8");
+  return copies
+    .map((b, i) => [b, LLM_RULES[i + 1]])
+    .filter(([b]) => !fs.existsSync(b) || fs.readFileSync(b, "utf8") !== want)
+    .map(
+      ([, f]) =>
+        `${LLM_RULES[0]} and ${f} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+    );
+}
 
 export function defaultBase(root) {
   if (
@@ -987,16 +1002,7 @@ export function runChecks({
     }
   }
 
-  const [a, b] = LLM_RULES.map((f) => path.join(root, f));
-  if (
-    fs.existsSync(a) &&
-    fs.existsSync(b) &&
-    fs.readFileSync(a, "utf8") !== fs.readFileSync(b, "utf8")
-  ) {
-    failures.push(
-      `${LLM_RULES[0]} and ${LLM_RULES[1]} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
-    );
-  }
+  failures.push(...checkLlmRules(root));
 
   const vk = compareVersionsKeys(
     versionsKeys(filesAt(base, root)),

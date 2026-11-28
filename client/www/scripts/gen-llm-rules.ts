@@ -1,8 +1,8 @@
 /**
  * Script for generating LLM rule files.
  *
- * Reads instant-rules.md and writes it to the docs site and the
- * create-sidekick-app template.
+ * Reads instant-rules.md and writes it to the docs site, the
+ * create-sidekick-app template and the MCP server.
  *
  * Usage: pnpm exec tsx scripts/gen-llm-rules.ts
  */
@@ -20,6 +20,8 @@ const TARGETS = [
     __dirname,
     '../../packages/create-instant-app/template/rules/AGENTS.md',
   ),
+  // SidekickDB: the MCP server's learn tool returns this copy.
+  path.join(__dirname, '../../packages/mcp/rules/AGENTS.md'),
 ];
 
 function generateLLMRuleFiles() {

@@ -7,6 +7,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { parseArgs } from 'node:util';
 import version from './version.ts';
+// SidekickDB: the learn tool's text.
+import { handleLearn, learnDescription } from './learn.ts';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { HoneycombSDK } from '@honeycombio/opentelemetry-node';
 import {
@@ -103,24 +105,10 @@ function wrapServerWithTracing(
 function registerTools(server: McpServer, api: PlatformApi) {
   server.tool(
     'learn',
-    "If you don't have any context provided about InstantDB, use this tool to learn about it!",
+    // SidekickDB: returns the rules bundled with this package (src/learn.ts).
+    learnDescription,
     {},
-    async () => {
-      const instructions = `
-      You can learn about InstantDB by fetching our rules file for agents:
-
-      https://www.instantdb.com/llm-rules/AGENTS.md
-      `;
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: instructions,
-          },
-        ],
-      };
-    },
+    async () => handleLearn(),
   );
 
   server.tool(
@@ -255,7 +243,7 @@ function registerTools(server: McpServer, api: PlatformApi) {
     {"goals": {"$": {"where": {"status": "active"}}, "todos": {}}}
 
     If you're unsure how to write queries, refer to the documentation:
-    https://instantdb.com/docs/instaql`,
+    https://sidekickdb.co/docs/instaql`,
     {
       appId: z.string().uuid().describe('UUID of the app'),
       query: z.record(z.string(), z.any()).describe('InstaQL query object'),
@@ -279,7 +267,7 @@ function registerTools(server: McpServer, api: PlatformApi) {
     [["update", "todos", "a-uuid", {"title": "Get fit", "done": false}]]
 
     If you're unsure how to make transactions, refer to the documentation:
-    https://instantdb.com/docs/instaml`,
+    https://sidekickdb.co/docs/instaml`,
     {
       appId: z.string().uuid().describe('UUID of the app'),
       steps: z.array(z.array(z.any())).describe('Array of transaction steps'),
@@ -326,7 +314,7 @@ async function startStdio() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('Instant Platform MCP Server running on stdio');
+  console.error('SidekickDB Platform MCP Server running on stdio');
 }
 
 function ensureEnv(key: string): string {
@@ -416,7 +404,7 @@ async function startSse() {
     provider: proxyProvider,
     issuerUrl: new URL(oauthConfig.serverOrigin),
     baseUrl: new URL(oauthConfig.serverOrigin),
-    serviceDocumentationUrl: new URL('https://instantdb.com/docs'),
+    serviceDocumentationUrl: new URL('https://sidekickdb.co/docs'),
   };
 
   const oauthMetadata = createOAuthMetadata(authRouterOptions);
@@ -430,7 +418,7 @@ async function startSse() {
       resource: `${oauthConfig.serverOrigin}/mcp`,
       authorization_servers: [oauthMetadata.issuer],
       scopes_supported: oauthMetadata.scopes_supported,
-      resource_documentation: 'https://instantdb.com/docs',
+      resource_documentation: 'https://sidekickdb.co/docs',
     });
   });
 
@@ -439,7 +427,7 @@ async function startSse() {
       resource: `${oauthConfig.serverOrigin}/mcp`,
       authorization_servers: [oauthMetadata.issuer],
       scopes_supported: oauthMetadata.scopes_supported,
-      resource_documentation: 'https://instantdb.com/docs',
+      resource_documentation: 'https://sidekickdb.co/docs',
     });
   });
 
