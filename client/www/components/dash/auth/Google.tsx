@@ -29,7 +29,7 @@ import {
   ToggleGroup,
 } from '@/components/ui';
 import { useDarkMode } from '../DarkModeToggle';
-import { defaultOAuthCallbackURL } from '@/lib/config';
+import { defaultOAuthCallbackURL, isSelfHosted } from '@/lib/config';
 
 type AppType = 'web' | 'ios' | 'android' | 'button-for-web';
 function isNative(appType: AppType) {
@@ -99,7 +99,11 @@ export function AddGoogleClientForm({
   usedClientNames: Set<string>;
 }) {
   const token = useContext(TokenContext);
-  const [credentialMode, setCredentialMode] = useState<'dev' | 'custom'>('dev');
+  // SidekickDB: a self-hosted server has shared dev credentials only if its
+  // operator configured them, so start with the client's own credentials.
+  const [credentialMode, setCredentialMode] = useState<'dev' | 'custom'>(
+    isSelfHosted ? 'custom' : 'dev',
+  );
   const [appType, setAppType] = useState<
     'web' | 'ios' | 'android' | 'button-for-web'
   >('web');
@@ -170,8 +174,15 @@ export function AddGoogleClientForm({
       onAddClient(resp.client);
     } catch (e) {
       console.error(e);
-      const msg =
-        messageFromInstantError(e as InstantIssue) || 'Error creating client.';
+      // SidekickDB: say plainly that the server has no shared dev credentials.
+      const missingShared =
+        useSharedCredentials &&
+        (e as InstantIssue).body?.hint?.['record-type'] ===
+          'shared-oauth-client';
+      const msg = missingShared
+        ? 'This server has no shared dev credentials for Google. Use your own credentials instead.'
+        : messageFromInstantError(e as InstantIssue) ||
+          'Error creating client.';
       errorToast(msg, { autoClose: 5000 });
     } finally {
       setIsLoading(false);
