@@ -13,5 +13,5 @@ export function monacoVsUrl(origin: string) {
 }
 
 if (typeof window !== 'undefined') {
-  loader.config({ paths: { vs: monacoVsUrl(window.location.origin) } });
+  loader.config({ paths: { vs: `${monacoPath}/vs` } });
 }
