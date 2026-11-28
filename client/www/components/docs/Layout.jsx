@@ -14,7 +14,8 @@ import { SelectedAppContext } from '@/lib/SelectedAppContext';
 import { useAuthToken, useTokenFetch } from '@/lib/auth';
 import config, { isSelfHosted } from '@/lib/config';
 import { Button } from '@/components/ui';
-import { BareNav } from '@/components/marketingUi';
+// SidekickDB: no marketing nav when self-hosted.
+import { DocsHeaderNav } from '@/components/docs/DocsHeaderNav';
 import navigation from '@/data/docsNavigation';
 import { useIsHydrated } from '@/lib/hooks/useIsHydrated';
 import { getLocallySavedApp, setLocallySavedApp } from '@/lib/locallySavedApp';
@@ -393,7 +394,7 @@ export function Layout({ children, title, tableOfContents }) {
           )}
         >
           <div className="grid h-full w-full border-b px-4">
-            <BareNav>
+            <DocsHeaderNav>
               <div className="flex flex-col md:hidden">
                 {/* SidekickDB: docs search queries Instant's Algolia index. */}
                 {!isSelfHosted && <Search />}
@@ -403,7 +404,7 @@ export function Layout({ children, title, tableOfContents }) {
                   className="w-64 pr-8 md:hidden xl:w-72 xl:pr-16"
                 />
               </div>
-            </BareNav>
+            </DocsHeaderNav>
           </div>
         </div>
         {/* Body */}

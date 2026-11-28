@@ -5,9 +5,11 @@ nextjs:
     description: How to use SidekickDB with Vue 3 and Vite
 ---
 
-## Automatic Setup With Create Instant App
+## Automatic Setup With create-sidekick-app
 
-The fastest way to get started with Instant and Vue is to use create-sidekick-app to scaffold a new project with Instant already set up.
+The fastest way to get started with SidekickDB and Vue is to use create-sidekick-app to scaffold a new project with SidekickDB already set up.
+
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL in your shell before you run it (it opens the dashboard to log you in). If you don't have a server yet, [set one up](/docs/self-hosting) first.
 
 To get started, run:
 
@@ -23,13 +25,15 @@ Create a blank Vue + Vite app:
 npm create vue@latest my-app
 ```
 
-Add the InstantDB Vue Library:
+Add the SidekickDB Vue Library:
 
 ```shell
 npm i @sidekickdb/vue
 ```
 
-Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+Use `@sidekickdb/cli` to set up a new SidekickDB project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
+
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already. You can put the two variables in your project's `.env` file, which the CLI reads before it starts. See [Configure the SidekickDB CLI](/docs/self-hosting#configure-the-sidekick-db-cli).
 
 ```shell
 npx @sidekickdb/cli init
@@ -44,6 +48,7 @@ import { init } from '@sidekickdb/vue';
 import schema from '../instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: import.meta.env.VITE_INSTANT_APP_ID!,
   schema,
   useDateObjects: true,
@@ -168,7 +173,7 @@ Go to `localhost:5173`, and huzzah 🎉 You've got a fully functional todo list 
 
 ## Reactivity
 
-Instant's hooks return an **object of refs**. This lets you destructure the result without losing reactivity, and refs auto-unwrap when you reference them in your template.
+SidekickDB's hooks return an **object of refs**. This lets you destructure the result without losing reactivity, and refs auto-unwrap when you reference them in your template.
 
 ```vue
 <script setup lang="ts">
@@ -271,7 +276,7 @@ To learn more, see our [writing data](/docs/instaml) docs.
 
 ## Auth
 
-The Vue SDK supports all of Instant's [auth methods](/docs/auth): [magic codes](/docs/auth/magic-codes), [guest auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), and more.
+The Vue SDK supports all of SidekickDB's [auth methods](/docs/auth): [magic codes](/docs/auth/magic-codes), [guest auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), and more.
 
 ### useAuth
 
@@ -347,7 +352,7 @@ The `Cursors` component supports custom cursor rendering via a scoped `cursor` s
 
 ## Nuxt
 
-The Vue SDK works with [Nuxt](https://nuxt.com/). Because Instant is a client-only library (it relies on browser APIs like `WebSocket` and `IndexedDB`), you'll want to either wrap Instant-using components with `<ClientOnly>` or disable SSR for the relevant routes via `routeRules` in `nuxt.config.ts`:
+The Vue SDK works with [Nuxt](https://nuxt.com/). Because SidekickDB is a client-only library (it relies on browser APIs like `WebSocket` and `IndexedDB`), you'll want to either wrap SidekickDB-using components with `<ClientOnly>` or disable SSR for the relevant routes via `routeRules` in `nuxt.config.ts`:
 
 ```ts
 export default defineNuxtConfig({
@@ -357,4 +362,4 @@ export default defineNuxtConfig({
 });
 ```
 
-Server-side rendering with Instant is not yet supported (let us know if you want this!).
+Server-side rendering with SidekickDB is not yet supported (let us know if you want this!).

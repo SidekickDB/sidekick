@@ -378,39 +378,7 @@ Now that you have your schema, you can use the CLI to `push` it to your app:
 npx @sidekickdb/cli@latest push schema
 ```
 
-The CLI will look at your app in production, show you the new columns you'd create, and run the changes for you!
-
-{% ansi %}
-
-```
-Checking for an Instant SDK...
-Found [32m@sidekickdb/react[39m in your package.json.
-Found [32mNEXT_PUBLIC_INSTANT_APP_ID[39m: *****
-Planning schema...
-The following changes will be applied to your production schema:
-[35mADD ENTITY[39m profiles.id
-[35mADD ENTITY[39m posts.id
-[35mADD ENTITY[39m comments.id
-[35mADD ENTITY[39m tags.id
-[32mADD ATTR[39m profiles.nickname :: unique=false, indexed=false
-[32mADD ATTR[39m profiles.createdAt :: unique=false, indexed=false
-[32mADD ATTR[39m posts.title :: unique=false, indexed=false
-[32mADD ATTR[39m posts.slug :: unique=true, indexed=false
-[32mADD ATTR[39m posts.body :: unique=false, indexed=false
-[32mADD ATTR[39m posts.createdAt :: unique=false, indexed=true
-[32mADD ATTR[39m comments.body :: unique=false, indexed=false
-[32mADD ATTR[39m comments.createdAt :: unique=false, indexed=false
-[32mADD ATTR[39m tags.title :: unique=false, indexed=false
-[32mADD LINK[39m posts.author <=> profiles.authoredPosts
-[32mADD LINK[39m comments.post <=> posts.comments
-[32mADD LINK[39m comments.author <=> profiles.authoredComments
-[32mADD LINK[39m posts.tags <=> tags.posts
-[32mADD LINK[39m profiles.$user <=> $users.profile
-[2K[34m?[39m [1mOK to proceed?[22m [36myes
-[32mSchema updated![39m
-```
-
-{% /ansi %}
+The CLI will look at your app on your server, show you the planned changes (the entities, attributes and links it would add), and ask "Push these changes?" before it applies them.
 
 ## Use schema for typesafety
 
@@ -422,6 +390,7 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema.ts';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
 });
@@ -478,27 +447,7 @@ Once you push these permissions to production:
 npx @sidekickdb/cli@latest push perms
 ```
 
-{% ansi %}
-
-```
-Checking for an Instant SDK...
-Found [32m@sidekickdb/react[39m in your package.json.
-Found [32mNEXT_PUBLIC_INSTANT_APP_ID[39m: *****
-Planning perms...
-The following changes will be applied to your perms:
-[31m-null[39m
-[32m+{[39m
-[32m+  attrs: {[39m
-[32m+    allow: {[39m
-[32m+      $default: "false"[39m
-[32m+    }[39m
-[32m+  }[39m
-[32m+}[39m
-[1mOK to proceed?[22m [36myes[39m[21
-[32mPermissions updated![39m
-```
-
-{% /ansi %}
+The CLI shows the diff between your local `instant.perms.ts` and the perms on your server and asks "Push these changes to your perms?" before it updates them.
 
 You'll still be able to make changes in the explorer or with the CLI, but client-side transactions that try to modify your schema will fail. This means your schema is safe from unwanted changes!
 

@@ -30,14 +30,58 @@ function redirectFor(pathname: string) {
   );
 }
 
-test.each(['/dash', '/dash/user-settings', '/platform/oauth/start'])(
-  'self-hosted dashboard serves %s',
-  (pathname) => {
-    expect(redirectFor(pathname)).toBeUndefined();
-  },
-);
+test.each([
+  '/dash',
+  '/dash/user-settings',
+  '/platform/oauth/start',
+  '/logout',
+  '/_devtool',
+  '/debug-uri/abc',
+  '/docs',
+  '/docs/auth/magic-codes',
+  '/intern',
+  '/intern/storage',
+  '/intern/restore',
+  '/intern/deployment-settings',
+  '/_next/static/chunks/main.js',
+  '/fonts/Switzer-Regular.woff',
+  '/img/docs/devtool-explorer.png',
+  '/docs/instaql.md',
+  '/docs.md',
+  '/llm-rules/AGENTS.md',
+  '/monaco/vs/loader.js',
+  '/monaco/types/index.d.ts',
+  '/img/google_g.svg',
+  '/publicSelfHostedVariables.js',
+  '/native-file-system-adapter-sw.js',
+  // Linked from the docs (using-llms).
+  '/llms-full.txt',
+  '/docs/auth/magic-codes.md',
+])('self-hosted dashboard serves %s', (pathname) => {
+  expect(redirectFor(pathname)).toBeUndefined();
+});
 
-test('self-hosted dashboard sends other pages to /dash', () => {
-  expect(redirectFor('/')?.destination).toBe('/dash');
-  expect(redirectFor('/examples')?.destination).toBe('/dash');
+test.each([
+  '/',
+  '/examples',
+  '/pricing',
+  '/status',
+  '/discord',
+  '/opengraph-image',
+  '/api/docs-og',
+  '/essays/instant_team_joins_openai',
+  '/intern/emails',
+  '/intern/emails/feb2026',
+  '/intern/investor_updates',
+  '/intern/overview',
+  '/intern/sunset',
+  '/intern/og-preview',
+  '/intern/posts/heroui',
+  '/api/avatar',
+  '/api/webhooks/config',
+  '/api/og',
+  '/posts/heroui/stars.png',
+  '/getadb/provision/x.y',
+])('self-hosted dashboard sends %s to /dash', (pathname) => {
+  expect(redirectFor(pathname)?.destination).toBe('/dash');
 });

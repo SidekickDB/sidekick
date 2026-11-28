@@ -82,7 +82,18 @@ function transformContent(content: string): string {
     result += `${description}\n\n`;
   }
 
-  const sanitizedContent = sanitizeMarkdown(markdownContent);
+  // SidekickDB: the Markdown copies show the placeholder host that the
+  // rendered docs fall back to (see components/docs/Fence.jsx), and say once
+  // that it stands for the reader's server.
+  const sanitized = sanitizeMarkdown(markdownContent);
+  if (sanitized.includes('__API_URI__')) {
+    result +=
+      "The samples use `https://sidekick.example.com`: replace it with your SidekickDB server's URL.\n\n";
+  }
+  const sanitizedContent = sanitized.replaceAll(
+    '__API_URI__',
+    'https://sidekick.example.com',
+  );
   return result + sanitizedContent;
 }
 
@@ -91,4 +102,19 @@ function stripDynamicPaths(filePath: string): string {
   return filePath.replace(/\/\[\[\.\.\..*?\]\]/g, '');
 }
 
-export { parseFrontmatter, transformContent, stripDynamicPaths };
+// SidekickDB: where llms.txt links a page's Markdown copy. A self-hosted
+// dashboard serves the copies itself, so the link is relative there;
+// elsewhere it is SidekickDB's docs host with the same path.
+function docsMarkdownUrl(
+  href: string,
+  selfHosted = process.env.NEXT_PUBLIC_SELF_HOSTED === 'true',
+): string {
+  return selfHosted ? `${href}.md` : `https://sidekickdb.co${href}.md`;
+}
+
+export {
+  parseFrontmatter,
+  transformContent,
+  stripDynamicPaths,
+  docsMarkdownUrl,
+};

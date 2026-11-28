@@ -9,9 +9,7 @@ You can use Instant on the server as well! This can be especially useful for
 running scripts, custom auth flows, or sensitive application logic.
 
 The server-side SDK is `@sidekickdb/admin` for JavaScript, the focus of this
-page. SidekickDB does not release a Python SDK; Instant's `instantdb` package
-is described in [Getting started with Python](/docs/start-python) for
-reference.
+page. SidekickDB does not release a Python SDK.
 
 ## Admin SDK
 
@@ -27,6 +25,7 @@ import { init, id } from '@sidekickdb/admin';
 // Instant app
 const APP_ID = '__APP_ID__';
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
 });
@@ -131,6 +130,7 @@ import schema from '../instant.schema.ts';
 // Instant app
 const APP_ID = '__APP_ID__';
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
   schema,
@@ -170,6 +170,7 @@ import { init } from '@sidekickdb/admin';
 // If you only impersonate with a user token or as a guest,
 // you can _skip_ admin credentials
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.INSTANT_APP_ID!
 });
 
@@ -316,7 +317,7 @@ import { init } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = "__APP_ID__";
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 async function customSignIn(
   email: string,
@@ -482,6 +483,7 @@ Then, provide your mounted API URL to the `init` function.
 import { init } from '@sidekickdb/react';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   firstPartyPath: '/api/instant', // the endpoint that you registered the route handler at.
   schema,

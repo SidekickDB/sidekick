@@ -376,6 +376,22 @@ unless they start with `client/`):
   `client/packages/components/src/style.css` and
   `client/packages/components/tailwind.config.cjs`. The font was downloaded from
   `stopaio.s3.amazonaws.com`.
+- **Self-hosted image serves only the dashboard, the docs and the admin
+  tools**: `client/Dockerfile.www` copies only the `public/` files those load:
+  `fonts`, `img/docs`, the `img/*.svg` logos, the two scripts at the top level,
+  and `docs`, `docs.md`, `llm-rules`, `llms.txt` and `llms-full.txt`, which
+  the build writes. Instant's website media, sitemap and feed stay out, and
+  so does `img/icon`: its only reference on a served page was `LogoIcon`
+  (`client/packages/components`) in the website navigation, which the
+  self-hosted docs and `/intern` pages no longer render. The self-hosted
+  allowlist in `next.config.js` serves `/dash`, `/docs`, `/logout`,
+  `/_devtool`, `/debug-uri`, `/platform/oauth`, `/intern` with its three tools,
+  and static files at the top level or in `selfHostedStaticDirs`. Everything
+  else goes to `/dash`: every `/api` route (so the docs `og:image`,
+  `/api/docs-og`, does not load), `/opengraph-image`, and `/pricing`,
+  `/status` and `/discord`, whose redirects to Instant's site are left out.
+  Tested in `__tests__/self-hosted-redirects.test.ts`; the benchmark workflow
+  checks the built image on pull requests that change these files.
 - **No outside loads** (PR #107): `client/www/lib/monaco.ts` reads the editor
   types from the dashboard instead of unpkg, and `lib/monacoLoader.ts` points
   `@monaco-editor/react` at the dashboard's own Monaco instead of jsdelivr
@@ -390,7 +406,13 @@ unless they start with `client/`):
   rewrites. A self-hosted dashboard has no docs search: it queries Instant's
   Algolia index, so `components/docs/Layout.jsx` hides it.
   `__tests__/self-hosted-network.test.tsx` checks this (`vitest.config.ts`
-  renders JSX).
+  renders JSX). The self-hosted image carries `public/monaco` (14,073,600
+  bytes; `client/Dockerfile.www` copies it, `client/.dockerignore` keeps a
+  local copy out of the build context) and `next.config.js` serves it
+  (`monaco` in `selfHostedStaticDirs`). The image check in
+  `.github/workflows/sidekick-self-hosted-bench.yml` asks for the editor files,
+  allows 20,000,000 bytes in `www/public` and fails when the page scan finds
+  fewer than 10 files or none under `/_next/static/`.
 - **GitHub star count removed** (`984dcb9b`): `fetchStarCount()` in
   `next.config.js`, `components/marketingUi.tsx`; deleted
   `lib/starCountContext.tsx`.
@@ -419,10 +441,13 @@ and the `self-hosting/` compose files (variable passed to `www`).
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
 feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
-the self-hosted billing and Google-login conditions. Take upstream's other
-changes. Keep the local editor assets and the analytics id from the
-environment; if upstream adds a CDN, font or analytics load, make it local or
-hosted-only (the test names it).
+the self-hosted billing and Google-login conditions. Keep the narrow `public/`
+copy in `client/Dockerfile.www` and the self-hosted allowlist in
+`next.config.js`; a `public/` file upstream adds stays out of the image unless
+the dashboard or the docs load it. Take upstream's other changes. Keep the
+local editor assets and the analytics id from the environment; if upstream
+adds a CDN, font or analytics load, make it local or hosted-only (the test
+names it).
 
 ### Upstream fixes taken early
 
@@ -996,12 +1021,11 @@ offer or bundle the `python-script` starter, which installs Instant's
   `index.ts` and `backendConfig.ts` stay as upstream wrote them.
 - `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
   mapping or menu entry.
-- `client/www/data/docsNavigation.js`: no entry for the Python page.
-  `client/www/app/docs/start-python/page.md` has a note that it describes
-  Instant's package, and no scaffold command; `docs/backend/page.md` says the
-  same in one sentence.
+- The Python docs page is deleted (see "Docs pages: SidekickDB name and
+  links"); `client/www/app/docs/backend/page.md` says in one sentence that
+  SidekickDB releases no Python SDK.
 
-**Resolving:** keep the list, the missing option and the docs note. Take
+**Resolving:** keep the list, the missing option and the backend sentence. Take
 upstream's changes to the Python handling as they are; it stays unreachable.
 If upstream adds another starter that installs a package SidekickDB does not
 release, add it to `unavailableProjectBases`.
@@ -1215,8 +1239,8 @@ keeping `messageEvent`. If upstream moves to public `eventsource`, check that
 
 ### Docs pages: SidekickDB name and links
 
-The docs in `client/www/app/docs` (the self-hosting pages and `start-python`
-aside) and their chrome present the product as SidekickDB.
+The docs in `client/www/app/docs` (the self-hosting pages aside) and their
+chrome present the product as SidekickDB.
 
 - Chrome: `app/docs/layout.tsx` adds " - SidekickDB Docs" to every docs tab
   title; the text logo in `components/docs/Logo.jsx` says SidekickDB; the
@@ -1227,13 +1251,23 @@ aside) and their chrome present the product as SidekickDB.
   navigation titles in `data/docsNavigation.js` say SidekickDB ("Migrate from
   Instant Cloud" names upstream's service and stays); the dead
   `components/DocsPage.jsx` says "SidekickDB Docs" too. Page titles and
-  descriptions in the front matter say SidekickDB.
+  descriptions in the front matter say SidekickDB. Self-hosted, the docs
+  header (`components/docs/DocsHeaderNav.jsx`, used by `Layout.jsx`) is the
+  plain text "SidekickDB" linking to `/dash` instead of upstream's marketing
+  `BareNav`, and `lib/docs-og-metadata-loader.js` emits no `og:image`
+  (the dashboard does not serve `/api/docs-og`). `scripts/gen-llms-txt.ts`
+  titles `llms.txt` "SidekickDB" and links each page's Markdown copy
+  relative (`/docs/<page>.md`, which the dashboard serves) in a self-hosted
+  build, and at `https://sidekickdb.co` with the same path otherwise.
 - Links: absolute docs links get the host `sidekickdb.co` with upstream's
-  path (also `llms-full.txt` in `using-llms`); links to Instant's hosted
+  path (`llms-full.txt` in `using-llms` is the relative `/llms-full.txt`
+  the dashboard serves); links to Instant's hosted
   dashboard are relative `/dash...` links, which open the reader's own
-  dashboard that serves the docs; `api.instantdb.com` in samples and OAuth
-  callback URLs is `https://sidekick.example.com`, with a sentence on each
-  page saying to use the reader's server URL; example addresses are at
+  dashboard that serves the docs; code samples that need a server URL use
+  the `__API_URI__` placeholder (see the Fence bullet below); the literal
+  `https://sidekick.example.com` is only for server URLs in prose, curl and
+  JWKS URLs and OAuth callback URLs, with a sentence on the page saying to use
+  the reader's server URL; example addresses are at
   example.com; links to Instant's recipes page and examples gallery are
   removed; links into upstream's GitHub repository point at the same path in
   `SidekickDB/sidekick`; the `hosted-only` blocks that only invited readers
@@ -1251,11 +1285,38 @@ aside) and their chrome present the product as SidekickDB.
   `scripts/upstream/rename.mjs`, so the `docs-host` rule rewrites upstream's
   absolute docs links there and any other instantdb.com site link is an
   `instant-site-link` leftover.
+- Prose: `client/www/app/docs/cli/page.md` and the other getting started, CLI
+  and SDK pages say SidekickDB where they mean the product. The CLI login
+  steps link to the self-hosting page's CLI section; the shared OAuth dev
+  credentials are the server's, when it has them. The quoted output of `push schema` and `push perms` in `modeling-data`
+  is a sentence that describes what the CLI does now. The React Native videos
+  are named as made for InstantDB, with the package names and the required
+  `apiURI` as the differences.
+- Removed: `client/www/app/docs/start-python/page.md` (Instant's `instantdb`
+  Python package, which defaults to Instant's hosted server) and the link to
+  it in `client/www/app/docs/backend/page.md`.
+- `client/www/components/docs/Fence.jsx` fills the `__API_URI__` placeholder
+  in docs code samples with a self-hosted dashboard's own server URL, and
+  elsewhere shows `https://sidekick.example.com` with a line asking the reader
+  to replace it; `client/www/lib/markdoc.ts` writes that host into the
+  Markdown copies (and `llms-full.txt`) with one line saying to replace it.
+  Every `init`, `<Explorer>`, `PlatformApi` and
+  `createResumableStreamContext` sample passes `apiURI` (first, as
+  `create-sidekick-app` writes it), the `using-llms` MCP configs pass the
+  placeholder to `--api-url`, and the getting-started pages name
+  `SIDEKICK_CLI_API_URI` and `SIDEKICK_CLI_DASH_URI` before the first
+  command.
+  `client/www/__tests__/docs-samples.test.ts` fails on a sample without
+  `apiURI` (also `instant.init(` of a script-tag build): give a sample
+  upstream adds `apiURI: '__API_URI__'`.
 
 **Resolving:** keep SidekickDB's words and links. For a new
-`www.instantdb.com/dash` link use the same path relative (`/dash...`); for a
-new `api.instantdb.com` URL in a sample use `https://sidekick.example.com`
-and keep the page's sentence about the server URL; remove a new link to
+`www.instantdb.com/dash` link use the same path relative (`/dash...`); a new
+code sample that needs a server URL gets `__API_URI__`; a new
+`api.instantdb.com` URL in prose or an OAuth callback URL becomes
+`https://sidekick.example.com` with the page's sentence about the server URL;
+if upstream changes `start-python/page.md`, keep it deleted (a modify/delete
+conflict: `git rm` it); remove a new link to
 Discord, essays, pricing, recipes or the examples gallery; never invent a
 URL. Identifiers, file names (`instant.schema.ts`), environment variables,
 `X-Instant-*` headers and API names stay upstream's.

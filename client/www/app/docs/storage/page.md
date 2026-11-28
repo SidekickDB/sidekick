@@ -91,7 +91,7 @@ type InstantFile = InstaQLEntity<AppSchema, '$files'>
 
 const APP_ID = process.env.NEXT_PUBLIC_INSTANT_APP_ID;
 
-const db = init({ appId: APP_ID, schema });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID, schema });
 
 // `uploadFile` is what we use to do the actual upload!
 // The `$files` query will automatically update once the upload is complete

@@ -5,11 +5,11 @@ nextjs:
     description: 'How to use SidekickDB with LLMs'
 ---
 
-You can supercharge your Instant experience by using it with LLMs. Just add our Instant rules and you're off to the races!
+You can supercharge your SidekickDB experience by using it with LLMs. Just add our SidekickDB rules and you're off to the races!
 
-## Instant Rules
+## SidekickDB Rules
 
-We've created a set of rules to help LLMs understand how Instant works. If you
+We've created a set of rules to help LLMs understand how SidekickDB works. If you
 start a new project with `create-sidekick-app` you'll get these rules
 automatically. If you have an existing project you can add the rules manually.
 
@@ -28,7 +28,7 @@ particular functionality. For example, here are the recommended docs for [adding
 
 We recommend starting with the rules files above and adding more docs as needed.
 If you want though you can get all our docs at once in markdown format via
-[llms-full.txt](https://sidekickdb.co/llms-full.txt)
+[llms-full.txt](/llms-full.txt)
 
 ## SidekickDB MCP Server
 
@@ -59,8 +59,7 @@ If you haven't already, make sure to get a personal access token from your
 
 Once you have your token, you can set up the SidekickDB MCP server in your
 favorite editor with MCP support. In every example, replace `<token>` with your
-personal access token and `https://sidekick.example.com` with your SidekickDB
-server's URL.
+personal access token.
 
 ### Cursor/Windsurf/Cline
 
@@ -77,7 +76,7 @@ the following configuration to your MCP settings:
         "--token",
         "<token>",
         "--api-url",
-        "https://sidekick.example.com"
+        "__API_URI__"
       ]
     }
   }
@@ -102,7 +101,7 @@ Open your Zed settings and add the following:
           "--token",
           "<token>",
           "--api-url",
-          "https://sidekick.example.com"
+          "__API_URI__"
         ],
         "env": {}
       },
@@ -133,7 +132,7 @@ steps:
         "--token",
         "<token>",
         "--api-url",
-        "https://sidekick.example.com"
+        "__API_URI__"
       ]
     }
   }

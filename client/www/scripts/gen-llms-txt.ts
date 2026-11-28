@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 
 import navigation from '../data/docsNavigation.js';
 import {
+  docsMarkdownUrl,
   parseFrontmatter,
   stripDynamicPaths,
   transformContent,
@@ -63,8 +64,9 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
   return results;
 }
 
+// SidekickDB: relative on a self-hosted dashboard (see lib/markdoc.ts).
 function getDocumentUrl(href: string): string {
-  return `https://instantdb.com${href}.md`;
+  return docsMarkdownUrl(href);
 }
 
 async function processMarkdownFile(filePath: string): Promise<Document | null> {
@@ -126,8 +128,9 @@ async function generateLLMsFiles(): Promise<void> {
   }
 
   // Generate llms.txt
-  let llmsContent = `# InstantDB\n\n`;
-  llmsContent += `> Instant is a modern Firebase. We make you productive by giving your frontend a real-time database. Below is a reference for documentation on using Instant.\n\n`;
+  // SidekickDB: the files describe SidekickDB.
+  let llmsContent = `# SidekickDB\n\n`;
+  llmsContent += `> SidekickDB gives your frontend a real-time database that you host yourself. Below is a reference for documentation on using SidekickDB.\n\n`;
 
   const allLinks = navigation.flatMap((section) => (section as any).links);
   const reqLinks = allLinks.filter((link) => !(link as any).optionalLLM);
