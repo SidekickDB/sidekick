@@ -143,6 +143,9 @@ services:
       # SidekickDB runtime mode: "self-hosted" (default here) or "default";
       # see README.md, "Runtime mode".
       INSTANT_RUNTIME_MODE: ${SIDEKICK_RUNTIME_MODE:-${INSTANT_RUNTIME_MODE:-self-hosted}}
+      # "true" starts nREPL on 127.0.0.1:6005 inside the container (no port is
+      # published). Off by default in the self-hosted mode.
+      INSTANT_NREPL: ${SIDEKICK_NREPL:-${INSTANT_NREPL:-}}
       WAL_HISTORY_STORAGE: pg
       DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:-pass}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"
       CONNECTION_POOL_SIZE: ${CONNECTION_POOL_SIZE:-20}

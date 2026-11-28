@@ -134,6 +134,9 @@ services:
       # SidekickDB runtime mode, see README.md. docker stack cannot nest
       # defaults; deploy-swarm.sh also accepts SIDEKICK_RUNTIME_MODE.
       INSTANT_RUNTIME_MODE: ${INSTANT_RUNTIME_MODE:-self-hosted}
+      # "true" starts nREPL on 127.0.0.1:6005 inside the container (no port is
+      # published). Off by default in the self-hosted mode.
+      INSTANT_NREPL: ${INSTANT_NREPL:-}
       SWARM_SERVICE_NAME: server
       WAL_HISTORY_STORAGE: pg
       DATABASE_URL: "postgresql://${POSTGRES_USER:-instant}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the environment; see .env.example}@postgres:5432/${POSTGRES_DB:-instant}?sslmode=disable"

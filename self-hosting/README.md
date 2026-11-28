@@ -292,7 +292,12 @@ In the self-hosted mode:
   (Instant's backend-migration tool), the join-room analytics logger, and the
   Postgres hint-plan experiment.
 - nREPL (port 6005 inside the container, bound to `127.0.0.1`) does not start
-  unless `SIDEKICK_NREPL=true`.
+  unless `SIDEKICK_NREPL=true`. Whoever connects to it can run any code in the
+  server process, with the database credentials and the keys from
+  `override.edn`. Only `docker exec` into the server container reaches it: do
+  not publish the port and do not set `NREPL_BIND_ADDRESS`. Leave it off unless
+  you are debugging. In the `default` mode the server starts nREPL whatever
+  `SIDEKICK_NREPL` says, still on `127.0.0.1`.
 - Behaviour meant for developing the server is off: SSE requests and stream
   reads are always served locally (in development about half go through
   Hazelcast or gRPC on purpose), and responses and WebSocket `init-ok` carry no
