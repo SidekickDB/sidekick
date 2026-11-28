@@ -366,20 +366,19 @@ if (args['browser-ws']) {
       timeoutMs: 2 * timeoutMs,
       email: `smoke-browser-${id()}@example.com`,
       waitForLoginCode,
-      createApp: async (token) => {
-        const app = { id: id(), title: `smoke-browser-${Date.now()}` };
-        await dash('/dash/apps', {
-          token,
-          body: { ...app, admin_token: id() },
-        });
-        // One entity, so the devtool's explorer has a namespace to show.
+      // The app the browser created: its id, and one entity, so the
+      // devtool's explorer has a namespace to show.
+      prepareApp: async (token, title) => {
+        const { apps } = await dash('/dash', { token });
+        const app = apps?.find((a) => a.title === title);
+        if (!app) throw new Error(`no app titled ${title} in /dash`);
         const db = track(openDb(apiURI, app.id, 'smoke-browser'));
         await withTimeout(
           db.transact(db.tx.items[id()].update({ name: 'browser check' })),
           timeoutMs,
           'write to the app',
         );
-        return { ...app, namespace: 'items' };
+        return { id: app.id, namespace: 'items' };
       },
       screenshot: args.screenshot,
     });

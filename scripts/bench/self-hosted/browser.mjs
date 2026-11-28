@@ -4,7 +4,8 @@
 // the pinned Playwright image.
 //
 // - signs in at /dash with the one-time code from the server log;
-// - opens the new app in the dashboard, then its Sandbox tab, and checks
+// - creates an app with the onboarding form, waits for the dashboard to
+//   show it, then opens its Sandbox tab, and checks
 //   that the code editor's TypeScript worker starts and answers quick info
 //   for `db`, and that its JSON worker starts;
 // - opens /_devtool?appId=<id> and checks that it shows the app's explorer;
@@ -79,7 +80,7 @@ export async function browserCheck({
   timeoutMs,
   email,
   waitForLoginCode,
-  createApp,
+  prepareApp,
   screenshot,
 }) {
   const { chromium } = require('playwright');
@@ -159,9 +160,11 @@ export async function browserCheck({
     if (!token) throw new Error('signed in, but no token in localStorage');
 
     mark('app in the dashboard');
-    const app = await createApp(token);
-    await page.goto(`${dashURI}/dash?s=main&app=${app.id}`);
-    await page.getByRole('heading', { name: app.title }).waitFor();
+    const title = `smoke-browser-${Date.now()}`;
+    await page.getByPlaceholder('Name your app').fill(title);
+    await page.getByRole('button', { name: "Let's build!" }).click();
+    await page.getByRole('heading', { name: title }).waitFor();
+    const app = await prepareApp(token, title);
 
     mark('sandbox editor');
     await page.goto(`${dashURI}/dash?s=main&app=${app.id}&t=sandbox`);

@@ -91,8 +91,9 @@ Playwright image for the browser check, at the playwright version in
      `browser` smoke check (`browser.mjs`): Chromium from that image (a
      `playwright run-server` container on the host network) opens
      `http://localhost:3000/dash`, signs in with the code from the server
-     log, opens a new app in the dashboard and its Sandbox tab, and checks
-     that the code editor's TypeScript worker starts and returns quick info
+     log, creates an app with the onboarding form, waits for the dashboard
+     to show it, opens its Sandbox tab, and checks that the code editor's
+     TypeScript worker starts and returns quick info
      for `db`, that its JSON worker starts, and that no console message says
      a worker failed to load. Then it opens `/_devtool?appId=<id>` and waits
      for the app's explorer. It records the host of every request and
