@@ -1,0 +1,230 @@
+# SidekickDB: runs the networked JS e2e suites (core browser e2e, cli,
+# create-sidekick-app, mcp, platform schemaPush, resumable-stream) against a
+# server started in this job from self-hosting/docker-compose.yml, and against
+# nothing else. The offline suites run in js.yml, where these are skipped.
+#
+# Every suite gets SIDEKICK_E2E_API_URI=http://localhost:8888 and runs through
+# client/scripts/with-network-guard.mjs, which refuses and fails on any
+# connection that is not loopback. Chromium (core) gets the resolver rules in
+# client/packages/core/vitest.config.ts: only localhost resolves.
+#
+# Read-only: no secrets, no write permissions, nothing is pushed or published.
+# The server image is built and loaded locally; the GitHub Actions cache keeps
+# its layers between runs. Runs on demand only.
+name: e2e suites
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sidekick-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: e2e suites against a local server
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      PROJECT: sidekicke2e
+      # Must match the playwright version in client/pnpm-lock.yaml (checked
+      # below) and the image of js.yml's build job.
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.58.2-noble@sha256:6446946a1d9fd62d9ae501312a2d76a43ee688542b21622056a372959b65d63d
+      SIDEKICK_E2E_API_URI: http://localhost:8888
+      SIDEKICK_NETWORK_GUARD_ALLOW: ''
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Test the summary on synthetic reports
+        run: node --test scripts/e2e/summarize.test.mjs
+
+      # JUnit reports and container logs; uploaded at the end.
+      - name: Set the output directory
+        run: echo "OUT=$RUNNER_TEMP/e2e-out" >> "$GITHUB_ENV"
+
+      - name: Check the Playwright image matches the lockfile
+        run: |
+          v=$(echo "$PLAYWRIGHT_IMAGE" | sed -E 's/.*:v([0-9.]+)-.*/\1/')
+          grep -q "^  playwright@$v:" client/pnpm-lock.yaml || {
+            echo "::error::PLAYWRIGHT_IMAGE is v$v; client/pnpm-lock.yaml has another playwright version"
+            exit 1
+          }
+
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+        with:
+          version: '10.2.0'
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Get pnpm cache directory path
+        id: pnpm-cache-dir-path
+        run: echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('client/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      # The cli and create-sidekick-app suites run the built dist/index.js.
+      - name: Install dependencies and build packages
+        working-directory: client
+        run: |
+          pnpm i --frozen-lockfile --prefer-offline
+          pnpm run build-packages
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # Loaded into the local Docker only. Reads the layer cache of the image
+      # release workflow and of earlier runs of this one.
+      - name: Build the server image
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ./server
+          file: ./server/Dockerfile.self-hosted
+          load: true
+          push: false
+          provenance: false
+          tags: sidekick-e2e/server:local
+          cache-from: |
+            type=gha,scope=e2e-server
+            type=gha,scope=server-amd64
+          cache-to: type=gha,scope=e2e-server,mode=min
+
+      - name: Pull the Playwright image
+        run: docker pull --quiet "$PLAYWRIGHT_IMAGE"
+
+      # self-hosting/.env.example with generated, throwaway secrets, kept out
+      # of $OUT (which is uploaded). The dashboard is not started.
+      - name: Start the server
+        id: stack
+        run: |
+          mkdir -p "$OUT"
+          env_file="$RUNNER_TEMP/e2e.env"
+          sed -E \
+            -e "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 32)/" \
+            -e "s/^STORAGE_ACCESS_KEY=.*/STORAGE_ACCESS_KEY=$(openssl rand -hex 16)/" \
+            -e "s/^STORAGE_SECRET_KEY=.*/STORAGE_SECRET_KEY=$(openssl rand -hex 32)/" \
+            self-hosting/.env.example > "$env_file"
+          echo "SERVER_IMAGE=sidekick-e2e/server:local" >> "$env_file"
+          dc() {
+            docker compose -p "$PROJECT" --env-file "$env_file" \
+              -f self-hosting/docker-compose.yml -f scripts/e2e/compose.e2e.yml "$@"
+          }
+          dc pull --quiet postgres storage createbuckets
+          dc up -d --pull never --wait --wait-timeout 600 server
+          curl -fsS -o /dev/null "$SIDEKICK_E2E_API_URI/"
+
+      # Chromium comes from the Playwright image. Host networking, so
+      # localhost:8888 is the server above; node_modules are the ones
+      # installed on the runner (same Ubuntu release as the image).
+      - name: core (browser e2e)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        run: |
+          docker run --rm --init --ipc=host --network host \
+            --user "$(id -u):$(id -g)" -e HOME=/tmp \
+            -e SIDEKICK_E2E_API_URI -e SIDEKICK_NETWORK_GUARD_ALLOW \
+            -e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+            -v "$GITHUB_WORKSPACE:/w" -v "$OUT:/out" -w /w/client/packages/core \
+            "$PLAYWRIGHT_IMAGE" \
+            node ../../scripts/with-network-guard.mjs \
+              ./node_modules/.bin/vitest run --project e2e \
+              --reporter=default --reporter=junit --outputFile.junit=/out/core.xml
+
+      - name: cli
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        working-directory: client/packages/cli
+        run: |
+          node ../../scripts/with-network-guard.mjs pnpm exec vitest run --project e2e \
+            --reporter=default --reporter=junit --outputFile.junit="$OUT/cli.xml"
+
+      # Every scaffold ends with `<package manager> install` in the new
+      # project, which would download its dependencies from the npm registry.
+      # The tests check the scaffolded files and the app created on the
+      # server, not installed packages, so npm (the package manager
+      # create-sidekick-app picks without npm_config_user_agent) is replaced
+      # here by a stub that skips the install. vitest is started without pnpm
+      # so that the user agent stays unset.
+      - name: create-sidekick-app
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        working-directory: client/packages/create-instant-app
+        run: |
+          stub="$RUNNER_TEMP/no-install"
+          mkdir -p "$stub"
+          printf '%s\n' '#!/bin/sh' \
+            'case "$1" in -v) echo 10.0.0-e2e-stub ;; install) echo "e2e: install skipped" ;; *) exit 1 ;; esac' \
+            > "$stub/npm"
+          chmod +x "$stub/npm"
+          echo "CIA_NOTE=dependency install stubbed (npm on PATH); scaffold and app creation tested, install not" >> "$GITHUB_ENV"
+          unset npm_config_user_agent
+          PATH="$stub:$PATH" node ../../scripts/with-network-guard.mjs ./node_modules/.bin/vitest run --project e2e \
+            --reporter=default --reporter=junit --outputFile.junit="$OUT/create-sidekick-app.xml"
+
+      - name: mcp
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        working-directory: client/packages/mcp
+        run: |
+          node ../../scripts/with-network-guard.mjs pnpm exec vitest run --project e2e \
+            --reporter=default --reporter=junit --outputFile.junit="$OUT/mcp.xml"
+
+      - name: platform (schemaPush)
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        working-directory: client/packages/platform
+        run: |
+          node ../../scripts/with-network-guard.mjs pnpm exec vitest run __tests__/src/schema.push.e2e.test.ts \
+            --reporter=default --reporter=junit --outputFile.junit="$OUT/platform.xml"
+
+      - name: resumable-stream
+        if: ${{ !cancelled() && steps.stack.outcome == 'success' }}
+        working-directory: client/packages/resumable-stream
+        run: |
+          node ../../scripts/with-network-guard.mjs pnpm exec vitest run __tests__/src/resumable-stream.test.ts \
+            --reporter=default --reporter=junit --outputFile.junit="$OUT/resumable-stream.xml"
+
+      # Fails when a suite left no report or a broken one, failed, or ran
+      # fewer tests than it has today (<suite>=<minimum>; raise a minimum
+      # when a suite gains tests).
+      - name: Summary
+        if: ${{ !cancelled() }}
+        run: |
+          notes=()
+          [ -n "${CIA_NOTE:-}" ] && notes+=(--note "create-sidekick-app=$CIA_NOTE")
+          node scripts/e2e/summarize.mjs --dir "$OUT" "${notes[@]}" \
+            core=20 cli=36 create-sidekick-app=14 mcp=8 platform=6 resumable-stream=14
+
+      - name: Collect server logs
+        if: always()
+        run: |
+          mkdir -p "$OUT"
+          docker ps -aq --filter label=com.docker.compose.project=$PROJECT \
+            | xargs -r -n1 sh -c 'docker logs --timestamps "$0" > "$OUT/$(docker inspect --format "{{.Name}}" "$0" | tr -d /).log" 2>&1'
+
+      - name: Upload reports and logs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: e2e-${{ github.sha }}
+          path: ${{ runner.temp }}/e2e-out
+          retention-days: 14
+
+      - name: Remove containers and volumes
+        if: always()
+        run: |
+          docker ps -aq --filter label=com.docker.compose.project=$PROJECT | xargs -r docker rm -f
+          docker volume ls -q --filter label=com.docker.compose.project=$PROJECT | xargs -r docker volume rm

@@ -1,0 +1,7 @@
+# Applied on top of self-hosting/docker-compose.yml by
+# .github/workflows/sidekick-e2e.yml: publishes the server on loopback so the
+# e2e suites can reach it at http://localhost:8888. Nothing else changes.
+services:
+  server:
+    ports:
+      - "127.0.0.1:8888:8888"

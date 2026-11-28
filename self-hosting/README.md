@@ -6,6 +6,16 @@ The self-hosting guides are in this repository: [overview](../client/www/app/doc
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
 
+<!-- SidekickDB: backup and restore guide, see BACKUP.md. -->
+
+## Backup and restore
+
+Nothing in the stack backs itself up. [BACKUP.md](BACKUP.md) lists what holds
+state (Postgres, the storage volume, the server's `override.edn` and `.env`),
+and has a backup script with a cron example and the steps to restore it on a
+fresh stack. The on-demand app backups in the dashboard are no substitute: each
+covers one app and is stored in the same storage service.
+
 ## Variable names
 
 Settings are named `SIDEKICK_*`, for example `SIDEKICK_BACKEND_URL`. Each one
@@ -45,8 +55,11 @@ echo "STORAGE_ACCESS_KEY=$(openssl rand -hex 16)" >> .env
 echo "STORAGE_SECRET_KEY=$(openssl rand -hex 32)" >> .env
 ```
 
-Generate them once and keep them. Postgres and RustFS store the first values
-they start with in their volumes, so changing them later locks the server out.
+Generate them once and keep them. Postgres stores the first password it starts
+with in its volume, so changing `POSTGRES_PASSWORD` later locks the server out.
+RustFS (1.0.6) reads the storage keys from the environment each time it
+starts: a storage volume created with other keys worked with new ones in a
+test, as long as RustFS and the server get the same values.
 Hex values are safe inside `DATABASE_URL`; a password you choose yourself must
 not contain URL characters such as `@ : / ?`. When using AWS S3, set the two
 storage variables to your AWS access key ID and secret access key.
