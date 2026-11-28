@@ -5,11 +5,11 @@ nextjs:
     description: 'How to use SidekickDB with LLMs'
 ---
 
-You can supercharge your Instant experience by using it with LLMs. Just add our Instant rules and you're off to the races!
+You can supercharge your SidekickDB experience by using it with LLMs. Just add our SidekickDB rules and you're off to the races!
 
-## Instant Rules
+## SidekickDB Rules
 
-We've created a set of rules to help LLMs understand how Instant works. If you
+We've created a set of rules to help LLMs understand how SidekickDB works. If you
 start a new project with `create-sidekick-app` you'll get these rules
 automatically. If you have an existing project you can add the rules manually.
 

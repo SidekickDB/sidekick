@@ -7,7 +7,7 @@ nextjs:
 
 ## Basic Initialization
 
-The first step to using Instant in your app is to call `init`. Here is a simple
+The first step to using SidekickDB in your app is to call `init`. Here is a simple
 example at the root of your app.
 
 ```javascript
@@ -63,7 +63,7 @@ To learn more about writing schemas, head on over to the [Modeling your data](/d
 
 ## Flexible Initialization
 
-Instant maintains a single connection regardless of where or how many times you
+SidekickDB maintains a single connection regardless of where or how many times you
 call `init` with the same app ID. This means you can safely call `init` multiple
 times without worrying about creating multiple connections or
 performance overhead. However, we do recommend the pattern of exporting a
@@ -102,15 +102,15 @@ export default App;
 `init` accepts a few options. For most use cases you'll want to provide `appId`,
 `apiURI` and `schema`. Here are all the options you can provide:
 
-- **appId** (required): Your InstantDB application ID. This identifies your app and is used to connect to the correct backend.
+- **appId** (required): Your SidekickDB application ID. This identifies your app and is used to connect to the correct backend.
 
-- **schema?**: Instant schema export from your `instant.schema.ts` file. Provide this for typesafety and auto-completion in queries, transactions, and ephemeral features.
+- **schema?**: SidekickDB schema export from your `instant.schema.ts` file. Provide this for typesafety and auto-completion in queries, transactions, and ephemeral features.
 
 - **websocketURI?**: Custom WebSocket endpoint for real-time connections. Derived from `apiURI` when not set (`https://sidekick.example.com` becomes `wss://sidekick.example.com/runtime/session`).
 
 - **apiURI** (required): URL of your SidekickDB server, for example `https://sidekick.example.com`. There is no default server, and `init` throws without it.
 
-- **devtool?**: Controls the Instant dev tool. Defaults to `true` on localhost. Set to `false` to disable, or configure its `position`, `allowedHosts`, and `dashURI`. Set `dashURI` when using a self-hosted dashboard.
+- **devtool?**: Controls the SidekickDB dev tool. Defaults to `true` on localhost. Set to `false` to disable, or configure its `position`, `allowedHosts`, and `dashURI`. Set `dashURI` when using a self-hosted dashboard.
 
 - **verbose?**: Enables detailed console logging for debugging. When `true`, logs WebSocket messages and internal operations. Helpful for troubleshooting connection and sync issues.
 
