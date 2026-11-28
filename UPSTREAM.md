@@ -401,6 +401,14 @@ unless they start with `client/`):
   `/status` and `/discord`, whose redirects to Instant's site are left out.
   Tested in `__tests__/self-hosted-redirects.test.ts`; the benchmark workflow
   checks the built image on pull requests that change these files.
+- **No actions the self-hosted server refuses** (PR #NNN):
+  `client/www/components/admin/AdminPage.tsx` shows "Activate Pro for free"
+  only to an owner (the server's default `:owner` role for the app endpoint);
+  other admins read that an owner can activate it.
+  `components/dash/auth/Google.tsx` starts a new web client on "Use my own"
+  when self-hosted, as shared dev credentials exist only if the operator
+  configured them, and says so when saving with them fails. Tested in
+  `__tests__/self-hosted-dash-actions.test.tsx`.
 - **No outside loads** (PR #107): `client/www/lib/monaco.ts` reads the editor
   types from the dashboard instead of unpkg, and `lib/monacoLoader.ts` points
   `@monaco-editor/react` at the dashboard's own Monaco instead of jsdelivr
@@ -444,7 +452,9 @@ and the `self-hosting/` compose files (variable passed to `www`).
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
 feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
-the self-hosted billing and Google-login conditions. Keep the narrow `public/`
+the self-hosted billing and Google-login conditions, the owner-only Activate
+callout and the self-hosted default in the Google client form. Keep the
+narrow `public/`
 copy in `client/Dockerfile.www` and the self-hosted allowlist in
 `next.config.js`; a `public/` file upstream adds stays out of the image unless
 the dashboard or the docs load it. Take upstream's other changes. Keep the
