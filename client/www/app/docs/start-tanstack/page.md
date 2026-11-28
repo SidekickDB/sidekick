@@ -9,6 +9,8 @@ nextjs:
 
 The fastest way to get started with Instant on TanStack Start is to use npx create-sidekick-app to scaffold a new project with Instant already set up.
 
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL, which it opens to log you in.
+
 To get started, run:
 
 ```shell
@@ -33,6 +35,8 @@ npm i @sidekickdb/react
 
 Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already.
+
 ```shell
 npx @sidekickdb/cli init
 ```
@@ -46,6 +50,7 @@ import { init } from '@sidekickdb/react';
 import schema from '../instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: import.meta.env.VITE_INSTANT_APP_ID!,
   schema,
   useDateObjects: true,

@@ -39,7 +39,7 @@ type Todo = InstaQLEntity<typeof schema, "todos">;
 
 // Initialize the database
 // ---------
-const db = init({ appId: APP_ID, schema });
+const db = init({ apiURI: "__API_URI__", appId: APP_ID, schema });
 
 // Subscribe to data
 // ---------

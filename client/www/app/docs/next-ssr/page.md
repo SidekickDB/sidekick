@@ -100,6 +100,7 @@ import { init } from '@sidekickdb/react/nextjs';
 import schema from '../instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   firstPartyPath: '/api/instant',

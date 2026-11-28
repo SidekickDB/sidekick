@@ -18,6 +18,7 @@ function App() {
         className="h-full"
         useShadowDOM={false}
         darkMode={false}
+        apiURI="__API_URI__"
         appId={import.meta.env.VITE_INSTANT_APP_ID}
         adminToken={import.meta.env.VITE_INSTANT_ADMIN_TOKEN}
       />
@@ -78,6 +79,7 @@ function App() {
       <Explorer
         className="h-full"
         useShadowDOM // this prop automatically applies styles
+        apiURI="__API_URI__"
         appId={import.meta.env.VITE_INSTANT_APP_ID}
         adminToken={import.meta.env.VITE_INSTANT_ADMIN_TOKEN}
       />

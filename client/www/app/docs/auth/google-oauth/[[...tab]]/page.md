@@ -298,7 +298,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 // e.g. 89602129-cuf0j.apps.googleusercontent.com
 const GOOGLE_CLIENT_ID = 'REPLACE_ME';
@@ -387,7 +387,7 @@ import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const url = db.auth.createAuthorizationURL({
   // Use the google client name in the Instant dashboard auth tab
@@ -497,7 +497,7 @@ import {
 } from 'expo-auth-session';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (
@@ -606,7 +606,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 GoogleSignin.configure({
   // See https://react-native-google-signin.github.io/docs/original#configure

@@ -29,7 +29,7 @@ import { init, User } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (
@@ -93,7 +93,7 @@ import { init, User } from '@sidekickdb/react';
 
 // Instant app
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (

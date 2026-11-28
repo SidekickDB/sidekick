@@ -1214,7 +1214,8 @@ aside) and their chrome present the product as SidekickDB.
   `components/DocsPage.jsx` says "SidekickDB Docs" too. Page titles and
   descriptions in the front matter say SidekickDB.
 - Links: absolute docs links get the host `sidekickdb.co` with upstream's
-  path (also `llms-full.txt` in `using-llms`); links to Instant's hosted
+  path (`llms-full.txt` in `using-llms` is the relative `/llms-full.txt`
+  the dashboard serves); links to Instant's hosted
   dashboard are relative `/dash...` links, which open the reader's own
   dashboard that serves the docs; `api.instantdb.com` in samples and OAuth
   callback URLs is `https://sidekick.example.com`, with a sentence on each
@@ -1236,6 +1237,17 @@ aside) and their chrome present the product as SidekickDB.
   `scripts/upstream/rename.mjs`, so the `docs-host` rule rewrites upstream's
   absolute docs links there and any other instantdb.com site link is an
   `instant-site-link` leftover.
+- `client/www/components/docs/Fence.jsx` fills the `__API_URI__` placeholder
+  in docs code samples with a self-hosted dashboard's own server URL, and
+  elsewhere shows `https://sidekick.example.com` with a line asking the reader
+  to replace it; `client/www/lib/markdoc.ts` writes that host into the
+  Markdown copies. Every `init`, `<Explorer>`, `PlatformApi` and
+  `createResumableStreamContext` sample passes `apiURI` (first, as
+  `create-sidekick-app` writes it), the `using-llms` MCP configs pass the
+  placeholder to `--api-url`, and the getting-started pages name `SIDEKICK_CLI_API_URI` and
+  `SIDEKICK_CLI_DASH_URI` before the first command.
+  `client/www/__tests__/docs-samples.test.ts` fails on a sample without
+  `apiURI`: give a sample upstream adds `apiURI: '__API_URI__'`.
 
 **Resolving:** keep SidekickDB's words and links. For a new
 `www.instantdb.com/dash` link use the same path relative (`/dash...`); for a

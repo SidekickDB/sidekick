@@ -59,6 +59,7 @@ import { init } from '@sidekickdb/admin';
 import schema from './instant.schema';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.INSTANT_APP_ID!,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN!,
   schema,
@@ -86,6 +87,7 @@ import { sendNewPostEmail } from '@/lib/emails';
 import schema from '@/instant.schema';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.INSTANT_APP_ID!,
   schema,
 });
@@ -131,6 +133,7 @@ import schema from '@/instant.schema';
 export const config = { api: { bodyParser: false } };
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.INSTANT_APP_ID!,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN!,
   schema,
@@ -179,6 +182,7 @@ app.post(
   express.raw({ type: '*/*' }),
   async (req, res) => {
     const db = init({
+      apiURI: '__API_URI__',
       appId: process.env.INSTANT_APP_ID!,
       schema,
     });

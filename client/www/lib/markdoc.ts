@@ -82,7 +82,12 @@ function transformContent(content: string): string {
     result += `${description}\n\n`;
   }
 
-  const sanitizedContent = sanitizeMarkdown(markdownContent);
+  // SidekickDB: the Markdown copies show the placeholder host that the
+  // rendered docs fall back to (see components/docs/Fence.jsx).
+  const sanitizedContent = sanitizeMarkdown(markdownContent).replaceAll(
+    '__API_URI__',
+    'https://sidekick.example.com',
+  );
   return result + sanitizedContent;
 }
 
