@@ -17,6 +17,12 @@ name: Release Docker images (SidekickDB)
 # scripts/upstream/check.mjs allows this file's push rights only while it
 # keeps a workflow_dispatch-only trigger, the repository + main guard on each
 # job, the `image-release` environment and job-level permissions.
+#
+# An existing version tag is refused unless move_version_tag is set
+# (scripts/release/check-version-tag.mjs, anonymous read of the public
+# packages): in every build job before it builds, and in each manifest job
+# just before it publishes (there a tag that already lists exactly this
+# commit's per-arch images also passes, for a re-run of that job).
 
 on:
   workflow_dispatch:
@@ -26,9 +32,13 @@ on:
         type: boolean
         default: false
       version:
-        description: Extra tag for server and dashboard, e.g. v2.0.0 (optional)
+        description: Extra tag for server and dashboard, e.g. v1.2.3 (optional)
         type: string
         default: ''
+      move_version_tag:
+        description: Move the version tag if it already exists
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -66,20 +76,18 @@ jobs:
           - arch: arm64
             runner: ubuntu-24.04-arm
     steps:
-      # Fail before building when the extra tag is malformed.
-      - name: Check version input
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          if [ -n "$VERSION" ] && ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "version must look like v1.2.3, got $VERSION" >&2
-            exit 1
-          fi
-
       - name: Checkout
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
+
+      # Fail before building when the extra tag is malformed, or already
+      # exists on server or dashboard and move_version_tag is not set.
+      - name: Check version input
+        env:
+          VERSION: ${{ inputs.version }}
+          MOVE_VERSION_TAG: ${{ inputs.move_version_tag }}
+        run: node scripts/release/check-version-tag.mjs server dashboard
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -156,6 +164,27 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout the version tag check
+        if: matrix.versioned
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/release/check-version-tag.mjs
+          sparse-checkout-cone-mode: false
+
+      # The tag can have appeared since the build jobs checked it. Only this
+      # job's own image: the other manifest jobs may already have published.
+      # PUBLISH_SHA accepts a tag that already lists exactly this commit's
+      # per-arch images, so a re-run of this job after it published passes.
+      - name: Check version tag
+        if: matrix.versioned
+        env:
+          VERSION: ${{ inputs.version }}
+          MOVE_VERSION_TAG: ${{ inputs.move_version_tag }}
+          PUBLISH_SHA: ${{ github.sha }}
+          IMAGE: ${{ matrix.image }}
+        run: node scripts/release/check-version-tag.mjs "$IMAGE"
 
       - name: Publish multi-arch tags
         env:

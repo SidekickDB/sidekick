@@ -153,7 +153,7 @@ Actions → **Release Docker images (SidekickDB)** → Run workflow, branch `mai
   and pushes nothing.
 - `push` checked: pushes `<sha>-amd64` / `<sha>-arm64`, then publishes
   multi-arch tags: `latest` and `<sha>` for server and dashboard (plus
-  `version`, for example `v2.0.0`, when given), and
+  `version`, for example `v1.2.3`, when given), and
   `postgresql-17-pg-hint-plan` and `<sha>` for postgresql. The per-arch tags
   stay in the public packages next to the multi-arch ones.
 
@@ -167,13 +167,45 @@ Check a pushed image with
 `docker run --rm --entrypoint ls ghcr.io/sidekickdb/server /licenses`.
 
 A push needs two approvals of the `image-release` environment: one for the
-build matrix and one for the manifest job. A malformed `version` fails every
-build job before it builds anything.
+build matrix and one for the manifest job.
+
+A version tag is never moved by accident. Every build job first runs
+`scripts/release/check-version-tag.mjs`, with or without `push`: a malformed
+`version`, or one that already exists on `server` or `dashboard`, fails it
+before anything is built. Each manifest job checks its own image again just
+before it publishes, since the tag can appear between the two jobs; there an
+existing tag also passes when it already lists exactly this commit's
+`<sha>-amd64` and `<sha>-arm64` images, which is what that job publishes. The
+check reads the public packages anonymously and fails closed: a tag counts as
+free only when ghcr.io answers 404 "manifest unknown", and any other answer, a
+timeout or a network error fails the run. To move an existing version tag on
+purpose, set `move_version_tag` (default unchecked), which skips the lookup.
+
+To release the next version, replace `vX.Y.Z` in both commands with the next
+unused version (an existing one is refused). The first line, run from a
+checkout of `main`, must print `not found, free` for both images:
 
 ```sh
+VERSION=vX.Y.Z MOVE_VERSION_TAG=false node scripts/release/check-version-tag.mjs server dashboard
 gh workflow run sidekick-release-images.yml -R SidekickDB/sidekick --ref main \
-  -f push=true -f version=v2.0.0
+  -f push=true -f version=vX.Y.Z
 ```
+
+If a run fails, use **Re-run failed jobs**, never **Re-run all jobs**:
+
+- A build job failed: nothing has been published yet (the manifest jobs wait
+  for every build job). Re-run the failed jobs.
+- A manifest job failed, before or after it published its tags (for example
+  in the final `imagetools inspect`): re-run the failed jobs. Each manifest
+  job checks only its own image, and a version tag that already lists this
+  commit's per-arch images passes, so the re-run publishes the same images
+  again.
+- A re-run's manifest check refuses with "with images other than": another
+  release published that version tag in between. Stop, find out which
+  release it was, and release the next unused version.
+- **Re-run all jobs** after a manifest job published a version tag fails in
+  every build job, whose check accepts no existing tag. Cancel it and use
+  **Re-run failed jobs** on the original run instead.
 
 The self-hosting compose files default to these images: `latest` of server
 and dashboard, and `postgresql-17-pg-hint-plan` of postgresql. A release that
