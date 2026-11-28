@@ -37,7 +37,12 @@ not Markdown files, not TODO comments, not notes from earlier sessions. Use the
 
 1. Take only **Ready** cards, P0 before P1 before P2, or the card the owner
    names.
-2. One card at a time across all agents. Never work in parallel.
+2. Several cards may be In progress at once, each with its own implementer,
+   branch and worktree. One card per implementer at a time, never two roles
+   on the same card, and change only what your card needs (anything else goes
+   to the planner, rule 4). After another pull request merges to `main`, yours
+   may have to merge `main`, rerun its checks and get a new review of its new
+   head before it can merge. Rules 2 in `.claude/rules/lifecycle.md`.
 3. Move the card as you go and put the pull request link in it.
 4. New work, a bug, a follow-up: propose it to the `planner` agent. Do not
    add the card yourself, do not fix it in passing and do not record it

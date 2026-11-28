@@ -7,14 +7,20 @@ export interface ExampleApp extends AppMetadata {
   content: string;
 }
 
+// SidekickDB: a slug is one listed in appMetas.
+export function isExampleSlug(slug: string): boolean {
+  return appMetas.some((app) => app.slug === slug);
+}
+
 export function getExampleAppBySlug(slug: string): ExampleApp {
-  const content = fs.readFileSync(`./_examples/${slug}.md`, 'utf-8');
+  // SidekickDB: look the slug up before reading its file.
   const meta = appMetas.find((app) => app.slug === slug);
   if (!meta) {
     throw new Error(
       `This should not happen. App with slug "${slug}" not found.`,
     );
   }
+  const content = fs.readFileSync(`./_examples/${slug}.md`, 'utf-8');
   return { ...meta, content };
 }
 

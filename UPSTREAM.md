@@ -484,6 +484,17 @@ The self-hosted stack works without Instant infrastructure.
   its resolvers from that setting; a failed DoH lookup never falls back to the
   system resolver, which is used only with `system`. Tests in `jwt_test.clj`,
   `oauth_test.clj`, `config_test.clj` and `webhook_sender_test.clj`.
+- PR #104: `client/www/app/docs/self-hosting/` (the four guides) says
+  "SidekickDB" where the product is meant ("Instant Cloud" only where
+  upstream's hosted service is meant) and uses the `SIDEKICK_*` names,
+  `ghcr.io/sidekickdb` images, a clone of this repository, example.com
+  hostnames and the shipped required secrets and memory defaults; the CLI has
+  no default server and `PRODUCTION=true` stops the server. No figures for
+  upstream's own deployment. The development stack
+  `server/docker-compose-dev.yml` uses `ghcr.io/sidekickdb/postgresql` (with
+  the wal2json fix of PR #44); `server/dev-postgres/Makefile` keeps upstream's
+  tag because SidekickDB publishes images only through
+  `sidekick-release-images.yml`.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
 - PR #21: no required `:?` inside a default in the compose files. Compose 2.38
@@ -665,7 +676,8 @@ is needed. When upstream adds an `instant.*` file kind to the CLI, add it to
 `secure-cookies?`). `get-env` is unchanged, so a self-hosted server still runs
 as `:dev`. The compose files and `server/Dockerfile.self-hosted` set
 `self-hosted`; a bare server start, the tests and upstream's own images stay
-`default`.
+`default`. The compose files and `swarm.yml` also pass `INSTANT_NREPL` (or `SIDEKICK_NREPL`) to the server,
+and `deploy-swarm.sh` forwards it.
 
 Changes outside `config.clj`, each one small on purpose:
 
@@ -681,7 +693,8 @@ Changes outside `config.clj`, each one small on purpose:
 - `core.clj` `stop`: the WebSocket drain comes from
   `config/shutdown-drain-opts` when it returns one (self-hosted, 20 s, or
   `INSTANT_SHUTDOWN_DRAIN_SECONDS`), else upstream's `dev?` choice; covered by
-  `shutdown_drain_test.clj`.
+  `shutdown_drain_test.clj`. `config/init` checks the value, so an invalid
+  one fails at startup.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
@@ -842,6 +855,12 @@ and take its other changes in the file.
   hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
   Test `concurrent-boots-insert-catalog-attrs-once` in
   `server/test/instant/system_catalog_migration_test.clj`.
+- PR #99: the example page, `client/www/app/examples/[slug]/page.tsx`,
+  serves only the slugs from `generateStaticParams` (`dynamicParams = false`)
+  and answers 404 for any other. `getExampleAppBySlug` in
+  `client/www/lib/examples/server.ts` looks the slug up in `appMetas` before
+  reading its file (`isExampleSlug`). Test
+  `client/www/__tests__/examples.test.ts`.
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
@@ -1198,22 +1217,56 @@ instructions.
   under "Intentional divergences" with no PR number in its heading (directly
   before "Upstream sync tooling", which stays last), and a file for the PR in
   `scripts/upstream/divergence-prs/`. A PR for an existing divergence needs
-  only that file. Unlisted PRs are still attributed, under their own title.
+  only that file and its bullet in the divergence's section. Unlisted PRs are
+  still attributed, under their own title.
 - `divergence-prs/<PR number>`: one file per PR, holding its key, written once
   `gh pr create` has returned the number
   (`echo '<key>' > scripts/upstream/divergence-prs/<PR number>`, then
   `git add` that file). A PR with two
   concerns lists both keys on the one line and needs an entry in `SPLIT` in
   `divergences.mjs` that picks one by path.
+- `sidekick-checks.yml` runs `scripts/upstream/divergence-entry.mjs` on every
+  PR. It fails when the PR changes, deletes or renames a path that exists in
+  the last upstream commit merged into the base and the head has no
+  `divergence-prs/<PR number>`; the first push of such a PR fails until the
+  file is added. That commit is read from origin's history (SidekickDB's
+  commits descend from its first commit, upstream's do not), so the job checks
+  out with `fetch-depth: 0` and fetches nothing from upstream. A sync PR is
+  exempt when it merges an upstream commit the base lacks and updates
+  [Last synced upstream commit](#last-synced-upstream-commit) to that commit.
 - Why this layout: two PRs that each record a divergence add different key
   files and different PR files, so the tooling data merges without a conflict,
   in a local `git merge` and on GitHub alike. The prose in this file still
   conflicts when two such PRs add text in the same place (two new sections
-  before "Upstream sync tooling", or text in the same section): resolve it by
-  hand and keep both. `divergences.mjs` refuses to load, and
+  before "Upstream sync tooling", or bullets at the same place in one section,
+  see below): resolve it by hand and keep both. `divergences.mjs` refuses to
+  load, and
   `divergences.test.mjs` fails, on a PR file whose name is not a number, whose
   content is not one or two keys (a conflict marker, a stray character), or
   that names an unknown key, a key twice or a split that `SPLIT` does not know.
+- A divergence `title` is a short label (at most 80 characters, no comma or
+  semicolon; `divergences.test.mjs` checks it). The fixes are listed only in
+  this file. A PR for an existing key leaves the title alone.
+- Where a new bullet goes in a divergence section: at its sorted place, not at
+  the end. A bullet's sort key is the first text in backticks in the bullet
+  that contains a `/`, taken exactly as written (braces, `*` and a trailing
+  `/` included, so `dash/routes.clj` and
+  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` are keys as they stand).
+  Backticked text without a `/` (a bare file name such as `swarm.yml`, a
+  variable, a command) is not a key. A bullet with no such text has no key and
+  is skipped. A new bullet must have a key: name the file it changes in
+  backticks from the repository root (`self-hosting/swarm.yml`, not
+  `swarm.yml`; `./NOTICE` for a file at the root). Keys are compared byte by
+  byte, as `LC_ALL=C sort` does. Find the greatest key in the section that is
+  less than or equal to the new bullet's key, and put the new bullet directly
+  after the last bullet with that key; if every key is greater, put it before
+  the section's first bullet. The sections are not in that order, so compare
+  against every bullet in the section, not only the neighbours. Why: two PRs
+  that add a bullet at the same place conflict whatever the text, and PR
+  numbers only grow, so ordering by them would put every new bullet last;
+  file paths spread new bullets through the list. Two PRs whose keys have no
+  existing key between them still land next to each other and conflict
+  (rarer, not gone): resolve by hand and keep both.
 - A workflow job is gated during a sync: nothing to do, `check.mjs` picks it up
   from the next base. To make it permanent, also add it to `DISABLED_JOBS` in
   `scripts/upstream/check.mjs`.
