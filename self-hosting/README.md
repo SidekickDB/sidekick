@@ -407,15 +407,24 @@ refuses to deploy without them.
 
 The server tags every file of an app backup with `expire=true` and never
 deletes those files itself. The dashboard stops offering a backup after its
-expiry (30 days by default for a backup made from the dashboard), and deleting a backup
-there only hides it. Removing the files is left to a lifecycle rule on
-`S3_APP_BACKUPS_BUCKET`.
+expiry (30 days by default for a backup made from the dashboard), and
+deleting a backup there only hides it. Removing the files is left to a
+lifecycle rule on `S3_APP_BACKUPS_BUCKET`.
 
 `createbuckets` sets that rule on the bundled store, as `rc bucket lifecycle
 rule import` of this rule:
 
 ```json
-{"rules":[{"id":"expire-app-backups","status":"Enabled","tags":{"expire":"true"},"expiration":{"days":32}}]}
+{
+  "rules": [
+    {
+      "id": "expire-app-backups",
+      "status": "Enabled",
+      "tags": { "expire": "true" },
+      "expiration": { "days": 32 }
+    }
+  ]
+}
 ```
 
 It removes files tagged `expire=true` 32 days after they were written, rounded
@@ -432,9 +441,11 @@ docker compose run --rm --no-deps --entrypoint sh createbuckets -c \
   bucket, so a rule you add there by hand is removed at the next start.
 - If the import fails, `createbuckets` fails. The compose files start the
   server only after `createbuckets` succeeds; in swarm the task is retried.
-- After an upgrade, the next lifecycle scan removes the files of backups made
-  more than 32 days earlier. The server already hides those backups and
-  refuses to download or restore them.
+- The rule also applies to files written before it was set. After an
+  upgrade, the next lifecycle scan removes the files of backups made more
+  than 32 days earlier (seen with RustFS 1.0.6 and a shortened lifecycle day
+  in a test). The server already hides those backups and refuses to download
+  or restore them.
 - `createbuckets` always configures the bundled `storage` service. With an
   external store it sets the rule on a bucket of the same name in the bundled
   store, which the server does not use, and the bucket the server does use
@@ -448,8 +459,9 @@ aws s3api put-bucket-lifecycle-configuration --bucket <your backups bucket> \
   --lifecycle-configuration '{"Rules":[{"ID":"expire-app-backups","Status":"Enabled","Filter":{"Tag":{"Key":"expire","Value":"true"}},"Expiration":{"Days":32}}]}'
 ```
 
-Also set `AWS_REGION` to your buckets' region: the server uses `us-east-1`
-when it is unset or blank.
+Also set `AWS_REGION` to your buckets' region. When it is unset or blank the
+server takes `:s3-region` from `override.edn`, and uses `us-east-1` when that
+is not set either.
 
 ### Cloudflare R2
 

@@ -33,36 +33,49 @@
                                        (string/join ", " (config/missing-email-sender-env-vars))}})
     (ex/throw-email-send-failed! (missing-sender-message))))
 
-(defn send-structured! [req]
-  (assert-sender! req)
+;; SidekickDB: the provider decision is its own function, so that callers can
+;; ask which provider a letter from `from-email` goes through (custom sender
+;; addresses need Postmark, see instant.model.app-email-sender).
+(defn provider
+  "Which provider send-structured! uses for a letter from `from-email`:
+   :resend, :sendgrid, :sendgrid-hosted or :postmark."
+  [from-email]
   (cond
     ;; Explicit provider override (self-hosted)
     (= :resend (config/email-provider))
-    (resend/send! req)
+    :resend
 
     (= :sendgrid (config/email-provider))
-    (sendgrid/send! req)
+    :sendgrid
 
     (= :postmark (config/email-provider))
-    (postmark/send-structured! req)
+    :postmark
 
     ;; Auto-detect: Resend configured and others not
     (and (config/resend-send-enabled?)
          (not (config/postmark-send-enabled?))
          (not (config/sendgrid-send-enabled?)))
-    (resend/send! req)
+    :resend
 
     ;; Auto-detect: SendGrid configured and Postmark not — route through
     ;; SendGrid using the operator's own from-address.
     (and (config/sendgrid-send-enabled?)
          (not (config/postmark-send-enabled?)))
-    (sendgrid/send! req)
+    :sendgrid
 
     ;; Hosted: gated by the feature flag, and only for the known Instant
     ;; from-addresses that have a SendGrid equivalent.
     (and (flags/send-with-sendgrid?)
-         (contains? sendgrid-froms (-> req :from :email)))
-    (sendgrid/send! (update-in req [:from :email] sendgrid-froms))
+         (contains? sendgrid-froms from-email))
+    :sendgrid-hosted
 
     :else
-    (postmark/send-structured! req)))
+    :postmark))
+
+(defn send-structured! [req]
+  (assert-sender! req)
+  (case (provider (-> req :from :email))
+    :resend (resend/send! req)
+    :sendgrid (sendgrid/send! req)
+    :sendgrid-hosted (sendgrid/send! (update-in req [:from :email] sendgrid-froms))
+    :postmark (postmark/send-structured! req)))

@@ -86,12 +86,17 @@ it; it needs `INSTANT_API_URL` and the settings in `.env.example`.
 cp .env.example .env
 ```
 
-Fill in all of the environment variables for your new `.env` file.
+Fill in all of the environment variables for your new `.env` file, add
+`INSTANT_API_URL` and set `SERVER_TYPE=http`. Then build and start it from
+`client/packages/mcp`:
 
 ```bash
-pnpm run dev
+pnpm run build
+node dist/index.js
 ```
 
-Visit the server at [http://localhost:3123](http://localhost:3123).
+It listens on port 3123 (set `PORT` to change it). Without `SERVER_TYPE=http`
+the server runs over `stdio`.
 
-To work on the `stdio` version of the codebase, update your `.env` file with `SERVER_TYPE=stdio`.
+`pnpm run dev` only recompiles on change (`tsc --watch`, into `dist/esm`); it
+does not start a server.
