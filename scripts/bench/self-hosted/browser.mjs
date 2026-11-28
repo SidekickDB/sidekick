@@ -168,16 +168,38 @@ export async function browserCheck({
 
     mark('sandbox editor');
     await page.goto(`${dashURI}/dash?s=main&app=${app.id}&t=sandbox`);
-    await page.waitForFunction(() =>
-      window.monaco?.editor
-        .getModels()
-        .some(
-          (m) =>
-            m.uri.toString().endsWith('sandbox.ts') &&
-            m.getValue().includes('db.'),
-        ),
+    // The Sandbox code is in the editor, and the @sidekickdb/core types are
+    // registered (the last step of the editor's set-up).
+    await page.waitForFunction(
+      () =>
+        window.monaco?.editor
+          .getModels()
+          .some(
+            (m) =>
+              m.uri.toString().endsWith('sandbox.ts') &&
+              m.getValue().includes('db.'),
+          ) &&
+        Object.keys(
+          window.monaco.languages.typescript.typescriptDefaults.getExtraLibs(),
+        ).some((f) => f.includes('@sidekickdb/core/')),
     );
-    const editor = await page.evaluate(probeEditor, { timeoutMs });
+    // A change of compiler options restarts the TypeScript worker, and a
+    // request to the stopped one is never answered: ask again, but stop at
+    // once on a worker that cannot load its code.
+    const deadline = Date.now() + timeoutMs;
+    let editor;
+    for (let attempt = 1; !editor; attempt++) {
+      try {
+        editor = await page.evaluate(probeEditor, { timeoutMs: 10_000 });
+        editor.attempts = attempt;
+      } catch (e) {
+        const workerError = consoleLines.find((l) => WORKER_ERROR.test(l));
+        if (workerError) {
+          throw new Error(`a Monaco worker could not load: ${workerError}`);
+        }
+        if (Date.now() > deadline) throw e;
+      }
+    }
     if (!/\bdb\b/.test(editor.quick_info)) {
       throw new Error(
         `quick info for db: ${JSON.stringify(editor.quick_info)}`,
