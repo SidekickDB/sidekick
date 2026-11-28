@@ -53,7 +53,7 @@ npx @sidekickdb/cli@latest push perms
 
 ## Permissions in the dashboard
 
-For each app in your dashboard, you’ll see a permissions editor. Permissions are expressed as JSON. Each top-level key represents one of your namespaces — for example `goals`, `todos`, and the like. There is also a special top-level key `attrs` for defining permissions for creating new types of namespaces and attributes.
+For each app in your dashboard, you’ll see a permissions editor. Permissions are expressed as JSON. Each top-level key represents one of your namespaces (for example `goals`, `todos`, and the like). There is also a special top-level key `attrs` for defining permissions for creating new types of namespaces and attributes.
 
 ## Namespaces
 
@@ -402,7 +402,7 @@ The IP address of the originating request as a string, e.g. `192.251.68.254` or 
 
 ### request.modifiedFields
 
-In `create` and `update` rules, you have access to `request.modifiedFields` — a list of field names being set in the transaction. This is useful when you want to control which fields can be set by whom.
+In `create` and `update` rules, you have access to `request.modifiedFields`, a list of field names being set in the transaction. This is useful when you want to control which fields can be set by whom.
 
 #### Restricting fields on create
 

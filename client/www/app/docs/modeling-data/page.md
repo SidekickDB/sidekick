@@ -239,7 +239,7 @@ const _schema = i.schema({
 });
 ```
 
-Since we're going to use post slugs in URLs, we'll want to make sure that no two posts can have the same slug. If we mark `slug` as `unique`, _Instant will guarantee this constraint for us_.
+Since we're going to use post slugs in URLs, we'll want to make sure that no two posts can have the same slug. If we mark `slug` as `unique`, _SidekickDB will guarantee this constraint for us_.
 
 Unique attributes will also speed up queries that filter by that attribute.
 

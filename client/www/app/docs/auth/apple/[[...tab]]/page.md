@@ -57,7 +57,7 @@ SidekickDB supports Sign In with Apple on the Web and in native applications.
 - Click _Configure_
 - Select _Primary App ID_ from Step 1
 - To _Domains_, add your SidekickDB server's host, for example `sidekick.example.com`
-- To _Return URLs_, add your server's URL followed by `/runtime/oauth/callback`, for example `https://sidekick.example.com/runtime/oauth/callback` (the Auth tab of your dashboard shows the full callback URL)
+- To _Return URLs_, add your server's URL followed by `/runtime/oauth/callback`, for example `https://sidekick.example.com/runtime/oauth/callback`
 - Click _Continue_ → _Save_
 
 ## Step 3.5: Generate Private Key (Web Redirect flow only)

@@ -5,9 +5,9 @@ nextjs:
     description: 'How SidekickDB creates backups, how to download them, and what a backup archive contains.'
 ---
 
-SidekickDB automatically generates a nightly backup that contains all of the data from your app. Your server needs a bucket for backups (`S3_APP_BACKUPS_BUCKET`), which the self-hosted stack sets up.
+A backup contains all of the data from your app. On a self-hosted SidekickDB server you create backups on demand: click **Create backup** on the `Backups` page of the dashboard. The server makes no nightly backups. Each backup is kept for 30 days by default, in your server's backups bucket (`S3_APP_BACKUPS_BUCKET`), which the self-hosted stack sets up. To back up the whole server, follow [Backing up and restoring a self-hosted SidekickDB](https://github.com/SidekickDB/sidekick/blob/main/self-hosting/BACKUP.md).
 
-You can view backups for the last 7 days from the `Backups` page on the dashboard, or with the cli:
+You can view your app's backups from the `Backups` page on the dashboard, or with the cli:
 
 ```sh {% showCopy=true %}
 npx @sidekickdb/cli@latest backup list

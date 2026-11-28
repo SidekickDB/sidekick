@@ -60,7 +60,7 @@ The Auth tab of your dashboard shows the full callback URL.
 
 {% callout type="note" %}
 
-Save your Client ID and your Client Secret -- you'll need them for the next step!
+Save your Client ID and your Client Secret: you'll need them for the next step!
 
 {% /callout %}
 

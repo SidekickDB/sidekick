@@ -9,7 +9,7 @@ SidekickDB Streams provide a simple way to build durable, real-time data flows. 
 
 ## How Streams work
 
-SidekickDB streams implement the standard [Web Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API). When you create a write stream, the most recent data is buffered in memory on SidekickDB's servers. The stream is periodically flushed to [Storage](/docs/storage) and is fully flushed to storage when finished.
+SidekickDB streams implement the standard [Web Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API). When you create a write stream, the most recent data is buffered in memory on your SidekickDB server. The stream is periodically flushed to [Storage](/docs/storage) and is fully flushed to storage when finished.
 
 Because streams are backed by storage, they never expire. A reader can pick up from any point in the stream, and resume if the connection is lost.
 

@@ -51,7 +51,7 @@ The `key` argument (e.g. `auth.id`) determines _who_ the limit applies to. Diffe
 
 Rate limit rules are evaluated per entity, just like other permission rules. For `create`, `update`, and `delete`, the rule runs once for each entity in the transaction. For `view`, the rule runs once for each entity in the query result.
 
-This means a query that returns 50 rows will consume 50 tokens. Keep this in mind when setting your `capacity` — it should account for the number of entities your queries typically return, not just the number of requests.
+This means a query that returns 50 rows will consume 50 tokens. Keep this in mind when setting your `capacity`: it should account for the number of entities your queries typically return, not just the number of requests.
 
 ## Configuration
 

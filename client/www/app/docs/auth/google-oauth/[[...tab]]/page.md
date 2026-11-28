@@ -138,7 +138,7 @@ And with that you have your OAuth client!
 
 {% callout type="note" %}
 
-Save your Client ID and your Client Secret -- you'll need them for the next step!
+Save your Client ID and your Client Secret: you'll need them for the next step!
 
 {% /callout %}
 
@@ -159,7 +159,7 @@ And with that you're ready!
 
 {% callout type="note" %}
 
-Save your Client IDs -- you'll need them for the next step!
+Save your Client IDs: you'll need them for the next step!
 
 {% /callout %}
 

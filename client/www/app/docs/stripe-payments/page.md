@@ -28,12 +28,12 @@ access to high-resolution downloads. It's a one-off payment, and no user account
 
 **How it works:**
 
-1. User clicks "Buy" — a UUID token is generated and saved to `localStorage`
+1. User clicks "Buy": a UUID token is generated and saved to `localStorage`
    _before_ redirecting to Stripe Checkout
 2. The token is passed to Stripe via session metadata
 3. On payment, a webhook creates a `purchase` record in SidekickDB linked to that
    token
-4. Permissions gate the protected content — only queries that include a valid purchase token
+4. Permissions gate the protected content: only queries that include a valid purchase token
    (via `ruleParams`) can see the full-resolution URLs
 5. Bonus: Uses [magic code auth](/docs/auth/magic-codes) to let users sign in
    and retrieve past purchases
@@ -52,7 +52,7 @@ articles. It uses recurring billing with Stripe and auth-based access control.
 2. Checkout creates or reuses a Stripe customer linked to the SidekickDB user
 3. Stripe webhooks sync `subscriptionStatus` to the `$users` record whenever
    the subscription changes (created, updated, canceled, deleted)
-4. Permissions gate premium content — the `content` field is
+4. Permissions gate premium content: the `content` field is
    simply omitted from query results for non-subscribers
 5. Stripe's Billing Portal handles cancellation and payment method updates
 

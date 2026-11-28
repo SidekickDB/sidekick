@@ -29,7 +29,7 @@ Each request carries an `Instant-Signature` header and a small body. The body ho
 }
 ```
 
-`before` is `null` on `create`; `after` is `null` on `delete`. The `idempotencyKey` is stable across redeliveries — use it to dedupe if your handler isn't idempotent on its own.
+`before` is `null` on `create`; `after` is `null` on `delete`. The `idempotencyKey` is stable across redeliveries: use it to dedupe if your handler isn't idempotent on its own.
 
 The `before` and `after` fields include all of the data attributes on an entity, but none of its links.
 
@@ -37,13 +37,13 @@ The `before` and `after` fields include all of the data attributes on an entity,
 
 SidekickDB retries failed deliveries with backoff. An event moves through these stages:
 
-- `pending` — queued, not yet attempted
-- `processing` — a sender is actively trying to deliver
-- `success` — receiver returned `2xx`
-- `error` — an attempt failed; another retry is scheduled
-- `failed` — all retries exhausted; will not be retried automatically
+- `pending`: queued, not yet attempted
+- `processing`: a sender is actively trying to deliver
+- `success`: receiver returned `2xx`
+- `error`: an attempt failed; another retry is scheduled
+- `failed`: all retries exhausted; will not be retried automatically
 
-Each delivery attempt has a **20-second timeout**, including the DNS lookup. If your endpoint hasn't responded by then, the attempt is recorded as a `timeout` error and SidekickDB retries. Do any slow work (sending emails, calling third-party APIs, etc.) asynchronously, and respond with `2xx` as soon as you've durably enqueued the work.
+Each delivery attempt is capped at **20 seconds** in total, including the DNS lookup. An attempt that times out is recorded as a `timeout` error and SidekickDB retries. Respond within 10 seconds to stay well inside the limit. Do any slow work (sending emails, calling third-party APIs, etc.) asynchronously, and respond with `2xx` as soon as you've durably enqueued the work.
 
 A webhook that fails too many times in a row is automatically disabled. You can re-enable it from the dashboard or via the SDK once you've fixed the receiver.
 
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
 }
 ```
 
-`Webhooks.helpers<typeof schema>()` gives you `typedHandlers` and `combineHandlers`. Inside each handler, `record.before` and `record.after` are typed according to your schema — TypeScript will autocomplete fields and narrow on `action`.
+`Webhooks.helpers<typeof schema>()` gives you `typedHandlers` and `combineHandlers`. Inside each handler, `record.before` and `record.after` are typed according to your schema, so TypeScript will autocomplete fields and narrow on `action`.
 
 Handler resolution is most-specific-wins: `namespace` + `action`, then the `namespace`'s `$default`, then the top-level `$default`. Records with no matching handler are skipped.
 
@@ -218,7 +218,7 @@ const body = await db.webhooks.validateRequest(req);
 const payload = await db.webhooks.fetchPayloads({ payloadUrl, token });
 ```
 
-`validate` rejects requests whose signature is older than `tolerance` (default: 5 minutes) — this is what protects against replays, so don't crank it up without thinking about it.
+`validate` rejects requests whose signature is older than `tolerance` (default: 5 minutes). This is what protects against replays, so don't crank it up without thinking about it.
 
 ## Managing webhooks programmatically
 
@@ -248,7 +248,7 @@ await db.webhooks.manager.enable(hook.id);
 await db.webhooks.manager.delete(hook.id);
 ```
 
-`update` is a patch — omitted fields keep their current value. `disable` and `enable` don't change the config, only whether new events are queued. Events that occurred while a webhook was disabled are **not** retroactively delivered when you re-enable it.
+`update` is a patch: omitted fields keep their current value. `disable` and `enable` don't change the config, only whether new events are queued. Events that occurred while a webhook was disabled are **not** retroactively delivered when you re-enable it.
 
 ## Inspecting events
 
@@ -277,13 +277,13 @@ const payload = await db.webhooks.manager.getPayload(hook.id, isn);
 await db.webhooks.manager.resendEvent(hook.id, isn);
 ```
 
-Each `event.attempts` entry records the HTTP status, response body (first 256 bytes), duration, and an `errorType` tag (`timeout`, `dns`, `connect`, `tls`, `protocol`, `network`, `unknown`) when delivery failed — usually enough to tell whether the receiver is the problem or the network is.
+Each `event.attempts` entry records the HTTP status, response body (first 256 bytes), duration, and an `errorType` tag (`timeout`, `dns`, `connect`, `tls`, `protocol`, `network`, `unknown`) when delivery failed. That is usually enough to tell whether the receiver is the problem or the network is.
 
 `resendEvent` is rate-limited per event; if you call it twice in quick succession, the second call will return a validation error and ask you to wait about a minute.
 
 ## Verifying and fetching from any language
 
-The `@sidekickdb/admin` SDK is the easiest way to receive webhooks, but the protocol is plain HTTP + Ed25519 — you can implement a receiver in any language. The steps below are what `validate` and `fetchPayloads` do under the hood.
+The `@sidekickdb/admin` SDK is the easiest way to receive webhooks, but the protocol is plain HTTP + Ed25519, so you can implement a receiver in any language. The steps below are what `validate` and `fetchPayloads` do under the hood.
 
 ### 1. The request
 

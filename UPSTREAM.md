@@ -1276,14 +1276,17 @@ chrome present the product as SidekickDB.
   API, platform and auth pages say SidekickDB where they mean the product, and
   describe the reader's own server where upstream described Instant's hosted
   service: magic codes and the default sender come from the server's email
-  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses need
-  Postmark with `POSTMARK_ACCOUNT_TOKEN`, OAuth callbacks are the server's
-  `/runtime/oauth/callback` as the dashboard's Auth tab shows them, Google's
-  shared dev credentials exist only if the operator configured them, the
-  devtool needs `dashURI`, a self-hosted server includes the Pro plan for app
+  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses are
+  not available with the shipped stack (it does not pass
+  `POSTMARK_ACCOUNT_TOKEN` to the server), OAuth callbacks are the server's
+  `/runtime/oauth/callback` (Google, GitHub and LinkedIn note that the Auth tab
+  shows it), Google's shared dev credentials exist only if the operator
+  configured them, the devtool needs `dashURI`, a server without
+  `STRIPE_API_KEY` includes the Pro plan that the owner activates for app
   teams and has no Billing tab, a platform OAuth app is released by the
-  deployment's administrator, and the webhook delivery timeout is the
-  server's 20 seconds. Claims about Instant's own site (the homepage emoji
+  deployment's administrator, app backups are made on demand (the server
+  makes no nightly backups), streams are buffered on the reader's server, and
+  a webhook delivery attempt is capped at the server's 20 seconds. Claims about Instant's own site (the homepage emoji
   panel, the OAuth demo page, setup-time and LLM marketing lines) are
   removed. Identifiers stay: `Instant-Signature`, the "Instant Sequence
   Number" that `isn` stands for, Java's `Instant`.

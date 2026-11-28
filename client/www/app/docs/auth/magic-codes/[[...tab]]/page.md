@@ -424,7 +424,7 @@ The client SDK will then restart the WebSocket connection with your SidekickDB s
 When doing queries or transactions, the refresh token will be used to hydrate `auth`
 on the backend during permission checks.
 
-On the client, auth will now be populated with a `user` -- huzzah!
+On the client, auth will now be populated with a `user`. Huzzah!
 
 ## Send a Magic Code
 
