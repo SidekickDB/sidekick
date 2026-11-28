@@ -7,7 +7,8 @@
 // - creates an app with the onboarding form, waits for the dashboard to
 //   show it, then opens its Sandbox tab, and checks
 //   that the code editor's TypeScript worker starts and answers quick info
-//   for `db`, and that its JSON worker starts;
+//   for `db.query` that only the @sidekickdb/core types give, and that its
+//   JSON worker starts and finds the error in a broken document;
 // - opens /_devtool?appId=<id> and checks that it shows the app's explorer;
 // - records the host of every request and WebSocket, and fails on any host
 //   other than the dashboard and the server.
@@ -28,8 +29,18 @@ const require = createRequire(
 // (pull request #113: a root-relative path cannot be resolved in a worker).
 const WORKER_ERROR = /Failed to parse URL|WorkerGlobalScope/;
 
+// Quick info that only the @sidekickdb/core types give. The default Sandbox
+// code reads `const itemId = res.items[0]?.id;` from a db.query result, and
+// the Sandbox types db.query as returning InstaQLResponse<AppSchema, ...>
+// from @sidekickdb/core, with AppSchema built from the app's attributes. When
+// those types resolve, itemId is a string; with the Sandbox's fallback
+// declarations db.query returns Promise<any>, and when @sidekickdb/core does
+// not resolve InstaQLResponse stays unresolved: in both cases itemId is any.
+const SDK_TYPES_MARKER = /\bitemId: string\b/;
+
 // Runs in the page: asks the editor's TypeScript worker for quick info on
-// `db` in the Sandbox code, and starts the JSON worker on a JSON model.
+// `db` and on `query` in the Sandbox code, and has the JSON worker validate
+// the permissions model and a broken document.
 async function probeEditor({ timeoutMs }) {
   const m = window.monaco;
   const within = (p, what) =>
@@ -49,28 +60,51 @@ async function probeEditor({ timeoutMs }) {
     'monaco.languages.typescript.getTypeScriptWorker()',
   );
   const tsWorker = await within(getTs(ts.uri), 'the TypeScript worker');
-  const offset = ts.getValue().indexOf('db.');
-  const info = await within(
-    tsWorker.getQuickInfoAtPosition(ts.uri.toString(), offset),
-    'quick info for db',
+  const quickInfo = async (offset, what) => {
+    const info = await within(
+      tsWorker.getQuickInfoAtPosition(ts.uri.toString(), offset),
+      `quick info for ${what}`,
+    );
+    return (info?.displayParts ?? []).map((p) => p.text).join('');
+  };
+  const code = ts.getValue();
+  const at = code.indexOf('db.query');
+  const db = await quickInfo(at, 'db');
+  const query = await quickInfo(at + 'db.'.length, 'db.query');
+  const itemId = await quickInfo(
+    code.indexOf('const itemId') + 'const '.length,
+    'itemId',
   );
+
   const json =
     models.find((x) => x.getLanguageId() === 'json') ??
     m.editor.createModel('{}', 'json');
-  const getJson = await within(
-    m.languages.json.getWorker(),
-    'monaco.languages.json.getWorker()',
-  );
-  const jsonWorker = await within(getJson(json.uri), 'the JSON worker');
-  const diagnostics = await within(
-    jsonWorker.doValidation(json.uri.toString()),
-    'JSON validation',
-  );
-  return {
-    quick_info: (info?.displayParts ?? []).map((p) => p.text).join(''),
-    json_model: json.uri.toString(),
-    json_diagnostics: diagnostics.length,
-  };
+  const broken = m.editor.createModel('{', 'json');
+  try {
+    const getJson = await within(
+      m.languages.json.getWorker(),
+      'monaco.languages.json.getWorker()',
+    );
+    const jsonWorker = await within(
+      getJson(json.uri, broken.uri),
+      'the JSON worker',
+    );
+    const validate = (model) =>
+      within(
+        jsonWorker.doValidation(model.uri.toString()),
+        `JSON validation of ${model.uri}`,
+      );
+    return {
+      quick_info_db: db,
+      quick_info_query: query,
+      quick_info_item_id: itemId,
+      json_model: json.uri.toString(),
+      json_diagnostics: (await validate(json)).length,
+      broken_json_diagnostics: (await validate(broken)).map((d) => d.message),
+    };
+  } finally {
+    broken.dispose();
+  }
 }
 
 export async function browserCheck({
@@ -113,6 +147,8 @@ export async function browserCheck({
     }
   });
   const page = await context.newPage();
+  // Page sockets only: Playwright does not report a WebSocket opened from a
+  // worker. The dashboard opens none from a worker today.
   page.on('websocket', (ws) => note(ws.url()));
   // First lines only: a logged error carries its stack.
   const line = (s) => s.split('\n')[0];
@@ -184,14 +220,17 @@ export async function browserCheck({
         ).some((f) => f.includes('@sidekickdb/core/')),
     );
     // A change of compiler options restarts the TypeScript worker, and a
-    // request to the stopped one is never answered: ask again, but stop at
-    // once on a worker that cannot load its code.
+    // request to the stopped one is never answered; the app's schema types
+    // are added a moment after the editor loads. So ask again until the
+    // quick info shows the SDK types, but stop at once on a worker that
+    // cannot load its code.
     const deadline = Date.now() + timeoutMs;
     let editor;
-    for (let attempt = 1; !editor; attempt++) {
+    for (let attempt = 1; ; attempt++) {
       try {
         editor = await page.evaluate(probeEditor, { timeoutMs: 10_000 });
         editor.attempts = attempt;
+        if (SDK_TYPES_MARKER.test(editor.quick_info_item_id)) break;
       } catch (e) {
         const workerError = consoleLines.find((l) => WORKER_ERROR.test(l));
         if (workerError) {
@@ -199,11 +238,21 @@ export async function browserCheck({
         }
         if (Date.now() > deadline) throw e;
       }
+      if (Date.now() > deadline) {
+        throw new Error(
+          `quick info ${JSON.stringify(editor.quick_info_item_id)} does not match ${SDK_TYPES_MARKER}: the @sidekickdb/core types did not resolve (db.query: ${JSON.stringify(editor.quick_info_query)})`,
+        );
+      }
+      await page.waitForTimeout(500);
     }
-    if (!/\bdb\b/.test(editor.quick_info)) {
+    if (!/\bdb\b/.test(editor.quick_info_db)) {
       throw new Error(
-        `quick info for db: ${JSON.stringify(editor.quick_info)}`,
+        `quick info for db: ${JSON.stringify(editor.quick_info_db)}`,
       );
+    }
+    // A broken document must get diagnostics: the JSON worker parses.
+    if (!editor.broken_json_diagnostics.length) {
+      throw new Error('the JSON worker found nothing wrong with "{"');
     }
     for (const worker of ['typescript/tsWorker.js', 'json/jsonWorker.js']) {
       if (
