@@ -1,6 +1,5 @@
 export default {
-  title:
-    "Docs pages and their chrome present the product as SidekickDB and link to SidekickDB's docs host, the reader's dashboard and server",
+  title: "Docs pages: SidekickDB name and links",
   resolve:
     "Keep SidekickDB's words and links in client/www/app/docs (self-hosting and start-python aside), " +
     "components/docs, DocsPage.jsx and docsNavigation.js; the docs-host rule rewrites upstream's absolute docs " +
