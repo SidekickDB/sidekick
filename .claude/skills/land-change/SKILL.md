@@ -14,14 +14,14 @@ progress at the same time do not share a checkout:
 
 ```sh
 git fetch origin
-git worktree add ../<short-name> -b <area>/<short-name> origin/main
-cd ../<short-name>
+git worktree add .claude/worktrees/<short-name> -b <area>/<short-name> origin/main
+cd .claude/worktrees/<short-name>
 ```
 
-Or start one with `EnterWorktree` and create the branch inside it:
-`git switch -c <area>/<short-name> origin/main`. After the merge, remove the
-worktree (`git worktree remove ../<short-name>`, or `ExitWorktree`) and delete
-the local branch.
+Or start one with `EnterWorktree` (it uses the same folder) and create the
+branch inside it: `git switch -c <area>/<short-name> origin/main`. After the
+merge, remove the worktree (`git worktree remove .claude/worktrees/<short-name>`
+from the main checkout, or `ExitWorktree`) and delete the local branch.
 
 Never commit to `main`.
 
