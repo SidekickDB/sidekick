@@ -599,6 +599,15 @@ The self-hosted stack works without Instant infrastructure.
   `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
   server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
   `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
+- `self-hosting/UPGRADE_DB.md` has a new step 4 (old steps 4 and 5 are now 5
+  and 6): a query that prints a `pg_resetwal -l` command moving the new
+  cluster's write-ahead log past the highest slot-2 position stored in
+  `history`, `webhook_events`, `app_backups` and `backup_jobs` (the query
+  names the slot number once; change it there if upstream bumps
+  `invalidator-slot-num`), so the server does not
+  reuse stored ISNs after the dump and restore. `BACKUP.md` restore step 6 is
+  the same step with the full explanation. Upstream has no such step; keep it
+  and its numbering when taking upstream's changes to that file.
 - PR #120: `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
   `docker-compose.with-caddy.yml` and `swarm.yml` pass
   `POSTMARK_ACCOUNT_TOKEN` to the server next to `POSTMARK_TOKEN`;
