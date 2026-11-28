@@ -16,14 +16,14 @@ import { init } from '@sidekickdb/react';
 // Instant app
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID, apiURI: 'https://sidekick.example.com' });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return <Main />;
 }
 ```
 
-Replace `https://sidekick.example.com` with your SidekickDB server's URL. With that, you can use `db` to [write data](/docs/instaml), [make queries](/docs/instaql), [handle auth](/docs/auth), and more!
+With that, you can use `db` to [write data](/docs/instaml), [make queries](/docs/instaql), [handle auth](/docs/auth), and more!
 
 ## Typesafety
 
@@ -53,8 +53,8 @@ const schema = i.schema({
 });
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
-  apiURI: 'https://sidekick.example.com',
   schema,
 });
 ```
@@ -78,8 +78,8 @@ import schema from '../instant.schema';
 // Instant app
 const APP_ID = '__APP_ID__';
 export const db = init({
+  apiURI: '__API_URI__',
   appId: APP_ID,
-  apiURI: 'https://sidekick.example.com',
   schema,
 });
 

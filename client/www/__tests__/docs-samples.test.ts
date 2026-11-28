@@ -13,9 +13,6 @@ const docsDir = path.join(__dirname, '../app/docs');
 const ENTRY_POINT =
   /(?<![\w.$]|function\s)(?:new\s+(?:PlatformApi|OAuthHandler|Webhooks)|init|exchangeCodeForToken|exchangeRefreshToken|createResumableStreamContext)\s*(?:<[^()]*?>)?\s*\(|<Explorer\b/g;
 
-// The init page is being rewritten in another pull request (#108).
-const PENDING = new Set(['init/page.md']);
-
 function markdownFiles(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const p = path.join(dir, entry.name);
@@ -79,7 +76,6 @@ function entryPointCalls(markdown: string) {
 test('every docs sample passes apiURI to the SDK', () => {
   const calls = markdownFiles(docsDir)
     .map((file) => path.relative(docsDir, file))
-    .filter((rel) => !PENDING.has(rel))
     .flatMap((rel) =>
       entryPointCalls(fs.readFileSync(path.join(docsDir, rel), 'utf8')).map(
         (call) => ({ ...call, where: `${rel}:${call.where}` }),

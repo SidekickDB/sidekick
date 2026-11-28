@@ -30,12 +30,16 @@ function redirectFor(pathname: string) {
   );
 }
 
-test.each(['/dash', '/dash/user-settings', '/platform/oauth/start'])(
-  'self-hosted dashboard serves %s',
-  (pathname) => {
-    expect(redirectFor(pathname)).toBeUndefined();
-  },
-);
+test.each([
+  '/dash',
+  '/dash/user-settings',
+  '/platform/oauth/start',
+  // Linked from the docs (using-llms).
+  '/llms-full.txt',
+  '/docs/auth/magic-codes.md',
+])('self-hosted dashboard serves %s', (pathname) => {
+  expect(redirectFor(pathname)).toBeUndefined();
+});
 
 test('self-hosted dashboard sends other pages to /dash', () => {
   expect(redirectFor('/')?.destination).toBe('/dash');

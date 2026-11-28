@@ -19,6 +19,5 @@ export default {
     "Docs links in those paths and in the platform perms/schema headers point at https://sidekickdb.co/docs/ " +
     "with upstream's path (the docs-host rule in rename.mjs rewrites them); for an instant-site-link leftover " +
     "remove the link or name the user's SidekickDB dashboard in words, never a new URL. Add a newly offered " +
-    "starter to DOCS_HOST_PATHS. Docs samples under client/www/app/docs pass apiURI: '__API_URI__' (Fence.jsx " +
-    "fills it in); give a sample upstream adds the same, docs-samples.test.ts names any that lacks it.",
+    "starter to DOCS_HOST_PATHS.",
 };
