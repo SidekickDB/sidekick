@@ -400,6 +400,10 @@ export function smokeStatus(samples) {
     : `Smoke passed in all ${samples.length} samples.`;
 }
 
+// Checks that run.mjs runs once per run, in the first sample: only that
+// sample counts for them.
+const FIRST_SAMPLE_ONLY = new Set(['browser']);
+
 // Smoke checks, one column per group of samples ([label, samples]). Every
 // sample that ran counts in the denominator: a sample whose smoke.mjs did not
 // complete (no `checks`), or that lacks a check, counts as a failure of that
@@ -417,6 +421,10 @@ export function smokeSection(groups) {
     return `${done} of ${samples.length} completed${err ? ` (${short(err)})` : ''}`;
   };
   const checkCell = (samples, c) => {
+    if (FIRST_SAMPLE_ONLY.has(c)) {
+      samples = samples.filter((s) => s.sample === 1);
+      if (!samples.length) return 'first sample only';
+    }
     const rs = samples.map((s) => s.smoke?.checks?.[c]);
     const pass = rs.filter((r) => r?.ok).length;
     const notRun = rs.filter((r) => !r).length;
@@ -439,7 +447,7 @@ export function smokeSection(groups) {
       (c) => `| ${c} | ${groups.map(([, s]) => checkCell(s, c)).join(' | ')} |`,
     ),
     '',
-    'headers: `X-Instant-Server-Hostname` on `GET /` is expected in `default` and absent in `self-hosted`. presence: two sessions see each other in a room. streams: one session writes, a second reads the same bytes back. sse: a session whose WebSocket cannot connect falls back to SSE and receives 5 writes made over WebSocket. login: dashboard sign-in with the one-time code the server logs when no email provider is set. storage: a session uploads a file and downloads the same bytes from its presigned URL. backup: the signed-in user starts an on-demand backup of a new app, the job completes, and the backup holds config.json and a non-empty entities/items.jsonl.',
+    'headers: `X-Instant-Server-Hostname` on `GET /` is expected in `default` and absent in `self-hosted`. presence: two sessions see each other in a room. streams: one session writes, a second reads the same bytes back. sse: a session whose WebSocket cannot connect falls back to SSE and receives 5 writes made over WebSocket. login: dashboard sign-in with the one-time code the server logs when no email provider is set. storage: a session uploads a file and downloads the same bytes from its presigned URL. backup: the signed-in user starts an on-demand backup of a new app, the job completes, and the backup holds config.json and a non-empty entities/items.jsonl. browser (first sample of the run only): sign-in at /dash in Chromium, the Sandbox editor\'s TypeScript and JSON workers, and the devtool, with no request to a host other than the dashboard and the server.',
     '',
   ];
   const sse = groups.map(([, samples]) =>

@@ -22,13 +22,19 @@
 // - backup:   the signed-in user creates an app, writes to it, starts an
 //             on-demand backup, waits for the job to complete, and lists the
 //             backup's files, which must include config.json and a
-//             non-empty entities/items.jsonl (the entity type written).
+//             non-empty entities/items.jsonl (the entity type written);
+// - browser:  only with --browser-ws (a Playwright server): signs in at
+//             --dash in Chromium, opens a new app's Sandbox editor and
+//             checks its TypeScript and JSON workers, opens the devtool, and
+//             fails on a request to a host other than the dashboard and the
+//             server (browser.mjs). A failure saves --screenshot.
 //
 // Prints one JSON object. Exits 1 if any check fails.
 
 import { spawnSync } from 'node:child_process';
 import { performance } from 'node:perf_hooks';
 import { parseArgs } from 'node:util';
+import { browserCheck } from './browser.mjs';
 import { core, createApp, openDb, sleep, withTimeout } from './client.mjs';
 
 const { values: args } = parseArgs({
@@ -37,6 +43,13 @@ const { values: args } = parseArgs({
     mode: { type: 'string', default: 'self-hosted' },
     'server-container': { type: 'string' },
     'timeout-ms': { type: 'string', default: '20000' },
+    'browser-ws': { type: 'string' },
+    // The dashboard and the server as a browser reaches them: in the
+    // published stack, SIDEKICK_DASHBOARD_URL and SIDEKICK_BACKEND_URL of
+    // self-hosting/.env.example.
+    dash: { type: 'string', default: 'http://localhost:3000' },
+    'browser-api': { type: 'string', default: 'http://localhost:8888' },
+    screenshot: { type: 'string', default: 'browser-failure.png' },
   },
 });
 const apiURI = args.api.replace(/\/+$/, '');
@@ -110,6 +123,18 @@ function loginCode(log) {
     log.match(/^\s*(\d{6})\s*$/m)?.[1] ??
     log.match(/code\D{0,40}?\b(\d{6})\b/i)?.[1]
   );
+}
+
+async function waitForLoginCode(since) {
+  const deadline = performance.now() + timeoutMs;
+  let code;
+  while (!(code = loginCode(serverLog(since)))) {
+    if (performance.now() > deadline) {
+      throw new Error(`no login code in the server log after ${timeoutMs} ms`);
+    }
+    await sleep(250);
+  }
+  return code;
 }
 
 // Every app gets these rules: streams and files are denied when no rule
@@ -237,14 +262,7 @@ await check('login', async () => {
   const email = `smoke-${id()}@example.com`;
   const since = new Date(Date.now() - 2000).toISOString();
   await dash('/dash/auth/send_magic_code', { body: { email } });
-  const deadline = performance.now() + timeoutMs;
-  let code;
-  while (!(code = loginCode(serverLog(since)))) {
-    if (performance.now() > deadline) {
-      throw new Error(`no login code in the server log after ${timeoutMs} ms`);
-    }
-    await sleep(250);
-  }
+  const code = await waitForLoginCode(since);
   const { token } = await dash('/dash/auth/verify_magic_code', {
     body: { email, code },
   });
@@ -333,6 +351,39 @@ await check('backup', async () => {
     bytes: files.reduce((n, f) => n + (f.size ?? 0), 0),
   };
 });
+
+if (args['browser-ws']) {
+  await check('browser', async () => {
+    if (!args['server-container']) {
+      throw new Error('no --server-container: the login code is in its log');
+    }
+    return browserCheck({
+      wsEndpoint: args['browser-ws'],
+      dashURI: args.dash.replace(/\/+$/, ''),
+      apiURI: args['browser-api'],
+      // Page loads include the code editor (about 14 MB): allow longer than
+      // one API call.
+      timeoutMs: 2 * timeoutMs,
+      email: `smoke-browser-${id()}@example.com`,
+      waitForLoginCode,
+      // The app the browser created: its id, and one entity, so the
+      // devtool's explorer has a namespace to show.
+      prepareApp: async (token, title) => {
+        const { apps } = await dash('/dash', { token });
+        const app = apps?.find((a) => a.title === title);
+        if (!app) throw new Error(`no app titled ${title} in /dash`);
+        const db = track(openDb(apiURI, app.id, 'smoke-browser'));
+        await withTimeout(
+          db.transact(db.tx.items[id()].update({ name: 'browser check' })),
+          timeoutMs,
+          'write to the app',
+        );
+        return { id: app.id, namespace: 'items' };
+      },
+      screenshot: args.screenshot,
+    });
+  });
+}
 
 for (const db of dbs) {
   try {

@@ -1025,7 +1025,9 @@ a small live-query workload, and smoke checks (`smoke.mjs`: dev headers,
 presence, streams, SSE, dashboard login, file upload, on-demand backup). Since PR #23 it compares runtime modes
 (`--modes default,self-hosted`) in one job. See the README there for
 what is and is not measured. The workflow is read-only (`contents: read`, no
-secrets), runs on demand and on pull requests that change the harness, and
+secrets), runs on demand and on pull requests that change the harness, the
+workflow, `client/www`, `client/packages` or the client's workspace,
+lockfile and image build files (the list is in the workflow), and
 `check.mjs` lists it in `BENCH_WORKFLOWS` without any exception from its rules.
 
 **Resolving:** upstream has none of these files. When upstream changes the

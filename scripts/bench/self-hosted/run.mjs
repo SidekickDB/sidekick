@@ -5,7 +5,7 @@
 //
 //   node scripts/bench/self-hosted/run.mjs [--samples 3]
 //     [--modes default,self-hosted] [--idle-seconds 120] [--out bench-out]
-//     [--skip-build]
+//     [--skip-build] [--browser-image <Playwright image>]
 //
 // --modes lists runtime modes (SIDEKICK_RUNTIME_MODE). With more than one,
 // the samples alternate between them in one job, on the same images and
@@ -22,7 +22,9 @@
 //   4. runs workload.mjs (live queries, writes, time to client-visible update);
 //   5. waits 30 s and records memory again;
 //   6. runs smoke.mjs (response headers, presence, streams, SSE, dashboard
-//      login, file upload, on-demand backup) for the mode;
+//      login, file upload, on-demand backup) for the mode; in the first
+//      sample of the run, with --browser-image, also the browser check
+//      (browser.mjs), against a Playwright server started from that image;
 //   7. restarts the server container and times it back to GET / (warm restart).
 //
 // From the server log of each cold start it also records the start-up phases
@@ -57,6 +59,7 @@ const { values: args } = parseArgs({
     subscribers: { type: 'string', default: '5' },
     writes: { type: 'string', default: '100' },
     'interval-ms': { type: 'string', default: '100' },
+    'browser-image': { type: 'string' },
   },
 });
 
@@ -85,6 +88,10 @@ const project = 'sidekickbench';
 const serverImage = 'sidekick-bench/server:local';
 const dashboardImage = 'sidekick-bench/dashboard:local';
 const apiURI = 'http://127.0.0.1:8888';
+// The Playwright server for the browser check: host network, so its
+// Chromium reaches the published dashboard and server on loopback.
+const browserContainer = `${project}-browser`;
+const browserPort = 3123;
 const composeFiles = [
   path.join(root, 'self-hosting/docker-compose.yml'),
   path.join(here, 'compose.bench.yml'),
@@ -625,7 +632,61 @@ function workload() {
   return parsed;
 }
 
-function smoke(mode) {
+// Runs `playwright run-server` from the Playwright package in the client's
+// node_modules (the lockfile's version, which must match the image), with
+// the image's browsers. Returns its WebSocket endpoint once it listens.
+async function startBrowserServer(image) {
+  tryRun('docker', ['rm', '-f', browserContainer]);
+  const uid = `${process.getuid()}:${process.getgid()}`;
+  run('docker', [
+    'run',
+    '-d',
+    '--rm',
+    '--name',
+    browserContainer,
+    '--init',
+    '--ipc=host',
+    '--network',
+    'host',
+    '--user',
+    uid,
+    '-e',
+    'HOME=/tmp',
+    '-e',
+    'PLAYWRIGHT_BROWSERS_PATH=/ms-playwright',
+    '-v',
+    `${root}:${root}:ro`,
+    image,
+    'node',
+    path.join(root, 'client/packages/core/node_modules/playwright/cli.js'),
+    'run-server',
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(browserPort),
+  ]);
+  const t0 = now();
+  while (true) {
+    try {
+      await fetch(`http://127.0.0.1:${browserPort}/`, {
+        signal: AbortSignal.timeout(1000),
+      });
+      break;
+    } catch {}
+    if (now() - t0 > 60_000) {
+      const logs = tryRun('docker', ['logs', browserContainer]);
+      throw new Error(
+        `Playwright server not listening after 60 s: ${(logs.stdout + logs.stderr).slice(-1000)}`,
+      );
+    }
+    await sleep(250);
+  }
+  log(`Playwright server ready in ${now() - t0} ms`);
+  return `ws://127.0.0.1:${browserPort}/`;
+}
+
+// browser: { ws, screenshot } runs the browser check too.
+function smoke(mode, browser) {
   const r = tryRun(
     process.execPath,
     [
@@ -637,6 +698,9 @@ function smoke(mode) {
       mode,
       '--server-container',
       containerId('server'),
+      ...(browser
+        ? ['--browser-ws', browser.ws, '--screenshot', browser.screenshot]
+        : []),
     ],
     // Worst case, every check runs into its own timeout (the backup poll
     // alone may take 60 s): allow that rather than kill smoke.mjs and lose
@@ -687,11 +751,25 @@ async function sample(n, mode) {
   const after = await memorySnapshot();
 
   log(`sample ${n}: smoke`);
-  const smokeResult = smoke(mode);
+  const smokeResult = smoke(
+    mode,
+    n === 1 && browserWs
+      ? { ws: browserWs, screenshot: path.join(out, `browser-sample-${n}.png`) }
+      : null,
+  );
+  const { browser, ...checks } = smokeResult.checks ?? {};
   log(
     `sample ${n}: smoke ${smokeResult.ok ? 'ok' : 'FAILED'}`,
-    JSON.stringify(smokeResult.checks ?? smokeResult.error),
+    JSON.stringify(smokeResult.checks ? checks : smokeResult.error),
   );
+  if (browser) {
+    log(
+      `sample ${n}: browser ${browser.ok ? 'ok' : 'FAILED'} in ${browser.ms} ms`,
+    );
+    for (const [k, v] of Object.entries(browser)) {
+      if (!['ok', 'ms'].includes(k)) log(`  ${k}: ${JSON.stringify(v)}`);
+    }
+  }
 
   log(`sample ${n}: restart server`);
   const r0 = now();
@@ -744,6 +822,18 @@ for (const image of [serverImage, dashboardImage]) {
 }
 results.images = imageInfo();
 
+// The browser check runs once per run, in the first sample.
+let browserWs = null;
+if (args['browser-image']) {
+  try {
+    browserWs = await startBrowserServer(args['browser-image']);
+  } catch (e) {
+    log(e.message);
+    // The check still runs, and fails on the connection.
+    browserWs = `ws://127.0.0.1:${browserPort}/`;
+  }
+}
+
 let failed = false;
 // Alternate the modes: with default,self-hosted the order is d, s, d, s, ...
 for (let n = 1; n <= samples * modes.length; n++) {
@@ -767,6 +857,7 @@ for (let n = 1; n <= samples * modes.length; n++) {
   );
 }
 saveLogs('last');
+if (browserWs) tryRun('docker', ['rm', '-f', browserContainer]);
 tryDc('down', '-v', '--remove-orphans');
 fs.rmSync(envDir, { recursive: true, force: true });
 
