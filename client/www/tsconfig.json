@@ -32,5 +32,6 @@
     ]
   },
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  // SidekickDB: public/monaco holds copied editor type files, not sources.
+  "exclude": ["node_modules", "public"]
 }

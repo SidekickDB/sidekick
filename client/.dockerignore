@@ -8,3 +8,5 @@ sandbox
 scripts
 .env
 www/_emails/replace-images
+# SidekickDB: generated in the image build by www/scripts/copy-editor-assets.mjs
+www/public/monaco

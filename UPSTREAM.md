@@ -392,6 +392,27 @@ unless they start with `client/`):
   `/status` and `/discord`, whose redirects to Instant's site are left out.
   Tested in `__tests__/self-hosted-redirects.test.ts`; the benchmark workflow
   checks the built image on pull requests that change these files.
+- **No outside loads** (PR #107): `client/www/lib/monaco.ts` reads the editor
+  types from the dashboard instead of unpkg, and `lib/monacoLoader.ts` points
+  `@monaco-editor/react` at the dashboard's own Monaco instead of jsdelivr
+  (imported by `pages/_app.tsx` and `app/providers.tsx`).
+  `scripts/copy-editor-assets.mjs` (run by `predev` and `prebuild`) copies
+  Monaco's `min/vs` and the `@sidekickdb/core` type declarations into
+  `public/monaco` (git-ignored). The Google Analytics id comes from
+  `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` (no default) in `app/layout.tsx` and
+  `pages/_app.tsx`. Deleted: `pages/document.tsx` (a stray route linking
+  Google Fonts). When self-hosted, docs videos are links
+  (`components/docs/YouTube.tsx`) and `next.config.js` has no PostHog
+  rewrites. A self-hosted dashboard has no docs search: it queries Instant's
+  Algolia index, so `components/docs/Layout.jsx` hides it.
+  `__tests__/self-hosted-network.test.tsx` checks this (`vitest.config.ts`
+  renders JSX). The self-hosted image carries `public/monaco` (14,073,600
+  bytes; `client/Dockerfile.www` copies it, `client/.dockerignore` keeps a
+  local copy out of the build context) and `next.config.js` serves it
+  (`monaco` in `selfHostedStaticDirs`). The image check in
+  `.github/workflows/sidekick-self-hosted-bench.yml` asks for the editor files,
+  allows 20,000,000 bytes in `www/public` and fails when the page scan finds
+  fewer than 10 files or none under `/_next/static/`.
 - **GitHub star count removed** (`984dcb9b`): `fetchStarCount()` in
   `next.config.js`, `components/marketingUi.tsx`; deleted
   `lib/starCountContext.tsx`.
@@ -423,7 +444,10 @@ feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
 the self-hosted billing and Google-login conditions. Keep the narrow `public/`
 copy in `client/Dockerfile.www` and the self-hosted allowlist in
 `next.config.js`; a `public/` file upstream adds stays out of the image unless
-the dashboard or the docs load it. Take upstream's other changes.
+the dashboard or the docs load it. Take upstream's other changes. Keep the
+local editor assets and the analytics id from the environment; if upstream
+adds a CDN, font or analytics load, make it local or hosted-only (the test
+names it).
 
 ### Upstream fixes taken early
 
@@ -623,8 +647,6 @@ Old names that stay on purpose (the allowlist and guards in
 - legacy-project detection and aliasing in the CLI (`projectInfo.ts`,
   `loadConfig.ts`, `findConfigCandidates.ts`, `legacyPackageCompat.test.ts`);
 - the `instant-cli` binary alias in `client/packages/cli/package.json`;
-- `www/lib/monaco.ts`, which loads editor types from the published upstream
-  `@instantdb/core` until `@sidekickdb/core` is published;
 - paths and routes: `packages/create-instant-app`, `/docs/create-instant-app`,
   `/docs/instant-cli`;
 - history: Instant's timeline in `www/app/about/content.tsx`, essays in

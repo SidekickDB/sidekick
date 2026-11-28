@@ -49,6 +49,8 @@ test.each([
   '/docs/instaql.md',
   '/docs.md',
   '/llm-rules/AGENTS.md',
+  '/monaco/vs/loader.js',
+  '/monaco/types/index.d.ts',
   '/img/google_g.svg',
   '/publicSelfHostedVariables.js',
   '/native-file-system-adapter-sw.js',

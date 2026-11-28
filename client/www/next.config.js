@@ -113,8 +113,15 @@ const nextConfig = {
     ];
 
     if (process.env.NEXT_PUBLIC_SELF_HOSTED === 'true') {
-      // SidekickDB: folders of static files the self-hosted dashboard serves.
-      const selfHostedStaticDirs = ['_next', 'fonts', 'img', 'llm-rules'];
+      // SidekickDB: folders of static files the self-hosted dashboard serves
+      // (monaco: the code editor, copied by scripts/copy-editor-assets.mjs).
+      const selfHostedStaticDirs = [
+        '_next',
+        'fonts',
+        'img',
+        'llm-rules',
+        'monaco',
+      ];
       return [
         // SidekickDB: /pricing (Instant's announcement essay), /status and /discord lead to
         // Instant's site and services; self-hosted, they end at /dash.
@@ -140,6 +147,8 @@ const nextConfig = {
   },
   // Proxy to PostHog to avoid ad blockers
   async rewrites() {
+    // SidekickDB: PostHog is off when self-hosted; proxy nothing to it.
+    if (process.env.NEXT_PUBLIC_SELF_HOSTED === 'true') return [];
     return [
       {
         source: '/a/static/:path*',

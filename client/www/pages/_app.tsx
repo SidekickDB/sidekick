@@ -7,7 +7,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/pages';
 import Head from 'next/head';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui';
-import { isDev, isSelfHosted } from '@/lib/config';
+import { googleAnalyticsId, isDev, isSelfHosted } from '@/lib/config';
 import { Dev } from '@/components/Dev';
 import {
   patchFirefoxClicks,
@@ -21,6 +21,8 @@ import { localStorageProvider } from '@/lib/swrCache';
 import posthog from '@/lib/posthog';
 import { PostHogProvider } from 'posthog-js/react';
 import { BackupDownloadProvider } from '@/components/dash/BackupDownloadDialog';
+// SidekickDB: load the code editor from the dashboard, not a CDN.
+import '@/lib/monacoLoader';
 
 declare global {
   function __getAppId(): any;
@@ -68,7 +70,9 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
           </NuqsAdapter>
         </SWRConfig>
       </ErrorBoundary>
-      {!isDev && !isSelfHosted && <GoogleScripts />}
+      {!isDev && !isSelfHosted && googleAnalyticsId && (
+        <GoogleScripts id={googleAnalyticsId} />
+      )}
       {isDev ? <Dev /> : null}
     </PostHogProvider>
   );
@@ -94,11 +98,12 @@ function AppHead() {
   );
 }
 
-function GoogleScripts() {
+// SidekickDB: the id comes from NEXT_PUBLIC_GOOGLE_ANALYTICS_ID (no default).
+function GoogleScripts({ id }: { id: string }) {
   return (
     <>
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-45H27NT87Z"
+        src={`https://www.googletagmanager.com/gtag/js?id=${id}`}
         strategy="afterInteractive"
       />
       <Script id="google-analytics" strategy="afterInteractive">
@@ -108,7 +113,7 @@ function GoogleScripts() {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
 
-          gtag('config', 'G-45H27NT87Z');
+          gtag('config', ${JSON.stringify(id)});
         `
         }
       </Script>

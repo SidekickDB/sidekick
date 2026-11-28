@@ -71,6 +71,9 @@ COPY --from=builder /monorepo/www/public/img/docs ./www/public/img/docs
 COPY --from=builder /monorepo/www/public/img/*.svg ./www/public/img/
 COPY --from=builder /monorepo/www/public/docs ./www/public/docs
 COPY --from=builder /monorepo/www/public/llm-rules ./www/public/llm-rules
+# SidekickDB: the code editor (Monaco and the @sidekickdb/core types), written by
+# prebuild (scripts/copy-editor-assets.mjs).
+COPY --from=builder /monorepo/www/public/monaco ./www/public/monaco
 COPY --from=builder /monorepo/www/public/docs.md /monorepo/www/public/llms.txt /monorepo/www/public/llms-full.txt /monorepo/www/public/native-file-system-adapter-sw.js /monorepo/www/public/publicSelfHostedVariables.js ./www/public/
 
 COPY <<'EOF' /app/start.sh
