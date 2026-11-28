@@ -2,6 +2,8 @@
 # push to main, with no path filter so it can be a required check:
 #   - the upstream tooling tests (scripts/upstream/*.test.mjs) and the e2e
 #     report summary tests (scripts/e2e/*.test.mjs);
+#   - the image release version tag check tests (scripts/release/*.test.mjs,
+#     with a stand-in registry);
 #   - scripts/upstream/check.mjs, which fails when a publishing job is
 #     re-enabled or an added line points at an Instant-owned host;
 #   - on pull requests, scripts/upstream/divergence-entry.mjs, which fails
@@ -51,6 +53,9 @@ jobs:
 
       - name: E2E summary tests
         run: node --test scripts/e2e/*.test.mjs
+
+      - name: Release script tests
+        run: node --test scripts/release/*.test.mjs
 
       - name: Agent upstream write guard tests
         run: node --test .claude/hooks/*.test.mjs
