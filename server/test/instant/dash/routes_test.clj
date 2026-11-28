@@ -1162,7 +1162,9 @@
         (fn [app]
           (let [sender-email (random-email)
                 letter (atom nil)]
-              (with-redefs [config/postmark-admin-enabled? (constantly true)
+              (with-redefs [config/email-provider (constantly :postmark)
+                            config/postmark-send-enabled? (constantly true)
+                            config/postmark-admin-enabled? (constantly true)
                             postmark/add-sender! (constantly {:body {:ID 123456}})
                             postmark/send-structured! #(reset! letter %)
                             magic-code-auth/check-custom-sender-rate-limit! (constantly nil)]
@@ -1198,34 +1200,78 @@
                     (is (= true (get-in verify-resp [:body :verified])))
                     (is (= true (:verification_verified verification))))))))))))
 
-;; SidekickDB: without POSTMARK_ACCOUNT_TOKEN, saving a custom sender fails
-;; with a validation error and never calls Postmark.
-(deftest custom-sender-needs-postmark-account-token
+;; SidekickDB: a custom sender is saved only when the server sends through
+;; Postmark and has POSTMARK_ACCOUNT_TOKEN; otherwise saving it, and reading
+;; its verification status, fail with a validation error and never call
+;; Postmark.
+(deftest custom-sender-needs-postmark-and-account-token
   (with-user
     (fn [user]
       (with-empty-app
         (:id user)
         (fn [app]
-          (let [postmark-called? (atom false)]
-            (with-redefs [config/postmark-admin-enabled? (constantly false)
-                          postmark/add-sender! (fn [_] (reset! postmark-called? true))
-                          postmark/get-sender! (fn [_] (reset! postmark-called? true))]
-              (let [resp (http/post (str config/server-origin "/dash/apps/" (:id app) "/email_templates")
-                                    {:headers {:Authorization (str "Bearer " (:refresh-token user))
-                                               :Content-Type "application/json"}
-                                     :throw-exceptions false
-                                     :body (->json {:email-type "magic-code"
-                                                    :sender-email (random-email)
-                                                    :sender-name "Custom Sender"
-                                                    :subject "{code} is your code"
-                                                    :body "Your code is {code}"})})
-                    body (<-json (:body resp))]
-                (is (= 400 (:status resp)))
-                (is (= "validation-failed" (get body "type")))
-                (is (= "sender-email" (get-in body ["hint" "data-type"])))
-                (is (re-find #"POSTMARK_ACCOUNT_TOKEN"
-                             (str (get-in body ["hint" "errors" 0 "message"]))))
-                (is (false? @postmark-called?))))))))))
+          (let [sender-email (random-email)
+                postmark-calls (atom [])
+                save! (fn []
+                        (let [resp (http/post (str config/server-origin "/dash/apps/" (:id app) "/email_templates")
+                                              {:headers {:Authorization (str "Bearer " (:refresh-token user))
+                                                         :Content-Type "application/json"}
+                                               :throw-exceptions false
+                                               :body (->json {:email-type "magic-code"
+                                                              :sender-email sender-email
+                                                              :sender-name "Custom Sender"
+                                                              :subject "{code} is your code"
+                                                              :body "Your code is {code}"})})]
+                          (assoc resp :body (<-json (:body resp)))))
+                get-verification! (fn []
+                                    (let [resp (http/get (str config/server-origin "/dash/apps/" (:id app) "/sender-verification")
+                                                         {:headers {:Authorization (str "Bearer " (:refresh-token user))
+                                                                    :Content-Type "application/json"}
+                                                          :throw-exceptions false})]
+                                      (assoc resp :body (<-json (:body resp)))))
+                refused? (fn [resp re]
+                           (and (= 400 (:status resp))
+                                (= "validation-failed" (get-in resp [:body "type"]))
+                                (= "sender-email" (get-in resp [:body "hint" "data-type"]))
+                                (boolean (re-find re (str (get-in resp [:body "hint" "errors" 0 "message"]))))))]
+            (with-redefs [config/email-provider (constantly :postmark)
+                          config/postmark-send-enabled? (constantly true)
+                          config/postmark-admin-enabled? (constantly true)
+                          postmark/add-sender! (fn [_]
+                                                 (swap! postmark-calls conj :add-sender)
+                                                 {:body {:ID 123456}})
+                          postmark/get-sender! (fn [_]
+                                                 (swap! postmark-calls conj :get-sender)
+                                                 {:body {:ID 123456 :Confirmed false}})]
+              (testing "provider is not Postmark"
+                (with-redefs [config/email-provider (constantly :sendgrid)]
+                  (is (refused? (save!) #"through SendGrid")))
+                (is (empty? @postmark-calls)))
+
+              (testing "POSTMARK_TOKEN is not set"
+                (with-redefs [config/postmark-send-enabled? (constantly false)]
+                  (is (refused? (save!) #"POSTMARK_TOKEN is not set")))
+                (is (empty? @postmark-calls)))
+
+              (testing "POSTMARK_ACCOUNT_TOKEN is not set"
+                (with-redefs [config/postmark-admin-enabled? (constantly false)]
+                  (is (refused? (save!) #"POSTMARK_ACCOUNT_TOKEN")))
+                (is (empty? @postmark-calls)))
+
+              (testing "Postmark with both tokens saves the sender"
+                (is (= 200 (:status (save!))))
+                (is (= [:add-sender] @postmark-calls)))
+
+              (testing "verification status with the account token reads Postmark"
+                (reset! postmark-calls [])
+                (is (= 200 (:status (get-verification!))))
+                (is (= [:get-sender] @postmark-calls)))
+
+              (testing "verification status after the account token is removed"
+                (reset! postmark-calls [])
+                (with-redefs [config/postmark-admin-enabled? (constantly false)]
+                  (is (refused? (get-verification!) #"POSTMARK_ACCOUNT_TOKEN")))
+                (is (empty? @postmark-calls))))))))))
 
 ;; ---
 ;; get-a-db

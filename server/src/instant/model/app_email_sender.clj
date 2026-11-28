@@ -1,5 +1,6 @@
 (ns instant.model.app-email-sender
   (:require [instant.config :as config]
+            [instant.email-router :as email-router]
             [instant.jdbc.aurora :as aurora]
             [instant.jdbc.sql :as sql]
             [instant.model.app-email-verification :as verification]
@@ -39,8 +40,31 @@
 
 (def sender-claimed-error-message "We can't use this email address; it's already been claimed by a different user.")
 
-;; SidekickDB: shown when POSTMARK_ACCOUNT_TOKEN is not set.
-(def postmark-account-token-missing-error-message "Custom sender addresses need POSTMARK_ACCOUNT_TOKEN to be set on this server, and the server must send email through Postmark.")
+;; SidekickDB: custom sender addresses are Postmark sender signatures. Mail
+;; from one must go through Postmark (only Postmark's sender errors fall back
+;; to the default sender), and creating one needs the account token.
+(def postmark-account-token-missing-error-message "Custom sender addresses need POSTMARK_ACCOUNT_TOKEN, the Postmark account API token, to be set on this server.")
+
+(def provider-names {:resend "Resend" :sendgrid "SendGrid" :sendgrid-hosted "SendGrid"})
+
+(defn custom-sender-unavailable-message
+  "Why `email` cannot be a custom sender on this server, or nil if it can."
+  [email]
+  (let [provider (email-router/provider email)]
+    (cond
+      (not= :postmark provider)
+      (str "Custom sender addresses need Postmark as this server's email provider, but it sends email through "
+           (provider-names provider) ".")
+
+      (not (config/postmark-send-enabled?))
+      "Custom sender addresses need Postmark as this server's email provider, but POSTMARK_TOKEN is not set, so it sends no email."
+
+      (not (config/postmark-admin-enabled?))
+      postmark-account-token-missing-error-message)))
+
+(defn assert-custom-sender-available! [email]
+  (when-let [message (custom-sender-unavailable-message email)]
+    (ex/throw-validation-err! :sender-email email [{:message message}])))
 
 (defn sync-sender!
   "Given an email, we do our best to sync to postmark. There are a few cases to consider:
@@ -52,10 +76,9 @@
             a. In this case, we reach an invariant. This can happen when we add a sender in development
       "
   [{:keys [app-id email name]}]
-  ;; SidekickDB: without a Postmark account token, say so instead of calling
-  ;; Postmark's Signatures API with an empty token.
-  (when-not (config/postmark-admin-enabled?)
-    (ex/throw-validation-err! :sender-email email [{:message postmark-account-token-missing-error-message}]))
+  ;; SidekickDB: refuse a sender this server cannot send from, before
+  ;; calling Postmark's Signatures API.
+  (assert-custom-sender-available! email)
   (let [sender (get-by-email {:email email})
         postmark-id (:postmark_id sender)
         postmark-sender (when sender

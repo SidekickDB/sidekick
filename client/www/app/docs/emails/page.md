@@ -30,6 +30,6 @@ Using a variable is as easy as adding the variable's name in curly brackets, e.g
 
 ## Custom sender addresses
 
-You can also set the `from` and `reply-to` fields on your app's magic code emails to an address on your own domain. Custom sender addresses use Postmark sender signatures, so they work only when your SidekickDB server sends email through Postmark and has a Postmark account token (`POSTMARK_ACCOUNT_TOKEN`) set. Without that token, saving a sender address shows an error.
+You can also set the `from` and `reply-to` fields on your app's magic code emails to an address on your own domain. Custom sender addresses use Postmark sender signatures, so they work only when your SidekickDB server sends email through Postmark and has a Postmark account token (`POSTMARK_ACCOUNT_TOKEN`) set. Otherwise, saving a sender address shows an error that explains why.
 
 A custom sender address has to be confirmed before your server delivers from it. Your server emails a verification code to the address, which you enter in the dashboard, and Postmark sends a confirmation link to the same address. Until the address is confirmed both ways, emails continue to be sent from your server's default app sender (the address in `SIDEKICK_APP_EMAIL_SENDER_EMAIL`; see [Configure email](/docs/self-hosting#configure-email-with-postmark)).

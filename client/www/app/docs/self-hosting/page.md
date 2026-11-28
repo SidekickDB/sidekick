@@ -56,18 +56,18 @@ sending approval in the Postmark dashboard first.
 
 To let your apps send magic code emails from their own addresses (see
 [Custom sender addresses](/docs/emails#custom-sender-addresses)), also set your
-Postmark account token. This is a different token from the server token in
-`POSTMARK_TOKEN`: the server uses it to create sender signatures in your
-Postmark account.
+Postmark account token: the account API token, from your Postmark account's
+API Tokens page, not the server API token in `POSTMARK_TOKEN`. The server uses
+it to create sender signatures in your Postmark account.
 
 ```shell
 POSTMARK_ACCOUNT_TOKEN=replace-with-your-account-token
 ```
 
-Custom sender addresses need Postmark as the email provider. With SendGrid or
-Resend, magic code emails from a confirmed custom address go through that
-provider, and if it refuses the address the email fails instead of falling back
-to the default sender.
+Custom sender addresses need Postmark as the email provider and the account
+token. On a server that sends through SendGrid or Resend, or that has no
+`POSTMARK_ACCOUNT_TOKEN`, saving a sender address in the dashboard shows an
+error that explains why.
 
 ### Configure email with SendGrid
 

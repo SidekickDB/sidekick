@@ -1499,9 +1499,12 @@
 
 (defn sender-verification-get [req]
   (let [{{app-id :id} :app} (req->app-accepting-superadmin-or-ref-token! :admin :apps/read req)
-        {postmark-id :postmark_id instant-verified? :verification_verified}
+        {postmark-id :postmark_id sender-email :email instant-verified? :verification_verified}
         (app-email-verification/get-by-app-id-and-email-type-with-template
-         {:app-id app-id :email-type "magic-code"})]
+         {:app-id app-id :email-type "magic-code"})
+        ;; SidekickDB: a clear error instead of a Postmark call that cannot work.
+        _ (when postmark-id
+            (app-email-sender-model/assert-custom-sender-available! sender-email))]
     (response/ok {:instant {:verified? instant-verified?}
                   :verification (when postmark-id
                                   (-> (postmark/get-sender! {:id postmark-id})

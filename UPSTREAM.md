@@ -590,11 +590,18 @@ The self-hosted stack works without Instant infrastructure.
   `deploy-swarm.sh` (`STACK_VARS`) and `.env.example` carry it and
   `render-check.mjs` asserts it. Upstream passes only `POSTMARK_TOKEN`, so a
   custom sender address could not be saved. `sync-sender!` in
-  `server/src/instant/model/app_email_sender.clj` stops with a validation
-  error on `sender-email` when `config/postmark-admin-enabled?` is false,
-  instead of calling Postmark's Signatures API with an empty token; test in
-  `dash/routes_test.clj`. At a sync, keep the variable and the check at the
-  top of `sync-sender!`.
+  `server/src/instant/model/app_email_sender.clj`, and
+  `sender-verification-get` in `dash/routes.clj` for a saved sender, stop
+  with a validation error on `sender-email` before calling Postmark's
+  Signatures API unless the server sends through Postmark
+  (`email-router/provider`, the decision `send-structured!` now dispatches
+  on) with `POSTMARK_TOKEN` and `POSTMARK_ACCOUNT_TOKEN` set. Mail from a
+  custom sender through SendGrid or Resend has no fallback to the default
+  sender, so the app's users could not log in. The dashboard shows the
+  server's message when the status check fails
+  (`useCustomSenderVerification.ts`). Tests in `dash/routes_test.clj`. At a
+  sync, keep the variable, `provider` as the single provider decision, and
+  the check at the top of `sync-sender!`.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`. The intro paragraph says nothing
