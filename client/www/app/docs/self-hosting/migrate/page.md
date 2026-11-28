@@ -2,17 +2,17 @@
 nextjs:
   metadata:
     title: 'Migrate from Instant Cloud'
-    description: 'Move an Instant Cloud app to self-hosted Instant.'
+    description: 'Move an Instant Cloud app to self-hosted SidekickDB.'
 ---
 
 Migrating from Instant Cloud happens in two phases:
 
-1. **Rehearse the migration:** Set up self-hosted Instant and restore a test backup. This confirms that everything works and gives you an estimate for downtime.
-2. **Cut over:** Pause writes, restore a fresh backup, and point your app at your self-hosted Instant.
+1. **Rehearse the migration:** Set up self-hosted SidekickDB and restore a test backup. This confirms that everything works and gives you an estimate for downtime.
+2. **Cut over:** Pause writes, restore a fresh backup, and point your app at your self-hosted SidekickDB.
 
 ## Rehearse the migration
 
-### Set up self-hosted Instant
+### Set up self-hosted SidekickDB
 
 If you haven't already, set up self-hosting with our [VPS](/docs/self-hosting/vps) or
 [AWS](/docs/self-hosting/aws) guide. Make sure you can log in to the dashboard,
@@ -29,7 +29,7 @@ the restored app. Copy its client ID, client secret, and any other provider
 settings. Then add the self-hosted callback URL to the provider:
 
 ```text
-https://api.myinstant.com/runtime/oauth/callback
+https://api.example.com/runtime/oauth/callback
 ```
 
 Keep the Instant Cloud callback configured until the migration is complete.
@@ -50,7 +50,7 @@ After restoring, verify that the following look correct:
 ### Prepare the client change
 
 After successfully restoring the test backup, we can put up a PR to update our
-clients to point to our new self-hosted Instant app.
+clients to point to our new self-hosted SidekickDB app.
 
 Choose a new app ID for the self-hosted app. The ID must be a valid UUID. You
 can generate one in the terminal with:
@@ -61,16 +61,16 @@ uuidgen
 
 This will be your app ID going forward.
 
-Create a PR that points your app at self-hosted Instant, but do not merge it
+Create a PR that points your app at self-hosted SidekickDB, but do not merge it
 yet. Update the app ID, API URL, and WebSocket URL in every client `init` call:
 
 ```ts
 const db = init({
   appId: 'YOUR_NEW_APP_ID',
-  apiURI: 'https://api.myinstant.com',
-  websocketURI: 'wss://api.myinstant.com/runtime/session',
+  apiURI: 'https://api.example.com',
+  websocketURI: 'wss://api.example.com/runtime/session',
   devtool: {
-    dashURI: 'https://dash.myinstant.com',
+    dashURI: 'https://dash.example.com',
   },
 });
 ```
@@ -92,7 +92,7 @@ there is no data loss during the cutover.
 ### Restore the final backup
 
 Create an on-demand backup of the Instant Cloud app and restore it into self-hosted
-Instant using the app ID from the rehearsal.
+SidekickDB using the app ID from the rehearsal.
 
 Before merging our earlier PR to switch clients over:
 
@@ -101,13 +101,13 @@ Before merging our earlier PR to switch clients over:
 - Make sure **Read-only mode** is off on the self-hosted app.
 - Test magic code and OAuth login if your app uses them.
 
-### Switch to self-hosted Instant
+### Switch to self-hosted SidekickDB
 
 Merge and deploy the PR you prepared earlier. New client connections will now
-use the restored app on self-hosted Instant. Users may need to sign in again.
+use the restored app on self-hosted SidekickDB. Users may need to sign in again.
 
 Watch the deployment and verify queries, writes, authentication, and file
-uploads. Once clients begin writing to self-hosted Instant, the Instant Cloud
+uploads. Once clients begin writing to self-hosted SidekickDB, the Instant Cloud
 copy is no longer current. If you use OAuth, you can remove the Instant Cloud
 callback URL from each OAuth provider.
 

@@ -484,6 +484,17 @@ The self-hosted stack works without Instant infrastructure.
   its resolvers from that setting; a failed DoH lookup never falls back to the
   system resolver, which is used only with `system`. Tests in `jwt_test.clj`,
   `oauth_test.clj`, `config_test.clj` and `webhook_sender_test.clj`.
+- PR #104: `client/www/app/docs/self-hosting/` (the four guides) says
+  "SidekickDB" where the product is meant ("Instant Cloud" only where
+  upstream's hosted service is meant) and uses the `SIDEKICK_*` names,
+  `ghcr.io/sidekickdb` images, a clone of this repository, example.com
+  hostnames and the shipped required secrets and memory defaults; the CLI has
+  no default server and `PRODUCTION=true` stops the server. No figures for
+  upstream's own deployment. The development stack
+  `server/docker-compose-dev.yml` uses `ghcr.io/sidekickdb/postgresql` (with
+  the wal2json fix of PR #44); `server/dev-postgres/Makefile` keeps upstream's
+  tag because SidekickDB publishes images only through
+  `sidekick-release-images.yml`.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
 - PR #21: no required `:?` inside a default in the compose files. Compose 2.38
