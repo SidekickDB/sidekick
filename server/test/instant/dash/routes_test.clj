@@ -10,6 +10,7 @@
    [instant.jdbc.aurora :as aurora]
    [instant.jdbc.sql :as sql]
    [instant.model.app :as app-model]
+   [instant.model.app-email-sender :as app-email-sender-model]
    [instant.model.app-email-verification :as app-email-verification]
    [instant.model.app-oauth-client :as app-oauth-client-model]
    [instant.model.app-user :as app-user-model]
@@ -1162,9 +1163,7 @@
         (fn [app]
           (let [sender-email (random-email)
                 letter (atom nil)]
-              (with-redefs [config/email-provider (constantly :postmark)
-                            config/postmark-send-enabled? (constantly true)
-                            config/postmark-admin-enabled? (constantly true)
+              (with-redefs [app-email-sender-model/custom-sender-unavailable-message (constantly nil)
                             postmark/add-sender! (constantly {:body {:ID 123456}})
                             postmark/send-structured! #(reset! letter %)
                             magic-code-auth/check-custom-sender-rate-limit! (constantly nil)]
