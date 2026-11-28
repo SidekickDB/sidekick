@@ -61,6 +61,8 @@ const db = init({
 });
 ```
 
+The list replaces the default, so keep `localhost` in it if you still want the devtool there.
+
 ## Self-hosted dashboards
 
 SidekickDB has no default dashboard, so the devtool is shown only when
@@ -82,7 +84,7 @@ const db = init({
 ```
 
 The devtool will use your self-hosted dashboard for authentication and app
-management.
+management. You sign in to your dashboard inside the devtool.
 
 ## Disabling the devtool
 

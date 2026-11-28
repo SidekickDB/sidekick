@@ -110,7 +110,7 @@ export default App;
 
 - **apiURI** (required): URL of your SidekickDB server, for example `https://sidekick.example.com`. There is no default server, and `init` throws without it.
 
-- **devtool?**: Controls the SidekickDB dev tool. Defaults to `true` on localhost. Set to `false` to disable, or configure its `position`, `allowedHosts`, and `dashURI`. Set `dashURI` to your dashboard's URL: without it the devtool is not shown.
+- **devtool?**: Controls the SidekickDB dev tool. It shows on `localhost` by default, and only when `devtool.dashURI` is set to your dashboard's URL. Set to `false` to disable, or configure its `position`, `allowedHosts`, and `dashURI`.
 
 - **verbose?**: Enables detailed console logging for debugging. When `true`, logs WebSocket messages and internal operations. Helpful for troubleshooting connection and sync issues.
 
