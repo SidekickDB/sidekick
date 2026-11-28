@@ -13,8 +13,8 @@ See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backen
 Nothing in the stack backs itself up. [BACKUP.md](BACKUP.md) lists what holds
 state (Postgres, the storage volume, the server's `override.edn` and `.env`),
 and has a backup script with a cron example and the steps to restore it on a
-fresh stack. The on-demand app backups in the dashboard cover one app and are
-stored in the same storage service, so they do not replace it.
+fresh stack. The on-demand app backups in the dashboard are no substitute: each
+covers one app and is stored in the same storage service.
 
 ## Variable names
 
