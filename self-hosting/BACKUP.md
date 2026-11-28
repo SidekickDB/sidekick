@@ -68,9 +68,14 @@ server writes it to `S3_APP_BACKUPS_BUCKET`, which the compose files create in
 the same RustFS store, and records it in Postgres. It holds that app's data and
 configuration (schema, rules and the like). For files it holds the `$files`
 entries, which point at the objects in the storage bucket, not the file
-contents. After 30 days the dashboard no longer offers it. The shipped stack
-sets no expiry rule on the bucket, so its objects stay in storage, and in the
-storage archive below, until the backup is deleted.
+contents. After 30 days the dashboard no longer offers it. Deleting a backup in
+the dashboard only hides it: its files stay in storage, and in the storage
+archive below, until the lifecycle rule that `createbuckets` sets on the bucket
+removes them, 32 days after they were written. The rule also applies to files
+written before it was set: after an upgrade to compose files with that rule,
+files of backups older than 32 days are removed at the next lifecycle scan. The
+server already hides those backups. An external backups bucket needs the rule
+set by hand (see "Lifecycle rule for app backups" in `README.md`).
 
 So an app backup lives on the same disks as the data it protects and covers
 one app, not the deployment. It is useful for exporting an app or recovering

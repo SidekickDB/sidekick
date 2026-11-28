@@ -90,6 +90,14 @@ services:
     # RustFS sends no CORS headers unless a bucket has CORS rules (MinIO allowed
     # every origin by default), so GET/HEAD from any origin is allowed on both
     # buckets. Access still needs a presigned URL.
+    # SidekickDB: the server tags every app backup file expire=true and never
+    # deletes it; it only stops offering a backup after its expiry (at most 30
+    # days). A lifecycle rule on the backups bucket removes those files 32 days
+    # after they were written, the limit the server keeps its expiry under.
+    # Only files tagged expire=true match. The import replaces every lifecycle
+    # rule on that bucket, on every start, and fails this service if it fails.
+    # It always configures this storage service, also when the server uses an
+    # external store; see README.md, "Object storage".
     image: ${STORAGE_CLIENT_IMAGE:-rustfs/rc:v0.1.38}
     environment:
       ACCESS_KEY: ${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY in the environment; see .env.example (formerly MINIO_ROOT_USER)}
@@ -105,6 +113,8 @@ services:
       printf '%s' '<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><ExposeHeader>Content-Length</ExposeHeader><ExposeHeader>Content-Type</ExposeHeader><ExposeHeader>Content-Disposition</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>' > /tmp/cors.xml;
       rc bucket cors set local/$$$$S3_BUCKET /tmp/cors.xml;
       rc bucket cors set local/$$$$S3_APP_BACKUPS_BUCKET /tmp/cors.xml;
+      printf '%s' '{\"rules\":[{\"id\":\"expire-app-backups\",\"status\":\"Enabled\",\"tags\":{\"expire\":\"true\"},\"expiration\":{\"days\":32}}]}' > /tmp/lifecycle.json;
+      rc bucket lifecycle rule import local/$$$$S3_APP_BACKUPS_BUCKET /tmp/lifecycle.json;
       exit"
     deploy:
       restart_policy:

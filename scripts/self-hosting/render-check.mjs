@@ -3,8 +3,9 @@
 // and checks that each one either renders with the right credentials or stops
 // with a message that names the variable to set. It also checks that no file
 // publishes the Postgres port beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
-// asks for another address, that every file starts Postgres with JIT off, and
-// that POSTMARK_ACCOUNT_TOKEN reaches the server. Client-side only: no
+// asks for another address, that every file starts Postgres with JIT off,
+// that every createbuckets service sets the lifecycle rule for app backups,
+// and that POSTMARK_ACCOUNT_TOKEN reaches the server. Client-side only: no
 // containers, images or daemon are used.
 //
 //   node scripts/self-hosting/render-check.mjs \
@@ -236,6 +237,49 @@ function checkRendered(config, access, secret, pg) {
       `DATABASE_URL does not carry the postgres password: ${c.database_url}`,
     );
   }
+  return problems;
+}
+
+// The createbuckets script (its `sh -c` argument) must import the lifecycle
+// rule that removes app backup files: tag expire=true, 32 days, on the backups
+// bucket only, after that bucket exists, with `set -e` so a failed import
+// fails the service (see README.md, "Object storage").
+function lifecycleProblems(script) {
+  const problems = [];
+  if (!script.trim().startsWith('set -e;'))
+    problems.push('createbuckets script does not start with set -e');
+  const m = script.match(/printf '%s' '(\{[^']*\})' > (\S+);/);
+  if (!m) return [...problems, 'createbuckets writes no lifecycle JSON'];
+  let rules = [];
+  try {
+    rules = JSON.parse(m[1]).rules ?? [];
+  } catch {
+    return [...problems, `lifecycle JSON does not parse: ${m[1]}`];
+  }
+  const r = rules[0] ?? {};
+  if (
+    rules.length !== 1 ||
+    r.status !== 'Enabled' ||
+    JSON.stringify(r.tags) !== '{"expire":"true"}' ||
+    r.expiration?.days !== 32 ||
+    'prefix' in r
+  )
+    problems.push(
+      `expected one enabled rule, tag expire=true, 32 days: ${m[1]}`,
+    );
+  const bucket = '\\$+S3_APP_BACKUPS_BUCKET';
+  const create = script.search(
+    new RegExp(`rc bucket create --ignore-existing local/${bucket};`),
+  );
+  const imp = new RegExp(
+    `rc bucket lifecycle rule import local/${bucket} (\\S+);`,
+  ).exec(script);
+  if (imp?.[1] !== m[2])
+    problems.push(
+      `no rc bucket lifecycle rule import of ${m[2]} on the backups bucket`,
+    );
+  else if (create === -1 || create > imp.index)
+    problems.push('lifecycle import runs before the backups bucket exists');
   return problems;
 }
 
@@ -665,6 +709,35 @@ for (const cmd of composes) {
     );
   }
 
+  // createbuckets sets the lifecycle rule for app backups in every file.
+  for (const file of [
+    'docker-compose.yml',
+    'docker-compose.with-caddy.yml',
+    'docker-compose.local.yml',
+  ]) {
+    const r = renderCompose(
+      cmd,
+      file,
+      envFile(`${file}-lifecycle`, {
+        POSTGRES_PASSWORD: PG,
+        STORAGE_ACCESS_KEY: AK,
+        STORAGE_SECRET_KEY: SK,
+      }),
+    );
+    const problems = r.ok
+      ? lifecycleProblems(
+          String(r.config.services?.createbuckets?.entrypoint?.at(-1) ?? ''),
+        )
+      : [`did not render: ${r.stderr.trim().split('\n').at(-1)}`];
+    record(
+      label,
+      file,
+      'createbuckets: backups lifecycle rule',
+      problems,
+      r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+    );
+  }
+
   // Informational: the bare nested ":-" form. The compose files rely on it
   // for the SIDEKICK_* aliases, which the cases above assert. What Compose
   // 2.38 rejects is a required ":?" inside a default, which no file uses.
@@ -752,6 +825,30 @@ for (const cmd of composes) {
   }
   record('docker stack config', 'swarm.yml', 'postgres port: none', p3);
   record('docker stack config', 'swarm.yml', 'postgres: jit=off', p4);
+  // The createbuckets script is the last item of its entrypoint, one YAML
+  // single-quoted line ('' stands for ').
+  let pLifecycle = [];
+  if (!set.ok)
+    pLifecycle.push(
+      `did not render: ${set.stderr.trim().split('\n').at(-1)}`,
+    );
+  else {
+    const lines = set.stdout.split('\n');
+    const start = lines.indexOf('  createbuckets:');
+    const rest = start === -1 ? [] : lines.slice(start + 1);
+    const end = rest.findIndex((l) => /^ {0,2}\S/.test(l));
+    const block = end === -1 ? rest : rest.slice(0, end);
+    const line = block.find((l) => /^ {6}- ' set -e;/.test(l));
+    pLifecycle = line
+      ? lifecycleProblems(line.trim().slice(3, -1).replaceAll("''", "'"))
+      : ['createbuckets entrypoint has no script starting with set -e'];
+  }
+  record(
+    'docker stack config',
+    'swarm.yml',
+    'createbuckets: backups lifecycle rule',
+    pLifecycle,
+  );
   // INSTANT_NREPL in the environment reaches the server. (deploy-swarm.sh
   // maps SIDEKICK_NREPL to it; deploy-swarm.test.mjs covers that.)
   const nrepl = stack({

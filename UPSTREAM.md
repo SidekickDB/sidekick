@@ -608,6 +608,13 @@ The self-hosted stack works without Instant infrastructure.
   reuse stored ISNs after the dump and restore. `BACKUP.md` restore step 6 is
   the same step with the full explanation. Upstream has no such step; keep it
   and its numbering when taking upstream's changes to that file.
+- PR #125: `self-hosting/docker-compose*.yml` and `swarm.yml`: `createbuckets`
+  imports a lifecycle rule on `S3_APP_BACKUPS_BUCKET` that expires objects
+  tagged `expire=true` after 32 days (the rule upstream keeps in its own
+  account; the server never deletes backup files). `render-check.mjs` asserts
+  it in all four files and the two-node smoke test reads it back. `README.md`,
+  `BACKUP.md`, `.env.example` and `client/www/app/docs/backups/page.md`
+  describe it. At a sync, keep the import after the bucket is created.
 - PR #120: `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
   `docker-compose.with-caddy.yml` and `swarm.yml` pass
   `POSTMARK_ACCOUNT_TOKEN` to the server next to `POSTMARK_TOKEN`;

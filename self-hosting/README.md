@@ -403,6 +403,79 @@ Like the compose files, `swarm.yml` reads only `STORAGE_ACCESS_KEY` and
 `STORAGE_SECRET_KEY` (formerly `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`) and
 refuses to deploy without them.
 
+### Lifecycle rule for app backups
+
+The server tags every file of an app backup with `expire=true` and never
+deletes those files itself. The dashboard stops offering a backup after its
+expiry (30 days by default for a backup made from the dashboard), and
+deleting a backup there only hides it. Removing the files is left to a
+lifecycle rule on `S3_APP_BACKUPS_BUCKET`.
+
+`createbuckets` sets that rule on the bundled store, as `rc bucket lifecycle
+rule import` of this rule:
+
+```json
+{
+  "rules": [
+    {
+      "id": "expire-app-backups",
+      "status": "Enabled",
+      "tags": { "expire": "true" },
+      "expiration": { "days": 32 }
+    }
+  ]
+}
+```
+
+It removes files tagged `expire=true` 32 days after they were written, rounded
+up to the next midnight UTC, and leaves every other file in the bucket alone.
+32 days is the limit the server keeps a backup's expiry under. To see the rule,
+run this next to your compose file (add `-f <file>` after `docker compose` if
+it is not `docker-compose.yml`):
+
+```sh
+docker compose run --rm --no-deps --entrypoint /bin/sh createbuckets -c \
+  'rc alias set local http://storage:9000 "$ACCESS_KEY" "$SECRET_KEY" >/dev/null &&
+   rc bucket lifecycle rule export "local/$S3_APP_BACKUPS_BUCKET"'
+```
+
+The rule in the output must have `"tags"` with `"expire": "true"`:
+
+```
+      "tags": {
+        "expire": "true"
+      },
+```
+
+A rule without that tag would apply to every file in the bucket.
+`rc bucket lifecycle rule list` does not show the tag, so use `export`.
+
+- The import runs on every start and replaces every lifecycle rule on that
+  bucket, so a rule you add there by hand is removed at the next start.
+- If the import fails, `createbuckets` fails. The compose files start the
+  server only after `createbuckets` succeeds; in swarm the task is retried.
+- The rule also applies to files written before it was set. After an
+  upgrade, the next lifecycle scan removes the files of backups made more
+  than 32 days earlier (seen with RustFS 1.0.6 and a shortened lifecycle day
+  in a test). The server already hides those backups and refuses to download
+  or restore them.
+- `createbuckets` always configures the bundled `storage` service. With an
+  external store it sets the rule on a bucket of the same name in the bundled
+  store, which the server does not use, and the bucket the server does use
+  gets no rule from it.
+
+On AWS S3, add the same rule to your backups bucket yourself. This command
+replaces the bucket's lifecycle configuration:
+
+```sh
+aws s3api put-bucket-lifecycle-configuration --bucket <your backups bucket> \
+  --lifecycle-configuration '{"Rules":[{"ID":"expire-app-backups","Status":"Enabled","Filter":{"Tag":{"Key":"expire","Value":"true"}},"Expiration":{"Days":32}}]}'
+```
+
+Also set `AWS_REGION` to your buckets' region. When it is unset or blank the
+server takes `:s3-region` from `override.edn`, and uses `us-east-1` when that
+is not set either.
+
 ### Cloudflare R2
 
 File URLs are presigned with `S3_PUBLIC_ENDPOINT`, with the bucket in the path.
@@ -412,3 +485,15 @@ For R2, set both `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` to R2's S3 API domain,
 on custom domains (see Cloudflare's
 [presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)
 page), so file URLs would not load.
+
+App backups on R2 are untested. Cloudflare's
+[S3 API compatibility](https://developers.cloudflare.com/r2/api/s3/api/) page
+lists the `x-amz-tagging` header of PutObject as unsupported, and the server
+sends it with every backup file. Whether R2 ignores the header or rejects the
+upload has not been checked. Cloudflare's
+[object lifecycles](https://developers.cloudflare.com/r2/buckets/object-lifecycles/)
+page describes rules that filter by key prefix and names no tag filter, so the
+rule above cannot be set there. If
+you use R2 for backups, give `S3_APP_BACKUPS_BUCKET` a bucket that holds
+nothing but app backups and add a rule that deletes objects 32 days after
+they were written. Such a rule deletes everything in that bucket at that age.

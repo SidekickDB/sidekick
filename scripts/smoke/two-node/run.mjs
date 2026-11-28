@@ -16,8 +16,9 @@
 //    compose.two-node.yml: postgres, storage, createbuckets and two server
 //    containers. The dashboard is not started.
 // 4. Waits until both nodes answer GET /, checks that Postgres answers
-//    `show jit` with `off`, then runs smoke.mjs with one node as A and the
-//    other as B.
+//    `show jit` with `off` and that the backups bucket has the lifecycle rule
+//    createbuckets sets (read back with `rc`, and applied to a tagged probe
+//    file), then runs smoke.mjs with one node as A and the other as B.
 // 5. With --restart, restarts node A, waits for it, and runs smoke.mjs again.
 //
 // Writes <out>/result.json, and <out>/logs.txt with every container's log.
@@ -197,6 +198,81 @@ function smoke([a, b]) {
   }
 }
 
+// Reads the backups bucket's lifecycle rules back with `rc` (in the
+// createbuckets image, which has the credentials and bucket name), then puts a
+// file tagged expire=true from inside the storage container, checks that a
+// HEAD names the rule in x-amz-expiration, and deletes the file.
+function backupsLifecycle() {
+  const res = { ok: false };
+  const exported = tryRun(
+    "docker",
+    [
+      ...dcArgs,
+      "run",
+      "--rm",
+      "--no-deps",
+      "-T",
+      "--entrypoint",
+      "/bin/sh",
+      "createbuckets",
+      "-c",
+      'rc alias set local http://storage:9000 "$ACCESS_KEY" "$SECRET_KEY" >/dev/null && rc bucket lifecycle rule export "local/$S3_APP_BACKUPS_BUCKET" && echo "bucket=$S3_APP_BACKUPS_BUCKET"',
+    ],
+    { timeout: 120_000 },
+  );
+  if (!exported.ok) {
+    res.error = `rc export failed: ${exported.stderr.trim()}`;
+    return res;
+  }
+  const bucket = exported.stdout.match(/^bucket=(\S+)$/m)?.[1];
+  let rules = [];
+  try {
+    rules = JSON.parse(exported.stdout.replace(/^bucket=.*$/m, "")).rules;
+  } catch {
+    res.error = `rc export printed no JSON: ${exported.stdout.trim()}`;
+    return res;
+  }
+  res.rules = rules;
+  const rule = rules?.find(
+    (r) =>
+      r.status === "Enabled" &&
+      JSON.stringify(r.tags) === '{"expire":"true"}' &&
+      r.expiration?.days === 32 &&
+      !r.prefix,
+  );
+  if (!rule) {
+    res.error = "no enabled rule with tag expire=true and 32 days";
+    return res;
+  }
+  const probe = tryRun(
+    "docker",
+    [
+      ...dcArgs,
+      "exec",
+      "-T",
+      "-e",
+      `BUCKET=${bucket}`,
+      "storage",
+      "sh",
+      "-c",
+      'set -e; u="http://127.0.0.1:9000/$BUCKET/lifecycle-probe/config.json"; a="aws:amz:us-east-1:s3"; k="$RUSTFS_ACCESS_KEY:$RUSTFS_SECRET_KEY"; curl -fsS -o /dev/null -X PUT --aws-sigv4 "$a" --user "$k" -H "x-amz-tagging: expire=true" --data-binary probe "$u"; curl -fsS -I --aws-sigv4 "$a" --user "$k" "$u"; curl -fsS -o /dev/null -X DELETE --aws-sigv4 "$a" --user "$k" "$u"',
+    ],
+    { timeout: 60_000 },
+  );
+  if (!probe.ok) {
+    res.error = `probe file failed: ${probe.stderr.trim()}`;
+    return res;
+  }
+  res.expiration = probe.stdout.match(/^x-amz-expiration: (.*?)\r?$/im)?.[1];
+  const date = Date.parse(res.expiration?.match(/expiry-date="([^"]+)"/)?.[1]);
+  const days = (date - Date.now()) / 86_400_000;
+  // 32 days after the upload, rounded up to the next midnight UTC.
+  res.ok =
+    res.expiration?.includes(`rule-id="${rule.id}"`) && days > 31.99 && days <= 33;
+  if (!res.ok) res.error = "HEAD shows no expiry 32 days out from that rule";
+  return res;
+}
+
 function printLogTails(ns) {
   for (const n of ns ?? []) {
     const r = tryRun("docker", ["logs", "--tail", "80", n.id]);
@@ -296,6 +372,12 @@ try {
   result.postgres_jit = jit.ok ? jit.stdout.trim() : null;
   log(`postgres: show jit -> ${result.postgres_jit ?? jit.stderr.trim()}`);
   if (result.postgres_jit !== "off") failed = true;
+
+  // createbuckets set the lifecycle rule for app backups, and the store
+  // applies it to a file tagged the way the server tags backup files.
+  result.backups_lifecycle = backupsLifecycle();
+  log("backups lifecycle", JSON.stringify(result.backups_lifecycle));
+  if (!result.backups_lifecycle.ok) failed = true;
 
   log("smoke");
   result.smoke = smoke(ns);

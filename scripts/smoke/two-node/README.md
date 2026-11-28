@@ -19,7 +19,14 @@ cluster:
 
 Before those checks, `run.mjs` asks the running Postgres `show jit` and fails
 unless it answers `off`, the setting the shipped compose file passes (see
-"Postgres JIT" in `self-hosting/README.md`).
+"Postgres JIT" in `self-hosting/README.md`). It also reads the backups bucket's
+lifecycle rules back with `rc bucket lifecycle rule export` and fails unless
+one enabled rule matches the tag `expire=true` and expires after 32 days (the
+rule `createbuckets` sets, see "Object storage" in `self-hosting/README.md`).
+It then puts a file tagged `expire=true` from inside the storage container,
+fails unless a HEAD on it returns `x-amz-expiration` naming that rule with a
+date 32 to 33 days out, and deletes the file. Nothing waits for the removal
+itself.
 
 The stream checks and presence need the nodes to form a cluster; the write
 checks do not. Each node invalidates its live queries from its own Postgres
