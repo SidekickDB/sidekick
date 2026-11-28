@@ -9,7 +9,7 @@ You can customize all aspects of your Instant app's "magic code" email: the body
 
 ## Dashboard
 
-To start, go to your Dashboard's [auth tab](https://instantdb.com/dash?s=main&t=auth). Click "Custom Magic Code Email", and you're ready to go.
+To start, go to your Dashboard's [auth tab](/dash?s=main&t=auth). Click "Custom Magic Code Email", and you're ready to go.
 
 ### Variables
 

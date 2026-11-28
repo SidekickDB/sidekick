@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Patterns'
-    description: 'Common patterns for working with InstantDB.'
+    description: 'Common patterns for working with SidekickDB.'
 ---
 
 Below are some common patterns for working with InstantDB. We'll add more

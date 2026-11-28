@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: Getting started with Vue
-    description: How to use Instant with Vue 3 and Vite
+    description: How to use SidekickDB with Vue 3 and Vite
 ---
 
 ## Automatic Setup With Create Instant App

@@ -50,7 +50,7 @@ module.exports = [
         optionalLLM: true,
       },
       {
-        title: 'Create Instant App',
+        title: 'Create SidekickDB App',
         prevHref: null,
         href: '/docs/create-instant-app',
         nextHref: '/docs/workflow',
@@ -73,7 +73,7 @@ module.exports = [
       { title: 'Writing data', href: '/docs/instaml' },
       { title: 'Reading data', href: '/docs/instaql' },
       { title: 'Infinite Queries', href: '/docs/infinite-queries' },
-      { title: 'Instant on the backend', href: '/docs/backend' },
+      { title: 'SidekickDB on the backend', href: '/docs/backend' },
       { title: 'Patterns', href: '/docs/patterns' },
     ],
   },
@@ -114,14 +114,14 @@ module.exports = [
     ],
   },
   {
-    title: 'Instant features',
+    title: 'SidekickDB features',
     links: [
       { title: 'Managing users', href: '/docs/users' },
       {
         title: 'Presence, Cursors, and Activity',
         href: '/docs/presence-and-topics',
       },
-      { title: 'Instant CLI', href: '/docs/cli' },
+      { title: 'SidekickDB CLI', href: '/docs/cli' },
       { title: 'Devtool', href: '/docs/devtool', optionalLLM: true },
       {
         title: 'Platform API',

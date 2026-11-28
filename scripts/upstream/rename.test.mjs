@@ -405,6 +405,11 @@ test("docs links get SidekickDB's host only in the listed paths", () => {
       '<a href="https://www.instantdb.com/docs">\n',
       '<a href="https://sidekickdb.co/docs">\n',
     ],
+    [
+      "client/www/app/docs/a/page.md",
+      "[x](https://www.instantdb.com/docs/x.md)\n",
+      "[x](https://sidekickdb.co/docs/x.md)\n",
+    ],
   ];
   for (const [f, t, want] of cases) {
     assert.equal(norm(f, t), want, f);
@@ -412,7 +417,7 @@ test("docs links get SidekickDB's host only in the listed paths", () => {
   }
   // Outside the listed paths, and paths that only start with "/docs", stay.
   for (const [f, t] of [
-    ["client/www/app/docs/a/page.md", "https://www.instantdb.com/docs/x\n"],
+    ["client/www/app/essays/a.md", "https://www.instantdb.com/docs/x\n"],
     ["client/packages/mcp/README.md", "https://www.instantdb.com/docs/x\n"],
     ["examples/todos/src/a.ts", "https://www.instantdb.com/docs/x\n"],
     ["client/packages/platform/src/other.ts", "https://instantdb.com/docs\n"],

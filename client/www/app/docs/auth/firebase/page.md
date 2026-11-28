@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Firebase Auth'
-    description: "How to integrate Firebase's auth flow with Instant."
+    description: "How to integrate Firebase's auth flow with SidekickDB."
 ---
 
 Instant supports delegating auth to Firebase Auth.
