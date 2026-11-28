@@ -145,3 +145,50 @@ test('code samples use __API_URI__ instead of the placeholder host', () => {
     );
   expect(literal).toEqual([]);
 });
+
+// The devtool loads nothing without `dashURI` (core/src/devtool.ts), so a
+// sample that configures it must set one.
+function devtoolConfigsWithoutDashURI(markdown: string) {
+  return codeFences(markdown).flatMap((fence) =>
+    [...fence.code.matchAll(/\bdevtool\s*:\s*\{/g)]
+      .filter((match) => {
+        const start = match.index + match[0].length - 1;
+        return !/\bdashURI\b/.test(callArgs(fence.code, start, false));
+      })
+      .map(
+        (match) =>
+          fence.line + fence.code.slice(0, match.index).split('\n').length - 1,
+      ),
+  );
+}
+
+test('every devtool config in the docs sets dashURI', () => {
+  const missing = markdownFiles(docsDir)
+    .map((file) => path.relative(docsDir, file))
+    .flatMap((rel) =>
+      devtoolConfigsWithoutDashURI(
+        fs.readFileSync(path.join(docsDir, rel), 'utf8'),
+      ).map((line) => `${rel}:${line}`),
+    );
+  expect(missing).toEqual([]);
+  expect(
+    devtoolConfigsWithoutDashURI(
+      [
+        '```ts',
+        "init({ devtool: { position: 'bottom-right' } });",
+        "init({ devtool: { dashURI: '__DASH_URI__' } });",
+        'init({ devtool: false });',
+        '```',
+      ].join('\n'),
+    ),
+  ).toEqual([2]);
+});
+
+test('Markdown copies show the placeholder dashboard URL', () => {
+  const result = transformContent(
+    "```ts\ninit({ devtool: { dashURI: '__DASH_URI__' } });\n```",
+  );
+  expect(result).toContain("dashURI: 'https://dash.sidekick.example.com'");
+  expect(result).toContain("replace it with your SidekickDB dashboard's URL");
+  expect(result).not.toContain('__DASH_URI__');
+});

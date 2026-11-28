@@ -84,16 +84,20 @@ function transformContent(content: string): string {
 
   // SidekickDB: the Markdown copies show the placeholder host that the
   // rendered docs fall back to (see components/docs/Fence.jsx), and say once
-  // that it stands for the reader's server.
+  // that it stands for the reader's server (and `__DASH_URI__` for the
+  // reader's dashboard).
   const sanitized = sanitizeMarkdown(markdownContent);
   if (sanitized.includes('__API_URI__')) {
     result +=
       "The samples use `https://sidekick.example.com`: replace it with your SidekickDB server's URL.\n\n";
   }
-  const sanitizedContent = sanitized.replaceAll(
-    '__API_URI__',
-    'https://sidekick.example.com',
-  );
+  if (sanitized.includes('__DASH_URI__')) {
+    result +=
+      "The samples use `https://dash.sidekick.example.com`: replace it with your SidekickDB dashboard's URL.\n\n";
+  }
+  const sanitizedContent = sanitized
+    .replaceAll('__API_URI__', 'https://sidekick.example.com')
+    .replaceAll('__DASH_URI__', 'https://dash.sidekick.example.com');
   return result + sanitizedContent;
 }
 

@@ -1310,6 +1310,11 @@ chrome present the product as SidekickDB.
   `apiURI` (also `instant.init(` of a script-tag build), and on a code fence
   that carries the literal `https://sidekick.example.com`: give a sample
   upstream adds `apiURI: '__API_URI__'` and use `__API_URI__` for the host.
+  `__DASH_URI__` stands for the dashboard URL the same way: a self-hosted
+  dashboard fills in its own origin, elsewhere the samples show
+  `https://dash.sidekick.example.com` with a line asking to replace it. Every
+  `devtool` config sample sets `dashURI: '__DASH_URI__'`, because the devtool
+  loads nothing without one; the test fails on a `devtool: {...}` without it.
 
 **Resolving:** keep SidekickDB's words and links. For a new
 `www.instantdb.com/dash` link use the same path relative (`/dash...`); a new
