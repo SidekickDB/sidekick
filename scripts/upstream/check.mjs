@@ -141,6 +141,25 @@ export const TWO_NODE_SMOKE_WORKFLOWS = ["sidekick-two-node-smoke.yml"];
 // RISKY rule applies.
 export const E2E_WORKFLOWS = ["sidekick-e2e.yml"];
 
+// In E2E_WORKFLOWS every value given to SIDEKICK_E2E_API_URI (`KEY: value` or
+// `KEY=value`) must be a localhost URL: the suites talk only to the server
+// the job starts.
+const E2E_LOCAL_URI = /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?\/?$/;
+
+export function checkE2EApiURIs(rel, text) {
+  const failures = [];
+  text.split("\n").forEach((line, i) => {
+    for (const m of line.matchAll(/SIDEKICK_E2E_API_URI\s*[:=]\s*(\S*)/g)) {
+      const value = m[1].replace(/^(['"])(.*)\1$/, "$2");
+      if (!E2E_LOCAL_URI.test(value))
+        failures.push(
+          `${rel}:${i + 1}: SIDEKICK_E2E_API_URI must be a localhost URL (the server started in the job), found ${m[1] || "(empty)"}`,
+        );
+    }
+  });
+  return failures;
+}
+
 // SidekickDB's own jobs in inherited workflows that may hold the rights
 // matched by `allow` (whole job lines), only while checkJobRightsShape finds
 // nothing: the job is guarded to main and uses no action, so it runs no
@@ -552,8 +571,10 @@ export function checkWorkflows(root, learned = { jobs: {}, steps: {} }) {
   }
   for (const f of files) {
     const rel = `.github/workflows/${f}`;
-    const parsed = parseWorkflow(fs.readFileSync(path.join(dir, f), "utf8"));
+    const text = fs.readFileSync(path.join(dir, f), "utf8");
+    const parsed = parseWorkflow(text);
     const { jobs, triggers, top } = parsed;
+    if (E2E_WORKFLOWS.includes(f)) failures.push(...checkE2EApiURIs(rel, text));
     // Rights a SidekickDB release workflow may use, only while its shape holds.
     let allowed = [];
     if (RELEASE_WORKFLOWS[f]) {

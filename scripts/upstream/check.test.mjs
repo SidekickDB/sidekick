@@ -662,6 +662,46 @@ test("the e2e workflow stays read-only and talks to no Instant host", () => {
   );
 });
 
+test("the e2e workflow's SIDEKICK_E2E_API_URI must be a localhost URL", () => {
+  const file = "sidekick-e2e.yml";
+  const localhostOnly = (r) =>
+    r.failures.filter((f) => f.includes(file) && f.includes("localhost URL"));
+  for (const value of [
+    "http://e2e.example.org:8888",
+    "https://localhost.example.org",
+    "http://localhost:8888/../x",
+    "''",
+  ]) {
+    const r = withWorkflows((d) =>
+      edit(
+        d,
+        file,
+        "SIDEKICK_E2E_API_URI: http://localhost:8888\n",
+        `SIDEKICK_E2E_API_URI: ${value}\n`,
+      ),
+    );
+    assert.equal(localhostOnly(r).length, 1, `${value}: ${r.failures.join("\n")}`);
+  }
+  const inRun = withWorkflows((d) =>
+    edit(
+      d,
+      file,
+      "          dc pull --quiet",
+      "          SIDEKICK_E2E_API_URI=http://10.0.0.5:8888 true\n          dc pull --quiet",
+    ),
+  );
+  assert.equal(localhostOnly(inRun).length, 1, inRun.failures.join("\n"));
+  const loopback = withWorkflows((d) =>
+    edit(
+      d,
+      file,
+      "SIDEKICK_E2E_API_URI: http://localhost:8888\n",
+      "SIDEKICK_E2E_API_URI: 'http://127.0.0.1:8888'\n",
+    ),
+  );
+  assert.deepEqual(loopback.failures, []);
+});
+
 function withServerMinimums({ version, session, routes }) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-minimums-"));
   const write = (rel, text) => {

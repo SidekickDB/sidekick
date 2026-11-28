@@ -15,6 +15,10 @@ name: e2e suites
 
 on:
   workflow_dispatch:
+  # Temporary: proves the workflow on its pull request; removed before merge.
+  pull_request:
+    paths:
+      - '.github/workflows/sidekick-e2e.yml'
 
 permissions:
   contents: read
@@ -40,8 +44,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
+
+      - name: Test the summary on synthetic reports
+        run: node --test scripts/e2e/summarize.test.mjs
 
       # JUnit reports and container logs; uploaded at the end.
       - name: Set the output directory
@@ -89,6 +96,8 @@ jobs:
       # Loaded into the local Docker only. Reads the layer cache of the image
       # release workflow and of earlier runs of this one.
       - name: Build the server image
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ./server
@@ -166,6 +175,7 @@ jobs:
             'case "$1" in -v) echo 10.0.0-e2e-stub ;; install) echo "e2e: install skipped" ;; *) exit 1 ;; esac' \
             > "$stub/npm"
           chmod +x "$stub/npm"
+          echo "CIA_NOTE=dependency install stubbed (npm on PATH); scaffold and app creation tested, install not" >> "$GITHUB_ENV"
           unset npm_config_user_agent
           PATH="$stub:$PATH" node ../../scripts/with-network-guard.mjs ./node_modules/.bin/vitest run --project e2e \
             --reporter=default --reporter=junit --outputFile.junit="$OUT/create-sidekick-app.xml"
@@ -191,12 +201,16 @@ jobs:
           node ../../scripts/with-network-guard.mjs pnpm exec vitest run __tests__/src/resumable-stream.test.ts \
             --reporter=default --reporter=junit --outputFile.junit="$OUT/resumable-stream.xml"
 
-      # Fails when a suite left no report, failed, or skipped every test.
+      # Fails when a suite left no report or a broken one, failed, or ran
+      # fewer tests than it has today (<suite>=<minimum>; raise a minimum
+      # when a suite gains tests).
       - name: Summary
         if: ${{ !cancelled() }}
         run: |
-          node scripts/e2e/summarize.mjs --dir "$OUT" \
-            core cli create-sidekick-app mcp platform resumable-stream
+          notes=()
+          [ -n "${CIA_NOTE:-}" ] && notes+=(--note "create-sidekick-app=$CIA_NOTE")
+          node scripts/e2e/summarize.mjs --dir "$OUT" "${notes[@]}" \
+            core=20 cli=36 create-sidekick-app=14 mcp=8 platform=6 resumable-stream=14
 
       - name: Collect server logs
         if: always()
@@ -209,7 +223,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: e2e-${{ github.event.pull_request.head.sha || github.sha }}
+          name: e2e-${{ github.sha }}
           path: ${{ runner.temp }}/e2e-out
           retention-days: 14
 

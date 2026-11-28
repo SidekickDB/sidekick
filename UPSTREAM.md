@@ -322,8 +322,12 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
   `SIDEKICK_E2E_API_URI=http://localhost:8888`; core's browser suite runs in
   the Playwright image of `js.yml` on the host network.
   `scripts/e2e/summarize.mjs` fails the run when a suite fails, leaves no
-  report or skips all of its tests. Read-only, no secrets; `check.mjs` lists
-  it in `E2E_WORKFLOWS` without any exception from its rules.
+  report or a broken one, or runs fewer tests than the minimum the workflow
+  gives it. create-sidekick-app's dependency install is replaced by a stub
+  `npm` (it would reach the npm registry), and the summary says so.
+  Read-only, no secrets; `check.mjs` lists it in `E2E_WORKFLOWS` without any
+  exception from its rules, and fails unless every `SIDEKICK_E2E_API_URI`
+  in it is a localhost URL.
 
 **Resolving:** keep the step's two empty variables and `pnpm run test`, the
 guarded `test`/`bench` scripts, and the e2e helpers that skip without
