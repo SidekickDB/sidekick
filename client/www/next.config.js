@@ -113,14 +113,24 @@ const nextConfig = {
     ];
 
     if (process.env.NEXT_PUBLIC_SELF_HOSTED === 'true') {
+      // SidekickDB: folders of static files the self-hosted dashboard serves.
+      const selfHostedStaticDirs = ['_next', 'fonts', 'img', 'llm-rules'];
       return [
-        ...standardRedirects,
+        // SidekickDB: /pricing (Instant's announcement essay), /status and /discord lead to
+        // Instant's site and services; self-hosted, they end at /dash.
+        ...standardRedirects.filter(
+          (r) => !['/pricing', '/status', '/discord'].includes(r.source),
+        ),
         // redirect any page that isn't /api, /dash, /debug-uri, /docs, /intern, /logout, or /_devtool
-        // SidekickDB: also keep /platform/oauth, the consent page the server sends platform OAuth users to.
+        // SidekickDB: the line above is upstream's; this list is narrower. Also keep /platform/oauth,
+        // the consent page the server sends platform OAuth users to.
+        // SidekickDB: serve only the dashboard, the docs and the admin tools. /api and the other
+        // /intern pages go to /dash too, and so does a path with a dot unless it is a file at the
+        // top level or in one of selfHostedStaticDirs (Dockerfile.www copies only the files the
+        // dashboard and the docs load).
         {
           permanent: false,
-          source:
-            '/((?!api(?:/.*)?$|dash(?:/.*)?$|debug-uri(?:/.*)?$|docs(?:/.*)?$|intern(?:/.*)?$|logout(?:/.*)?$|platform/oauth(?:/.*)?$|_devtool(?:/.*)?$|.*\\.[^/]+$).*)',
+          source: `/((?!dash(?:/.*)?$|debug-uri(?:/.*)?$|docs(?:/.*)?$|intern(?:/(?:storage|restore|deployment-settings))?/?$|logout(?:/.*)?$|platform/oauth(?:/.*)?$|_devtool(?:/.*)?$|(?:${selfHostedStaticDirs.join('|')})/.*$|[^/]+\\.[^/]+$).*)`,
           destination: '/dash',
         },
       ];

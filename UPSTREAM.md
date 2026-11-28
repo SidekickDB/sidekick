@@ -376,6 +376,22 @@ unless they start with `client/`):
   `client/packages/components/src/style.css` and
   `client/packages/components/tailwind.config.cjs`. The font was downloaded from
   `stopaio.s3.amazonaws.com`.
+- **Self-hosted image serves only the dashboard, the docs and the admin
+  tools**: `client/Dockerfile.www` copies only the `public/` files those load:
+  `fonts`, `img/docs`, the `img/*.svg` logos, the two scripts at the top level,
+  and `docs`, `docs.md`, `llm-rules`, `llms.txt` and `llms-full.txt`, which
+  the build writes. Instant's website media, sitemap and feed stay out, and
+  so does `img/icon`: its only reference on a served page was `LogoIcon`
+  (`client/packages/components`) in the website navigation, which the
+  self-hosted docs and `/intern` pages no longer render. The self-hosted
+  allowlist in `next.config.js` serves `/dash`, `/docs`, `/logout`,
+  `/_devtool`, `/debug-uri`, `/platform/oauth`, `/intern` with its three tools,
+  and static files at the top level or in `selfHostedStaticDirs`. Everything
+  else goes to `/dash`: every `/api` route (so the docs `og:image`,
+  `/api/docs-og`, does not load), `/opengraph-image`, and `/pricing`,
+  `/status` and `/discord`, whose redirects to Instant's site are left out.
+  Tested in `__tests__/self-hosted-redirects.test.ts`; the benchmark workflow
+  checks the built image on pull requests that change these files.
 - **GitHub star count removed** (`984dcb9b`): `fetchStarCount()` in
   `next.config.js`, `components/marketingUi.tsx`; deleted
   `lib/starCountContext.tsx`.
@@ -404,8 +420,10 @@ and the `self-hosting/` compose files (variable passed to `www`).
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
 feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
-the self-hosted billing and Google-login conditions. Take upstream's other
-changes.
+the self-hosted billing and Google-login conditions. Keep the narrow `public/`
+copy in `client/Dockerfile.www` and the self-hosted allowlist in
+`next.config.js`; a `public/` file upstream adds stays out of the image unless
+the dashboard or the docs load it. Take upstream's other changes.
 
 ### Upstream fixes taken early
 
