@@ -1099,6 +1099,18 @@ project as SidekickDB:
   dashboard keeps its own copies in `client/www/lib/config.ts`).
   The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
   asks for an issue here instead of a message on upstream's Discord.
+- `client/packages/mcp/src/index.ts`: the `learn` tool (`src/learn.ts`)
+  names SidekickDB and returns the text of `client/packages/mcp/rules/AGENTS.md`,
+  a committed copy of the agent rules that `client/www/scripts/gen-llm-rules.ts`
+  writes and `check.mjs` compares with the canonical file; nothing is fetched.
+  The docs links in the tool texts, the OAuth metadata, `index.html.ts` and the
+  `db/` headers point at `https://sidekickdb.co/docs/...` with upstream's path;
+  `client/packages/mcp/src/` is in `DOCS_HOST_PATHS`. `index.html.ts`, the stdio
+  startup line, the package description and the README say SidekickDB; the
+  README describes building from a checkout and has no hosted server. The
+  `learn` bullet in `using-llms/page.md` says what it returns. Resolving: keep
+  `learn.ts`, the copy and the host swap; write upstream's README changes into
+  SidekickDB's text by hand.
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.
@@ -1146,8 +1158,8 @@ project as SidekickDB:
   titles, UI text and comments, and six of them no longer load Instant's logo
   from www.instantdb.com. The Expo title is "My SidekickDB App" in the starter
   and in `create-instant-app/src/scaffold.ts`, which replaces it. The agent
-  rules (`client/www/lib/intern/instant-rules.md` and its identical copy
-  `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
+  rules (`client/www/lib/intern/instant-rules.md` and its identical copies
+  `create-instant-app/template/rules/AGENTS.md` and `mcp/rules/AGENTS.md`) say "SidekickDB" and do not
   mention the Python SDK.
 - Docs links in what the CLI and `create-sidekick-app` print and write, the
   headers `platform/src/perms.ts` and `schema.ts` generate (and their tests),
@@ -1396,7 +1408,7 @@ for the person reviewing the sync PR.
 | No new build-time or runtime contact with Instant services | The same lists, plus the report's flag when `client/www/next.config.js` changes. Also look for new fetches in build scripts and Dockerfiles before building images |
 | Wire `versions` keys unchanged | `check.mjs` fails if a session `versions` key (`'@instantdb/<pkg>': version` in `client/packages/*/src`) disappears or appears under `@sidekickdb/` |
 | Rename leftovers | `check.mjs` fails if a changed file still needs the normalizer or has a leftover (an old name the rules do not rewrite and the allowlist does not cover) |
-| LLM rules copies | `client/www/lib/intern/instant-rules.md` and `client/packages/create-instant-app/template/rules/AGENTS.md` must stay byte-identical |
+| LLM rules copies | `client/www/lib/intern/instant-rules.md`, `client/packages/create-instant-app/template/rules/AGENTS.md` and `client/packages/mcp/rules/AGENTS.md` must stay byte-identical |
 | SidekickDB's version is above the server's version minimums | `check.mjs` fails and names the minimum (file, line, enclosing def) if `version.ts` is not above every version string literal (`x.y.z`, optional `v` and `-dev`) in `server/src/instant/reactive/session.clj` and `server/src/instant/dash/routes.clj`, whatever its name or form, and if either file has no version literal. Not seen: a minimum assembled at runtime, written as a version map by hand, or defined in another server file |
 | Conflict markers | none left in changed files |
 | Licence and attribution | `LICENSE.md` unchanged; this file still accurate |

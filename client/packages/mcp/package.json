@@ -2,7 +2,7 @@
   "name": "@sidekickdb/mcp",
   "private": true,
   "version": "0.0.0",
-  "description": "Model Context Protocol (MCP) server for managing Instant apps, schemas, and permissions!",
+  "description": "Model Context Protocol (MCP) server for managing SidekickDB apps, schemas, and permissions!",
   "license": "Apache-2.0",
   "homepage": "https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp",
   "repository": {
@@ -18,7 +18,8 @@
     "instant-mcp": "./dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "rules"
   ],
   "scripts": {
     "test": "vitest --project unit",
