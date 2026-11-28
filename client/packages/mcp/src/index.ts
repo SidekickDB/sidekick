@@ -7,6 +7,8 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { parseArgs } from 'node:util';
 import version from './version.ts';
+// SidekickDB: the learn tool's text.
+import { handleLearn, learnDescription } from './learn.ts';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { HoneycombSDK } from '@honeycombio/opentelemetry-node';
 import {
@@ -103,25 +105,10 @@ function wrapServerWithTracing(
 function registerTools(server: McpServer, api: PlatformApi) {
   server.tool(
     'learn',
-    // SidekickDB: point at SidekickDB's rules file in its repository.
-    "If you don't have any context provided about SidekickDB, use this tool to learn about it!",
+    // SidekickDB: returns the rules bundled with this package (src/learn.ts).
+    learnDescription,
     {},
-    async () => {
-      const instructions = `
-      You can learn about SidekickDB by fetching our rules file for agents:
-
-      https://raw.githubusercontent.com/SidekickDB/sidekick/main/client/packages/create-instant-app/template/rules/AGENTS.md
-      `;
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: instructions,
-          },
-        ],
-      };
-    },
+    async () => handleLearn(),
   );
 
   server.tool(
@@ -327,7 +314,7 @@ async function startStdio() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('Instant Platform MCP Server running on stdio');
+  console.error('SidekickDB Platform MCP Server running on stdio');
 }
 
 function ensureEnv(key: string): string {

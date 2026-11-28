@@ -146,8 +146,9 @@ server active and enabled!
 
 Below is a list of the current tools we expose:
 
-- `learn` Points the LLM at the SidekickDB rules file in the SidekickDB
-  repository, to help it understand SidekickDB.
+- `learn` Returns the SidekickDB rules file that ships with the MCP server, to
+  help the LLM understand SidekickDB. Nothing is fetched: the rules come from
+  the version of the server you built.
 - `get-schema` Retrieves the schema for a specific app.
 - `get-perms` Retrieves permission rules for an app.
 - `push-schema` Applies schema changes to an app.
