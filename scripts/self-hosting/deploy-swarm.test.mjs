@@ -101,6 +101,7 @@ test('swarm.yml variables are found', () => {
   for (const v of [
     'POSTGRES_PASSWORD',
     'POSTMARK_TOKEN',
+    'POSTMARK_ACCOUNT_TOKEN',
     'INSTANT_TEAM_EMAIL_SENDER_EMAIL',
     'INSTANT_NREPL',
     'S3_BUCKET',

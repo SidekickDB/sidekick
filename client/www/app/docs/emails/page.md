@@ -5,7 +5,7 @@ nextjs:
     description: 'How to customize magic code emails.'
 ---
 
-You can customize your SidekickDB app's "magic code" email: the body (plain text or HTML), the subject and the sender name.
+You can customize your SidekickDB app's "magic code" email: the body (plain text or HTML), the subject, the sender name and the `from` address.
 
 ## Dashboard
 
@@ -30,4 +30,6 @@ Using a variable is as easy as adding the variable's name in curly brackets, e.g
 
 ## Custom sender addresses
 
-Custom sender addresses (your own `from` and `reply-to` address) are not available with the shipped self-hosted stack. Saving one calls Postmark's sender signatures API with a Postmark account token, and the stack does not pass that token to the server. Magic code emails are sent from your server's default app sender, the address in `SIDEKICK_APP_EMAIL_SENDER_EMAIL` (see [Configure email](/docs/self-hosting#configure-email-with-postmark)).
+You can also set the `from` and `reply-to` fields on your app's magic code emails to an address on your own domain. Custom sender addresses use Postmark sender signatures, so they work only when your SidekickDB server sends email through Postmark and has a Postmark account token (`POSTMARK_ACCOUNT_TOKEN`) set. Without that token, saving a sender address shows an error.
+
+A custom sender address has to be confirmed before your server delivers from it. Your server emails a verification code to the address, which you enter in the dashboard, and Postmark sends a confirmation link to the same address. Until the address is confirmed both ways, emails continue to be sent from your server's default app sender (the address in `SIDEKICK_APP_EMAIL_SENDER_EMAIL`; see [Configure email](/docs/self-hosting#configure-email-with-postmark)).

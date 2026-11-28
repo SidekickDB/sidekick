@@ -575,6 +575,17 @@ The self-hosted stack works without Instant infrastructure.
   `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
   server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
   `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
+- `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
+  `docker-compose.with-caddy.yml` and `swarm.yml` pass
+  `POSTMARK_ACCOUNT_TOKEN` to the server next to `POSTMARK_TOKEN`;
+  `deploy-swarm.sh` (`STACK_VARS`) and `.env.example` carry it and
+  `render-check.mjs` asserts it. Upstream passes only `POSTMARK_TOKEN`, so a
+  custom sender address could not be saved. `sync-sender!` in
+  `server/src/instant/model/app_email_sender.clj` stops with a validation
+  error on `sender-email` when `config/postmark-admin-enabled?` is false,
+  instead of calling Postmark's Signatures API with an empty token; test in
+  `dash/routes_test.clj`. At a sync, keep the variable and the check at the
+  top of `sync-sender!`.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`. The intro paragraph says nothing
@@ -1301,9 +1312,9 @@ chrome present the product as SidekickDB.
   API, platform and auth pages say SidekickDB where they mean the product, and
   describe the reader's own server where upstream described Instant's hosted
   service: magic codes and the default sender come from the server's email
-  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses are
-  not available with the shipped stack (it does not pass
-  `POSTMARK_ACCOUNT_TOKEN` to the server), OAuth callbacks are the server's
+  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses need
+  Postmark as the provider and `POSTMARK_ACCOUNT_TOKEN`, which the shipped
+  stack passes to the server, OAuth callbacks are the server's
   `/runtime/oauth/callback` (Google, GitHub and LinkedIn note that the Auth tab
   shows it), Google's shared dev credentials exist only if the operator
   configured them, the devtool needs `dashURI`, a server without

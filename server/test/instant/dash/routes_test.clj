@@ -1162,7 +1162,8 @@
         (fn [app]
           (let [sender-email (random-email)
                 letter (atom nil)]
-              (with-redefs [postmark/add-sender! (constantly {:body {:ID 123456}})
+              (with-redefs [config/postmark-admin-enabled? (constantly true)
+                            postmark/add-sender! (constantly {:body {:ID 123456}})
                             postmark/send-structured! #(reset! letter %)
                             magic-code-auth/check-custom-sender-rate-limit! (constantly nil)]
                 (let [template-resp (http/post (str config/server-origin "/dash/apps/" (:id app) "/email_templates")
@@ -1196,6 +1197,35 @@
                     (is (= 200 (:status verify-resp)))
                     (is (= true (get-in verify-resp [:body :verified])))
                     (is (= true (:verification_verified verification))))))))))))
+
+;; SidekickDB: without POSTMARK_ACCOUNT_TOKEN, saving a custom sender fails
+;; with a validation error and never calls Postmark.
+(deftest custom-sender-needs-postmark-account-token
+  (with-user
+    (fn [user]
+      (with-empty-app
+        (:id user)
+        (fn [app]
+          (let [postmark-called? (atom false)]
+            (with-redefs [config/postmark-admin-enabled? (constantly false)
+                          postmark/add-sender! (fn [_] (reset! postmark-called? true))
+                          postmark/get-sender! (fn [_] (reset! postmark-called? true))]
+              (let [resp (http/post (str config/server-origin "/dash/apps/" (:id app) "/email_templates")
+                                    {:headers {:Authorization (str "Bearer " (:refresh-token user))
+                                               :Content-Type "application/json"}
+                                     :throw-exceptions false
+                                     :body (->json {:email-type "magic-code"
+                                                    :sender-email (random-email)
+                                                    :sender-name "Custom Sender"
+                                                    :subject "{code} is your code"
+                                                    :body "Your code is {code}"})})
+                    body (<-json (:body resp))]
+                (is (= 400 (:status resp)))
+                (is (= "validation-failed" (get body "type")))
+                (is (= "sender-email" (get-in body ["hint" "data-type"])))
+                (is (re-find #"POSTMARK_ACCOUNT_TOKEN"
+                             (str (get-in body ["hint" "errors" 0 "message"]))))
+                (is (false? @postmark-called?))))))))))
 
 ;; ---
 ;; get-a-db

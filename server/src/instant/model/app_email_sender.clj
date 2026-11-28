@@ -1,5 +1,6 @@
 (ns instant.model.app-email-sender
-  (:require [instant.jdbc.aurora :as aurora]
+  (:require [instant.config :as config]
+            [instant.jdbc.aurora :as aurora]
             [instant.jdbc.sql :as sql]
             [instant.model.app-email-verification :as verification]
             [instant.postmark :as postmark]
@@ -38,6 +39,9 @@
 
 (def sender-claimed-error-message "We can't use this email address; it's already been claimed by a different user.")
 
+;; SidekickDB: shown when POSTMARK_ACCOUNT_TOKEN is not set.
+(def postmark-account-token-missing-error-message "Custom sender addresses need POSTMARK_ACCOUNT_TOKEN to be set on this server, and the server must send email through Postmark.")
+
 (defn sync-sender!
   "Given an email, we do our best to sync to postmark. There are a few cases to consider:
       1. The sender exists, but belongs to a different user
@@ -48,6 +52,10 @@
             a. In this case, we reach an invariant. This can happen when we add a sender in development
       "
   [{:keys [app-id email name]}]
+  ;; SidekickDB: without a Postmark account token, say so instead of calling
+  ;; Postmark's Signatures API with an empty token.
+  (when-not (config/postmark-admin-enabled?)
+    (ex/throw-validation-err! :sender-email email [{:message postmark-account-token-missing-error-message}]))
   (let [sender (get-by-email {:email email})
         postmark-id (:postmark_id sender)
         postmark-sender (when sender
