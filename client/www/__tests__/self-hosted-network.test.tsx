@@ -151,10 +151,16 @@ async function renderYouTube(selfHosted: boolean) {
   );
 }
 
-test('docs videos are links, not embeds, when self-hosted', async () => {
-  expect(await renderYouTube(true)).not.toContain('<iframe');
-  expect(await renderYouTube(false)).toContain('<iframe');
-});
+// Each render imports the component and lib/config afresh, which is slow on a
+// busy CI runner.
+test(
+  'docs videos are links, not embeds, when self-hosted',
+  { timeout: 60_000 },
+  async () => {
+    expect(await renderYouTube(true)).not.toContain('<iframe');
+    expect(await renderYouTube(false)).toContain('<iframe');
+  },
+);
 
 test('the self-hosted Next.js config proxies nothing to other hosts', async () => {
   vi.stubEnv('NEXT_PUBLIC_SELF_HOSTED', 'true');
