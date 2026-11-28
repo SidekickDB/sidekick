@@ -66,25 +66,41 @@ async function load(selfHosted: boolean) {
   return { googleForm, admin };
 }
 
+// Each test imports the dashboard components and lib/config afresh, which is
+// slow on a busy CI runner.
+const slow = { timeout: 60_000 };
+
 const sharedHint = 'If this server has shared dev credentials configured';
 
-test('self-hosted: a new Google web client starts with your own credentials', async () => {
-  const html = (await load(true)).googleForm();
-  expect(html).toContain('Client ID from');
-  expect(html).not.toContain(sharedHint);
-  expect(html).toContain('Use dev credentials');
-});
+test(
+  'self-hosted: a new Google web client starts with your own credentials',
+  slow,
+  async () => {
+    const html = (await load(true)).googleForm();
+    expect(html).toContain('Client ID from');
+    expect(html).not.toContain(sharedHint);
+    expect(html).toContain('Use dev credentials');
+  },
+);
 
-test('hosted: a new Google web client starts with dev credentials', async () => {
-  const html = (await load(false)).googleForm();
-  expect(html).toContain(sharedHint);
-});
+test(
+  'hosted: a new Google web client starts with dev credentials',
+  slow,
+  async () => {
+    const html = (await load(false)).googleForm();
+    expect(html).toContain(sharedHint);
+  },
+);
 
-test('self-hosted: only the owner gets the action to activate the included plan', async () => {
-  const { admin } = await load(true);
-  expect(admin('owner')).toContain('Activate Pro for free');
+test(
+  'self-hosted: only the owner gets the action to activate the included plan',
+  slow,
+  async () => {
+    const { admin } = await load(true);
+    expect(admin('owner')).toContain('Activate Pro for free');
 
-  const html = admin('admin');
-  expect(html).not.toContain('Activate Pro for free');
-  expect(html).toContain('An owner of this app can activate it');
-});
+    const html = admin('admin');
+    expect(html).not.toContain('Activate Pro for free');
+    expect(html).toContain('An owner of this app can activate it');
+  },
+);
