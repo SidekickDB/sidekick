@@ -2,12 +2,14 @@
 nextjs:
   metadata:
     title: Getting started with Vue
-    description: How to use Instant with Vue 3 and Vite
+    description: How to use SidekickDB with Vue 3 and Vite
 ---
 
 ## Automatic Setup With Create Instant App
 
 The fastest way to get started with Instant and Vue is to use create-sidekick-app to scaffold a new project with Instant already set up.
+
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL, which it opens to log you in.
 
 To get started, run:
 
@@ -31,6 +33,8 @@ npm i @sidekickdb/vue
 
 Use `@sidekickdb/cli` to set up a new Instant project. This will prompt you to log in if you haven't already. It will then create schema and permissions files and update your `.env` file.
 
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already.
+
 ```shell
 npx @sidekickdb/cli init
 ```
@@ -44,6 +48,7 @@ import { init } from '@sidekickdb/vue';
 import schema from '../instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: import.meta.env.VITE_INSTANT_APP_ID!,
   schema,
   useDateObjects: true,

@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Getting started with Vanilla JS'
-    description: 'How to use Instant with Vanilla JS'
+    description: 'How to use SidekickDB with Vanilla JS'
 ---
 
 You can use Instant with plain ol' JavaScript/TypeScript too. You may find this helpful to integrate Instant with a framework that doesn't have an official SDK yet.
@@ -39,7 +39,7 @@ type Todo = InstaQLEntity<typeof schema, "todos">;
 
 // Initialize the database
 // ---------
-const db = init({ appId: APP_ID, schema });
+const db = init({ apiURI: "__API_URI__", appId: APP_ID, schema });
 
 // Subscribe to data
 // ---------

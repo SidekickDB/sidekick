@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Rate Limits'
-    description: 'How to add rate limiting to your Instant app with permission rules.'
+    description: 'How to add rate limiting to your SidekickDB app with permission rules.'
 ---
 
 You can add rate limiting to your app with the `rateLimit` object in the [permission rules](/docs/permissions). Rate limits let you control how often users can perform actions like creating records or querying data.

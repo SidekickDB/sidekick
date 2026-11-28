@@ -1,8 +1,8 @@
 ---
 nextjs:
   metadata:
-    title: 'Create Instant App'
-    description: 'Use create-sidekick-app to scaffold a new Instant project'
+    title: 'Create SidekickDB App'
+    description: 'Use create-sidekick-app to scaffold a new SidekickDB project'
 ---
 
 Once you know the basics of Instant, you may find it useful to be able to

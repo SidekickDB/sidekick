@@ -52,6 +52,9 @@ test.each([
   '/img/google_g.svg',
   '/publicSelfHostedVariables.js',
   '/native-file-system-adapter-sw.js',
+  // Linked from the docs (using-llms).
+  '/llms-full.txt',
+  '/docs/auth/magic-codes.md',
 ])('self-hosted dashboard serves %s', (pathname) => {
   expect(redirectFor(pathname)).toBeUndefined();
 });

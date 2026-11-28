@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'LinkedIn OAuth'
-    description: 'How to add LinkedIn OAuth to your Instant app.'
+    description: 'How to add LinkedIn OAuth to your SidekickDB app.'
 ---
 
 {% nav-default value="web-redirect" %}
@@ -53,8 +53,10 @@ Let's dive deeper into each step:
 3. Add the following redirect URI to your application:
 
 ```text
-https://api.instantdb.com/runtime/oauth/callback
+https://sidekick.example.com/runtime/oauth/callback
 ```
+
+Replace `https://sidekick.example.com` with your SidekickDB server's URL.
 
 {% callout type="note" %}
 
@@ -136,7 +138,7 @@ import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const url = db.auth.createAuthorizationURL({
   // Use the linkedin client name in the Instant dashboard auth tab
@@ -246,7 +248,7 @@ import {
 } from 'expo-auth-session';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (

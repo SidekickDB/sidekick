@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Google OAuth'
-    description: 'How to add Google OAuth to your Instant app.'
+    description: 'How to add Google OAuth to your SidekickDB app.'
 ---
 
 {% nav-default value="web-google-button" %}
@@ -127,7 +127,7 @@ Head on over to {% blank-link href="https://console.cloud.google.com/apis/creden
 {% conditional
    param="method"
    value=["web-redirect", "rn-web"] %}
-- Add `https://api.instantdb.com/runtime/oauth/callback` as an Authorized redirect URI.
+- Add `https://sidekick.example.com/runtime/oauth/callback` as an Authorized redirect URI (replace `https://sidekick.example.com` with your SidekickDB server's URL).
 {% /conditional %}
 - If you're testing from localhost, **add both `http://localhost`** and `http://localhost:3000` to "Authorized JavaScript origins", replacing `3000` with the port you use.
 - For production, add your website's domain.
@@ -298,7 +298,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 // e.g. 89602129-cuf0j.apps.googleusercontent.com
 const GOOGLE_CLIENT_ID = 'REPLACE_ME';
@@ -387,7 +387,7 @@ import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const url = db.auth.createAuthorizationURL({
   // Use the google client name in the Instant dashboard auth tab
@@ -497,7 +497,7 @@ import {
 } from 'expo-auth-session';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (
@@ -606,7 +606,7 @@ import {
 } from '@react-native-google-signin/google-signin';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 GoogleSignin.configure({
   // See https://react-native-google-signin.github.io/docs/original#configure

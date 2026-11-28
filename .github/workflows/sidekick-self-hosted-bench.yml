@@ -160,7 +160,9 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           IMAGE: sidekick-bench/dashboard:local
-          # www/public was about 104 MB in v2.0.0.
+          # www/public was about 104 MB in v2.0.0. Raise this bound when the
+          # image gains files on purpose: the bundled editor under
+          # public/monaco adds about 14 MB.
           MAX_PUBLIC_BYTES: '10000000'
         run: |
           fail=0
@@ -172,7 +174,8 @@ jobs:
             sleep 1
           done
           for p in /dash /logout /_devtool /docs /docs/instaql /docs/instaql.md \
-            /docs.md /llm-rules/AGENTS.md /intern /intern/storage \
+            /docs.md /llms.txt /llms-full.txt /docs/auth/magic-codes.md \
+            /docs/self-hosting/vps.md /llm-rules/AGENTS.md /intern /intern/storage \
             /intern/restore /intern/deployment-settings \
             /fonts/Switzer-Regular.woff /img/docs/devtool-explorer.png \
             /img/google_g.svg /publicSelfHostedVariables.js \

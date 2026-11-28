@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Magic Code Auth'
-    description: 'How to add magic code auth to your Instant app.'
+    description: 'How to add magic code auth to your SidekickDB app.'
 ---
 
 {% nav-default value="react" %}
@@ -45,7 +45,7 @@ import React, { useState } from 'react';
 import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (
@@ -188,7 +188,7 @@ import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { init } from '@sidekickdb/react-native';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   const { isLoading, user, error } = db.useAuth();
@@ -304,7 +304,7 @@ Here's a full example of magic code auth with vanilla JavaScript. Open up your `
 import { init, type User } from '@sidekickdb/core';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 const app = document.getElementById('app')!;
 

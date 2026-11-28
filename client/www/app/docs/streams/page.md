@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Streams'
-    description: 'How to stream and persist data with Instant.'
+    description: 'How to stream and persist data with SidekickDB.'
 ---
 
 Instant Streams provide a simple way to build durable, real-time data flows. They are excellent for LLM-native applications, making it easy to stream AI chat completions.
@@ -170,6 +170,7 @@ import { after } from 'next/server';
 import { init, id } from '@sidekickdb/admin';
 
 const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.INSTANT_APP_ID,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
 });
@@ -275,6 +276,7 @@ export async function POST(req: Request) {
 
       // Create a resumable stream from the SSE stream
       const streamContext = createResumableStreamContext({
+        apiURI: '__API_URI__',
         waitUntil: after,
         appId: process.env.INSTANT_APP_ID,
         adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
@@ -311,6 +313,7 @@ export async function GET(
   }
 
   const streamContext = createResumableStreamContext({
+    apiURI: '__API_URI__',
     waitUntil: after,
     appId: process.env.INSTANT_APP_ID,
     adminToken: process.env.INSTANT_APP_ADMIN_TOKEN,
@@ -476,6 +479,7 @@ import { init } from '@sidekickdb/react/nextjs';
 import schema from '@/instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   schema,
   firstPartyPath: '/api/instant',
@@ -497,6 +501,7 @@ import { init } from '@sidekickdb/admin';
 import schema from '@/instant.schema';
 
 export const db = init({
+  apiURI: '__API_URI__',
   appId: process.env.NEXT_PUBLIC_INSTANT_APP_ID!,
   adminToken: process.env.INSTANT_APP_ADMIN_TOKEN!,
   schema,

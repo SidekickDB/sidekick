@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'GitHub OAuth'
-    description: 'How to add GitHub OAuth to your Instant app.'
+    description: 'How to add GitHub OAuth to your SidekickDB app.'
 ---
 
 {% nav-default value="web-redirect" %}
@@ -54,7 +54,7 @@ Let's dive deeper into each step:
 4. Fill in the application details:
    - **Application name**: Your app's name (users will see this)
    - **Homepage URL**: Your app's website
-   - **Authorization callback URL**: `https://api.instantdb.com/runtime/oauth/callback`
+   - **Authorization callback URL**: `https://sidekick.example.com/runtime/oauth/callback` (replace `https://sidekick.example.com` with your SidekickDB server's URL)
 5. Click "Register application".
 6. After creation, you'll see your **Client ID**.
 7. Click "Generate a new client secret" to get your **Client Secret**.
@@ -133,7 +133,7 @@ import { init } from '@sidekickdb/react';
 
 const APP_ID = '__APP_ID__';
 
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 export default function App() {
   const url = db.auth.createAuthorizationURL({
@@ -241,7 +241,7 @@ import {
 } from 'expo-auth-session';
 
 const APP_ID = '__APP_ID__';
-const db = init({ appId: APP_ID });
+const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 function App() {
   return (

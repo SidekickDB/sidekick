@@ -2,7 +2,7 @@
 nextjs:
   metadata:
     title: 'Managing users'
-    description: 'How to manage users in your Instant app.'
+    description: 'How to manage users in your SidekickDB app.'
 ---
 
 ## See users in your app
