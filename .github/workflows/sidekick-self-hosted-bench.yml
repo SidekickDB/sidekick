@@ -6,10 +6,12 @@
 # kept are committed under scripts/bench/self-hosted/results/.
 #
 # Read-only: no secrets, no write permissions, nothing is pushed or published.
-# It runs on demand, and on pull requests that change the harness or this
-# file. A pull request that changes only results/ does not start it; on one
-# that also changes the harness, every push runs it, because GitHub matches
-# the paths against the whole pull request.
+# It runs on demand, and on pull requests that change the harness, this
+# file, or what the dashboard image carries and serves (client/Dockerfile.www,
+# client/www/next.config.js, client/www/public). A pull request that changes
+# only results/ does not start it; on one that also changes the harness,
+# every push runs it, because GitHub matches the paths against the whole pull
+# request.
 #
 # A pull request run is a check that the harness still works, not a baseline:
 # one runtime mode, a short idle wait, and a server image built with the
@@ -37,6 +39,9 @@ on:
       - 'scripts/bench/self-hosted/**'
       - '!scripts/bench/self-hosted/results/**'
       - '.github/workflows/sidekick-self-hosted-bench.yml'
+      - 'client/Dockerfile.www'
+      - 'client/www/next.config.js'
+      - 'client/www/public/**'
 
 permissions:
   contents: read
@@ -147,6 +152,87 @@ jobs:
           push: false
           provenance: false
           tags: sidekick-bench/dashboard:local
+
+      # The dashboard image serves only the dashboard, the docs and the admin
+      # tools, and carries only the public/ files they load
+      # (client/Dockerfile.www, client/www/next.config.js). Every same-origin
+      # file that the server-rendered HTML of a few served pages (and their
+      # stylesheets) asks for must answer 200; files that only client-side
+      # rendering requests are not seen. HTTP answers only: signing in on /dash
+      # and using the devtool are not exercised here.
+      - name: Check what the dashboard image serves
+        if: github.event_name == 'pull_request'
+        env:
+          IMAGE: sidekick-bench/dashboard:local
+          # www/public was about 104 MB in v2.0.0 and 3,159,619 bytes on this
+          # pull request. Raise this bound when the image gains files on
+          # purpose: the bundled editor under public/monaco adds about 14 MB.
+          MAX_PUBLIC_BYTES: '10000000'
+        run: |
+          fail=0
+          trap 'docker rm -f dash-check > /dev/null 2>&1 || true' EXIT
+          docker run -d --name dash-check -p 127.0.0.1:3999:3000 \
+            -e SIDEKICK_API_URI=http://127.0.0.1:8888 "$IMAGE" > /dev/null
+          for _ in $(seq 60); do
+            curl -fsS -o /dev/null http://127.0.0.1:3999/dash && break
+            sleep 1
+          done
+          for p in /dash /logout /_devtool /docs /docs/instaql /docs/instaql.md \
+            /docs.md /llms.txt /llms-full.txt /docs/auth/magic-codes.md \
+            /docs/self-hosting/vps.md /llm-rules/AGENTS.md /intern /intern/storage \
+            /intern/restore /intern/deployment-settings \
+            /fonts/Switzer-Regular.woff /img/docs/devtool-explorer.png \
+            /img/google_g.svg /publicSelfHostedVariables.js \
+            /native-file-system-adapter-sw.js; do
+            got=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3999$p" || true)
+            echo "$got $p"
+            [ "$got" = 200 ] || { echo "::error::$p: expected 200, got $got"; fail=1; }
+          done
+          for p in /pricing /status /discord /intern/emails /intern/emails/feb2026 \
+            /intern/investor_updates /intern/sunset /intern/overview \
+            /posts/heroui/stars.png /audio/habanera.mp3 /api/avatar \
+            /img/icon/favicon-32x32.png /sitemap.xml /rss.xml; do
+            got=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "http://127.0.0.1:3999$p" || true)
+            echo "$got $p"
+            case "$got" in
+              "404 "|30[78]" http://127.0.0.1:3999/dash") ;;
+              *) echo "::error::$p: expected a redirect to /dash or 404, got $got"; fail=1 ;;
+            esac
+          done
+          echo "--- files the served pages ask for"
+          base=http://127.0.0.1:3999
+          refs=$(mktemp)
+          for page in /docs /docs/instaql /dash /intern /platform/oauth/start; do
+            html=$(curl -s -w '\n%{http_code}' "$base$page" || true)
+            code=$(printf '%s' "$html" | tail -n1)
+            if [ "$code" != 200 ]; then
+              echo "$code $page (not scanned)"
+              [ "$page" = /platform/oauth/start ] || { echo "::error::$page: expected 200, got $code"; fail=1; }
+              continue
+            fi
+            printf '%s' "$html" | grep -oE '(src|href)="/[^"]*"' | sed -E 's/^[a-z]+="//; s/"$//' >> "$refs" || true
+          done
+          for css in $(grep -E '^/_next/static/.*\.css$' "$refs" | sort -u || true); do
+            curl -s "$base$css" | grep -oE "url\([\"']?/[^)\"']*" | sed -E "s/^url\([\"']?//" >> "$refs" || true
+          done
+          for f in $(sed -E 's/[?#].*//' "$refs" | grep -E '^/(_next/static/|img/|fonts/|llm-rules/|[^/]+\.[A-Za-z0-9]+$)' | sort -u || true); do
+            got=$(curl -s -o /dev/null -w '%{http_code}' "$base$f" || true)
+            echo "$got $f"
+            [ "$got" = 200 ] || { echo "::error::$f, asked for by a served page: expected 200, got $got"; fail=1; }
+          done
+          echo "--- www/public in the image"
+          docker run --rm --entrypoint sh "$IMAGE" -c 'cd /app/www/public && find . -maxdepth 2 | sort'
+          for d in posts audio marketing video-previews readmes img/icon \
+            img/emails img/essays img/investors img/startups img/hiring \
+            img/peeps img/about img/landing img/showcase img/product-pages; do
+            if docker run --rm --entrypoint test "$IMAGE" -e "/app/www/public/$d"; then
+              echo "::error::www/public/$d is in the image"; fail=1
+            fi
+          done
+          public=$(docker run --rm --entrypoint du "$IMAGE" -sb /app/www/public | cut -f1)
+          echo "Size: www/public $public bytes, image $(docker image inspect -f '{{.Size}}' "$IMAGE") bytes"
+          [ "$public" -le "$MAX_PUBLIC_BYTES" ] || { echo "::error::www/public is $public bytes, more than $MAX_PUBLIC_BYTES"; fail=1; }
+          exit $fail
 
       - name: Run the benchmark
         env:

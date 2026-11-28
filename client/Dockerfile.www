@@ -60,7 +60,18 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /monorepo/www/.next/standalone ./
 # Copy static assets and public files
 COPY --from=builder /monorepo/www/.next/static ./www/.next/static
-COPY --from=builder /monorepo/www/public ./www/public
+# SidekickDB: only the public files the dashboard and the docs load. The rest of
+# public/ is Instant's website (essay media, newsletters, marketing images,
+# Instant's icons, the sitemap and feeds). A new file the dashboard loads must be
+# added here, and its folder to selfHostedStaticDirs in www/next.config.js.
+# docs, docs.md and llm-rules are written by the build (prebuild), llms.txt and
+# llms-full.txt after it (postbuild); a missing one fails the COPY.
+COPY --from=builder /monorepo/www/public/fonts ./www/public/fonts
+COPY --from=builder /monorepo/www/public/img/docs ./www/public/img/docs
+COPY --from=builder /monorepo/www/public/img/*.svg ./www/public/img/
+COPY --from=builder /monorepo/www/public/docs ./www/public/docs
+COPY --from=builder /monorepo/www/public/llm-rules ./www/public/llm-rules
+COPY --from=builder /monorepo/www/public/docs.md /monorepo/www/public/llms.txt /monorepo/www/public/llms-full.txt /monorepo/www/public/native-file-system-adapter-sw.js /monorepo/www/public/publicSelfHostedVariables.js ./www/public/
 
 COPY <<'EOF' /app/start.sh
 #!/bin/sh
