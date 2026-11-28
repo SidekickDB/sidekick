@@ -950,8 +950,8 @@ export function checkLlmRules(root) {
     .map((b, i) => [b, LLM_RULES[i + 1]])
     .filter(([b]) => !fs.existsSync(b) || fs.readFileSync(b, "utf8") !== want)
     .map(
-      ([, f]) =>
-        `${LLM_RULES[0]} and ${f} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+      ([b, f]) =>
+        `${fs.existsSync(b) ? `${LLM_RULES[0]} and ${f} differ` : `${f} is missing`} (regenerate with client/www/scripts/gen-llm-rules.ts)`,
     );
 }
 

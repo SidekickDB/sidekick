@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { handleLearn, learnDescription } from '../src/learn.ts';
+import { findRules, handleLearn, learnDescription } from '../src/learn.ts';
 
 // SidekickDB: learn returns the bundled rules file; nothing is fetched.
 describe('learn tool', () => {
@@ -23,5 +24,15 @@ describe('learn tool', () => {
     expect(read('../rules/AGENTS.md')).toBe(
       read('../../../www/lib/intern/instant-rules.md'),
     );
+  });
+
+  test('finds the package copy from src/, dist/ and dist/esm/', () => {
+    const want = fileURLToPath(new URL('../rules/AGENTS.md', import.meta.url));
+    for (const p of [
+      '../src/learn.ts',
+      '../dist/learn.js',
+      '../dist/esm/learn.js',
+    ])
+      expect(findRules(new URL(p, import.meta.url).href)).toBe(want);
   });
 });
