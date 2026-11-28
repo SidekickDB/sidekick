@@ -315,6 +315,19 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
   `node scripts/upstream/check.mjs --base HEAD^1` and a probe that fails unless
   the guard refuses outbound requests to reserved addresses. Upstream has no
   file with this name, and it gets no exception from `check.mjs`'s rules.
+- `.github/workflows/sidekick-e2e.yml`, started by hand only: builds the
+  server image, starts `self-hosting/docker-compose.yml` with
+  `scripts/e2e/compose.e2e.yml` (server on `127.0.0.1:8888`, no dashboard)
+  and runs each networked suite through the guard with
+  `SIDEKICK_E2E_API_URI=http://localhost:8888`; core's browser suite runs in
+  the Playwright image of `js.yml` on the host network.
+  `scripts/e2e/summarize.mjs` fails the run when a suite fails, leaves no
+  report or a broken one, or runs fewer tests than the minimum the workflow
+  gives it. create-sidekick-app's dependency install is replaced by a stub
+  `npm` (it would reach the npm registry), and the summary says so.
+  Read-only, no secrets; `check.mjs` lists it in `E2E_WORKFLOWS` without any
+  exception from its rules, and fails unless every `SIDEKICK_E2E_API_URI`
+  in it is a localhost URL.
 
 **Resolving:** keep the step's two empty variables and `pnpm run test`, the
 guarded `test`/`bench` scripts, and the e2e helpers that skip without
