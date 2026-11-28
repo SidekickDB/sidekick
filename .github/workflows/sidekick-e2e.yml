@@ -15,10 +15,6 @@ name: e2e suites
 
 on:
   workflow_dispatch:
-  # Temporary: proves the workflow on its pull request; removed before merge.
-  pull_request:
-    paths:
-      - '.github/workflows/sidekick-e2e.yml'
 
 permissions:
   contents: read
