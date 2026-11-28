@@ -107,10 +107,28 @@ test('the code editor loads Monaco from the dashboard', async () => {
   );
   expect(defaults).toMatch(cdnHosts);
 
+  // On the server the module configures nothing.
+  monacoLoader.config.mockClear();
+  vi.resetModules();
   await import('../lib/monacoLoader');
-  expect(monacoLoader.config).toHaveBeenCalledWith({
-    paths: { vs: '/monaco/vs' },
-  });
+  expect(monacoLoader.config).not.toHaveBeenCalled();
+
+  // In the browser the path is an absolute URL on the page's own origin:
+  // Monaco's language workers run from a blob: URL, where a path like
+  // /monaco/vs cannot be resolved and the workers fail to start.
+  const origin = 'https://dash.example.test:8443';
+  vi.stubGlobal('window', { location: { origin } });
+  try {
+    vi.resetModules();
+    await import('../lib/monacoLoader');
+  } finally {
+    vi.unstubAllGlobals();
+  }
+  expect(monacoLoader.config).toHaveBeenCalledTimes(1);
+  const vs = monacoLoader.config.mock.calls[0][0].paths.vs;
+  expect(vs).toMatch(/^https?:\/\//);
+  expect(new URL(vs).origin).toBe(origin);
+  expect(new URL(vs).pathname).toBe('/monaco/vs');
 
   // Both routers configure the loader before any editor mounts.
   for (const file of ['pages/_app.tsx', 'app/providers.tsx']) {
