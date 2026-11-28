@@ -594,6 +594,29 @@ The self-hosted stack works without Instant infrastructure.
   `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
   server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
   `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
+- PR #120: `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
+  `docker-compose.with-caddy.yml` and `swarm.yml` pass
+  `POSTMARK_ACCOUNT_TOKEN` to the server next to `POSTMARK_TOKEN`;
+  `deploy-swarm.sh` (`STACK_VARS`) and `.env.example` carry it and
+  `render-check.mjs` asserts it. Upstream passes only `POSTMARK_TOKEN`, so a
+  custom sender address could not be saved. `sync-sender!` in
+  `server/src/instant/model/app_email_sender.clj`, and
+  `sender-verification-get` in `dash/routes.clj` for a saved sender, stop
+  with a validation error on `sender-email` before calling Postmark's
+  Signatures API unless the server sends through Postmark
+  (`email-router/provider`, the decision `send-structured!` now dispatches
+  on) with `POSTMARK_TOKEN` and `POSTMARK_ACCOUNT_TOKEN` set. Mail from a
+  custom sender through SendGrid or Resend has no fallback to the default
+  sender, so the app's users could not log in. For the same reason
+  `send!` and `send-test!` in `magic_code_auth.clj` use a verified custom
+  sender only while `provider` is Postmark for it, so a later switch to
+  another provider sends from the default sender. The dashboard shows the
+  server's message when the status check fails
+  (`useCustomSenderVerification.ts`). Tests in `dash/routes_test.clj`,
+  `runtime/routes_test.clj` and `email_router_test.clj`. At a
+  sync, keep the variable, `provider` as the single provider decision, the
+  check at the top of `sync-sender!` and the provider condition in `send!`
+  and `send-test!`.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`. The intro paragraph says nothing
@@ -1332,9 +1355,9 @@ chrome present the product as SidekickDB.
   API, platform and auth pages say SidekickDB where they mean the product, and
   describe the reader's own server where upstream described Instant's hosted
   service: magic codes and the default sender come from the server's email
-  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses are
-  not available with the shipped stack (it does not pass
-  `POSTMARK_ACCOUNT_TOKEN` to the server), OAuth callbacks are the server's
+  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses need
+  Postmark as the provider and `POSTMARK_ACCOUNT_TOKEN`, which the shipped
+  stack passes to the server, OAuth callbacks are the server's
   `/runtime/oauth/callback` (Google, GitHub and LinkedIn note that the Auth tab
   shows it), Google's shared dev credentials exist only if the operator
   configured them, the devtool needs `dashURI`, a server without

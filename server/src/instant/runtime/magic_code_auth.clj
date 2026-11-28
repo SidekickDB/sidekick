@@ -135,6 +135,12 @@
     (boolean (:verified (app-email-verification/get-by-app-and-sender
                          app-id (:id sender))))))
 
+;; SidekickDB: a custom sender is a Postmark sender signature, and only
+;; Postmark's sender errors fall back to the default sender. If the server now
+;; sends through another provider, use the default sender instead.
+(defn postmark-sends-from? [sender-email]
+  (= :postmark (email-router/provider sender-email)))
+
 (defn send-test!
   "Sends a one-off test of the magic-code email to `to`, rendering the given
    (possibly unsaved) subject/body with sample template params. Falls back to
@@ -147,7 +153,8 @@
                          :expiration (friendly-expiration app)}
         {default-sender-email :email} (config/app-email-sender)
         from-email (if (and (seq sender-email)
-                            (instant-verified-sender? (:id app) sender-email))
+                            (instant-verified-sender? (:id app) sender-email)
+                            (postmark-sends-from? sender-email))
                      sender-email
                      default-sender-email)
         email-params {:sender-email from-email
@@ -200,7 +207,8 @@
 
         custom-email (:email template)
         custom-email-verified? (and (seq custom-email)
-                                    (:verified template))
+                                    (:verified template)
+                                    (postmark-sends-from? custom-email))
 
         sender-email (if custom-email-verified?
                        custom-email

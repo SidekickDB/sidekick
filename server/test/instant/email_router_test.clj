@@ -4,6 +4,7 @@
    [clojure.test :refer [deftest is testing]]
    [instant.config :as config]
    [instant.email-router :as email-router]
+   [instant.flags :as flags]
    [instant.postmark :as postmark]
    [instant.sendgrid :as sendgrid]
    [instant.util.exception :as ex]
@@ -82,3 +83,26 @@
           (postmark/send! {:from "Sender <login@example.com>" :to "user@example.com"
                            :subject "s" :html "<p>hi</p>"})
           (is (= "ops@example.com" (get @body "ReplyTo"))))))))
+
+;; SidekickDB: every row of the provider decision that send-structured!
+;; dispatches on.
+(deftest provider-decision
+  (doseq [[desc {:keys [provider resend sendgrid postmark hosted from]} want]
+          [["explicit resend" {:provider :resend :postmark true} :resend]
+           ["explicit sendgrid" {:provider :sendgrid :postmark true} :sendgrid]
+           ["explicit postmark" {:provider :postmark :resend true :sendgrid true} :postmark]
+           ["resend token only" {:resend true} :resend]
+           ["sendgrid token without postmark" {:sendgrid true :resend true} :sendgrid]
+           ["postmark and sendgrid tokens" {:sendgrid true :postmark true} :postmark]
+           ["hosted flag, address in sendgrid-froms" {:postmark true :hosted true
+                                                      :from (first (keys email-router/sendgrid-froms))} :sendgrid-hosted]
+           ["hosted flag, other address" {:postmark true :hosted true} :postmark]
+           ["unrecognised provider name falls through" {:provider :mailgun :resend true} :resend]
+           ["nothing configured" {} :postmark]]]
+    (testing desc
+      (with-redefs [config/email-provider (constantly provider)
+                    config/resend-send-enabled? (constantly (boolean resend))
+                    config/sendgrid-send-enabled? (constantly (boolean sendgrid))
+                    config/postmark-send-enabled? (constantly (boolean postmark))
+                    flags/send-with-sendgrid? (constantly (boolean hosted))]
+        (is (= want (email-router/provider (or from "login@example.com"))))))))

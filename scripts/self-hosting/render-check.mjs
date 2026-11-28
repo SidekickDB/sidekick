@@ -3,8 +3,8 @@
 // and checks that each one either renders with the right credentials or stops
 // with a message that names the variable to set. It also checks that no file
 // publishes the Postgres port beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
-// asks for another address, and that every file starts Postgres with JIT off.
-// Client-side only: no
+// asks for another address, that every file starts Postgres with JIT off, and
+// that POSTMARK_ACCOUNT_TOKEN reaches the server. Client-side only: no
 // containers, images or daemon are used.
 //
 //   node scripts/self-hosting/render-check.mjs \
@@ -124,6 +124,7 @@ const AK = 'storage-access-value';
 const SK = 'storage-secret-value';
 const OLD_AK = 'old-minio-user-value';
 const OLD_SK = 'old-minio-password-value';
+const POSTMARK_ACCOUNT = 'postmark-account-token-value';
 
 const cases = [
   {
@@ -524,6 +525,42 @@ for (const cmd of composes) {
     }
   }
 
+  // POSTMARK_ACCOUNT_TOKEN from .env reaches the server (custom sender
+  // addresses need it).
+  for (const file of [
+    'docker-compose.yml',
+    'docker-compose.with-caddy.yml',
+    'docker-compose.local.yml',
+  ]) {
+    const r = renderCompose(
+      cmd,
+      file,
+      envFile(`${file}-postmark-account-token`, {
+        POSTGRES_PASSWORD: PG,
+        STORAGE_ACCESS_KEY: AK,
+        STORAGE_SECRET_KEY: SK,
+        POSTMARK_ACCOUNT_TOKEN: POSTMARK_ACCOUNT,
+      }),
+    );
+    const problems = [];
+    if (!r.ok)
+      problems.push(`did not render: ${r.stderr.trim().split('\n').at(-1)}`);
+    else {
+      const got = envOf(r.config, 'server').POSTMARK_ACCOUNT_TOKEN;
+      if (got !== POSTMARK_ACCOUNT)
+        problems.push(
+          `server POSTMARK_ACCOUNT_TOKEN is ${JSON.stringify(got)}, expected "${POSTMARK_ACCOUNT}"`,
+        );
+    }
+    record(
+      label,
+      file,
+      'postmark account token: set',
+      problems,
+      r.ok ? 'rendered' : r.stderr.trim().split('\n').at(-1),
+    );
+  }
+
   // Postgres is not published beyond 127.0.0.1 unless POSTGRES_BIND_ADDRESS
   // says so. A port without host_ip is published on every interface.
   {
@@ -729,6 +766,24 @@ for (const cmd of composes) {
       ? []
       : ['server environment lacks INSTANT_NREPL: "true"'];
   record('docker stack config', 'swarm.yml', 'nrepl: INSTANT_NREPL=true', p5);
+  // POSTMARK_ACCOUNT_TOKEN in the environment reaches the server.
+  const postmark = stack({
+    POSTGRES_PASSWORD: PG,
+    STORAGE_ACCESS_KEY: AK,
+    STORAGE_SECRET_KEY: SK,
+    POSTMARK_ACCOUNT_TOKEN: POSTMARK_ACCOUNT,
+  });
+  const p6 = !postmark.ok
+    ? [`did not render: ${postmark.stderr.trim().split('\n').at(-1)}`]
+    : new RegExp(
+          `^ {6}POSTMARK_ACCOUNT_TOKEN: "?${POSTMARK_ACCOUNT}"?$`,
+          'm',
+        ).test(postmark.stdout)
+      ? []
+      : [
+          `server environment lacks POSTMARK_ACCOUNT_TOKEN: ${POSTMARK_ACCOUNT}`,
+        ];
+  record('docker stack config', 'swarm.yml', 'postmark account token: set', p6);
   const none = stack({ POSTGRES_PASSWORD: PG });
   const p2 = none.ok
     ? ['rendered without storage keys']
