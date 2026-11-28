@@ -6,13 +6,13 @@ const html = (serverOrigin: string): string => {
     'utf-8',
   ).toString('base64');
 
-  const cursorUrl = `https://cursor.com/en/install-mcp?name=InstantDB${dev ? '%20Dev' : ''}&config=${cursorConfig}`;
+  const cursorUrl = `https://cursor.com/en/install-mcp?name=SidekickDB${dev ? '%20Dev' : ''}&config=${cursorConfig}`;
   return /* HTML */ `<!doctype html>
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>InstantDB Remote MCP Server</title>
+        <title>SidekickDB Remote MCP Server</title>
         <style>
           body {
             font-family: sans-serif;
@@ -56,13 +56,13 @@ const html = (serverOrigin: string): string => {
       </head>
       <body>
         <div class="container">
-          <h1>Welcome to InstantDB's remote MCP Server!</h1>
+          <h1>Welcome to SidekickDB's remote MCP Server!</h1>
 
           <p>
             <a href="${cursorUrl}">
               <img
                 src="https://cursor.com/deeplink/mcp-install-dark.svg"
-                alt="Add InstantDB's MCP server to Cursor"
+                alt="Add SidekickDB's MCP server to Cursor"
                 height="32"
               />
             </a>
@@ -74,14 +74,14 @@ const html = (serverOrigin: string): string => {
           </div>
 
           <p>
-            <a href="https://www.instantdb.com/docs/using-llms"
+            <a href="https://sidekickdb.co/docs/using-llms"
               >Learn more in the docs.</a
             >
           </p>
 
           <p>
             <a
-              href="https://github.com/instantdb/instant/tree/main/client/packages/mcp"
+              href="https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp"
               >View the code on GitHub.</a
             >
           </p>

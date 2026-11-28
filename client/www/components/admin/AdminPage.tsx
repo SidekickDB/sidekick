@@ -466,7 +466,9 @@ export function Admin({
               </Callout>
             ) : null}
 
-            {!canAddMembers && isSelfHosted ? (
+            {/* SidekickDB: the server lets only the app's owner activate the
+                included plan, so other admins are told who can. */}
+            {!canAddMembers && isSelfHosted && isMinRole('owner', role) ? (
               <Callout>
                 <FieldHint>
                   The Pro plan is included with this self-hosted instance.
@@ -477,6 +479,13 @@ export function Admin({
                     target={{ type: 'app', appId: app.id }}
                   />
                 </div>
+              </Callout>
+            ) : !canAddMembers && isSelfHosted ? (
+              <Callout>
+                <FieldHint>
+                  The Pro plan is included with this self-hosted instance. An
+                  owner of this app can activate it to invite teammates.
+                </FieldHint>
               </Callout>
             ) : !canAddMembers ? (
               <Callout>

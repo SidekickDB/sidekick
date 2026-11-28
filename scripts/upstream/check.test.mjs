@@ -8,10 +8,12 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  checkLlmRules,
   checkWorkflows,
   hasReleaseGuard,
   isFalse,
   compareVersionsKeys,
+  LLM_RULES,
   runChecks,
   scanAddedLines,
   versionsKeys,
@@ -931,4 +933,27 @@ test("the turbo cache prune job keeps actions: write only while it is main-only 
     ),
     'enabled job "build" asks for a write permission',
   );
+});
+
+test("every agent rules copy must equal the canonical file", () => {
+  assert.deepEqual(checkLlmRules(repo), []);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "sk-rules-"));
+  try {
+    for (const f of LLM_RULES) {
+      fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true });
+      fs.writeFileSync(path.join(root, f), "rules\n");
+    }
+    assert.deepEqual(checkLlmRules(root), []);
+    fs.writeFileSync(path.join(root, LLM_RULES[2]), "old rules\n");
+    assert.deepEqual(checkLlmRules(root), [
+      `${LLM_RULES[0]} and ${LLM_RULES[2]} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+    ]);
+    fs.rmSync(path.join(root, LLM_RULES[1]));
+    assert.deepEqual(checkLlmRules(root), [
+      `${LLM_RULES[1]} is missing (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+      `${LLM_RULES[0]} and ${LLM_RULES[2]} differ (regenerate with client/www/scripts/gen-llm-rules.ts)`,
+    ]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

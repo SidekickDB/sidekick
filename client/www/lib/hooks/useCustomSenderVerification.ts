@@ -76,7 +76,11 @@ export const useCustomSenderVerification = (app: InstantApp) => {
     {
       onError: (e) => {
         console.error('Failed to check verification:', e);
-        errorToast('Failed to check verification status');
+        // SidekickDB: show the server's reason, e.g. a missing Postmark token.
+        errorToast(
+          e?.body?.hint?.errors?.[0]?.message ??
+            'Failed to check verification status',
+        );
       },
     },
   );

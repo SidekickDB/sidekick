@@ -239,15 +239,15 @@ No upstream workflow may publish, deploy, push elsewhere or write to upstream's
 services. SidekickDB releases only through its own two release workflows (PR
 #18, [`RELEASING.md`](RELEASING.md)), which upstream does not have.
 
+- `.github/workflows/clojure.yml`: jobs `publish-image` and `publish-eb` are
+  disabled. The **Fetch timings** step is disabled. `clj-check` passes no secrets
+  and sets `SAVE_TIMINGS: 'false'`.
 - `.github/workflows/js.yml`: jobs `publish-docs`, `deploy-remote-mcp`,
   `publish-experimental-package`, `publish-packages`, `vercel-preview`,
   `vercel-prod-deploy` and `vercel-staging-deploy` have
   `if: false && (<upstream condition>)`. PR #1 also disabled the `build` job's
   **Run tests** step (`dd309ff5`); PR #9 re-enabled it behind the network guard
   (next section).
-- `.github/workflows/clojure.yml`: jobs `publish-image` and `publish-eb` are
-  disabled. The **Fetch timings** step is disabled. `clj-check` passes no secrets
-  and sets `SAVE_TIMINGS: 'false'`.
 - `.github/workflows/python-publish.yml`, `publish-self-hosted-images.yml`,
   `sync-instant-skills.yml`: triggers commented out (only `workflow_dispatch`
   is left) and every job `if: false`.
@@ -300,21 +300,15 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
 - `.github/workflows/js.yml`, `build` job, **Run tests** step: runs
   `pnpm run test --continue` with `SIDEKICK_E2E_API_URI: ''`,
   `SIDEKICK_NETWORK_GUARD_ALLOW: ''` and `TURBO_TELEMETRY_DISABLED: '1'`.
-- `client/scripts/network-guard.cjs` and `client/scripts/with-network-guard.mjs`:
-  the guard is preloaded into every Node process (and worker thread) of
-  `pnpm run test` / `pnpm run bench` (`client/package.json`). It refuses every
-  non-loopback connection and DNS lookup, always refuses `instantdb.com`, and
-  fails the run if anything was blocked. `client/turbo.json` passes the guard
-  variables through and no longer caches `test:ci`.
-- The networked suites (core browser e2e, cli, create-sidekick-app, mcp and
-  platform e2e, resumable-stream) run only when `SIDEKICK_E2E_API_URI` is set and
-  use only that URL; they have no default host. svelte, vue and components gained
-  a `test:ci` script.
 - `.github/workflows/sidekick-checks.yml` (PR #70): on every pull request and
   push to `main`, runs `node --test scripts/upstream/*.test.mjs`,
   `node scripts/upstream/check.mjs --base HEAD^1` and a probe that fails unless
   the guard refuses outbound requests to reserved addresses. Upstream has no
   file with this name, and it gets no exception from `check.mjs`'s rules.
+- The networked suites (core browser e2e, cli, create-sidekick-app, mcp and
+  platform e2e, resumable-stream) run only when `SIDEKICK_E2E_API_URI` is set and
+  use only that URL; they have no default host. svelte, vue and components gained
+  a `test:ci` script.
 - `.github/workflows/sidekick-e2e.yml`, started by hand only: builds the
   server image, starts `self-hosting/docker-compose.yml` with
   `scripts/e2e/compose.e2e.yml` (server on `127.0.0.1:8888`, no dashboard)
@@ -328,6 +322,12 @@ and `prune-turbo-cache`; if it renames `build`, update that job's `needs`.
   Read-only, no secrets; `check.mjs` lists it in `E2E_WORKFLOWS` without any
   exception from its rules, and fails unless every `SIDEKICK_E2E_API_URI`
   in it is a localhost URL.
+- `client/scripts/network-guard.cjs` and `client/scripts/with-network-guard.mjs`:
+  the guard is preloaded into every Node process (and worker thread) of
+  `pnpm run test` / `pnpm run bench` (`client/package.json`). It refuses every
+  non-loopback connection and DNS lookup, always refuses `instantdb.com`, and
+  fails the run if anything was blocked. `client/turbo.json` passes the guard
+  variables through and no longer caches `test:ci`.
 
 **Resolving:** keep the step's two empty variables and `pnpm run test`, the
 guarded `test`/`bench` scripts, and the e2e helpers that skip without
@@ -340,9 +340,18 @@ client `test`/`bench` script stops using the guard.
 The JS packages have no default server any more: no `api.instantdb.com`, no
 `instantdb.com` dashboard, no localhost default.
 
-- core `init()` requires `apiURI` (`MissingApiURIError`) and derives
-  `websocketURI` from it (`client/packages/core/src/endpoints.ts`); the devtool
-  loads nothing without `devtool.dashURI`.
+- About 80 files under `client/packages/*` (sources, tests and READMEs), plus
+  `client/sandbox/react-nextjs/pages/play/explorer.tsx` and three dashboard
+  files that pass the URL explicitly.
+- PR #53: a blank server URL counts as unset: `INSTANT_CLI_API_URI` and
+  `INSTANT_CLI_DASH_URI` in `client/packages/cli/src/lib/config.ts`,
+  `--api-url` and `INSTANT_API_URL` in `client/packages/mcp/src/tools.ts`
+  (`resolveApiURL`) and `client/packages/mcp/src/index.ts`. In hosted mode
+  MCP's `ensureEnv` treats a blank variable as missing. `readEnv` in
+  `client/packages/resumable-stream/src/index.ts` does the same for the app
+  id and admin token as well as the URL. Upstream takes a set but blank value
+  as the URL in the CLI, and a whitespace-only one in MCP and
+  resumable-stream.
 - admin, platform (`PlatformApi`, OAuth helpers), webhooks and the components
   `<Explorer>` require `apiURI`; resumable-stream falls back only to
   `INSTANT_API_URI`.
@@ -350,9 +359,14 @@ The JS packages have no default server any more: no `api.instantdb.com`, no
   `instant.config.ts`, or `INSTANT_CLI_DEV` for localhost) and fail otherwise;
   dashboard commands need `INSTANT_CLI_DASH_URI` / `dashURI`.
 - MCP uses `--api-url` or `INSTANT_API_URL`, and hosted mode requires it.
-- About 80 files under `client/packages/*` (sources, tests and READMEs), plus
-  `client/sandbox/react-nextjs/pages/play/explorer.tsx` and three dashboard
-  files that pass the URL explicitly.
+- core `init()` requires `apiURI` (`MissingApiURIError`) and derives
+  `websocketURI` from it (`client/packages/core/src/endpoints.ts`); the devtool
+  loads nothing without `devtool.dashURI`.
+- The agent rules (`client/www/lib/intern/instant-rules.md` and its copies)
+  pass `apiURI` in the `init` samples, tell the agent to reuse the project's
+  `apiURI`, and say where the CLI gets the server and dashboard URLs.
+  `client/www/__tests__/docs-samples.test.ts` fails on a rules sample without
+  `apiURI`.
 
 **Resolving:** keep SidekickDB's side of every endpoint default. If upstream adds
 a client, option or command that talks to a server, make it take the URL
@@ -368,8 +382,17 @@ The dashboard (`client/www`) contacted Instant-owned services at build time and
 from users' browsers. PR #2 (32 files; paths below are under `client/www/`
 unless they start with `client/`):
 
-- **Build-time fetches made opt-in, then removed** (`8faa256b`):
-  `next.config.js`, `lib/ogImage.tsx`.
+- **Docs feedback, docs AI chat and GitHub webhook removed** (`a31322cd`).
+  Deleted: `app/api/chat/route.ts`, `app/api/github-webhook/route.ts`,
+  `app/intern/chat/{content,page}.tsx`, `components/chat/{ChatHistory,ChatWidget}.tsx`,
+  `components/docs/RatingBox.tsx`, the eight
+  `components/intern/docs-feedback/*.tsx` dashboards (admin-ratings-section,
+  ai-chat-usage-dashboard, analytics-dashboard, auth, chat-conversations-view,
+  feedback-pages, metrics-overview, page-drilldown),
+  `lib/intern/docs-feedback/analytics.ts`, `pages/intern/docs-feedback.tsx`.
+  Changed: `app/examples/[slug]/content.tsx`, `app/tutorial/content.tsx` (the
+  rating box mounts), `app/intern/content.tsx` (index entries),
+  `lib/intern/docs-feedback/db.ts` (the feedback-app client `prodDB` removed).
 - **Berkeley Mono removed** (`f0acc6bd`): `next.config.js` (`fetchFonts`),
   `app/layout.tsx`, `pages/_document.tsx`, `styles/globals.css`,
   `tailwind.config.js`, `lib/ogImage.tsx`, `.gitignore`,
@@ -392,6 +415,14 @@ unless they start with `client/`):
   `/status` and `/discord`, whose redirects to Instant's site are left out.
   Tested in `__tests__/self-hosted-redirects.test.ts`; the benchmark workflow
   checks the built image on pull requests that change these files.
+- **No actions the self-hosted server refuses** (PR #121):
+  `client/www/components/admin/AdminPage.tsx` shows "Activate Pro for free"
+  only to an owner (the server's default `:owner` role for the app endpoint);
+  other admins read that an owner can activate it.
+  `components/dash/auth/Google.tsx` starts a new web client on "Use my own"
+  when self-hosted, as shared dev credentials exist only if the operator
+  configured them, and says so when saving with them fails. Tested in
+  `__tests__/self-hosted-dash-actions.test.tsx`.
 - **No outside loads** (PR #107): `client/www/lib/monaco.ts` reads the editor
   types from the dashboard instead of unpkg, and `lib/monacoLoader.ts` points
   `@monaco-editor/react` at the dashboard's own Monaco instead of jsdelivr
@@ -419,17 +450,8 @@ unless they start with `client/`):
 - **GitHub star count removed** (`984dcb9b`): `fetchStarCount()` in
   `next.config.js`, `components/marketingUi.tsx`; deleted
   `lib/starCountContext.tsx`.
-- **Docs feedback, docs AI chat and GitHub webhook removed** (`a31322cd`).
-  Deleted: `app/api/chat/route.ts`, `app/api/github-webhook/route.ts`,
-  `app/intern/chat/{content,page}.tsx`, `components/chat/{ChatHistory,ChatWidget}.tsx`,
-  `components/docs/RatingBox.tsx`, the eight
-  `components/intern/docs-feedback/*.tsx` dashboards (admin-ratings-section,
-  ai-chat-usage-dashboard, analytics-dashboard, auth, chat-conversations-view,
-  feedback-pages, metrics-overview, page-drilldown),
-  `lib/intern/docs-feedback/analytics.ts`, `pages/intern/docs-feedback.tsx`.
-  Changed: `app/examples/[slug]/content.tsx`, `app/tutorial/content.tsx` (the
-  rating box mounts), `app/intern/content.tsx` (index entries),
-  `lib/intern/docs-feedback/db.ts` (the feedback-app client `prodDB` removed).
+- **Build-time fetches made opt-in, then removed** (`8faa256b`):
+  `next.config.js`, `lib/ogImage.tsx`.
 
 PR #14, self-hosted dashboard: `loadStripe` comes from `@stripe/stripe-js/pure`
 and Stripe.js loads only when a checkout starts; billing tabs are hidden and
@@ -444,7 +466,9 @@ and the `self-hosting/` compose files (variable passed to `www`).
 **Resolving:** keep the removals. A file SidekickDB deleted stays deleted
 (`sync.mjs` does this). If upstream re-introduces the font, the star count, the
 feedback app or the chat, drop that part. Keep the `/pure` Stripe import and
-the self-hosted billing and Google-login conditions. Keep the narrow `public/`
+the self-hosted billing and Google-login conditions, the owner-only Activate
+callout and the self-hosted default in the Google client form. Keep the
+narrow `public/`
 copy in `client/Dockerfile.www` and the self-hosted allowlist in
 `next.config.js`; a `public/` file upstream adds stays out of the image unless
 the dashboard or the docs load it. Take upstream's other changes. Keep the
@@ -457,11 +481,24 @@ names it).
 Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
 `Upstream-Commit:` trailers, plus SidekickDB follow-up commits.
 
-- PR #3 (batch 1): instantdb/instant#2903, #2948, #2944, #2936, #2954, #2940,
-  #2941 and follow-up `f0c3e113`. Paths:
-  `server/src/instant/{db/cel,db/datalog,db/permissioned_transaction,grouped_queue,reactive/invalidator}.clj`,
-  `client/packages/core/src/Reactor.js`,
-  `client/packages/react-common/src/useQuery.ts` and their tests.
+- PR #52: instantdb/instant#2956 (the Explorer row editor keeps a number
+  written with an exponent, such as `1e6`). Paths:
+  `client/packages/components/src/components/explorer/edit-row-dialog.tsx`
+  and its new test `explorer/__tests__/edit-row-dialog.test.ts`. Upstream's
+  `test:ci` script in `client/packages/components/package.json` is left out:
+  SidekickDB already has it (higher up in `scripts`). When upstream merges
+  #2956, keep a single `test:ci` there.
+- PR #32: instantdb/instant#2937 (IndexedDB missing or failing to open no
+  longer throws, fixes instantdb/instant#2779; no `.at()` in infinite queries).
+  Paths: `client/packages/core/src/{IndexedDBStorage,infiniteQuery,utils/PersistedObject}.ts`
+  and `client/packages/core/__tests__/src/utils/PersistedObject.test.ts`.
+- PR #80: instantdb/instant#2943 (after a local write, or a rejected or
+  timed-out mutation, notify only the live queries the write can affect;
+  fixes instantdb/instant#2942). Paths:
+  `client/packages/core/src/{Reactor.js,notifyScope.ts}` and
+  `client/packages/core/__tests__/src/notifyScope.test.ts`. In
+  `_cleanupQuery`, `this._queryFootprints.delete(hash)` sits after the
+  `_dataForQueryMemo` deletes from #2940: keep both lines.
 - PR #10 (batch 2): instantdb/instant#2815 (both-cursor page queries), #2946
   (`SameSite=None` OAuth state cookie), #2870 (tighter CSP, with
   `style-src 'unsafe-inline'` added), #2876 (non-ASCII upload filenames), #2926
@@ -471,10 +508,11 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `client/packages/core/src/StorageAPI.ts`, `client/packages/admin/src/index.ts`,
   `client/packages/components/src/components/explorer/inner-explorer.tsx`,
   `client/www/app/docs/http-api/page.md`, and their tests.
-- PR #32: instantdb/instant#2937 (IndexedDB missing or failing to open no
-  longer throws, fixes instantdb/instant#2779; no `.at()` in infinite queries).
-  Paths: `client/packages/core/src/{IndexedDBStorage,infiniteQuery,utils/PersistedObject}.ts`
-  and `client/packages/core/__tests__/src/utils/PersistedObject.test.ts`.
+- PR #3 (batch 1): instantdb/instant#2903, #2948, #2944, #2936, #2954, #2940,
+  #2941 and follow-up `f0c3e113`. Paths:
+  `server/src/instant/{db/cel,db/datalog,db/permissioned_transaction,grouped_queue,reactive/invalidator}.clj`,
+  `client/packages/core/src/Reactor.js`,
+  `client/packages/react-common/src/useQuery.ts` and their tests.
 - PR #35: instantdb/instant#2953 (a permission check fetches, and so
   subscribes to, only the fields its rules read plus `id`; fixes
   instantdb/instant#2951). Paths:
@@ -482,20 +520,6 @@ Cherry-picks of open upstream PRs, each with `Upstream-PR:` and
   `server/test/instant/{db/cel,db/instaql,db/seeks_permission_helpers,reactive/session}_test.clj`.
   In `session_test.clj` only upstream's five new tests are added: the helpers
   above them are byte-identical to the ones #2954 (PR #3) already added.
-- PR #52: instantdb/instant#2956 (the Explorer row editor keeps a number
-  written with an exponent, such as `1e6`). Paths:
-  `client/packages/components/src/components/explorer/edit-row-dialog.tsx`
-  and its new test `explorer/__tests__/edit-row-dialog.test.ts`. Upstream's
-  `test:ci` script in `client/packages/components/package.json` is left out:
-  SidekickDB already has it (higher up in `scripts`). When upstream merges
-  #2956, keep a single `test:ci` there.
-- PR #80: instantdb/instant#2943 (after a local write, or a rejected or
-  timed-out mutation, notify only the live queries the write can affect;
-  fixes instantdb/instant#2942). Paths:
-  `client/packages/core/src/{Reactor.js,notifyScope.ts}` and
-  `client/packages/core/__tests__/src/notifyScope.test.ts`. In
-  `_cleanupQuery`, `this._queryFootprints.delete(hash)` sits after the
-  `_dataForQueryMemo` deletes from #2940: keep both lines.
 
 **Resolving:** when upstream merges one of these PRs, the report says so. If
 upstream merged the same patch, git merges it cleanly, and where SidekickDB
@@ -510,29 +534,6 @@ tests.
 
 The self-hosted stack works without Instant infrastructure.
 
-- `self-hosting/`: the object store is RustFS (`rustfs/rustfs`, service
-  `storage`, required `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY`; the old
-  `MINIO_ROOT_*` names are no longer read since PR #21), `createbuckets`
-  uses `rustfs/rc` and sets a CORS rule, the server gets
-  `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
-  server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
-  `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
-- `server/src/instant/`: `config.clj` (no defaults in Instant's AWS account
-  outside tests; blank values count as unset), `backup.clj`,
-  `db/app_backup_jobs.clj`, `core.clj`, `dash/routes.clj`, `email_router.clj`,
-  `postmark.clj`, `sendgrid.clj` (no `instantdb.com` sender or reply-to
-  defaults), and their tests.
-- `client/www/app/docs/self-hosting/vps/page.md`.
-- PR #13: no well-known credentials. `POSTGRES_PASSWORD`,
-  `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY` are required in
-  `docker-compose.yml`, `docker-compose.with-caddy.yml` and `swarm.yml` (no
-  `pass` or `rustfsadmin` fallback), `.env.example` leaves them blank, and
-  `deploy-swarm.sh` requires its secrets and URLs from the environment
-  (no `changeme` placeholders). `docker-compose.local.yml` keeps its
-  defaults and binds every port to `127.0.0.1`. The server gets
-  `mem_limit: ${SERVER_MEMORY_LIMIT:-2g}` (a memory limit in `swarm.yml`)
-  and a default `JAVA_OPTS` (`-XX:MaxRAMPercentage=60` plus the two native
-  memory flags upstream set in `server/docker-compose.yml`).
 - PR #13, server: `auth/jwt.clj` and `auth/oauth.clj` prefetch Google's JWKS
   and discovery document at boot only when
   `config/dashboard-google-oauth-configured?`; both still fetch on first use.
@@ -553,6 +554,29 @@ The self-hosted stack works without Instant infrastructure.
   the wal2json fix of PR #44); `server/dev-postgres/Makefile` keeps upstream's
   tag because SidekickDB publishes images only through
   `sidekick-release-images.yml`.
+- `client/www/app/docs/self-hosting/vps/page.md`.
+- PR #43: the compose files, `swarm.yml` and `.env.example` default to
+  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
+  `ghcr.io/instantdb/*`, and the Postgres service of
+  `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
+- PR #84: the default weight limit of each app's datalog query cache in
+  `reactive/store.clj` is `config/query-cache-max-bytes`, a quarter of the
+  maximum heap, at most upstream's fixed 500 MiB, so it is smaller only on
+  heaps under 2 GiB. `INSTANT_QUERY_CACHE_MAX_BYTES` sets it; an invalid value
+  fails in `config/init`. The `:datalog-cache-max-weight` flag still wins.
+  The compose files, `swarm.yml`, `deploy-swarm.sh`, `.env.example` and
+  `README.md` carry the variable; tests in `config_test.clj`. If upstream
+  changes that default, keep the call to `config/query-cache-max-bytes`.
+- `deploy-swarm.sh` runs under bash with `set -euo pipefail`, passes every
+  variable `swarm.yml` reads (one list, `STACK_VARS`; upstream passed a few and
+  dropped email, S3, Postgres user and database and the rest), and renders
+  before it connects. Before deploying it checks over ssh that the external
+  secret `server_config` exists and otherwise stops with the commands to
+  create it once; it never creates or replaces it. `README.md` documents the
+  secret. `scripts/self-hosting/deploy-swarm.test.mjs` (run by
+  `sidekick-self-hosting-check.yml`) runs the script with stand-ins for
+  `docker` and `ssh` and fails when `swarm.yml` reads a variable it does not
+  pass.
 - PR #14 passes `INSTANT_DASHBOARD_GOOGLE_OAUTH_CLIENT_ID` to `www` in the
   compose files.
 - PR #21: no required `:?` inside a default in the compose files. Compose 2.38
@@ -568,37 +592,60 @@ The self-hosted stack works without Instant infrastructure.
   8890 to `${POSTGRES_BIND_ADDRESS:-127.0.0.1}` and `swarm.yml` has no
   published port (swarm ignores a host address). Upstream publishes
   `8890:5432` on all interfaces in both.
-- PR #34: the development stack `server/docker-compose-dev.yml` publishes
-  Postgres (8890), the server (8888) and nREPL (6005) on `127.0.0.1` only.
-  `NREPL_BIND_ADDRESS` stays `0.0.0.0` inside the container so the published
-  port reaches nREPL. Upstream publishes all three on all interfaces.
+- `self-hosting/`: the object store is RustFS (`rustfs/rustfs`, service
+  `storage`, required `STORAGE_ACCESS_KEY`/`STORAGE_SECRET_KEY`; the old
+  `MINIO_ROOT_*` names are no longer read since PR #21), `createbuckets`
+  uses `rustfs/rc` and sets a CORS rule, the server gets
+  `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
+  server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
+  `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
+- PR #120: `self-hosting/docker-compose.yml`, `docker-compose.local.yml`,
+  `docker-compose.with-caddy.yml` and `swarm.yml` pass
+  `POSTMARK_ACCOUNT_TOKEN` to the server next to `POSTMARK_TOKEN`;
+  `deploy-swarm.sh` (`STACK_VARS`) and `.env.example` carry it and
+  `render-check.mjs` asserts it. Upstream passes only `POSTMARK_TOKEN`, so a
+  custom sender address could not be saved. `sync-sender!` in
+  `server/src/instant/model/app_email_sender.clj`, and
+  `sender-verification-get` in `dash/routes.clj` for a saved sender, stop
+  with a validation error on `sender-email` before calling Postmark's
+  Signatures API unless the server sends through Postmark
+  (`email-router/provider`, the decision `send-structured!` now dispatches
+  on) with `POSTMARK_TOKEN` and `POSTMARK_ACCOUNT_TOKEN` set. Mail from a
+  custom sender through SendGrid or Resend has no fallback to the default
+  sender, so the app's users could not log in. For the same reason
+  `send!` and `send-test!` in `magic_code_auth.clj` use a verified custom
+  sender only while `provider` is Postmark for it, so a later switch to
+  another provider sends from the default sender. The dashboard shows the
+  server's message when the status check fails
+  (`useCustomSenderVerification.ts`). Tests in `dash/routes_test.clj`,
+  `runtime/routes_test.clj` and `email_router_test.clj`. At a
+  sync, keep the variable, `provider` as the single provider decision, the
+  check at the top of `sync-sender!` and the provider condition in `send!`
+  and `send-test!`.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`. The intro paragraph says nothing
   needs substituting, and the step 2 comment no longer names the database
   `instant`.
-- PR #43: the compose files, `swarm.yml` and `.env.example` default to
-  `ghcr.io/sidekickdb/{server,dashboard,postgresql}` instead of
-  `ghcr.io/instantdb/*`, and the Postgres service of
-  `.github/workflows/clojure.yml` uses `ghcr.io/sidekickdb/postgresql`.
-- `deploy-swarm.sh` runs under bash with `set -euo pipefail`, passes every
-  variable `swarm.yml` reads (one list, `STACK_VARS`; upstream passed a few and
-  dropped email, S3, Postgres user and database and the rest), and renders
-  before it connects. Before deploying it checks over ssh that the external
-  secret `server_config` exists and otherwise stops with the commands to
-  create it once; it never creates or replaces it. `README.md` documents the
-  secret. `scripts/self-hosting/deploy-swarm.test.mjs` (run by
-  `sidekick-self-hosting-check.yml`) runs the script with stand-ins for
-  `docker` and `ssh` and fails when `swarm.yml` reads a variable it does not
-  pass.
-- PR #84: the default weight limit of each app's datalog query cache in
-  `reactive/store.clj` is `config/query-cache-max-bytes`, a quarter of the
-  maximum heap, at most upstream's fixed 500 MiB, so it is smaller only on
-  heaps under 2 GiB. `INSTANT_QUERY_CACHE_MAX_BYTES` sets it; an invalid value
-  fails in `config/init`. The `:datalog-cache-max-weight` flag still wins.
-  The compose files, `swarm.yml`, `deploy-swarm.sh`, `.env.example` and
-  `README.md` carry the variable; tests in `config_test.clj`. If upstream
-  changes that default, keep the call to `config/query-cache-max-bytes`.
+- PR #34: the development stack `server/docker-compose-dev.yml` publishes
+  Postgres (8890), the server (8888) and nREPL (6005) on `127.0.0.1` only.
+  `NREPL_BIND_ADDRESS` stays `0.0.0.0` inside the container so the published
+  port reaches nREPL. Upstream publishes all three on all interfaces.
+- PR #13: no well-known credentials. `POSTGRES_PASSWORD`,
+  `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY` are required in
+  `docker-compose.yml`, `docker-compose.with-caddy.yml` and `swarm.yml` (no
+  `pass` or `rustfsadmin` fallback), `.env.example` leaves them blank, and
+  `deploy-swarm.sh` requires its secrets and URLs from the environment
+  (no `changeme` placeholders). `docker-compose.local.yml` keeps its
+  defaults and binds every port to `127.0.0.1`. The server gets
+  `mem_limit: ${SERVER_MEMORY_LIMIT:-2g}` (a memory limit in `swarm.yml`)
+  and a default `JAVA_OPTS` (`-XX:MaxRAMPercentage=60` plus the two native
+  memory flags upstream set in `server/docker-compose.yml`).
+- `server/src/instant/`: `config.clj` (no defaults in Instant's AWS account
+  outside tests; blank values count as unset), `backup.clj`,
+  `db/app_backup_jobs.clj`, `core.clj`, `dash/routes.clj`, `email_router.clj`,
+  `postmark.clj`, `sendgrid.clj` (no `instantdb.com` sender or reply-to
+  defaults), and their tests.
 - PR #94: the Postgres `command:` of the three compose files and `swarm.yml`
   ends with `-c jit=off` (`README.md`, "Postgres JIT"). Upstream leaves JIT
   on. `render-check.mjs` asserts the flag and the two-node smoke test fails
@@ -695,25 +742,25 @@ can be named `sidekick.*`. The SidekickDB name wins when both exist; a blank
 `SIDEKICK_*` value counts as unset. The source keeps upstream's `INSTANT_*`
 names, and the alias lives in one place per component:
 
-- Server: `server/src/instant/util/env.clj`. `env/getenv` replaces
-  `System/getenv` wherever an `INSTANT_*` variable is read (`config.clj`,
-  `config_edn.clj`, `util/logging_exporter.clj`), and `env/describe` names the
-  variable in messages (`config.clj`, `email_router.clj`, `webhook_sender.clj`).
+- Dashboard: `client/Dockerfile.www` (start script) and
+  `client/www/lib/config.ts`.
 - Self-hosting: the three compose files use
   `${SIDEKICK_X:-${INSTANT_X:-default}}` and still pass `INSTANT_X` to the
   container, so both names work with any server image. `deploy-swarm.sh` does
   the same in shell. `swarm.yml` reads only `INSTANT_*`: `docker stack` does not
   expand a nested default. `.env.example` and `README.md` use the `SIDEKICK_*`
   names.
-- Dashboard: `client/Dockerfile.www` (start script) and
-  `client/www/lib/config.ts`.
+- `client/packages/resumable-stream/src/index.ts` (`readEnv`).
+- Server: `server/src/instant/util/env.clj`. `env/getenv` replaces
+  `System/getenv` wherever an `INSTANT_*` variable is read (`config.clj`,
+  `config_edn.clj`, `util/logging_exporter.clj`), and `env/describe` names the
+  variable in messages (`config.clj`, `email_router.clj`, `webhook_sender.clj`).
+- create-sidekick-app: `src/envAliases.ts` (imported first in `src/index.ts`),
+  `src/utils/appConfig.ts`.
 - CLI: `src/util/envAliases.ts` copies `SIDEKICK_` variables onto their
   `INSTANT_` names, called from `src/util/loadEnv.ts`;
   `src/util/findConfigCandidates.ts` (`withSidekickFileNames`) and
   `src/util/instantConfig.ts` look for `sidekick.*` files first.
-- create-sidekick-app: `src/envAliases.ts` (imported first in `src/index.ts`),
-  `src/utils/appConfig.ts`.
-- `client/packages/resumable-stream/src/index.ts` (`readEnv`).
 
 Files the CLI creates keep the `instant.*` names, and a new `.env` gets the
 `INSTANT_*` names. The MCP server and the Python SDK have no aliases.
@@ -743,14 +790,14 @@ Changes outside `config.clj`, each one small on purpose:
   `exit-on-startup-error?`; `wrap-dev-server-info` uses `dev-only?`.
 - `(config/dev?)` became `(config/dev-only?)` in `reactive/sse.clj`,
   `reactive/session.clj` and `model/app_stream.clj`.
-- The three OAuth cookie sites (`runtime/routes.clj`, `oauth_apps/routes.clj`,
-  `dash/routes.clj`) use `secure-cookies?`.
-- `db/hint_testing.clj`: queueing is a no-op until `start` runs.
 - `core.clj` `stop`: the WebSocket drain comes from
   `config/shutdown-drain-opts` when it returns one (self-hosted, 20 s, or
   `INSTANT_SHUTDOWN_DRAIN_SECONDS`), else upstream's `dev?` choice; covered by
   `shutdown_drain_test.clj`. `config/init` checks the value, so an invalid
   one fails at startup.
+- `db/hint_testing.clj`: queueing is a no-op until `start` runs.
+- The three OAuth cookie sites (`runtime/routes.clj`, `oauth_apps/routes.clj`,
+  `dash/routes.clj`) use `secure-cookies?`.
 
 `server/test/instant/runtime_mode_test.clj` covers all of it. It records the
 set of `with-log-init` step names in `core.clj` as a count and a SHA-256, so a
@@ -782,18 +829,6 @@ of the config app, which closes sign-ups, app creation and checkout and then
 makes every app read-only or unreadable. SidekickDB removed it from the server
 and the dashboard; no code reads that flag, so setting it has no effect.
 
-- Deleted: `server/src/instant/sunset.clj`, `server/test/instant/sunset_test.clj`.
-- `flags.clj`: the sunset section. `model/app.clj`: `get-status` is the app's
-  own status; no `apply-sunset-stage`, no gate in `create!`. `model/org.clj`
-  and `model/instant_subscription.clj`: no `paid-features-free`.
-- `dash/routes.clj`: no `/dash/sunset` routes, no sign-up, app-creation,
-  claiming or checkout gate tied to the stage, no `sunset` block and no
-  `effective_status` in the dashboard responses.
-- `util/exception.clj` (three error types), `backup.clj` (final-backup step),
-  `core.clj` (startup step), `stripe.clj`, `stripe_webhook.clj` and
-  `reactive/store.clj` (helpers only the wind-down used).
-- Tests: `server/test/instant/app_status_test.clj` (new),
-  `dash/removed_routes_test.clj`, `runtime_mode_test.clj`.
 - Dashboard (`client/www`), deleted: `pages/intern/sunset.tsx` (operator
   page), `components/SunsetBanner.tsx`, `lib/sunset.ts`.
 - Dashboard, edited: `components/dash/MainDashLayout.tsx` (notice, redirect
@@ -805,6 +840,18 @@ and the dashboard; no code reads that flag, so setting it has no effect.
   `SunsetInfo`, `effective_status`, `sunset`), and the banners in
   `components/marketingUi.tsx`, `components/docs/Layout.jsx` and
   `components/new-landing/Hero.tsx`.
+- `dash/routes.clj`: no `/dash/sunset` routes, no sign-up, app-creation,
+  claiming or checkout gate tied to the stage, no `sunset` block and no
+  `effective_status` in the dashboard responses.
+- `flags.clj`: the sunset section. `model/app.clj`: `get-status` is the app's
+  own status; no `apply-sunset-stage`, no gate in `create!`. `model/org.clj`
+  and `model/instant_subscription.clj`: no `paid-features-free`.
+- Deleted: `server/src/instant/sunset.clj`, `server/test/instant/sunset_test.clj`.
+- Tests: `server/test/instant/app_status_test.clj` (new),
+  `dash/removed_routes_test.clj`, `runtime_mode_test.clj`.
+- `util/exception.clj` (three error types), `backup.clj` (final-backup step),
+  `core.clj` (startup step), `stripe.clj`, `stripe_webhook.clj` and
+  `reactive/store.clj` (helpers only the wind-down used).
 
 The per-app status (`apps.status`, `set-status!`, `assert-write-allowed!`,
 `assert-read-allowed!`, the `app-status-changed` event), backups and the flags
@@ -833,13 +880,6 @@ and take its other changes in the file.
 
 ### SidekickDB's own fixes
 
-- Tests that hung or flaked on 2-vCPU CI runners:
-  `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
-  `server/test/instant/reactive/session_test.clj` (PR #6),
-  `server/test/instant/custodian_test.clj` and
-  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
-  `child-tracked-futures-are-canceled` in
-  `server/test/instant/util/async_test.clj` (PR #69).
 - PR #93: `.github/workflows/clojure.yml` turns off Postgres JIT for the
   test database. `on-delete-cascade-perf` in
   `server/test/instant/db/transaction_test.clj` sometimes hit the 30 s query
@@ -847,25 +887,29 @@ and take its other changes in the file.
   its cost estimate crossed `jit_above_cost` (9,556 functions compiled); that
   it passes 30 s once `jit_optimize_above_cost` is crossed is inferred, not
   measured. Keep the setting if upstream rewrites the "Prepare database" step.
-- PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
-  the receive timeout no longer removes the session's queries.
-  `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
-  recompute keeps its query, the queries of a failed or cancelled refresh
-  are marked stale with their result hash retracted
-  (`rs/mark-refresh-failed!`), and the refresh is retried after 500 ms, 1 s
-  and 2 s with jitter (flag `:refresh-retry-delays-ms`). A query whose
-  refresh is cancelled `:refresh-timeout-limit` (3) times in a row is
-  removed and the client gets an error shaped like a failed `add-query`.
-  Tests in `server/test/instant/reactive/session_test.clj` and
-  `store_test.clj`. Keep ours unless upstream fixes #2932 itself.
-- PR #16: `server/src/instant/db/attr_sketch.clj` loads attr sketches on its
-  own virtual-thread executor instead of `ForkJoinPool.commonPool()`, with
-  `server/test/instant/db/attr_sketch_lookup_test.clj`.
-- PR #24: `combine` for `:refresh-presence` in
-  `server/src/instant/reactive/session.clj` keeps a full snapshot when one of
-  the two queued refreshes is a snapshot; it used to send only the patch, so
-  a session that had just joined could miss the peers already in the room.
-  Test `combine-refresh-presence` in `session_test.clj`.
+- PR #99: the example page, `client/www/app/examples/[slug]/page.tsx`,
+  serves only the slugs from `generateStaticParams` (`dynamicParams = false`)
+  and answers 404 for any other. `getExampleAppBySlug` in
+  `client/www/lib/examples/server.ts` looks the slug up in `appMetas` before
+  reading its file (`isExampleSlug`). Test
+  `client/www/__tests__/examples.test.ts`.
+- PR #92: the self-hosted catch-all redirect in `client/www/next.config.js`
+  also leaves `/platform/oauth` alone. The server sends platform OAuth users
+  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
+  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
+- PR #90: the essay live preview route,
+  `client/www/pages/api/intern/posts/watch/[slug].ts`, answers 404 unless
+  `NODE_ENV` is `development`. It and `getPostBySlug` in
+  `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
+  (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
+- PR #63: team invites (`dash/routes.clj`, `team-member-invite-email` and
+  `team-member-invite-send-post`) and app-transfer invites
+  (`superadmin/routes.clj`, `transfer-app-invite-email` and
+  `app-transfer-send-invite-post`) are structured letters sent with
+  `email-router/send-structured!`, after `email-router/assert-sender!` and
+  before the invite is stored. Upstream calls `postmark/send!`, which sends
+  nothing without a Postmark token, and gives the transfer invite the sender
+  `teams@pm.instantdb.com` and a link to instantdb.com.
 - PR #44: `server/dev-postgres/Dockerfile` gets an entrypoint,
   `sidekick-entrypoint.sh`, that starts Postgres with
   `output_plugin_libraries=pgoutput,test_decoding,wal2json`. PostgreSQL 17.12
@@ -877,14 +921,6 @@ and take its other changes in the file.
   lazy seq that was thrown away, so the refresh never ran. Test
   `scheduled-refresh-refreshes-expiring-keys` in
   `server/test/instant/auth/jwt_test.clj`.
-- PR #63: team invites (`dash/routes.clj`, `team-member-invite-email` and
-  `team-member-invite-send-post`) and app-transfer invites
-  (`superadmin/routes.clj`, `transfer-app-invite-email` and
-  `app-transfer-send-invite-post`) are structured letters sent with
-  `email-router/send-structured!`, after `email-router/assert-sender!` and
-  before the invite is stored. Upstream calls `postmark/send!`, which sends
-  nothing without a Postmark token, and gives the transfer invite the sender
-  `teams@pm.instantdb.com` and a link to instantdb.com.
 - PR #76: a request that matches no route gets the 404 from `not-found` in
   `server/src/instant/core.clj`. Upstream's `add-security-headers` and
   `wrap-dev-server-info` turned the nil from an unmatched route into a map
@@ -893,15 +929,25 @@ and take its other changes in the file.
   the security headers too. Tests `unmatched-routes-are-not-found` in
   `server/test/instant/core_test.clj` and `sunset-routes-are-gone` in
   `server/test/instant/dash/removed_routes_test.clj`.
-- PR #90: the essay live preview route,
-  `client/www/pages/api/intern/posts/watch/[slug].ts`, answers 404 unless
-  `NODE_ENV` is `development`. It and `getPostBySlug` in
-  `client/www/lib/posts.ts` take only a slug of letters, digits, `_` and `-`
-  (`isPostSlug`). Test `client/www/__tests__/posts.test.ts`.
-- PR #92: the self-hosted catch-all redirect in `client/www/next.config.js`
-  also leaves `/platform/oauth` alone. The server sends platform OAuth users
-  to `/platform/oauth/start`, the consent page, and upstream's list sent it to
-  `/dash`. Test `client/www/__tests__/self-hosted-redirects.test.ts`.
+- PR #16: `server/src/instant/db/attr_sketch.clj` loads attr sketches on its
+  own virtual-thread executor instead of `ForkJoinPool.commonPool()`, with
+  `server/test/instant/db/attr_sketch_lookup_test.clj`.
+- PR #24: `combine` for `:refresh-presence` in
+  `server/src/instant/reactive/session.clj` keeps a full snapshot when one of
+  the two queued refreshes is a snapshot; it used to send only the patch, so
+  a session that had just joined could miss the peers already in the room.
+  Test `combine-refresh-presence` in `session_test.clj`.
+- PR #12 (instantdb/instant#2932, no upstream fix): a refresh cancelled by
+  the receive timeout no longer removes the session's queries.
+  `server/src/instant/reactive/{query,session,store}.clj`: a cancelled
+  recompute keeps its query, the queries of a failed or cancelled refresh
+  are marked stale with their result hash retracted
+  (`rs/mark-refresh-failed!`), and the refresh is retried after 500 ms, 1 s
+  and 2 s with jitter (flag `:refresh-retry-delays-ms`). A query whose
+  refresh is cancelled `:refresh-timeout-limit` (3) times in a row is
+  removed and the client gets an error shaped like a failed `add-query`.
+  Tests in `server/test/instant/reactive/session_test.clj` and
+  `store_test.clj`. Keep ours unless upstream fixes #2932 itself.
 - PR #85: `ensure-attrs-on-system-catalog-app` in
   `server/src/instant/system_catalog_migration.clj` reads the system catalog
   attrs and inserts the missing ones in one transaction on the write pool,
@@ -911,12 +957,13 @@ and take its other changes in the file.
   hit the `prevent_update_system_catalog_ident` trigger and exit at startup.
   Test `concurrent-boots-insert-catalog-attrs-once` in
   `server/test/instant/system_catalog_migration_test.clj`.
-- PR #99: the example page, `client/www/app/examples/[slug]/page.tsx`,
-  serves only the slugs from `generateStaticParams` (`dynamicParams = false`)
-  and answers 404 for any other. `getExampleAppBySlug` in
-  `client/www/lib/examples/server.ts` looks the slug up in `appMetas` before
-  reading its file (`isExampleSlug`). Test
-  `client/www/__tests__/examples.test.ts`.
+- Tests that hung or flaked on 2-vCPU CI runners:
+  `server/test/instant/util/cache_test.clj` (PR #1, `8947950b`),
+  `server/test/instant/reactive/session_test.clj` (PR #6),
+  `server/test/instant/custodian_test.clj` and
+  `server/test/instant/reactive/invalidator_singleton_test.clj` (PR #8),
+  `child-tracked-futures-are-canceled` in
+  `server/test/instant/util/async_test.clj` (PR #69).
 
 **Resolving:** keep SidekickDB's fix unless upstream fixed the same problem;
 then take upstream's version. Take upstream's new tests as they are. For the
@@ -933,12 +980,12 @@ some other way; check by starting the self-hosting stack.
   permissions on every job, and their environment on every job that holds a
   right. The npm workflow builds in a job without publish rights and
   publishes from a job that installs nothing.
-- `client/scripts/sidekick-release-npm.mjs` and its test; `RELEASING.md`.
-- `server/flags-config/package.json`: `"private": true`.
 - `client/packages/mcp/package.json`: `"private": true`. The MCP server is
   outside SidekickDB's scope and is not published.
 - `client/packages/version/src/version.ts` is SidekickDB's: its own version
   line, starting at `v2.0.0` (see `RELEASING.md`, version rules).
+- `client/scripts/sidekick-release-npm.mjs` and its test; `RELEASING.md`.
+- `server/flags-config/package.json`: `"private": true`.
 - The released npm tarballs and images carry `LICENSE.md` and `NOTICE`. Both
   are added at release time by SidekickDB's own script and workflow; no
   package directory and no Dockerfile is changed for it.
@@ -1018,12 +1065,12 @@ SidekickDB releases no Python SDK. `create-sidekick-app` therefore does not
 offer or bundle the `python-script` starter, which installs Instant's
 `instantdb` package from PyPI:
 
+- `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
+  mapping or menu entry.
 - `client/packages/create-instant-app/src/projectBase.ts`: the base is in
   `unavailableProjectBases` and filtered out of `projectBases` and
   `bundledProjectBases`. Its config entry and the Python handling in
   `index.ts` and `backendConfig.ts` stay as upstream wrote them.
-- `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
-  mapping or menu entry.
 - The Python docs page is deleted (see "Docs pages: SidekickDB name and
   links"); `client/www/app/docs/backend/page.md` says in one sentence that
   SidekickDB releases no Python SDK.
@@ -1037,22 +1084,22 @@ release, add it to `unavailableProjectBases`.
 
 `create-sidekick-app` downloads no starter at run time:
 
+- `vercel-ai-sdk` is in `unavailableProjectBases` next to `python-script`
+  (PR #58): not offered and not bundled. The starter is built on Instant's
+  hosted services: without a model key it sends the user's prompt to
+  `api.instantdb.com/examples/mma`, and its preview creates apps through the
+  platform API without a server URL. The example itself is unchanged.
 - `client/packages/create-instant-app/src/projectBase.ts`: every offered base
   is `bundled: true`. Upstream bundles some and clones the rest from
   `instantdb/instant` when the tool runs.
 - `client/packages/create-instant-app/src/scaffold.ts`: the download
   fallback, reached only when a bundled template is missing, uses
   `SidekickDB/sidekick`.
+- `examples/ai-chat/src/lib/mockModel.ts`: the `User-Agent` of its Wikipedia
+  requests names SidekickDB's repository, not Instant.
 - `examples/bun-react`: `@sidekickdb/react` is `latest`, and `bun.lock` is
   deleted: it resolved upstream's packages, and the tool deletes lockfiles
   from a new project anyway.
-- `vercel-ai-sdk` is in `unavailableProjectBases` next to `python-script`
-  (PR #58): not offered and not bundled. The starter is built on Instant's
-  hosted services: without a model key it sends the user's prompt to
-  `api.instantdb.com/examples/mma`, and its preview creates apps through the
-  platform API without a server URL. The example itself is unchanged.
-- `examples/ai-chat/src/lib/mockModel.ts`: the `User-Agent` of its Wikipedia
-  requests names SidekickDB's repository, not Instant.
 
 **Resolving:** keep every base bundled, including a base upstream adds, and
 keep SidekickDB's repository in the fallback (a unit test fails when an
@@ -1066,6 +1113,36 @@ Instant-owned host; keep the `User-Agent` edit in `ai-chat`.
 What a visitor of the repository or of a package's npm page reads presents the
 project as SidekickDB:
 
+- `client/packages/*/README.md` of the 17 published packages: a plain-text
+  header (package name, one line on the relation to InstantDB) instead of
+  Instant's logo, badges and link row; docs links to this repository;
+  "SidekickDB" for "Instant" in prose. Code samples and identifiers
+  (`Instant-Signature`, `instant.schema.ts`, `InstantError`) are unchanged.
+- `client/packages/*/package.json` of the same packages: `description`.
+- Upstream's community invite links: the seven offered starters whose README
+  invited feedback on upstream's Discord now point at this repository's issue
+  tracker, and `client/packages/components/src/config.ts` no longer exports
+  `discordInviteUrl`, `discordOAuthAppsFeedbackInviteUrl` and
+  `bugsAndQuestionsInviteUrl` (nothing imported them from the package; the
+  dashboard keeps its own copies in `client/www/lib/config.ts`).
+  The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
+  asks for an issue here instead of a message on upstream's Discord.
+- `client/packages/mcp/src/index.ts`: the `learn` tool (`src/learn.ts`)
+  names SidekickDB and returns the text of `client/packages/mcp/rules/AGENTS.md`,
+  a committed copy of the agent rules that `client/www/scripts/gen-llm-rules.ts`
+  writes and `check.mjs` compares with the canonical file; nothing is fetched.
+  The docs links in the tool texts, the OAuth metadata, `index.html.ts` and the
+  `db/` headers point at `https://sidekickdb.co/docs/...` with upstream's path;
+  `client/packages/mcp/src/` is in `DOCS_HOST_PATHS`. `index.html.ts`, the
+  OAuth consent page in `oauth-service-provider.ts`, the stdio startup line,
+  the package description and the README say SidekickDB; the README describes
+  building from a checkout, has no hosted server and gives the commands that
+  start HTTP mode. `learn.ts` reads the package's own `rules/AGENTS.md` from
+  `src/`, `dist/` or the dev build's `dist/esm/` and never looks outside the
+  package. The
+  `learn` bullet in `using-llms/page.md` says what it returns. Resolving: keep
+  `learn.ts`, the copy and the host swap; write upstream's README changes into
+  SidekickDB's text by hand.
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.
@@ -1098,14 +1175,6 @@ project as SidekickDB:
   `Backups.tsx`. Resolving: keep SidekickDB's text and give a string upstream
   adds to these pages the same treatment; if upstream adds icons back to
   `metadata` or `FavIconMeta`, drop them.
-- `client/packages/*/README.md` of the 17 published packages: a plain-text
-  header (package name, one line on the relation to InstantDB) instead of
-  Instant's logo, badges and link row; docs links to this repository;
-  "SidekickDB" for "Instant" in prose. Code samples and identifiers
-  (`Instant-Signature`, `instant.schema.ts`, `InstantError`) are unchanged.
-- `client/packages/*/package.json` of the same packages: `description`.
-- `self-hosting/README.md`, `client/README.md`, `server/README.md`: title and
-  first lines.
 - `CONTRIBUTING.md`: SidekickDB's own; upstream has none.
 - PR #61: what `sidekick-cli` and `create-sidekick-app` print.
   `create-instant-app/src/utils/title.ts` shows a plain-text title, not
@@ -1121,17 +1190,9 @@ project as SidekickDB:
   titles, UI text and comments, and six of them no longer load Instant's logo
   from www.instantdb.com. The Expo title is "My SidekickDB App" in the starter
   and in `create-instant-app/src/scaffold.ts`, which replaces it. The agent
-  rules (`client/www/lib/intern/instant-rules.md` and its identical copy
-  `create-instant-app/template/rules/AGENTS.md`) say "SidekickDB" and do not
+  rules (`client/www/lib/intern/instant-rules.md` and its identical copies
+  `create-instant-app/template/rules/AGENTS.md` and `mcp/rules/AGENTS.md`) say "SidekickDB" and do not
   mention the Python SDK.
-- Upstream's community invite links: the seven offered starters whose README
-  invited feedback on upstream's Discord now point at this repository's issue
-  tracker, and `client/packages/components/src/config.ts` no longer exports
-  `discordInviteUrl`, `discordOAuthAppsFeedbackInviteUrl` and
-  `bugsAndQuestionsInviteUrl` (nothing imported them from the package; the
-  dashboard keeps its own copies in `client/www/lib/config.ts`).
-  The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
-  asks for an issue here instead of a message on upstream's Discord.
 - Docs links in what the CLI and `create-sidekick-app` print and write, the
   headers `platform/src/perms.ts` and `schema.ts` generate (and their tests),
   the agent rules and the 12 starters under `examples/` point at
@@ -1146,6 +1207,8 @@ project as SidekickDB:
   resolve such a leftover, remove the link or name the user's SidekickDB
   dashboard in words; never invent a URL. If upstream adds a starter that
   `create-sidekick-app` offers, add it to `DOCS_HOST_PATHS`.
+- `self-hosting/README.md`, `client/README.md`, `server/README.md`: title and
+  first lines.
 
 **Resolving:** keep SidekickDB's text. When upstream changes what a README
 says (a new API, a new SDK, a changed command), write that change into
@@ -1214,6 +1277,9 @@ Espen Hovlandsdal, github.com/EventSource/eventsource) with one addition: a
 because the Vercel edge runtime defines a `MessageEvent` that throws. Public
 `eventsource` has no such option (up to 5.1.5).
 
+- `client/packages/admin/__tests__/src/subscribe.test.ts` runs `subscribe`
+  against a stub `fetch` with a throwing global `MessageEvent`, and admin's
+  `test:ci` now runs vitest, so CI covers the streaming path.
 - `client/packages/admin/src/eventsource/`: the `src` of
   `@instantdb/eventsource@4.1.0-2` from the npm registry tarball, unchanged
   apart from `ReaderLike` and `BodyChunk` in `types.ts`, which are taken from
@@ -1224,9 +1290,6 @@ because the Vercel edge runtime defines a `MessageEvent` that throws. Public
 - `client/packages/admin/src/index.ts` and `subscribe.ts` import
   `./eventsource/index.ts`; `client/packages/admin/package.json` depends on
   `eventsource-parser` (the copy's only dependency) instead.
-- `client/packages/admin/__tests__/src/subscribe.test.ts` runs `subscribe`
-  against a stub `fetch` with a throwing global `MessageEvent`, and admin's
-  `test:ci` now runs vitest, so CI covers the streaming path.
 - `scripts/upstream/rename.mjs`: `@instantdb/eventsource` is in
   `VENDORED_SCOPED`, so `check.mjs` reports it (`vendored-package`) in any
   file upstream changes, including a dependency line in a `package.json`.
@@ -1245,23 +1308,6 @@ keeping `messageEvent`. If upstream moves to public `eventsource`, check that
 The docs in `client/www/app/docs` (the self-hosting pages aside) and their
 chrome present the product as SidekickDB.
 
-- Chrome: `app/docs/layout.tsx` adds " - SidekickDB Docs" to every docs tab
-  title; the text logo in `components/docs/Logo.jsx` says SidekickDB; the
-  hidden LLM link list in `components/docs/Layout.jsx` names SidekickDB and
-  links to `https://sidekickdb.co` with the docs path; the `// Instant app`
-  marker in samples still matches in `components/docs/Fence.jsx`, which shows
-  "Get your APP_ID from your dashboard" without a link when no app is picked;
-  navigation titles in `data/docsNavigation.js` say SidekickDB ("Migrate from
-  Instant Cloud" names upstream's service and stays); the dead
-  `components/DocsPage.jsx` says "SidekickDB Docs" too. Page titles and
-  descriptions in the front matter say SidekickDB. Self-hosted, the docs
-  header (`components/docs/DocsHeaderNav.jsx`, used by `Layout.jsx`) is the
-  plain text "SidekickDB" linking to `/dash` instead of upstream's marketing
-  `BareNav`, and `lib/docs-og-metadata-loader.js` emits no `og:image`
-  (the dashboard does not serve `/api/docs-og`). `scripts/gen-llms-txt.ts`
-  titles `llms.txt` "SidekickDB" and links each page's Markdown copy
-  relative (`/docs/<page>.md`, which the dashboard serves) in a self-hosted
-  build, and at `https://sidekickdb.co` with the same path otherwise.
 - Links: absolute docs links get the host `sidekickdb.co` with upstream's
   path (`llms-full.txt` in `using-llms` is the relative `/llms-full.txt`
   the dashboard serves); links to Instant's hosted
@@ -1284,6 +1330,23 @@ chrome present the product as SidekickDB.
   repository), and the `learn` tool entry says to give the agent the rules
   file instead. The SolidJS page quotes
   `examples/solidjs-vite/src/App.tsx` as it is.
+- Chrome: `app/docs/layout.tsx` adds " - SidekickDB Docs" to every docs tab
+  title; the text logo in `components/docs/Logo.jsx` says SidekickDB; the
+  hidden LLM link list in `components/docs/Layout.jsx` names SidekickDB and
+  links to `https://sidekickdb.co` with the docs path; the `// Instant app`
+  marker in samples still matches in `components/docs/Fence.jsx`, which shows
+  "Get your APP_ID from your dashboard" without a link when no app is picked;
+  navigation titles in `data/docsNavigation.js` say SidekickDB ("Migrate from
+  Instant Cloud" names upstream's service and stays); the dead
+  `components/DocsPage.jsx` says "SidekickDB Docs" too. Page titles and
+  descriptions in the front matter say SidekickDB. Self-hosted, the docs
+  header (`components/docs/DocsHeaderNav.jsx`, used by `Layout.jsx`) is the
+  plain text "SidekickDB" linking to `/dash` instead of upstream's marketing
+  `BareNav`, and `lib/docs-og-metadata-loader.js` emits no `og:image`
+  (the dashboard does not serve `/api/docs-og`). `scripts/gen-llms-txt.ts`
+  titles `llms.txt` "SidekickDB" and links each page's Markdown copy
+  relative (`/docs/<page>.md`, which the dashboard serves) in a self-hosted
+  build, and at `https://sidekickdb.co` with the same path otherwise.
 - `client/www/app/docs/`, `components/docs/`, `DocsPage.jsx` and
   `docsNavigation.js` are in `DOCS_HOST_PATHS` in
   `scripts/upstream/rename.mjs`, so the `docs-host` rule rewrites upstream's
@@ -1301,9 +1364,9 @@ chrome present the product as SidekickDB.
   API, platform and auth pages say SidekickDB where they mean the product, and
   describe the reader's own server where upstream described Instant's hosted
   service: magic codes and the default sender come from the server's email
-  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses are
-  not available with the shipped stack (it does not pass
-  `POSTMARK_ACCOUNT_TOKEN` to the server), OAuth callbacks are the server's
+  provider (`SIDEKICK_APP_EMAIL_SENDER_EMAIL`), custom sender addresses need
+  Postmark as the provider and `POSTMARK_ACCOUNT_TOKEN`, which the shipped
+  stack passes to the server, OAuth callbacks are the server's
   `/runtime/oauth/callback` (Google, GitHub and LinkedIn note that the Auth tab
   shows it), Google's shared dev credentials exist only if the operator
   configured them, the devtool needs `dashURI`, a server without
@@ -1377,7 +1440,7 @@ for the person reviewing the sync PR.
 | No new build-time or runtime contact with Instant services | The same lists, plus the report's flag when `client/www/next.config.js` changes. Also look for new fetches in build scripts and Dockerfiles before building images |
 | Wire `versions` keys unchanged | `check.mjs` fails if a session `versions` key (`'@instantdb/<pkg>': version` in `client/packages/*/src`) disappears or appears under `@sidekickdb/` |
 | Rename leftovers | `check.mjs` fails if a changed file still needs the normalizer or has a leftover (an old name the rules do not rewrite and the allowlist does not cover) |
-| LLM rules copies | `client/www/lib/intern/instant-rules.md` and `client/packages/create-instant-app/template/rules/AGENTS.md` must stay byte-identical |
+| LLM rules copies | `client/www/lib/intern/instant-rules.md`, `client/packages/create-instant-app/template/rules/AGENTS.md` and `client/packages/mcp/rules/AGENTS.md` must stay byte-identical |
 | SidekickDB's version is above the server's version minimums | `check.mjs` fails and names the minimum (file, line, enclosing def) if `version.ts` is not above every version string literal (`x.y.z`, optional `v` and `-dev`) in `server/src/instant/reactive/session.clj` and `server/src/instant/dash/routes.clj`, whatever its name or form, and if either file has no version literal. Not seen: a minimum assembled at runtime, written as a version map by hand, or defined in another server file |
 | Conflict markers | none left in changed files |
 | Licence and attribution | `LICENSE.md` unchanged; this file still accurate |

@@ -1,86 +1,61 @@
-<p align="center">
-  <a href="https://instantdb.com">
-    <img alt="Shows the Instant logo" src="https://instantdb.com/img/icon/android-chrome-512x512.png" width="10%">
-  </a>
-  <h1 align="center">@sidekickdb/mcp</h1>
-</p>
+<!-- SidekickDB: plain-text header in place of upstream's logo, badges and links. -->
 
-<p align="center">
-  <a
-    href="https://discord.com/invite/VU53p7uQcE" >
-    <img height=20 src="https://img.shields.io/discord/1031957483243188235" />
-  </a>
-  <img src="https://img.shields.io/github/stars/instantdb/instant" alt="stars">
-</p>
+# @sidekickdb/mcp
 
-<p align="center">
-   <a href="https://www.instantdb.com/docs/backend">Get Started</a> ·
-   <a href="https://instantdb.com/examples">Examples</a> ·
-   <a href="https://www.instantdb.com/docs/backend">Docs</a> ·
-   <a href="https://discord.com/invite/VU53p7uQcE">Discord</a>
-<p>
+Part of [SidekickDB](https://github.com/SidekickDB/sidekick), an independent continuation of the Apache-2.0 InstantDB code. It is not affiliated with or endorsed by Instant.
 
-Welcome to [Instant's](http://instantdb.com) MCP server.
+Welcome to SidekickDB's MCP server.
 
-# Instant MCP
+This MCP is a wrapper around the SidekickDB Platform SDK. Add this MCP to your
+editor to enable creating, managing, and updating your SidekickDB apps.
 
-This MCP is a wrapper around the Instant Platform SDK. Add this MCP to your
-editor to enable creating, managing, and updating your InstantDB applications.
-
-## Remote MCP server
-
-Instant hosts the latest version of the server at `https://mcp.instantdb.com`.
-
-For modern clients that support streamable HTTP use `https://mcp.instantdb.com/mcp`.
-
-For legacy clients that require SSE use `https://mcp.instantdb.com/sse`.
-
-For more editor-specific instructions, see [the public docs](https://www.instantdb.com/docs/using-llms).
+The package is not published to npm and there is no hosted server: you build
+it from a checkout of this repository and run it locally over `stdio` against
+your own SidekickDB server. Its `learn` tool returns the agent rules file that
+ships with the version you built.
 
 ## Local MCP server
 
-If you haven't already, make sure to get a [personal access token from your Instant dashboard](https://www.instantdb.com/dash?s=personal-access-tokens).
+Get a personal access token from your SidekickDB dashboard
+(`/dash?s=personal-access-tokens` on your dashboard's host).
 
-Run the server in stdio mode with `npx -y @sidekickdb/mcp --token <token> --api-url <your-sidekick-server-url>` (or set `INSTANT_API_URL`). The server URL is required: there is no default server.
+Build the server from the repository's `client` directory:
 
-For more editor-specific instructions, see [the public docs](https://www.instantdb.com/docs/using-llms).
+```bash
+pnpm install
+pnpm build-packages
+```
+
+Then run `node client/packages/mcp/dist/index.js --token <token> --api-url <your-sidekick-server-url>` (or set `INSTANT_API_URL`). The server URL is required: there is no default server.
+
+For editor-specific instructions, see `client/www/app/docs/using-llms/page.md`
+in this repository.
 
 # Contributing
 
 ## Quick Start
 
-Clone this repo and use the MCP Inspector `@modelcontextprotocol/inspector` to debug and
+Use the MCP Inspector `@modelcontextprotocol/inspector` to debug and
 develop against this server locally.
 
 ```bash
-# Clone this repo
-git clone ..
+# From client/packages/mcp, after building as above
+npx @modelcontextprotocol/inspector node ./dist/index.js --token <token> --api-url http://localhost:8888
 
-# Navigate to the cloned directory and build the MCP server
-cd ..
-npm run build
-
-# Run the server
-npx @modelcontextprotocol/inspector node ./dist/index.js --token <token>
-
-# Or alternatively via environment variable
-INSTANT_ACCESS_TOKEN=<token> npx @modelcontextprotocol/inspector node ./build/index.js
-
-# You can also specify a url to connect to a local instance of your instant server
-npx @modelcontextprotocol/inspector node ./dist/index.js --token <token> --api-url
-http://localhost:8888
+# Or alternatively via environment variables
+INSTANT_ACCESS_TOKEN=<token> INSTANT_API_URL=http://localhost:8888 npx @modelcontextprotocol/inspector node ./dist/index.js
 ```
 
 If you're using Claude Code you can add the mcp server directly after building:
 
 ```bash
-claude mcp add --transport stdio instant-local -- node <path-to-your-cloned-repo>/dist/index.js --token <token>
+claude mcp add --transport stdio sidekick-local -- node <path-to-your-checkout>/client/packages/mcp/dist/index.js --token <token> --api-url http://localhost:8888
 ```
 
 You can then remove the server directly:
 
 ```bash
-claude mcp remove instant-local
+claude mcp remove sidekick-local
 ```
 
 You can also configure your editor to connect to your local MCP. Here's an example configuration for MacOS/Linux:
@@ -91,7 +66,7 @@ You can also configure your editor to connect to your local MCP. Here's an examp
     "instant": {
       "command": "node",
       "args": [
-        "<path-to-your-cloned-repo>/dist/index.js",
+        "<path-to-your-checkout>/client/packages/mcp/dist/index.js",
         "--token",
         "<token>",
         "--api-url",
@@ -102,18 +77,26 @@ You can also configure your editor to connect to your local MCP. Here's an examp
 }
 ```
 
-### Remote MCP
+### HTTP mode
+
+The HTTP mode with OAuth is upstream's hosted setup. SidekickDB does not run
+it; it needs `INSTANT_API_URL` and the settings in `.env.example`.
 
 ```bash
 cp .env.example .env
 ```
 
-Fill in all of the environment variables for your new `.env` file.
+Fill in all of the environment variables for your new `.env` file, add
+`INSTANT_API_URL` and set `SERVER_TYPE=http`. Then build and start it from
+`client/packages/mcp`:
 
 ```bash
-pnpm run dev
+pnpm run build
+node dist/index.js
 ```
 
-Visit the server at [http://localhost:3123](http://localhost:3123).
+It listens on port 3123 (set `PORT` to change it). Without `SERVER_TYPE=http`
+the server runs over `stdio`.
 
-To work on the `stdio` version of the codebase, update your `.env` file with `SERVER_TYPE=stdio`.
+`pnpm run dev` only recompiles on change (`tsc --watch`, into `dist/esm`); it
+does not start a server.

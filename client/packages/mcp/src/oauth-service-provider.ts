@@ -633,12 +633,13 @@ export function oauthStartHtml(
           <p>
             The application
             <strong class="client-name">${clientName}</strong> is requesting
-            permission to access your InstantDB account.
+            permission to access your SidekickDB account.
           </p>
 
           <p>
-            If you approve, you will first be sent to InstantDB to confirm, then
-            you will be redirected to the application at the following address:
+            If you approve, you will first be sent to SidekickDB to confirm,
+            then you will be redirected to the application at the following
+            address:
           </p>
 
           <div class="uri-display">${redirectUri}</div>

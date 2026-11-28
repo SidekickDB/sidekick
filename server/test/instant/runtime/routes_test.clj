@@ -29,6 +29,7 @@
    [instant.reactive.store :as rs]
    [instant.runtime.magic-code-auth :as magic-code-auth]
    [instant.runtime.routes :as route]
+   [instant.sendgrid :as sendgrid]
    [instant.system-catalog :as system-catalog]
    [instant.util.coll :as coll]
    [instant.util.crypt :as crypt-util]
@@ -229,6 +230,47 @@
                                       :email "recipient@example.com"}))
             (is (= custom-email
                    (get-in @letter [:from :email])))))))))
+
+;; SidekickDB: a verified custom sender is used only while Postmark sends the
+;; mail. After a switch to another provider, magic codes (and test emails) go
+;; out from the default sender through that provider.
+(deftest magic-code-custom-sender-needs-postmark-as-provider
+  (with-empty-app
+    (fn [app]
+      (let [custom-email (random-email)
+            default-email "default-sender@example.com"
+            sender (create-email-sender! {:user-id (:creator_id app)
+                                          :email custom-email})
+            sent (atom [])
+            send-both! (fn []
+                         (reset! sent [])
+                         (magic-code-auth/send! {:app-id (:id app)
+                                                 :email "recipient@example.com"})
+                         (magic-code-auth/send-test! {:app app
+                                                      :to "recipient@example.com"
+                                                      :subject "{code} is your code"
+                                                      :body "Your code is {code}"
+                                                      :sender-email custom-email
+                                                      :sender-name "Custom Sender"})
+                         @sent)]
+        (create-magic-code-template! {:app-id (:id app)
+                                      :sender-id (:id sender)})
+        (app-email-verification/put! {:app-id (:id app)
+                                      :sender-id (:id sender)
+                                      :verified true})
+        (with-redefs [magic-code-auth/check-send-rate-limit! (constantly nil)
+                      config/app-email-sender (constantly {:name nil :email default-email})
+                      postmark/send-structured! #(swap! sent conj [:postmark (get-in % [:from :email])])
+                      sendgrid/send! #(swap! sent conj [:sendgrid (get-in % [:from :email])])]
+          (testing "provider SendGrid: the default sender, through SendGrid"
+            (with-redefs [config/email-provider (constantly :sendgrid)]
+              (is (= [[:sendgrid default-email] [:sendgrid default-email]]
+                     (send-both!)))))
+
+          (testing "provider Postmark: the custom sender, through Postmark"
+            (with-redefs [config/email-provider (constantly :postmark)]
+              (is (= [[:postmark custom-email] [:postmark custom-email]]
+                     (send-both!))))))))))
 
 (deftest magic-code-invalid-sender-fallback-failure-suppressed-for-test-user
   (with-empty-app
