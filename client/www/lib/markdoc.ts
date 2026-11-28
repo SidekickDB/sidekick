@@ -83,8 +83,14 @@ function transformContent(content: string): string {
   }
 
   // SidekickDB: the Markdown copies show the placeholder host that the
-  // rendered docs fall back to (see components/docs/Fence.jsx).
-  const sanitizedContent = sanitizeMarkdown(markdownContent).replaceAll(
+  // rendered docs fall back to (see components/docs/Fence.jsx), and say once
+  // that it stands for the reader's server.
+  const sanitized = sanitizeMarkdown(markdownContent);
+  if (sanitized.includes('__API_URI__')) {
+    result +=
+      "The samples use `https://sidekick.example.com`: replace it with your SidekickDB server's URL.\n\n";
+  }
+  const sanitizedContent = sanitized.replaceAll(
     '__API_URI__',
     'https://sidekick.example.com',
   );

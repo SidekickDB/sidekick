@@ -6,13 +6,13 @@ nextjs:
     description: How to use SidekickDB with React
 ---
 
-Instant is the easy-to-use backend for your frontend. With Instant you can build delightful apps in less than 10 minutes. Follow the quick start below to **build a live app!**
+SidekickDB is the easy-to-use backend for your frontend. With SidekickDB you can build delightful apps in less than 10 minutes. Follow the quick start below to **build a live app!**
 
-## Automatic Setup With Create Instant App
+## Automatic Setup With Create SidekickDB App
 
-The fastest way to get started with Instant is to use `npx create-sidekick-app` to scaffold a new project with Instant already set up.
+The fastest way to get started with SidekickDB is to use `npx create-sidekick-app` to scaffold a new project with SidekickDB already set up.
 
-SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL, which it opens to log you in.
+SidekickDB has no default server, so tell `create-sidekick-app` where yours is: set `SIDEKICK_CLI_API_URI` to your server's URL and `SIDEKICK_CLI_DASH_URI` to your dashboard's URL in your shell before you run it (it opens the dashboard to log you in). If you don't have a server yet, [set one up](/docs/self-hosting) first.
 
 To get started with Next.js run:
 
@@ -36,16 +36,16 @@ cd instant-demo
 npm run dev
 ```
 
-Add the InstantDB React Library:
+Add the SidekickDB React Library:
 
 ```shell
 npm i @sidekickdb/react
 ```
 
-Set up and connect your Instant app.
+Set up and connect your SidekickDB app.
 This will log you in if you are not logged in already, then create schema and permissions files, and update your `.env` file.
 
-The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already.
+The CLI finds your server through `SIDEKICK_CLI_API_URI` (or `apiURI` in `instant.config.ts`) and your dashboard through `SIDEKICK_CLI_DASH_URI` (or `dashURI`), so set them first if you haven't already. You can put the two variables in your project's `.env` file, which the CLI reads before it starts. See [Configure the SidekickDB CLI](/docs/self-hosting#configure-the-sidekick-db-cli).
 
 ```shell
 npx @sidekickdb/cli init
@@ -295,6 +295,6 @@ Go to `localhost:3000`, and huzzah 🎉 You've got a fully functional todo list 
 
 ## Next Steps
 
-You can check out the [Working with data](/docs/init) section to learn more about Instant concepts.
+You can check out the [Working with data](/docs/init) section to learn more about SidekickDB concepts.
 
-As you get more familiar with Instant, check out our [Recommended Workflow](/docs/workflow) docs for using Instant in your projects.
+As you get more familiar with SidekickDB, check out our [Recommended Workflow](/docs/workflow) docs for using SidekickDB in your projects.

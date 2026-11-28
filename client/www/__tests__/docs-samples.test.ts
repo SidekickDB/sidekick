@@ -10,8 +10,10 @@ const docsDir = path.join(__dirname, '../app/docs');
 
 // core, react, react-native, solidjs, svelte, vue and admin `init`, the
 // platform clients, webhooks, resumable-stream and the components <Explorer>.
+// A method called `init` on another object is skipped, except on `instant`
+// (the global of a script-tag build).
 const ENTRY_POINT =
-  /(?<![\w.$]|function\s)(?:new\s+(?:PlatformApi|OAuthHandler|Webhooks)|init|exchangeCodeForToken|exchangeRefreshToken|createResumableStreamContext)\s*(?:<[^()]*?>)?\s*\(|<Explorer\b/g;
+  /(?<![\w$]|(?<!\binstant)\.|function\s)(?:new\s+(?:PlatformApi|OAuthHandler|Webhooks)|init|exchangeCodeForToken|exchangeRefreshToken|createResumableStreamContext)\s*(?:<[^()]*?>)?\s*\(|<Explorer\b/g;
 
 function markdownFiles(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -96,6 +98,7 @@ test('the scan finds samples without apiURI', () => {
     '});',
     'const api = new PlatformApi({});',
     'AppleID.auth.init({ clientId });',
+    'const cdn = instant.init({ appId: APP_ID });',
     'const elided = init(/* ... */);',
     '```',
     '',
@@ -107,7 +110,12 @@ test('the scan finds samples without apiURI', () => {
     entryPointCalls(markdown)
       .filter((call) => !call.ok)
       .map((call) => call.where),
-  ).toEqual(['3 init<Schema>(', '6 new PlatformApi(', '12 <Explorer']);
+  ).toEqual([
+    '3 init<Schema>(',
+    '6 new PlatformApi(',
+    '8 init(',
+    '13 <Explorer',
+  ]);
 });
 
 test('Markdown copies of the docs show the placeholder server URL', () => {
@@ -116,4 +124,6 @@ test('Markdown copies of the docs show the placeholder server URL', () => {
   );
   expect(result).toContain("apiURI: 'https://sidekick.example.com'");
   expect(result).not.toContain('__API_URI__');
+  expect(result).toContain("replace it with your SidekickDB server's URL");
+  expect(transformContent('No samples here.')).not.toContain('replace it');
 });

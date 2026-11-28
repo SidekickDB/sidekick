@@ -981,12 +981,11 @@ offer or bundle the `python-script` starter, which installs Instant's
   `index.ts` and `backendConfig.ts` stay as upstream wrote them.
 - `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
   mapping or menu entry.
-- `client/www/data/docsNavigation.js`: no entry for the Python page.
-  `client/www/app/docs/start-python/page.md` has a note that it describes
-  Instant's package, and no scaffold command; `docs/backend/page.md` says the
-  same in one sentence.
+- The Python docs page is deleted (see "Docs pages: SidekickDB name and
+  links"); `docs/backend/page.md` says in one sentence that SidekickDB
+  releases no Python SDK.
 
-**Resolving:** keep the list, the missing option and the docs note. Take
+**Resolving:** keep the list, the missing option and the backend sentence. Take
 upstream's changes to the Python handling as they are; it stays unreachable.
 If upstream adds another starter that installs a package SidekickDB does not
 release, add it to `unavailableProjectBases`.
@@ -1200,8 +1199,8 @@ keeping `messageEvent`. If upstream moves to public `eventsource`, check that
 
 ### Docs pages: SidekickDB name and links
 
-The docs in `client/www/app/docs` (the self-hosting pages and `start-python`
-aside) and their chrome present the product as SidekickDB.
+The docs in `client/www/app/docs` (the self-hosting pages aside) and their
+chrome present the product as SidekickDB.
 
 - Chrome: `app/docs/layout.tsx` adds " - SidekickDB Docs" to every docs tab
   title; the text logo in `components/docs/Logo.jsx` says SidekickDB; the
@@ -1212,14 +1211,31 @@ aside) and their chrome present the product as SidekickDB.
   navigation titles in `data/docsNavigation.js` say SidekickDB ("Migrate from
   Instant Cloud" names upstream's service and stays); the dead
   `components/DocsPage.jsx` says "SidekickDB Docs" too. Page titles and
-  descriptions in the front matter say SidekickDB.
+  descriptions in the front matter say SidekickDB. Self-hosted, the docs
+  header (`components/docs/DocsHeaderNav.jsx`, used by `Layout.jsx`) is the
+  plain text "SidekickDB" linking to `/dash` instead of upstream's marketing
+  `BareNav`, and `lib/docs-og-metadata-loader.js` emits no `og:image`
+  (the dashboard does not serve `/api/docs-og`). `scripts/gen-llms-txt.ts`
+  titles `llms.txt` "SidekickDB" and links each page at `https://sidekickdb.co`
+  with its path.
+- Prose: the getting started, CLI and SDK pages say SidekickDB where they mean
+  the product. The CLI login steps link to the self-hosting page's CLI
+  section; the shared OAuth dev credentials are the server's, when it has
+  them. The quoted output of `push schema` and `push perms` in `modeling-data`
+  is a sentence that describes what the CLI does now. The React Native videos
+  are named as made for InstantDB.
+- Removed: `client/www/app/docs/start-python/page.md` (Instant's `instantdb`
+  Python package, which defaults to Instant's hosted server) and the link to
+  it in `backend/page.md`.
 - Links: absolute docs links get the host `sidekickdb.co` with upstream's
   path (`llms-full.txt` in `using-llms` is the relative `/llms-full.txt`
   the dashboard serves); links to Instant's hosted
   dashboard are relative `/dash...` links, which open the reader's own
-  dashboard that serves the docs; `api.instantdb.com` in samples and OAuth
-  callback URLs is `https://sidekick.example.com`, with a sentence on each
-  page saying to use the reader's server URL; example addresses are at
+  dashboard that serves the docs; code samples that need a server URL use
+  the `__API_URI__` placeholder (see the Fence bullet below); the literal
+  `https://sidekick.example.com` is only for server URLs in prose, curl and
+  JWKS URLs and OAuth callback URLs, with a sentence on the page saying to use
+  the reader's server URL; example addresses are at
   example.com; links to Instant's recipes page and examples gallery are
   removed; links into upstream's GitHub repository point at the same path in
   `SidekickDB/sidekick`; the `hosted-only` blocks that only invited readers
@@ -1241,18 +1257,22 @@ aside) and their chrome present the product as SidekickDB.
   in docs code samples with a self-hosted dashboard's own server URL, and
   elsewhere shows `https://sidekick.example.com` with a line asking the reader
   to replace it; `client/www/lib/markdoc.ts` writes that host into the
-  Markdown copies. Every `init`, `<Explorer>`, `PlatformApi` and
+  Markdown copies (and `llms-full.txt`) with one line saying to replace it. Every `init`, `<Explorer>`, `PlatformApi` and
   `createResumableStreamContext` sample passes `apiURI` (first, as
   `create-sidekick-app` writes it), the `using-llms` MCP configs pass the
   placeholder to `--api-url`, and the getting-started pages name `SIDEKICK_CLI_API_URI` and
   `SIDEKICK_CLI_DASH_URI` before the first command.
   `client/www/__tests__/docs-samples.test.ts` fails on a sample without
-  `apiURI`: give a sample upstream adds `apiURI: '__API_URI__'`.
+  `apiURI` (also `instant.init(` of a script-tag build): give a sample
+  upstream adds `apiURI: '__API_URI__'`.
 
 **Resolving:** keep SidekickDB's words and links. For a new
-`www.instantdb.com/dash` link use the same path relative (`/dash...`); for a
-new `api.instantdb.com` URL in a sample use `https://sidekick.example.com`
-and keep the page's sentence about the server URL; remove a new link to
+`www.instantdb.com/dash` link use the same path relative (`/dash...`); a new
+code sample that needs a server URL gets `__API_URI__`; a new
+`api.instantdb.com` URL in prose or an OAuth callback URL becomes
+`https://sidekick.example.com` with the page's sentence about the server URL;
+if upstream changes `start-python/page.md`, keep it deleted (a modify/delete
+conflict: `git rm` it); remove a new link to
 Discord, essays, pricing, recipes or the examples gallery; never invent a
 URL. Identifiers, file names (`instant.schema.ts`), environment variables,
 `X-Instant-*` headers and API names stay upstream's.
