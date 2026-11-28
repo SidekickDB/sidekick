@@ -594,6 +594,13 @@ The self-hosted stack works without Instant infrastructure.
   `AWS_REQUEST_CHECKSUM_CALCULATION=when_required`, neutral image tags, and
   server and dashboard healthchecks. Files: `docker-compose*.yml`, `swarm.yml`,
   `deploy-swarm.sh`, `Caddyfile`, `.env.example`, `README.md`.
+- PR #125: `self-hosting/docker-compose*.yml` and `swarm.yml`: `createbuckets`
+  imports a lifecycle rule on `S3_APP_BACKUPS_BUCKET` that expires objects
+  tagged `expire=true` after 32 days (the rule upstream keeps in its own
+  account; the server never deletes backup files). `render-check.mjs` asserts
+  it in all four files and the two-node smoke test reads it back. `README.md`,
+  `BACKUP.md`, `.env.example` and `client/www/app/docs/backups/page.md`
+  describe it. At a sync, keep the import after the bucket is created.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`. The intro paragraph says nothing
