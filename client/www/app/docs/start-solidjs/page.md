@@ -5,7 +5,7 @@ nextjs:
     description: 'How to use SidekickDB with SolidJS'
 ---
 
-## Automatic Setup With Create SidekickDB App
+## Automatic Setup With create-sidekick-app
 
 The fastest way to get started with SidekickDB and SolidJS is to use create-sidekick-app to scaffold a new project with SidekickDB already set up.
 

@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from 'vitest';
-import { transformContent } from '../lib/markdoc';
+import { docsMarkdownUrl, transformContent } from '../lib/markdoc';
 
 const docsDir = path.join(__dirname, '../app/docs');
 
@@ -126,4 +126,11 @@ test('Markdown copies of the docs show the placeholder server URL', () => {
   expect(result).not.toContain('__API_URI__');
   expect(result).toContain("replace it with your SidekickDB server's URL");
   expect(transformContent('No samples here.')).not.toContain('replace it');
+});
+
+test('llms.txt links the Markdown copies relative when self-hosted', () => {
+  expect(docsMarkdownUrl('/docs/init', true)).toBe('/docs/init.md');
+  expect(docsMarkdownUrl('/docs/init', false)).toBe(
+    'https://sidekickdb.co/docs/init.md',
+  );
 });

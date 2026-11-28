@@ -5,7 +5,7 @@ nextjs:
     description: 'How to use SidekickDB with TanStack Start'
 ---
 
-## Automatic Setup With Create SidekickDB App
+## Automatic Setup With create-sidekick-app
 
 The fastest way to get started with SidekickDB on TanStack Start is to use npx create-sidekick-app to scaffold a new project with SidekickDB already set up.
 

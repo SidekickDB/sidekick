@@ -102,4 +102,19 @@ function stripDynamicPaths(filePath: string): string {
   return filePath.replace(/\/\[\[\.\.\..*?\]\]/g, '');
 }
 
-export { parseFrontmatter, transformContent, stripDynamicPaths };
+// SidekickDB: where llms.txt links a page's Markdown copy. A self-hosted
+// dashboard serves the copies itself, so the link is relative there;
+// elsewhere it is SidekickDB's docs host with the same path.
+function docsMarkdownUrl(
+  href: string,
+  selfHosted = process.env.NEXT_PUBLIC_SELF_HOSTED === 'true',
+): string {
+  return selfHosted ? `${href}.md` : `https://sidekickdb.co${href}.md`;
+}
+
+export {
+  parseFrontmatter,
+  transformContent,
+  stripDynamicPaths,
+  docsMarkdownUrl,
+};

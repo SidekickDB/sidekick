@@ -5,7 +5,7 @@ nextjs:
     description: How to use SidekickDB with Vue 3 and Vite
 ---
 
-## Automatic Setup With Create SidekickDB App
+## Automatic Setup With create-sidekick-app
 
 The fastest way to get started with SidekickDB and Vue is to use create-sidekick-app to scaffold a new project with SidekickDB already set up.
 

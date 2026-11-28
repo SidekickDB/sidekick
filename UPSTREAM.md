@@ -982,8 +982,8 @@ offer or bundle the `python-script` starter, which installs Instant's
 - `client/packages/create-instant-app/src/cli.ts`: no `--python` option, flag
   mapping or menu entry.
 - The Python docs page is deleted (see "Docs pages: SidekickDB name and
-  links"); `docs/backend/page.md` says in one sentence that SidekickDB
-  releases no Python SDK.
+  links"); `client/www/app/docs/backend/page.md` says in one sentence that
+  SidekickDB releases no Python SDK.
 
 **Resolving:** keep the list, the missing option and the backend sentence. Take
 upstream's changes to the Python handling as they are; it stays unreachable.
@@ -1216,17 +1216,9 @@ chrome present the product as SidekickDB.
   plain text "SidekickDB" linking to `/dash` instead of upstream's marketing
   `BareNav`, and `lib/docs-og-metadata-loader.js` emits no `og:image`
   (the dashboard does not serve `/api/docs-og`). `scripts/gen-llms-txt.ts`
-  titles `llms.txt` "SidekickDB" and links each page at `https://sidekickdb.co`
-  with its path.
-- Prose: the getting started, CLI and SDK pages say SidekickDB where they mean
-  the product. The CLI login steps link to the self-hosting page's CLI
-  section; the shared OAuth dev credentials are the server's, when it has
-  them. The quoted output of `push schema` and `push perms` in `modeling-data`
-  is a sentence that describes what the CLI does now. The React Native videos
-  are named as made for InstantDB.
-- Removed: `client/www/app/docs/start-python/page.md` (Instant's `instantdb`
-  Python package, which defaults to Instant's hosted server) and the link to
-  it in `backend/page.md`.
+  titles `llms.txt` "SidekickDB" and links each page's Markdown copy
+  relative (`/docs/<page>.md`, which the dashboard serves) in a self-hosted
+  build, and at `https://sidekickdb.co` with the same path otherwise.
 - Links: absolute docs links get the host `sidekickdb.co` with upstream's
   path (`llms-full.txt` in `using-llms` is the relative `/llms-full.txt`
   the dashboard serves); links to Instant's hosted
@@ -1253,15 +1245,27 @@ chrome present the product as SidekickDB.
   `scripts/upstream/rename.mjs`, so the `docs-host` rule rewrites upstream's
   absolute docs links there and any other instantdb.com site link is an
   `instant-site-link` leftover.
+- Prose: `client/www/app/docs/cli/page.md` and the other getting started, CLI
+  and SDK pages say SidekickDB where they mean the product. The CLI login
+  steps link to the self-hosting page's CLI section; the shared OAuth dev
+  credentials are the server's, when it has them. The quoted output of `push schema` and `push perms` in `modeling-data`
+  is a sentence that describes what the CLI does now. The React Native videos
+  are named as made for InstantDB, with the package names and the required
+  `apiURI` as the differences.
+- Removed: `client/www/app/docs/start-python/page.md` (Instant's `instantdb`
+  Python package, which defaults to Instant's hosted server) and the link to
+  it in `client/www/app/docs/backend/page.md`.
 - `client/www/components/docs/Fence.jsx` fills the `__API_URI__` placeholder
   in docs code samples with a self-hosted dashboard's own server URL, and
   elsewhere shows `https://sidekick.example.com` with a line asking the reader
   to replace it; `client/www/lib/markdoc.ts` writes that host into the
-  Markdown copies (and `llms-full.txt`) with one line saying to replace it. Every `init`, `<Explorer>`, `PlatformApi` and
+  Markdown copies (and `llms-full.txt`) with one line saying to replace it.
+  Every `init`, `<Explorer>`, `PlatformApi` and
   `createResumableStreamContext` sample passes `apiURI` (first, as
   `create-sidekick-app` writes it), the `using-llms` MCP configs pass the
-  placeholder to `--api-url`, and the getting-started pages name `SIDEKICK_CLI_API_URI` and
-  `SIDEKICK_CLI_DASH_URI` before the first command.
+  placeholder to `--api-url`, and the getting-started pages name
+  `SIDEKICK_CLI_API_URI` and `SIDEKICK_CLI_DASH_URI` before the first
+  command.
   `client/www/__tests__/docs-samples.test.ts` fails on a sample without
   `apiURI` (also `instant.init(` of a script-tag build): give a sample
   upstream adds `apiURI: '__API_URI__'`.

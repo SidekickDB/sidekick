@@ -14,7 +14,7 @@ Open up your terminal and do the following:
 npx create-expo-app instant-rn-demo
 cd instant-rn-demo
 
-# Install instant
+# Install SidekickDB
 npm i @sidekickdb/react-native
 
 # Install peer dependencies
@@ -274,7 +274,9 @@ const db = init({
 
 ## Next Steps
 
-Want a more in-depth tutorial on building an Expo app? Check out [Beto's](https://x.com/betomoedano) video on building a chat app below! It was made for InstantDB, the project SidekickDB continues, and uses Instant's hosted service, but the SDK calls are the same.
+The two videos below were made for InstantDB, the project SidekickDB continues. The SDK calls are the same apart from the package names (`@sidekickdb/*` on SidekickDB) and the `apiURI` that `init` requires on SidekickDB.
+
+Want a more in-depth tutorial on building an Expo app? Check out [Beto's](https://x.com/betomoedano) video on building a chat app below!
 
 This video goes through core concepts like setting up schema, writing queries, and using transactions!
 

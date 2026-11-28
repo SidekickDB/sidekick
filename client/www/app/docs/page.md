@@ -8,7 +8,7 @@ nextjs:
 
 SidekickDB is the easy-to-use backend for your frontend. With SidekickDB you can build delightful apps in less than 10 minutes. Follow the quick start below to **build a live app!**
 
-## Automatic Setup With Create SidekickDB App
+## Automatic Setup With create-sidekick-app
 
 The fastest way to get started with SidekickDB is to use `npx create-sidekick-app` to scaffold a new project with SidekickDB already set up.
 

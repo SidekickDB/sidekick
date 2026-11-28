@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 
 import navigation from '../data/docsNavigation.js';
 import {
+  docsMarkdownUrl,
   parseFrontmatter,
   stripDynamicPaths,
   transformContent,
@@ -63,9 +64,9 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
   return results;
 }
 
-// SidekickDB: SidekickDB's docs host, same path.
+// SidekickDB: relative on a self-hosted dashboard (see lib/markdoc.ts).
 function getDocumentUrl(href: string): string {
-  return `https://sidekickdb.co${href}.md`;
+  return docsMarkdownUrl(href);
 }
 
 async function processMarkdownFile(filePath: string): Promise<Document | null> {
