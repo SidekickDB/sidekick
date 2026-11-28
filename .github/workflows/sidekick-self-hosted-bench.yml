@@ -166,8 +166,9 @@ jobs:
           IMAGE: sidekick-bench/dashboard:local
           # www/public was about 104 MB in v2.0.0 and 3,152,829 bytes without
           # the code editor; public/monaco (Monaco and the @sidekickdb/core
-          # types) adds 14,073,600 bytes. Raise this bound when the image
-          # gains files on purpose.
+          # types) adds 14,073,600 bytes; with it, 17,623,741 bytes on pull
+          # request #107. Raise this bound when the image gains files on
+          # purpose.
           MAX_PUBLIC_BYTES: '20000000'
           # The pages scanned below ask for far more files than this.
           MIN_PAGE_FILES: '10'
