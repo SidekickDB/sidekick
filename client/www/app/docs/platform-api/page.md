@@ -245,5 +245,3 @@ What you really want in those cases is to get a token _scoped_ to a particular a
 ```bash
 npx @sidekickdb/cli push schema --token YOUR_ADMIN_TOKEN
 ```
-
-### Questions?

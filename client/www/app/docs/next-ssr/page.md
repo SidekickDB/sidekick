@@ -195,5 +195,3 @@ export default function Page() {
 Note how there’s no `isLoading` or `error` state from db.useSuspenseQuery! This is handled using [React Suspense](https://react.dev/reference/react/Suspense), which makes sure we have the data when we render this page.
 
 If your code uses `useUser`, `useAuth`, or `db.SignedIn`/`db.SignedOut`, it will initially use the `user` value you provided to `InstantProvider` instead of a pending state. These hooks/components will continue to be reactive.
-
-## Questions

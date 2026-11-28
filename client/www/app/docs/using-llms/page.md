@@ -46,224 +46,62 @@ We recommend starting with the rules files above and adding more docs as needed.
 If you want though you can get all our docs at once in markdown format via
 [llms-full.txt](https://sidekickdb.co/llms-full.txt)
 
-## Instant MCP Server
+## SidekickDB MCP Server
 
-We built [`@sidekickdb/mcp`](https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp) to enable creating, managing, and updating your Instant apps.
+We built [`@sidekickdb/mcp`](https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp) to enable creating, managing, and updating your SidekickDB apps.
 Combine the MCP with our rules file to build full-stack apps directly in your editor.
 
-The easiest way to get started is to use our hosted remote MCP server. Use the
-instructions below to add the Instant MCP server to your favorite LLM editor or tool.
+The MCP server runs locally via `stdio` and talks to your SidekickDB server
+with your personal access token. It is not published to npm, so you run it
+from a checkout of the SidekickDB repository.
 
-{% callout type="note" %}
+### Build the MCP server
 
-When you add the MCP server, you'll be sent through an OAuth flow to grant access to your Instant Account.
-
-{% /callout %}
-
-### Cursor
-
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=InstantDB&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnN0YW50ZGIuY29tL21jcCJ9)
-
-Or edit your `~/.cursor/mcp.json` directly:
-
-```json {% showCopy="true" %}
-{
-  "mcpServers": {
-    "instant": {
-      "url": "https://mcp.instantdb.com/mcp"
-    }
-  }
-}
+```shell {% showCopy="true" %}
+git clone https://github.com/SidekickDB/sidekick.git
+cd sidekick/client
+pnpm install
+pnpm build-packages
 ```
 
-### Claude Code
-
-If you're on a paid Claude plan, you can add the server via the command line:
-
-```text {% showCopy="true" %}
-claude mcp add instant -s user -t http https://mcp.instantdb.com/mcp
-```
-
-Now you can run `claude` to start Claude Code and then run `/mcp` to see your list
-of MCP servers. `instant` should be listed there. Select it and go through the
-auth flow to enable the Instant MCP server in your Claude Code sessions!
-
-### Codex
-
-If you're on a paid OpenAI plan, you can add the server via the command line:
-
-Edit your `~/.codex/config.toml` to include the [`rmcp_client` feature](https://developers.openai.com/codex/mcp/):
-
-```toml {% showCopy="true" %}
-[features]
-rmcp_client = true
-```
-
-Tell Codex to add the MCP server:
-
-```text {% showCopy="true" %}
-codex mcp add instant --url "https://mcp.instantdb.com/mcp"
-```
-
-This should load a browser to authenticate with Instant.
-
-Now run `codex` to start Codex. You can run `/mcp` to see Instant in your list.
-
-### Gemini
-
-If you're on a paid Google AI plan, you can add the server via the command line:
-
-```text {% showCopy="true" %}
-gemini mcp add --transport http instant https://mcp.instantdb.com/mcp
-```
-
-This should load a browser to authenticate with Instant.
-
-Now run `gemini` to start Gemini. You can run `/mcp` to see Instant in your list.
-
-### Windsurf
-
-You can add the Instant MCP server through the Windsurf UI:
-
-1. Open Windsurf Settings.
-2. Under Cascade, you'll find Model Context Protocol Servers.
-3. Select Add Server and paste the relevant snippet for your OS.
-
-Alternatively, you can directly edit your `~/.codeium/windsurf/mcp_config.json`:
-
-**macOS/Linux**
-
-```json {% showCopy="true" %}
-{
-  "mcpServers": {
-    "instant": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://mcp.instantdb.com/sse"]
-    }
-  }
-}
-```
-
-**Windows**
-
-```json {% showCopy="true" %}
-{
-  "mcpServers": {
-    "instant": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "mcp-remote", "https://mcp.instantdb.com/sse"]
-    }
-  }
-}
-```
-
-**Windows WSL**
-
-```json {% showCopy="true" %}
-{
-  "mcpServers": {
-    "instant": {
-      "command": "wsl",
-      "args": ["npx", "-y", "mcp-remote", "https://mcp.instantdb.com/sse"]
-    }
-  }
-}
-```
-
-### Zed
-
-Open your Zed settings and add the following:
-
-```json {% showCopy="true" %}
-{
-  "context_servers": {
-    "instant": {
-      "command": {
-        "path": "npx",
-        "args": ["-y", "mcp-remote", "https://mcp.instantdb.com/mcp"],
-        "env": {}
-      },
-      "settings": {}
-    }
-  }
-}
-```
-
-### Other Tools
-
-For other tools that support MCP servers, you can configure Instant using either our streamable HTTP
-endpoint (recommended if your tool supports it):
-
-```text {% showCopy="true" %}
-https://mcp.instantdb.com/mcp
-```
-
-or our SSE endpoint:
-
-```text {% showCopy="true" %}
-https://mcp.instantdb.com/sse
-```
-
-## Local MCP server
-
-We recommend using our hosted MCP server, but we also support running [`@sidekickdb/mcp`](https://github.com/SidekickDB/sidekick/tree/main/client/packages/mcp) locally
-via `stdio`. This will avoid OAuth but requires you to manage your personal
-access token.
+This builds the server to `client/packages/mcp/dist/index.js` in your checkout.
+The examples below use `/path/to/sidekick` for the checkout: replace it with
+where you cloned the repository.
 
 ### Get your Personal Access Token
 
 If you haven't already, make sure to get a personal access token from your
-[Instant dashboard](/dash?s=personal-access-tokens)
+[dashboard](/dash?s=personal-access-tokens).
 
-Once you have your token, you can set up the local Instant MCP server in your
-favorite editor with MCP support.
+Once you have your token, you can set up the SidekickDB MCP server in your
+favorite editor with MCP support. In every example, replace `<token>` with your
+personal access token and `https://sidekick.example.com` with your SidekickDB
+server's URL.
 
 ### Cursor/Windsurf/Cline
 
-You can set up the Instant MCP server in Cursor, Windsurf, or Cline by adding
+You can set up the SidekickDB MCP server in Cursor, Windsurf, or Cline by adding
 the following configuration to your MCP settings:
 
-**macOS/Linux**
-
 ```json {% showCopy="true" %}
 {
   "mcpServers": {
     "instant": {
-      "command": "npx",
-      "args": ["-y", "@sidekickdb/mcp", "--token", "<token>"]
+      "command": "node",
+      "args": [
+        "/path/to/sidekick/client/packages/mcp/dist/index.js",
+        "--token",
+        "<token>",
+        "--api-url",
+        "https://sidekick.example.com"
+      ]
     }
   }
 }
 ```
 
-**Windows**
-
-```json {% showCopy="true" %}
-{
-  "mcpServers": {
-    "instant": {
-      "command": "cmd",
-      "args": ["/c", "npx", "-y", "@sidekickdb/mcp", "--token", "<token>"]
-    }
-  }
-}
-```
-
-**Windows WSL**
-
-```json {% showCopy="true" %}
-{
-  "mcpServers": {
-    "instant": {
-      "command": "wsl",
-      "args": ["npx", "-y", "@sidekickdb/mcp", "--token", "<token>"]
-    }
-  }
-}
-```
-
-Replace `<token>` with your personal access token. Save the file and reload
-the editor! You should now see the Instant MCP server active and enabled!
+On Windows, use the Windows path to `index.js`. Save the file and reload the
+editor! You should now see the SidekickDB MCP server active and enabled!
 
 ### Zed
 
@@ -274,8 +112,14 @@ Open your Zed settings and add the following:
   "context_servers": {
     "instant": {
       "command": {
-        "path": "npx",
-        "args": ["-y", "@sidekickdb/mcp", "--token", "<token>"],
+        "path": "node",
+        "args": [
+          "/path/to/sidekick/client/packages/mcp/dist/index.js",
+          "--token",
+          "<token>",
+          "--api-url",
+          "https://sidekick.example.com"
+        ],
         "env": {}
       },
       "settings": {}
@@ -284,12 +128,12 @@ Open your Zed settings and add the following:
 }
 ```
 
-Replace `<token>` with your personal access token. Save the file and reload the editor.
-You should now see the Instant MCP server active and enabled!
+Save the file and reload the editor. You should now see the SidekickDB MCP
+server active and enabled!
 
 ### Claude Desktop
 
-You can set up the Instant MCP server in Claude Desktop by following these
+You can set up the SidekickDB MCP server in Claude Desktop by following these
 steps:
 
 1. Open the file `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -299,15 +143,21 @@ steps:
 {
   "mcpServers": {
     "instant": {
-      "command": "npx",
-      "args": ["-y", "@sidekickdb/mcp", "--token", "<token>"]
+      "command": "node",
+      "args": [
+        "/path/to/sidekick/client/packages/mcp/dist/index.js",
+        "--token",
+        "<token>",
+        "--api-url",
+        "https://sidekick.example.com"
+      ]
     }
   }
 }
 ```
 
-Replace `<token>` with your personal access token. Save the file and restart
-Claude Desktop. You should now see the Instant MCP server active and enabled!
+Save the file and restart Claude Desktop. You should now see the SidekickDB MCP
+server active and enabled!
 
 ## MCP Tools
 

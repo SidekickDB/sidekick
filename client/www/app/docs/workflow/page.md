@@ -33,7 +33,7 @@ This will open a browser window where you can log in or sign up for an account.
 
 After authenticating, you can create a new project with
 [create-sidekick-app](/docs/create-instant-app). This will give you some starter code and set up rules for your LLM
-agent. If your agent supports it, we also recommend setting up the [Instant MCP Server](/docs/using-llms#instant-mcp-server).
+agent. If your agent supports it, we also recommend setting up the [SidekickDB MCP Server](/docs/using-llms#sidekickdb-mcp-server).
 
 The default rules cover the basics of using InstantDB. But if you want to add
 more docs for specific functionality, you can append `.md` to the end of any doc
