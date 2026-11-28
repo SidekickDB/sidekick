@@ -210,7 +210,8 @@ function RedirectUrlLabel() {
         <div className="max-w-sm space-y-3 p-2 text-sm leading-relaxed text-gray-700 dark:text-neutral-300">
           <p>
             By default, OAuth providers redirect users to the server's callback.
-            During this redirect, users see "Redirecting to api.example.com..."
+            During this redirect, users see "Redirecting to{' '}
+            {new URL(defaultOAuthCallbackURL).host}..."
           </p>
           <p>
             With a custom redirect URI, users will instead see "Redirecting to

@@ -1,12 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import {
-  LandingContainer,
-  LegacyNav,
-  Section,
-  H2,
-} from '@/components/marketingUi';
+import { LandingContainer, Section, H2 } from '@/components/marketingUi';
 import {
   Button,
   Content,
@@ -16,7 +11,7 @@ import {
   TextInput,
   useDialog,
 } from '@/components/ui';
-import { Footer } from '@/components/new-landing/Footer';
+import { InternFooter, InternNav } from '@/components/intern/InternChrome';
 import { useAdmin, useAuthInfo, useTokenFetch } from '@/lib/auth';
 import { useIsHydrated } from '@/lib/hooks/useIsHydrated';
 import { errorToast, successToast } from '@/lib/toast';
@@ -417,13 +412,13 @@ export default function RestorePage() {
   if (!isHydrated || isLoading) {
     return (
       <LandingContainer>
-        <LegacyNav />
+        <InternNav />
         <Section>
           <div className="flex min-h-64 items-center justify-center">
             <FullscreenLoading />
           </div>
         </Section>
-        <Footer />
+        <InternFooter />
       </LandingContainer>
     );
   }
@@ -431,7 +426,7 @@ export default function RestorePage() {
   if (error || !isAdmin) {
     return (
       <LandingContainer>
-        <LegacyNav />
+        <InternNav />
         <Section>
           <div className="mt-12 mb-8 text-center">
             <H2>Access Denied</H2>
@@ -440,18 +435,18 @@ export default function RestorePage() {
             </p>
           </div>
         </Section>
-        <Footer />
+        <InternFooter />
       </LandingContainer>
     );
   }
 
   return (
     <LandingContainer>
-      <LegacyNav />
+      <InternNav />
       <Section>
         <RestoreContent />
       </Section>
-      <Footer />
+      <InternFooter />
     </LandingContainer>
   );
 }

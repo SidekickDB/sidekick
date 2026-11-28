@@ -40,7 +40,7 @@ const TYPE_OPTIONS: { id: AppType; label: string; desc: string }[] = [
   {
     id: 'web',
     label: 'Web',
-    desc: 'Redirect sign-in. Works with shared dev keys.',
+    desc: 'Redirect sign-in. Works with shared dev keys if the server has them.',
   },
   {
     id: 'ios',
@@ -212,8 +212,8 @@ export function AddGoogleClientForm({
       {useSharedCredentials ? (
         <div className="rounded-sm bg-gray-50 p-3 text-sm text-gray-600 dark:bg-neutral-800 dark:text-neutral-400">
           <p>
-            The server provides shared dev credentials so you can test Google
-            sign-in in development without any setup.
+            If this server has shared dev credentials configured, you can test
+            Google sign-in in development without any setup.
           </p>
           <button
             type="button"
@@ -428,8 +428,8 @@ function CredentialsEditor({
     return (
       <div className="rounded-sm bg-gray-50 p-3 text-sm text-gray-600 dark:bg-neutral-800 dark:text-neutral-400">
         <p>
-          Using the server's shared dev credentials. Works in development out of
-          the box.
+          Using shared dev credentials. These work in development only, and only
+          if this server has them configured.
         </p>
         {!showUpgrade ? (
           <div className="mt-2 flex items-center gap-2">

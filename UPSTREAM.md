@@ -1014,6 +1014,35 @@ project as SidekickDB:
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.
+- `client/www/app/layout.tsx` and `client/www/pages/_app.tsx` (`FavIconMeta`)
+  link no favicons, touch icons or tiles and set the application name
+  "SidekickDB"; Instant's files stay in `public/img/icon` until a SidekickDB
+  mark is approved. `metadataBase` is unset outside Vercel and dev instead of
+  falling back to www.instantdb.com, so Next builds Open Graph URLs from
+  localhost there and warns once at build time; `app/opengraph-image.tsx` has
+  the alt text "SidekickDB". The login page (`components/dash/Auth.tsx`) and
+  the platform OAuth consent page (`pages/platform/oauth/start.tsx`) show the
+  plain text "SidekickDB" instead of Instant's logo. Self-hosted, `/intern` and
+  `/intern/restore` render `components/intern/InternChrome.tsx` (the text
+  "SidekickDB" linking to `/dash`, no footer) instead of the marketing nav and
+  footer. Page titles and visible text in `components/dash`, `pages/dash`,
+  `components/admin/AdminPage.tsx`, `pages/_devtool`, `pages/debug-uri`,
+  `app/intern`, `pages/intern/{signup,storage,deployment-settings}.tsx` and
+  `components/Dev.tsx` say "SidekickDB" or "this deployment"; text that named
+  a server feature says what it is ("shared dev keys", "the server's
+  callback", "the config app"), shared Google dev credentials are described
+  as available only if the server has them configured, and "Contact the
+  Instant team" reads "Contact your deployment administrator". The redirect
+  hint shows the host of the server's OAuth callback. The two docs links
+  (`Schema.tsx`, the devtool help) are relative `/docs/...` links like the
+  dashboard's others, the placeholders are at example.com, and the "Join the
+  community" Discord button on an app's home page is hidden when self-hosted.
+  Only the structural edits carry a `SidekickDB:` comment. Left as upstream's:
+  identifiers (`type InstantDB` in `Sandbox.tsx`, `InstantIssue`,
+  `X-Instant-*`), comments, hosted-only branches and the hosted check in
+  `Backups.tsx`. Resolving: keep SidekickDB's text and give a string upstream
+  adds to these pages the same treatment; if upstream adds icons back to
+  `metadata` or `FavIconMeta`, drop them.
 - `client/packages/*/README.md` of the 17 published packages: a plain-text
   header (package name, one line on the relation to InstantDB) instead of
   Instant's logo, badges and link row; docs links to this repository;
@@ -1111,29 +1140,6 @@ swap the host again (`instantdb.com/docs` or `www.instantdb.com/docs` becomes
 `sidekickdb.co/docs`); give a docs link upstream adds the same treatment, and
 reword a new `instantdb.com/dash` or other non-docs instantdb.com link without
 a URL. In `exception.clj` take upstream's change and keep the host swap.
-
-Dashboard (`client/www`, all builds): the login page and the platform OAuth
-consent page (`pages/platform/oauth/start.tsx`) show the plain text
-"SidekickDB" instead of Instant's logo. `app/layout.tsx` (`metadata.icons`)
-and `pages/_app.tsx` (`FavIconMeta`) link no favicons, touch icons or tiles
-and set the application name "SidekickDB"; Instant's files stay in
-`public/img/icon` until a SidekickDB mark is approved. `metadataBase` is unset
-outside Vercel and dev instead of falling back to www.instantdb.com. Page
-titles and visible text in `components/dash`, `pages/dash`,
-`components/admin/AdminPage.tsx`, `pages/_devtool`, `pages/debug-uri`,
-`app/intern`, `pages/intern/signup.tsx` and `components/Dev.tsx` say
-"SidekickDB"; text that named a server feature says what it is ("shared dev
-keys", "the server's callback", "the server's address"), and "Contact the
-Instant team" reads "Contact your deployment administrator". The two docs
-links (`Schema.tsx`, the devtool help) are relative `/docs/...` links like the
-dashboard's others, the placeholders are at example.com, and the "Join the
-community" Discord button on an app's home page is hidden when self-hosted.
-Only the structural edits carry a `SidekickDB:` comment. Left as upstream's:
-identifiers (`type InstantDB` in `Sandbox.tsx`, `InstantIssue`,
-`X-Instant-*`), comments, hosted-only branches and the hosted check in
-`Backups.tsx`. **Resolving:** keep SidekickDB's text and give a string upstream
-adds to these pages the same treatment; if upstream adds icons back to
-`metadata` or `FavIconMeta`, drop them.
 
 ### NOTICE file
 
