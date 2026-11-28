@@ -67,7 +67,9 @@ POSTMARK_ACCOUNT_TOKEN=replace-with-your-account-token
 Custom sender addresses need Postmark as the email provider and the account
 token. On a server that sends through SendGrid or Resend, or that has no
 `POSTMARK_ACCOUNT_TOKEN`, saving a sender address in the dashboard shows an
-error that explains why.
+error that explains why. If you later switch from Postmark to another provider, apps
+that use a custom sender send their magic code emails from
+`SIDEKICK_APP_EMAIL_SENDER_EMAIL` again.
 
 ### Configure email with SendGrid
 

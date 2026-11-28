@@ -607,11 +607,16 @@ The self-hosted stack works without Instant infrastructure.
   (`email-router/provider`, the decision `send-structured!` now dispatches
   on) with `POSTMARK_TOKEN` and `POSTMARK_ACCOUNT_TOKEN` set. Mail from a
   custom sender through SendGrid or Resend has no fallback to the default
-  sender, so the app's users could not log in. The dashboard shows the
+  sender, so the app's users could not log in. For the same reason
+  `send!` and `send-test!` in `magic_code_auth.clj` use a verified custom
+  sender only while `provider` is Postmark for it, so a later switch to
+  another provider sends from the default sender. The dashboard shows the
   server's message when the status check fails
-  (`useCustomSenderVerification.ts`). Tests in `dash/routes_test.clj`. At a
-  sync, keep the variable, `provider` as the single provider decision, and
-  the check at the top of `sync-sender!`.
+  (`useCustomSenderVerification.ts`). Tests in `dash/routes_test.clj`,
+  `runtime/routes_test.clj` and `email_router_test.clj`. At a
+  sync, keep the variable, `provider` as the single provider decision, the
+  check at the top of `sync-sender!` and the provider condition in `send!`
+  and `send-test!`.
 - PR #36: the step 1 `pg_dump` in `UPGRADE_DB.md` reads `POSTGRES_USER` and
   `POSTGRES_DB` from the container, like steps 3 and 4. Upstream hard-codes
   `-U instant` and the database `instant`. The intro paragraph says nothing

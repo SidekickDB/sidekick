@@ -1245,6 +1245,15 @@
               (testing "provider is not Postmark"
                 (with-redefs [config/email-provider (constantly :sendgrid)]
                   (is (refused? (save!) #"through SendGrid")))
+                (with-redefs [config/email-provider (constantly :resend)]
+                  (is (refused? (save!) #"through Resend")))
+                (is (empty? @postmark-calls)))
+
+              (testing "provider picked from the tokens is not Postmark"
+                (with-redefs [config/email-provider (constantly nil)
+                              config/postmark-send-enabled? (constantly false)
+                              config/sendgrid-send-enabled? (constantly true)]
+                  (is (refused? (save!) #"through SendGrid")))
                 (is (empty? @postmark-calls)))
 
               (testing "POSTMARK_TOKEN is not set"
