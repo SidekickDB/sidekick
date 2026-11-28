@@ -119,6 +119,7 @@ docker compose exec -T postgres sh -c \
   'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atq' <<'SQL'
 create function pg_temp.max_stored_lsn() returns pg_lsn language plpgsql as $$
 declare
+  server_slot_num constant int := 2;
   t text;
   m pg_lsn;
   s int;
@@ -126,9 +127,10 @@ declare
 begin
   foreach t in array array['history', 'webhook_events', 'app_backups', 'backup_jobs'] loop
     if to_regclass(t) is not null then
-      execute format('select max((isn).lsn), max((isn).slot_num) from %I', t) into m, s;
-      if s is distinct from null and s <> 2 then
-        raise exception 'STOP: % holds positions with slot number %, not 2. Do not run pg_resetwal.', t, s;
+      execute format('select max((isn).lsn) filter (where (isn).slot_num = $1), max((isn).slot_num) from %I', t)
+        into m, s using server_slot_num;
+      if s > server_slot_num then
+        raise exception 'STOP: % holds positions with slot number %, above this server''s %.', t, s, server_slot_num;
       end if;
       r := greatest(r, m);
     end if;
@@ -156,7 +158,9 @@ must print `No step needed`. The command stops PostgreSQL cleanly, runs
 `pg_resetwal -l` to move the start of its log past the highest stored position,
 and starts it again; it does not change any table. It is only safe here, before
 step 5 creates the `aggregator` slot and before the server first starts. On
-`STOP`, do not run `pg_resetwal`; see the link above.
+`STOP`, do not run `pg_resetwal`; see the link above. A `STOP` that names a
+slot number means a newer server, with a higher slot number than 2, wrote that
+data: do not continue, and restore with the server version that wrote it.
 
 ### 5. Reset the aggregator replication slot
 

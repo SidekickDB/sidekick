@@ -7,8 +7,9 @@ tested: the Caddy setup, swarm, a Linux host (where the owners of the files in
 the bind-mounted `backups/` folder can differ), and `backup.sh` under dash as
 `/bin/sh` (the test host's `/bin/sh` is bash; a review ran the script's trap
 pattern under dash and bash with the same result). Restore step 6 was tested
-the same day with the v2.0.1 images and the Postgres image, settings and
-volume of `docker-compose.yml`.
+the same day with the v2.0.1 images, with its commands run against
+`docker-compose.local.yml`, which has the same Postgres image, settings and
+volume as `docker-compose.yml` and differs in ports and the password default.
 
 ## What holds state
 
@@ -267,13 +268,18 @@ database's log passes the highest stored position, that is once it has written
 about as much log as the old database had.
 
 This query prints what to do. It reads the highest position stored in those
-four tables and compares it with the database's current one:
+four tables under the server's slot number (2, `invalidator-slot-num` in
+`server/src/instant/config.clj`) and compares it with the database's current
+one. Older servers used slot numbers 0 and 1, and rows from them can still be
+in these tables. They are left out: numbers compare by slot number first, so
+they can never match a new one.
 
 ```sh
 docker compose exec -T postgres sh -c \
   'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atq' <<'SQL'
 create function pg_temp.max_stored_lsn() returns pg_lsn language plpgsql as $$
 declare
+  server_slot_num constant int := 2;
   t text;
   m pg_lsn;
   s int;
@@ -281,9 +287,10 @@ declare
 begin
   foreach t in array array['history', 'webhook_events', 'app_backups', 'backup_jobs'] loop
     if to_regclass(t) is not null then
-      execute format('select max((isn).lsn), max((isn).slot_num) from %I', t) into m, s;
-      if s is distinct from null and s <> 2 then
-        raise exception 'STOP: % holds positions with slot number %, not 2. Do not run pg_resetwal.', t, s;
+      execute format('select max((isn).lsn) filter (where (isn).slot_num = $1), max((isn).slot_num) from %I', t)
+        into m, s using server_slot_num;
+      if s > server_slot_num then
+        raise exception 'STOP: % holds positions with slot number %, above this server''s %.', t, s, server_slot_num;
       end if;
       r := greatest(r, m);
     end if;
@@ -312,8 +319,11 @@ It prints one line:
   and `-p` options added to each `docker compose`), then run the query again.
   It must now print `No step needed`. In the test, a restore printed
   `Run: ... -l 000000010000000000000004 ...`.
-- `STOP: ...`: do not run `pg_resetwal`. If it names replication slots, see
-  [If the server started without this step](#if-the-server-started-without-this-step).
+- `STOP: the database has replication slots ...`: do not run `pg_resetwal`;
+  see [If the server started without this step](#if-the-server-started-without-this-step).
+- `ERROR:  STOP: <table> holds positions with slot number ...`: a newer
+  server, with a higher slot number than 2, wrote that data. Do not continue:
+  restore with the server version that wrote it.
 
 The printed command stops Postgres and waits up to 300 seconds for it to shut
 down cleanly, runs `pg_resetwal -l` from the Postgres image on the same volume
@@ -403,8 +413,10 @@ it stops new ones from being skipped.
      'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select pg_drop_replication_slot(slot_name) from pg_replication_slots"'
    ```
 
-   Changes the server had not yet read from its slot when it stopped get no
-   history record or webhook, which is why the writes stop first.
+   Changes the server had not yet read from its slots when it stopped get no
+   history record or webhook, and the per-attribute counts the server uses to
+   plan queries (the "attr sketches", kept by the `aggregator` slot) miss
+   them. That is why the writes stop first.
 4. Run the query again, run the command it prints, and run the query once
    more: it must print `No step needed`.
 5. Do step 7 (it prints `UPDATE 1`) and step 8. The server creates its own
@@ -424,5 +436,8 @@ and `psql` commands with
 `docker exec -i $(docker ps -q -f name=instant_postgres) sh -c '...'` on the
 node that runs Postgres, and scale the server to zero before restoring
 (`docker service scale instant_server=0`). Step 6 is needed there too, but the
-command its query prints is written for Compose. This guide has no tested
+command its query prints is for the Compose files and cannot run on swarm:
+adapt it by stopping the Postgres service cleanly, running `pg_resetwal` with
+the same `-l` argument against the same volume as the `postgres` user, and
+starting the service again. That path is untested. This guide has no tested
 swarm procedure.
