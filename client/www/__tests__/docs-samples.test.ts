@@ -89,6 +89,18 @@ test('every docs sample passes apiURI to the SDK', () => {
   );
 });
 
+// The rules file for AI agents, which create-sidekick-app copies into projects.
+// Agents read it as plain text, so its samples name `apiURI` without the
+// placeholder.
+test('every sample in the agent rules passes apiURI to the SDK', () => {
+  const rules = path.join(__dirname, '../lib/intern/instant-rules.md');
+  const calls = entryPointCalls(fs.readFileSync(rules, 'utf8'));
+  expect(calls.length).toBeGreaterThan(1);
+  expect(calls.filter((call) => !call.ok).map((call) => call.where)).toEqual(
+    [],
+  );
+});
+
 test('the scan finds samples without apiURI', () => {
   const markdown = [
     '```ts',

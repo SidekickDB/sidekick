@@ -362,6 +362,11 @@ The JS packages have no default server any more: no `api.instantdb.com`, no
 - core `init()` requires `apiURI` (`MissingApiURIError`) and derives
   `websocketURI` from it (`client/packages/core/src/endpoints.ts`); the devtool
   loads nothing without `devtool.dashURI`.
+- The agent rules (`client/www/lib/intern/instant-rules.md` and its copies)
+  pass `apiURI` in the `init` samples, tell the agent to reuse the project's
+  `apiURI`, and say where the CLI gets the server and dashboard URLs.
+  `client/www/__tests__/docs-samples.test.ts` fails on a rules sample without
+  `apiURI`.
 
 **Resolving:** keep SidekickDB's side of every endpoint default. If upstream adds
 a client, option or command that talks to a server, make it take the URL
