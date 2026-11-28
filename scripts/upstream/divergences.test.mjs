@@ -42,6 +42,32 @@ test("every divergence title is a short label, not a list", async () => {
   }
 });
 
+// UPSTREAM.md, "Maintaining the tooling": in each divergence section the
+// bullets are sorted by their key, the first backticked text in the bullet
+// that contains a `/`, compared byte by byte; a bullet with no key is skipped.
+test("the bullets of every divergence section are in key order", () => {
+  const text = fs.readFileSync(new URL("../../UPSTREAM.md", import.meta.url), "utf8");
+  const part = text.split(/^## Intentional divergences$/m)[1].split(/^## /m)[0];
+  for (const section of part.split(/^(?=### )/m).slice(1)) {
+    const bullets = [];
+    let open = false;
+    for (const line of section.split("\n")) {
+      const continues = open && (line === "" || line.startsWith(" "));
+      if (line.startsWith("- ")) bullets.push(line);
+      else if (continues) bullets.push(`${bullets.pop()}\n${line}`);
+      open = line.startsWith("- ") || continues;
+    }
+    const keys = bullets
+      .map((b) => [...b.matchAll(/`([^`]+)`/g)].find((m) => m[1].includes("/"))?.[1])
+      .filter(Boolean);
+    for (let i = 1; i < keys.length; i++)
+      assert.ok(
+        Buffer.compare(Buffer.from(keys[i - 1]), Buffer.from(keys[i])) <= 0,
+        `${section.split("\n")[0]}: \`${keys[i]}\` comes after \`${keys[i - 1]}\``,
+      );
+  }
+});
+
 test("the loader skips dotfiles and rejects other names", () => {
   assert.deepEqual(
     divergenceFiles(["selfhost.mjs", ".DS_Store", ".brand.mjs.swp", "brand.mjs"]),
