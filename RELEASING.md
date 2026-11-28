@@ -153,7 +153,7 @@ Actions → **Release Docker images (SidekickDB)** → Run workflow, branch `mai
   and pushes nothing.
 - `push` checked: pushes `<sha>-amd64` / `<sha>-arm64`, then publishes
   multi-arch tags: `latest` and `<sha>` for server and dashboard (plus
-  `version`, for example `v2.0.0`, when given), and
+  `version`, for example `v1.2.3`, when given), and
   `postgresql-17-pg-hint-plan` and `<sha>` for postgresql. The per-arch tags
   stay in the public packages next to the multi-arch ones.
 
@@ -167,13 +167,30 @@ Check a pushed image with
 `docker run --rm --entrypoint ls ghcr.io/sidekickdb/server /licenses`.
 
 A push needs two approvals of the `image-release` environment: one for the
-build matrix and one for the manifest job. A malformed `version` fails every
-build job before it builds anything.
+build matrix and one for the manifest job.
+
+A version tag is never moved by accident. Every build job first runs
+`scripts/release/check-version-tag.mjs`, with or without `push`: a malformed
+`version`, or one that already exists on `server` or `dashboard`, fails it
+before anything is built. Each manifest job checks its own image again just
+before it publishes, since the tag can appear between the two jobs. The check
+reads the public packages anonymously and fails closed: a tag counts as free
+only when ghcr.io answers "manifest unknown", and any other answer, a timeout
+or a network error fails the run. To move an existing version tag on purpose,
+set `move_version_tag` (default unchecked), which skips the lookup.
+
+To release the next version, replace `vX.Y.Z` in both lines with the next
+unused version (an existing one is refused). The first line, run from a
+checkout of `main`, must print `not found, free` for both images:
 
 ```sh
+VERSION=vX.Y.Z MOVE_VERSION_TAG=false node scripts/release/check-version-tag.mjs server dashboard
 gh workflow run sidekick-release-images.yml -R SidekickDB/sidekick --ref main \
-  -f push=true -f version=v2.0.0
+  -f push=true -f version=vX.Y.Z
 ```
+
+If only some manifest jobs fail, re-run the failed jobs: each checks only its
+own image, so the images that are already published do not block the re-run.
 
 The self-hosting compose files default to these images: `latest` of server
 and dashboard, and `postgresql-17-pg-hint-plan` of postgresql. A release that
