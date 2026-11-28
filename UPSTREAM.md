@@ -395,7 +395,10 @@ unless they start with `client/`):
 - **No outside loads** (PR #107): `client/www/lib/monaco.ts` reads the editor
   types from the dashboard instead of unpkg, and `lib/monacoLoader.ts` points
   `@monaco-editor/react` at the dashboard's own Monaco instead of jsdelivr
-  (imported by `pages/_app.tsx` and `app/providers.tsx`).
+  (imported by `pages/_app.tsx` and `app/providers.tsx`). The path is an
+  absolute URL on the page's origin, set in the browser only: Monaco's
+  language workers start from a `blob:` URL and cannot resolve `/monaco/vs`
+  (PR #113).
   `scripts/copy-editor-assets.mjs` (run by `predev` and `prebuild`) copies
   Monaco's `min/vs` and the `@sidekickdb/core` type declarations into
   `public/monaco` (git-ignored). The Google Analytics id comes from
