@@ -7,8 +7,8 @@ nextjs:
 
 For more serious projects where you need higher availability and point-in-time
 restores, we recommend starting with two backend servers and
-Aurora PostgreSQL. This is the same general architecture Instant Cloud uses and
-lets you scale the backend and database separately.
+Aurora PostgreSQL. This setup is modelled on the architecture upstream describes
+for Instant Cloud and lets you scale the backend and database separately.
 
 The resources and instance types are up to you. The important parts are how the
 SidekickDB containers connect to PostgreSQL, object storage, and each other.
@@ -163,7 +163,7 @@ S3_BUCKET=instant-bucket
 AWS_ACCESS_KEY_ID=replace-with-the-storage-access-key
 AWS_SECRET_ACCESS_KEY=replace-with-the-storage-secret-key
 
-JAVA_OPTS=-Xmx4g -Xms4g
+JAVA_OPTS=-Xmx4g -Xms4g -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000
 ```
 
 Leave `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` unset when using AWS S3.
@@ -243,15 +243,7 @@ Resize the Aurora writer when database CPU, memory, connections, or query
 latency becomes the bottleneck. Revisit the connection pool and replication
 settings whenever you add backend servers.
 
-Currently Instant Cloud runs on:
-
-| Tier                | Capacity                                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| Application servers | 3 x `m6a.16xlarge` (64 vCPUs and 256 GiB each)                                                 |
-| PostgreSQL          | `db.r8gd.16xlarge` (64 vCPUs and 512 GiB) with Aurora I/O-Optimized                            |
-| Workload            | 10,000+ concurrent connections, 10,000+ queries per second, and 1,000+ transactions per second |
-
-Most deployments should start much smaller and scale each part from observed usage.
+Start small and scale each part from observed usage.
 
 Once SidekickDB is running, see [Operating SidekickDB](/docs/self-hosting#operating)
 to configure email, dashboard access, the CLI, and health checks.

@@ -13,7 +13,7 @@ information on how to operate your self-hosted instance in conjunction with our 
 Choose a guide based on where you want to run SidekickDB:
 
 1. **Want to self host SidekickDB for side projects?** Use our [VPS](/docs/self-hosting/vps) guide to self-host SidekickDB starting at ~$30/mo.
-1. **Want to self host SidekickDB for your business?** If you're using SidekickDB for more serious projects, check out our [AWS](/docs/self-hosting/aws) guide for a setup based on Instant Cloud. You should expect to spend at least $600/mo.
+1. **Want to self host SidekickDB for your business?** If you're using SidekickDB for more serious projects, check out our [AWS](/docs/self-hosting/aws) guide for a setup modelled on the architecture upstream describes for Instant Cloud. You should expect to spend at least $600/mo.
 1. **Migrating from Instant Cloud?** Check out our [migration](/docs/self-hosting/migrate) guide.
 
 If you're an agent setting up self-hosting, you should first ask the user whether
@@ -201,7 +201,8 @@ A multi-server SidekickDB deployment requires more than increasing the number of
 The compose files and `swarm.yml` limit the backend server container to 2 GB, and the default
 `JAVA_OPTS` lets the JVM heap use up to 60% of that limit. On the 4 GB VPS from
 the VPS guide this leaves memory for the operating system and the other
-containers. To give a larger server more memory, raise the limit in `.env`:
+containers. To give a larger server more memory, raise the limit in `.env` (or
+in the environment for `deploy-swarm.sh`):
 
 ```shell
 SERVER_MEMORY_LIMIT=4g
