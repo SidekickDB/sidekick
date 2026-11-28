@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: ghcr.io/instantdb/postgresql:postgresql-17-pg-hint-plan
+    # SidekickDB: its own build of server/dev-postgres (with the wal2json
+    # fix), published by sidekick-release-images.yml; not upstream's image.
+    image: ghcr.io/sidekickdb/postgresql:postgresql-17-pg-hint-plan
     # SidekickDB: development ports are published on the loopback address
     # only, because Docker-published ports bypass host firewalls.
     ports:

@@ -1,21 +1,21 @@
 ---
 nextjs:
   metadata:
-    title: 'Self Hosting Instant on AWS'
-    description: 'Run Instant with multiple backend servers and Aurora PostgreSQL.'
+    title: 'Self Hosting SidekickDB on AWS'
+    description: 'Run SidekickDB with multiple backend servers and Aurora PostgreSQL.'
 ---
 
 For more serious projects where you need higher availability and point-in-time
 restores, we recommend starting with two backend servers and
-Aurora PostgreSQL. This is the same general architecture Instant Cloud uses and
-lets you scale the backend and database separately.
+Aurora PostgreSQL. This setup is modelled on the architecture upstream describes
+for Instant Cloud and lets you scale the backend and database separately.
 
 The resources and instance types are up to you. The important parts are how the
-Instant containers connect to PostgreSQL, object storage, and each other.
+SidekickDB containers connect to PostgreSQL, object storage, and each other.
 
 ## Architecture
 
-Instant does not require a particular AWS container platform. Your deployment
+SidekickDB does not require a particular AWS container platform. Your deployment
 needs:
 
 - HTTPS traffic routed to every healthy backend
@@ -29,8 +29,8 @@ needs:
 Set `SWARM_SERVICE_NAME` to the service name used in private DNS. Backend tasks
 must be able to communicate over ports 5701–5708 and 5801–5808.
 
-Do not set `PRODUCTION=true`; that selects Instant Cloud configuration rather
-than self-hosted configuration.
+Do not set `PRODUCTION=true`. The server image runs in the self-hosted runtime
+mode, which stops at startup when `PRODUCTION=true` is set.
 
 ## Configure AWS access
 
@@ -48,7 +48,7 @@ profile and Region consistently throughout the deployment.
 
 ## Configure Aurora PostgreSQL
 
-Instant requires PostgreSQL 17 with logical replication and `pg_hint_plan`.
+SidekickDB requires PostgreSQL 17 with logical replication and `pg_hint_plan`.
 Create an Aurora PostgreSQL 17 cluster and apply these settings in a custom DB
 cluster parameter group:
 
@@ -65,11 +65,11 @@ Keep any existing entries in `shared_preload_libraries`. The replication
 settings require a reboot.
 
 {% callout type="note" %}
-Instant opens its migration connection without TLS, so Aurora PostgreSQL 17
+SidekickDB opens its migration connection without TLS, so Aurora PostgreSQL 17
 requires `rds.force_ssl = 0`. Restrict port 5432 to the backend servers.
 {% /callout %}
 
-Create a database and login for Instant. The login needs the RDS replication
+Create a database and login for SidekickDB. The login needs the RDS replication
 role:
 
 ```sql
@@ -91,7 +91,7 @@ migrations and administration. Increase `max_replication_slots` and
 
 ## Configure S3
 
-Create a private S3 bucket for Instant Storage. The backend needs permission to
+Create a private S3 bucket for SidekickDB Storage. The backend needs permission to
 list the bucket and to read, write, delete, and manage multipart uploads for its
 objects.
 
@@ -104,22 +104,22 @@ AWS_ACCESS_KEY_ID=replace-with-the-storage-access-key
 AWS_SECRET_ACCESS_KEY=replace-with-the-storage-secret-key
 ```
 
-Be sure to configure CORS on the bucket so Instant apps can upload files directly from the browser.
+Be sure to configure CORS on the bucket so SidekickDB apps can upload files directly from the browser.
 
-Leave `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` unset when using AWS S3. Instant
+Leave `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` unset when using AWS S3. SidekickDB
 currently needs static IAM credentials to sign S3 URLs, so provide an access
 key even when the application servers also have an instance role.
 
 ## Share the encryption configuration
 
-Every backend instance must use the same `override.edn`. Instant uses this file
+Every backend instance must use the same `override.edn`. SidekickDB uses this file
 to encrypt secrets and sign webhooks. Generate it once:
 
 ```sh {% showCopy=true %}
 mkdir instant-config
 docker run --rm \
   -v "$PWD/instant-config:/out" \
-  ghcr.io/instantdb/server:latest \
+  ghcr.io/sidekickdb/server:latest \
   /app/start.sh generate-override-config /out/override.edn
 ```
 
@@ -127,14 +127,14 @@ Store it with your other deployment secrets and mount it at
 `/app/resources/config/override.edn` on every backend. Do not generate a
 different file for each server.
 
-## Deploy Instant
+## Deploy SidekickDB
 
 ### Run the backend servers
 
 Deploy the backend image on your preferred container platform:
 
 ```
-ghcr.io/instantdb/server:latest
+ghcr.io/sidekickdb/server:latest
 ```
 
 Start with two backend tasks in the same Availability Zone as the Aurora writer.
@@ -155,15 +155,15 @@ WAL_HISTORY_STORAGE=pg
 DATABASE_URL=postgresql://instant:PERCENT_ENCODED_PASSWORD@WRITER_ENDPOINT:5432/instant
 CONNECTION_POOL_SIZE=20
 
-INSTANT_BACKEND_URL=https://api.myinstant.com
-INSTANT_DASHBOARD_URL=https://dash.myinstant.com
+SIDEKICK_BACKEND_URL=https://api.example.com
+SIDEKICK_DASHBOARD_URL=https://dash.example.com
 
 AWS_REGION=your-region
 S3_BUCKET=instant-bucket
 AWS_ACCESS_KEY_ID=replace-with-the-storage-access-key
 AWS_SECRET_ACCESS_KEY=replace-with-the-storage-secret-key
 
-JAVA_OPTS=-Xmx4g -Xms4g
+JAVA_OPTS=-Xmx4g -Xms4g -Djdk.nio.maxCachedBufferSize=131072 -XX:TrimNativeHeapInterval=60000
 ```
 
 Leave `S3_ENDPOINT` and `S3_PUBLIC_ENDPOINT` unset when using AWS S3.
@@ -185,8 +185,8 @@ of every backend task. Each task must be able to reach the others over TCP ports
 ECS with AWS Cloud Map, Docker Swarm DNSRR, or another scheduler that provides
 equivalent private DNS can satisfy this requirement.
 
-Keep `PRODUCTION` unset. Setting `PRODUCTION=true` selects Instant Cloud's
-production configuration rather than the mounted self-hosted `override.edn`.
+Keep `PRODUCTION` unset. In the self-hosted runtime mode the server stops at
+startup when `PRODUCTION=true` is set.
 
 A successful `/health/system` response verifies the database WAL but does not
 verify backend clustering. After deployment, test presence and realtime updates
@@ -197,19 +197,19 @@ while requests are distributed across both backend tasks.
 Deploy the dashboard image separately:
 
 ```
-ghcr.io/instantdb/dashboard:latest
+ghcr.io/sidekickdb/dashboard:latest
 ```
 
 Set its public backend URL:
 
 ```
-INSTANT_BACKEND_URL=https://api.myinstant.com
+SIDEKICK_BACKEND_URL=https://api.example.com
 ```
 
 Route the dashboard hostname to port 3000:
 
 ```
-https://dash.myinstant.com
+https://dash.example.com
 ```
 
 The dashboard does not participate in backend service discovery.
@@ -243,15 +243,7 @@ Resize the Aurora writer when database CPU, memory, connections, or query
 latency becomes the bottleneck. Revisit the connection pool and replication
 settings whenever you add backend servers.
 
-Currently Instant Cloud runs on:
+Start small and scale each part from observed usage.
 
-| Tier                | Capacity                                                                                       |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| Application servers | 3 x `m6a.16xlarge` (64 vCPUs and 256 GiB each)                                                 |
-| PostgreSQL          | `db.r8gd.16xlarge` (64 vCPUs and 512 GiB) with Aurora I/O-Optimized                            |
-| Workload            | 10,000+ concurrent connections, 10,000+ queries per second, and 1,000+ transactions per second |
-
-Most deployments should start much smaller and scale each part from observed usage.
-
-Once Instant is running, see [Operating Instant](/docs/self-hosting#operating)
+Once SidekickDB is running, see [Operating SidekickDB](/docs/self-hosting#operating)
 to configure email, dashboard access, the CLI, and health checks.
