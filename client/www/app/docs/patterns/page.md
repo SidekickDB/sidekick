@@ -5,7 +5,7 @@ nextjs:
     description: 'Common patterns for working with SidekickDB.'
 ---
 
-Below are some common patterns for working with InstantDB. We'll add more
+Below are some common patterns for working with SidekickDB. We'll add more
 patterns over time, and if you have a pattern you'd like to share, please feel
 free to submit a PR for this page.
 
@@ -124,7 +124,7 @@ const rules = {
 export default rules;
 ```
 
-## Listen to InstantDB connection status.
+## Listen to SidekickDB connection status.
 
 Sometimes you want to let clients know when they are connected to or disconnected
 from the DB. You can use `db.subscribeConnectionStatus` in vanilla JS or
@@ -161,17 +161,17 @@ function App() {
 }
 ```
 
-## Using Instant via CDN
+## Using SidekickDB via CDN
 
-If you have a plain html page or avoid using a build step, you can use InstantDB
+If you have a plain html page or avoid using a build step, you can use SidekickDB
 via a CDN through [unpkg](https://www.unpkg.com/@sidekickdb/core/).
 
 ```jsx {% showCopy=true %}
-<!-- Load Instant via unpkg -->
+<!-- Load SidekickDB via unpkg -->
 <!-- Consider replacing @latest with a specific package -->
 <script src="https://www.unpkg.com/@sidekickdb/core@latest/dist/standalone/index.umd.cjs"></script>
 
-<!-- Use Instant like normal -->
+<!-- Use SidekickDB like normal -->
 <script>
   const { init, id } = instant;
   // Instant app
@@ -270,7 +270,7 @@ await adminDB.query(
 
 Sometimes an item is unique by two or more attributes. For example, consider a `location`: it's unique by `latitude` _and_ `longitude`.
 
-How can you enforce this uniqueness in Instant?
+How can you enforce this uniqueness in SidekickDB?
 
 We don't have composite keys built-in, but you can manage them by creating a composite column. For example, you can make sure `locations` are unique by adding a `latLong` column:
 
@@ -318,7 +318,7 @@ const rules = {
 
 ## Managing local vs production apps
 
-You may want to have separate Instant apps for local development and production.
+You may want to have separate SidekickDB apps for local development and production.
 The way to do this right now is to have two separate apps, one for local and one
 for production.
 

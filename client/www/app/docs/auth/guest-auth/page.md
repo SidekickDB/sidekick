@@ -5,7 +5,7 @@ nextjs:
     description: 'Let your users try your app before creating an account'
 ---
 
-Instant supports guest authentication. This allows your users to try your app before signing up and ensures they can keep all their data when they decide to create a full account with their email.
+SidekickDB supports guest authentication. This allows your users to try your app before signing up and ensures they can keep all their data when they decide to create a full account with their email.
 
 ## Signing in as a Guest
 
@@ -81,7 +81,7 @@ export default App;
 
 ## Upgrading to a full user
 
-When a guest user is ready to create a permanent account, you can use any of Instant's sign-in methods. The guest user will be automatically upgraded to a full user.
+When a guest user is ready to create a permanent account, you can use any of SidekickDB's sign-in methods. The guest user will be automatically upgraded to a full user.
 
 Here is a full example using magic code auth:
 

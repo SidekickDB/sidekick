@@ -50,7 +50,7 @@ module.exports = [
         optionalLLM: true,
       },
       {
-        title: 'Create SidekickDB App',
+        title: 'create-sidekick-app',
         prevHref: null,
         href: '/docs/create-instant-app',
         nextHref: '/docs/workflow',

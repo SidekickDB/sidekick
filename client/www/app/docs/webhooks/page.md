@@ -9,9 +9,9 @@ Webhooks allow you to subscribe to changes to your entities via POST requests to
 
 ## How webhooks work
 
-A webhook subscribes to one or more **namespaces** and **actions** (`create`, `update`, `delete`). Whenever a matching write commits, Instant queues an event and POSTs it to your endpoint.
+A webhook subscribes to one or more **namespaces** and **actions** (`create`, `update`, `delete`). Whenever a matching write commits, SidekickDB queues an event and POSTs it to your endpoint.
 
-Each request carries an `Instant-Signature` header and a small body. The body holds a short-lived URL and a JWT — you exchange them for the full payload of records:
+Each request carries an `Instant-Signature` header and a small body. The body holds a short-lived URL and a JWT. You exchange them for the full payload of records:
 
 ```json
 {
@@ -29,27 +29,27 @@ Each request carries an `Instant-Signature` header and a small body. The body ho
 }
 ```
 
-`before` is `null` on `create`; `after` is `null` on `delete`. The `idempotencyKey` is stable across redeliveries — use it to dedupe if your handler isn't idempotent on its own.
+`before` is `null` on `create`; `after` is `null` on `delete`. The `idempotencyKey` is stable across redeliveries: use it to dedupe if your handler isn't idempotent on its own.
 
 The `before` and `after` fields include all of the data attributes on an entity, but none of its links.
 
 ### Delivery and retries
 
-Instant retries failed deliveries with backoff. An event moves through these stages:
+SidekickDB retries failed deliveries with backoff. An event moves through these stages:
 
-- `pending` — queued, not yet attempted
-- `processing` — a sender is actively trying to deliver
-- `success` — receiver returned `2xx`
-- `error` — an attempt failed; another retry is scheduled
-- `failed` — all retries exhausted; will not be retried automatically
+- `pending`: queued, not yet attempted
+- `processing`: a sender is actively trying to deliver
+- `success`: receiver returned `2xx`
+- `error`: an attempt failed; another retry is scheduled
+- `failed`: all retries exhausted; will not be retried automatically
 
-Each delivery attempt has a **15-second timeout** — if your endpoint hasn't responded by then, the attempt is recorded as a `timeout` error and Instant retries. Do any slow work (sending emails, calling third-party APIs, etc.) asynchronously, and respond with `2xx` as soon as you've durably enqueued the work.
+Your endpoint must start responding within 10 seconds. The whole attempt, including the DNS lookup, is capped at **20 seconds**. An attempt that times out is recorded as a `timeout` error and SidekickDB retries. Do any slow work (sending emails, calling third-party APIs, etc.) asynchronously, and respond with `2xx` as soon as you've durably enqueued the work.
 
 A webhook that fails too many times in a row is automatically disabled. You can re-enable it from the dashboard or via the SDK once you've fixed the receiver.
 
 ## Setting up a webhook
 
-The easiest way to create a webhook is from the **Webhooks** tab in the dashboard: pick the namespaces, the actions, and the URL Instant should POST to.
+The easiest way to create a webhook is from the **Webhooks** tab in the dashboard: pick the namespaces, the actions, and the URL SidekickDB should POST to.
 
 You can also manage webhooks programmatically with `npx @sidekickdb/cli webhook` or through the Admin SDK:
 
@@ -112,11 +112,11 @@ export async function POST(req: Request) {
 }
 ```
 
-`Webhooks.helpers<typeof schema>()` gives you `typedHandlers` and `combineHandlers`. Inside each handler, `record.before` and `record.after` are typed according to your schema — TypeScript will autocomplete fields and narrow on `action`.
+`Webhooks.helpers<typeof schema>()` gives you `typedHandlers` and `combineHandlers`. Inside each handler, `record.before` and `record.after` are typed according to your schema, so TypeScript will autocomplete fields and narrow on `action`.
 
 Handler resolution is most-specific-wins: `namespace` + `action`, then the `namespace`'s `$default`, then the top-level `$default`. Records with no matching handler are skipped.
 
-Handlers run concurrently. `processRequest` resolves once every handler resolves or a handler rejects; if any handler rejects, the call rejects too — return a non-2xx response so Instant retries.
+Handlers run concurrently. `processRequest` resolves once every handler resolves or a handler rejects; if any handler rejects, the call rejects too. Return a non-2xx response so SidekickDB retries.
 
 ### Next.js (Pages Router)
 
@@ -218,7 +218,7 @@ const body = await db.webhooks.validateRequest(req);
 const payload = await db.webhooks.fetchPayloads({ payloadUrl, token });
 ```
 
-`validate` rejects requests whose signature is older than `tolerance` (default: 5 minutes) — this is what protects against replays, so don't crank it up without thinking about it.
+`validate` rejects requests whose signature is older than `tolerance` (default: 5 minutes). This is what protects against replays, so don't crank it up without thinking about it.
 
 ## Managing webhooks programmatically
 
@@ -248,7 +248,7 @@ await db.webhooks.manager.enable(hook.id);
 await db.webhooks.manager.delete(hook.id);
 ```
 
-`update` is a patch — omitted fields keep their current value. `disable` and `enable` don't change the config, only whether new events are queued. Events that occurred while a webhook was disabled are **not** retroactively delivered when you re-enable it.
+`update` is a patch: omitted fields keep their current value. `disable` and `enable` don't change the config, only whether new events are queued. Events that occurred while a webhook was disabled are **not** retroactively delivered when you re-enable it.
 
 ## Inspecting events
 
@@ -277,13 +277,13 @@ const payload = await db.webhooks.manager.getPayload(hook.id, isn);
 await db.webhooks.manager.resendEvent(hook.id, isn);
 ```
 
-Each `event.attempts` entry records the HTTP status, response body (first 256 bytes), duration, and an `errorType` tag (`timeout`, `dns`, `connect`, `tls`, `protocol`, `network`, `unknown`) when delivery failed — usually enough to tell whether the receiver is the problem or the network is.
+Each `event.attempts` entry records the HTTP status, response body (first 256 bytes), duration, and an `errorType` tag (`timeout`, `dns`, `connect`, `tls`, `protocol`, `network`, `unknown`) when delivery failed. That is usually enough to tell whether the receiver is the problem or the network is.
 
 `resendEvent` is rate-limited per event; if you call it twice in quick succession, the second call will return a validation error and ask you to wait about a minute.
 
 ## Verifying and fetching from any language
 
-The `@sidekickdb/admin` SDK is the easiest way to receive webhooks, but the protocol is plain HTTP + Ed25519 — you can implement a receiver in any language. The steps below are what `validate` and `fetchPayloads` do under the hood.
+The `@sidekickdb/admin` SDK is the easiest way to receive webhooks, but the protocol is plain HTTP + Ed25519, so you can implement a receiver in any language. The steps below are what `validate` and `fetchPayloads` do under the hood.
 
 ### 1. The request
 
@@ -295,25 +295,23 @@ Every webhook arrives as a `POST` with two things you care about:
   Instant-Signature: t=1715551200,kid=1034696293,v1=4a8f...
   ```
 
-  - `t` — Unix timestamp (seconds) of when Instant signed the request
-  - `kid` — ID of the signing key
-  - `v1` — hex-encoded Ed25519 signature
+  - `t`: Unix timestamp (seconds) of when SidekickDB signed the request
+  - `kid`: ID of the signing key
+  - `v1`: hex-encoded Ed25519 signature
 
 - A JSON body containing a short-lived URL and JWT:
 
   ```json
-  { "payloadUrl": "https://sidekick.example.com/...", "token": "eyJ..." }
+  { "payloadUrl": "__API_URI__/...", "token": "eyJ..." }
   ```
 
 ### 2. Verify the signature
 
-The signed message is `t` + `.` + the raw request body, as UTF-8 bytes. Verify the `v1` signature against the Ed25519 public key whose `kid` matches the header. The public keys are published as a JWK Set at:
+The signed message is `t` + `.` + the raw request body, as UTF-8 bytes. Verify the `v1` signature against the Ed25519 public key whose `kid` matches the header. The public keys are published by your SidekickDB server as a JWK Set at:
 
 ```text
-https://sidekick.example.com/.well-known/webhooks/jwks.json
+__API_URI__/.well-known/webhooks/jwks.json
 ```
-
-Replace `https://sidekick.example.com` with your SidekickDB server's URL.
 
 Reject requests where `t` is older than a few minutes (the SDK defaults to 300 seconds) to prevent replays.
 
@@ -324,7 +322,7 @@ Reject requests where `t` is older than a few minutes (the SDK defaults to 300 s
 import base64, json, time, requests
 from nacl.signing import VerifyKey
 
-JWKS_URL = "https://sidekick.example.com/.well-known/webhooks/jwks.json"
+JWKS_URL = "__API_URI__/.well-known/webhooks/jwks.json"
 TOLERANCE_SECONDS = 300
 
 def _b64url_decode(s: str) -> bytes:
@@ -364,7 +362,7 @@ import (
 )
 
 const (
-	jwksURL          = "https://sidekick.example.com/.well-known/webhooks/jwks.json"
+	jwksURL          = "__API_URI__/.well-known/webhooks/jwks.json"
 	toleranceSeconds = 300
 )
 
@@ -431,7 +429,7 @@ require "base64"
 require "json"
 require "net/http"
 
-JWKS_URL = "https://sidekick.example.com/.well-known/webhooks/jwks.json"
+JWKS_URL = "__API_URI__/.well-known/webhooks/jwks.json"
 TOLERANCE_SECONDS = 300
 
 def verify_key_for(kid)
@@ -470,7 +468,7 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 
 public class WebhookVerifier {
-  static final String JWKS_URL = "https://sidekick.example.com/.well-known/webhooks/jwks.json";
+  static final String JWKS_URL = "__API_URI__/.well-known/webhooks/jwks.json";
   static final long TOLERANCE_SECONDS = 300;
   static final ObjectMapper JSON = new ObjectMapper();
 

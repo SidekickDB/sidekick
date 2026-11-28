@@ -5,7 +5,7 @@ nextjs:
     description: 'How to write data with SidekickDB using InstaML.'
 ---
 
-Instant uses a **Firebase-inspired** interface for mutations. We call our mutation language **InstaML**.
+SidekickDB uses a **Firebase-inspired** interface for mutations. We call our mutation language **InstaML**.
 
 ## Creating data
 
@@ -277,7 +277,7 @@ By default, `db.transact` is permissive. When you save data, we'll create missin
 
 ```typescript
 db.tx.todos[workoutId].update({
-  // Instant will automatically create this attribute
+  // SidekickDB will automatically create this attribute
   dueDate: Date.now() + 60 * 1000,
 });
 ```
@@ -298,11 +298,11 @@ const _schema = i.schema({
 // ...
 ```
 
-Instant will enforce that `todos.dueDate` values are actually dates, and you'll get some nice IntelliSense to boot:
+SidekickDB will enforce that `todos.dueDate` values are actually dates, and you'll get some nice IntelliSense to boot:
 
 {% screenshot src="/img/docs/instaml-due-date.png" /%}
 
-Instant also comes with a few utility types, which can help you write abstractions over `transact`. For example, say you wanted to write a custom `update` function:
+SidekickDB also comes with a few utility types, which can help you write abstractions over `transact`. For example, say you wanted to write a custom `update` function:
 
 ```typescript
 // Goal

@@ -5,7 +5,7 @@ nextjs:
     description: 'How to read data with SidekickDB using InstaQL.'
 ---
 
-Instant uses a declarative syntax for querying. It's like GraphQL without the configuration. Here's how you can query data with **InstaQL.**
+SidekickDB uses a declarative syntax for querying. It's like GraphQL without the configuration. Here's how you can query data with **InstaQL.**
 
 ## Fetch namespace
 
@@ -428,7 +428,7 @@ const query = {
 const { isLoading, error, data, pageInfo } = db.useQuery(query);
 ```
 
-Instant supports both offset-based and cursor-based pagination for top-level
+SidekickDB supports both offset-based and cursor-based pagination for top-level
 namespaces.
 
 ### Offset
@@ -564,12 +564,12 @@ const query = {
 };
 ```
 
-The `serverCreatedAt` field is a reserved key that orders by the time that the object was first persisted on the Instant backend. It can take the value 'asc' (the default) or 'desc'.
+The `serverCreatedAt` field is a reserved key that orders by the time that the object was first persisted on your SidekickDB server. It can take the value 'asc' (the default) or 'desc'.
 
 You can also order by any attribute that is indexed and has a checked type.
 
 {% callout %}
-Add indexes and checked types to your attributes from the [Explorer on the Instant dashboard](/dash?t=explorer) or from the [cli](/docs/cli).
+Add indexes and checked types to your attributes from the [Explorer on the SidekickDB dashboard](/dash?t=explorer) or from the [cli](/docs/cli).
 {% /callout %}
 
 ```typescript
@@ -773,7 +773,7 @@ console.log(data)
 The `where` clause supports comparison operators on fields that are indexed and have checked types.
 
 {% callout %}
-Add indexes and checked types to your attributes from the [Explorer on the Instant dashboard](/dash?t=explorer) or from the [cli with Schema-as-code](/docs/modeling-data).
+Add indexes and checked types to your attributes from the [Explorer on the SidekickDB dashboard](/dash?t=explorer) or from the [cli with Schema-as-code](/docs/modeling-data).
 {% /callout %}
 
 | Operator |       Description        | JS equivalent |
@@ -1214,7 +1214,7 @@ export type { AppSchema };
 export default schema;
 ```
 
-Instant will start giving you IntelliSense for your queries. For example, if you're querying for goals, you'll see that only `todos` can be associated:
+SidekickDB will start giving you IntelliSense for your queries. For example, if you're querying for goals, you'll see that only `todos` can be associated:
 
 {% screenshot src="/img/docs/instaql-todos-goals-autocomplete.png" /%}
 
@@ -1224,7 +1224,7 @@ And if you hover over `data`, you'll see the actual typed output of your query:
 
 ### Utility Types
 
-Instant also comes with some utility types to help you use your schema in TypeScript.
+SidekickDB also comes with some utility types to help you use your schema in TypeScript.
 
 For example, you could define your `query` upfront:
 

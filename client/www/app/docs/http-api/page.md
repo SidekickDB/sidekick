@@ -5,7 +5,7 @@ nextjs:
     description: "Direct HTTP access to SidekickDB's admin API for non-JavaScript environments."
 ---
 
-If your backend is written in JavaScript, you can use the [`@sidekickdb/admin`](/docs/backend) SDK to connect your server to Instant.
+If your backend is written in JavaScript, you can use the [`@sidekickdb/admin`](/docs/backend) SDK to connect your server to SidekickDB.
 
 But what if your backend isn't written in JavaScript? That's where the HTTP API comes in.
 
@@ -20,11 +20,10 @@ If you give this documentation to your AI agent, it can create a custom SDK for 
 ## Auth
 
 First and foremost, grab your app's `APP_ID` and `ADMIN_TOKEN`. You can get them by going to your
-[dashboard](/dash). To authenticate requests, include them in your HTTP headers
-(the examples on this page use `https://sidekick.example.com`: replace it with your SidekickDB server's URL):
+[dashboard](/dash). To authenticate requests, include them in your HTTP headers:
 
 ```shell {% lineHighlight="3,4" %}
-curl -X POST "https://sidekick.example.com/admin/query" \
+curl -X POST "__API_URI__/admin/query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -40,7 +39,7 @@ curl -X POST "https://sidekick.example.com/admin/query" \
 To make queries, run `POST /admin/query` with an InstaQL query:
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/query" \
+curl -X POST "__API_URI__/admin/query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -64,15 +63,15 @@ As a refresher, you can learn about InstaQL queries
 To make transactions, send `POST /admin/transact` with `steps`:
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/transact" \
+curl -X POST "__API_URI__/admin/transact" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
   -d '{"steps":[["update","todos","<a-todo-uuid>",{"title":"Get fit"}]]}'
 ```
 
-`steps` is the internal representation of Instant transactions. Here's how they
-map to the [Instant transactions](/docs/instaml) you know:
+`steps` is the internal representation of SidekickDB transactions. Here's how they
+map to the [SidekickDB transactions](/docs/instaml) you know:
 
 ```javascript
 [
@@ -119,7 +118,7 @@ You can subscribe to queries over SSE with `POST /admin/subscribe-query`.
 The connection stays open and streams updates.
 
 ```shell
-curl -N -X POST "https://sidekick.example.com/admin/subscribe-query" \
+curl -N -X POST "__API_URI__/admin/subscribe-query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -140,7 +139,7 @@ user and respect permissions. You can do this by passing the `As-Email`, `As-Tok
 
 ```shell {% lineHighlight="6,14,22" %}
 # Scoped by their email
-curl -X POST "https://sidekick.example.com/admin/query" \
+curl -X POST "__API_URI__/admin/query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -148,7 +147,7 @@ curl -X POST "https://sidekick.example.com/admin/query" \
   -d '{"query":{"goals":{}}}'
 
 # Or with their auth token
-curl -X POST "https://sidekick.example.com/admin/query" \
+curl -X POST "__API_URI__/admin/query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -156,7 +155,7 @@ curl -X POST "https://sidekick.example.com/admin/query" \
   -d '{"query":{"goals":{}}}'
 
 # Or use the db as a guest
-curl -X POST "https://sidekick.example.com/admin/query" \
+curl -X POST "__API_URI__/admin/query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -175,17 +174,17 @@ Use `GET /admin/users` to fetch an app user by `email`, `id`, or `refresh_token`
 
 ```shell
 # By email!
-curl -X GET "https://sidekick.example.com/admin/users?email=alyssa_p_hacker@example.com" \
+curl -X GET "__API_URI__/admin/users?email=alyssa_p_hacker@example.com" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 
 # By id
-curl -X GET "https://sidekick.example.com/admin/users?id=$USER_ID" \
+curl -X GET "__API_URI__/admin/users?id=$USER_ID" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 
 # Or by a refresh token
-curl -X GET "https://sidekick.example.com/admin/users?refresh_token=$REFRESH_TOKEN" \
+curl -X GET "__API_URI__/admin/users?refresh_token=$REFRESH_TOKEN" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 ```
@@ -196,17 +195,17 @@ Use `DELETE /admin/users` to delete an app user by `email`, `id`, or `refresh_to
 
 ```shell
 # By email
-curl -X DELETE "https://sidekick.example.com/admin/users?email=alyssa_p_hacker@example.com" \
+curl -X DELETE "__API_URI__/admin/users?email=alyssa_p_hacker@example.com" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 
 # By id
-curl -X DELETE "https://sidekick.example.com/admin/users?id=$USER_ID" \
+curl -X DELETE "__API_URI__/admin/users?id=$USER_ID" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 
 # Or by an auth token
-curl -X DELETE "https://sidekick.example.com/admin/users?refresh_token=$REFRESH_TOKEN" \
+curl -X DELETE "__API_URI__/admin/users?refresh_token=$REFRESH_TOKEN" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 ```
@@ -216,7 +215,7 @@ curl -X DELETE "https://sidekick.example.com/admin/users?refresh_token=$REFRESH_
 If you use [rooms & presence](/docs/presence-and-topics), you may want to query for the data currently in a room. This can be especially useful if you are sending a notification, for example, and want to skip it if the user is already online. To get room data, use `GET /admin/rooms/presence`. Make sure to pass in a `room-type` and a `room-id`:
 
 ```shell
-curl -X GET "https://sidekick.example.com/admin/rooms/presence?room-type=chat&room-id=room-123" \
+curl -X GET "__API_URI__/admin/rooms/presence?room-type=chat&room-id=room-123" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 ```
@@ -227,21 +226,21 @@ curl -X GET "https://sidekick.example.com/admin/rooms/presence?room-type=chat&ro
 
 ```shell {% lineHighlight="6,13,20" %}
 # All sessions for this email sign out
-curl -X POST "https://sidekick.example.com/admin/sign_out" \
+curl -X POST "__API_URI__/admin/sign_out" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
   -d '{"email":"alyssa_p_hacker@example.com"}'
 
 # All sessions for this user id sign out
-curl -X POST "https://sidekick.example.com/admin/sign_out" \
+curl -X POST "__API_URI__/admin/sign_out" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
   -d "{\"id\":\"$USER_ID\"}"
 
 # Just sign out the session for this refresh token
-curl -X POST "https://sidekick.example.com/admin/sign_out" \
+curl -X POST "__API_URI__/admin/sign_out" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -256,21 +255,21 @@ Pass in an `email` or an `id` to create a refresh token:
 
 ```shell {% lineHighlight="6,13" %}
 # By email
-curl -X POST "https://sidekick.example.com/admin/refresh_tokens" \
+curl -X POST "__API_URI__/admin/refresh_tokens" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
   -d '{"email":"alyssa_p_hacker@example.com"}'
 
 # Or by ID
-curl -X POST "https://sidekick.example.com/admin/refresh_tokens" \
+curl -X POST "__API_URI__/admin/refresh_tokens" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
   -d "{\"id\":\"$USER_ID\"}"
 ```
 
-If a user with the given `id` or `email` does not exist, Instant will create the
+If a user with the given `id` or `email` does not exist, SidekickDB will create the
 user for you. You can pass `extra-fields` to set custom `$users` properties on creation. The response includes `user.refresh_token` and `"created": true` when a new user is created. You can pass this token on to your client and use it to [log in](/docs/backend#2-frontend-db-auth-sign-in-with-token).
 
 ## Custom magic codes
@@ -278,17 +277,17 @@ user for you. You can pass `extra-fields` to set custom `$users` properties on c
 We support a [magic code flow](/docs/auth) out of the box. However, if you'd like to use your own email provider to send the code, you can create a magic code with `POST /admin/magic_code`:
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/magic_code" \
+curl -X POST "__API_URI__/admin/magic_code" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
   -d '{"email":"alyssa_p_hacker@example.com"}'
 ```
 
-You can also use Instant's default email provider to send a magic code:
+You can also have your SidekickDB server email a magic code. It sends through the email provider your server is set up with (see [Configure email](/docs/self-hosting#configure-email-with-postmark)):
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/send_magic_code" \
+curl -X POST "__API_URI__/admin/send_magic_code" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -298,7 +297,7 @@ curl -X POST "https://sidekick.example.com/admin/send_magic_code" \
 Similarly, you can verify a magic code too. Like `refresh_tokens`, you can pass `extra-fields` to set custom `$users` properties on creation.
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/verify_magic_code" \
+curl -X POST "__API_URI__/admin/verify_magic_code" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -310,7 +309,7 @@ curl -X POST "https://sidekick.example.com/admin/verify_magic_code" \
 To authenticate users, have your frontend pass in a refresh token. Then use `POST /runtime/auth/verify_refresh_token` to verify it:
 
 ```shell
-curl -X POST "https://sidekick.example.com/runtime/auth/verify_refresh_token" \
+curl -X POST "__API_URI__/runtime/auth/verify_refresh_token" \
   -H "Content-Type: application/json" \
   -d "{\"app-id\": \"$APP_ID\", \"refresh-token\": \"$REFRESH_TOKEN\"}"
 ```
@@ -324,7 +323,7 @@ You can also manage your app's [storage](/docs/storage) with the HTTP API.
 Upload a file with `PUT /admin/storage/upload`:
 
 ```shell
-curl -X PUT "https://sidekick.example.com/admin/storage/upload?app_id=$APP_ID&path=snippets/demo.txt" \
+curl -X PUT "__API_URI__/admin/storage/upload?app_id=$APP_ID&path=snippets/demo.txt" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: text/plain" \
   --data-binary "@demo.txt"
@@ -335,7 +334,7 @@ curl -X PUT "https://sidekick.example.com/admin/storage/upload?app_id=$APP_ID&pa
 Delete a file by path:
 
 ```shell
-curl -X DELETE "https://sidekick.example.com/admin/storage/files?filename=snippets/demo.txt" \
+curl -X DELETE "__API_URI__/admin/storage/files?filename=snippets/demo.txt" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID"
 ```
@@ -343,7 +342,7 @@ curl -X DELETE "https://sidekick.example.com/admin/storage/files?filename=snippe
 Delete multiple files by path:
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/storage/files/delete" \
+curl -X POST "__API_URI__/admin/storage/files/delete" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \
@@ -355,7 +354,7 @@ curl -X POST "https://sidekick.example.com/admin/storage/files/delete" \
 List files by querying `$files`:
 
 ```shell
-curl -X POST "https://sidekick.example.com/admin/query" \
+curl -X POST "__API_URI__/admin/query" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "App-Id: $APP_ID" \

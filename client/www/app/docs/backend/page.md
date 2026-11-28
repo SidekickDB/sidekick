@@ -5,7 +5,7 @@ nextjs:
     description: 'How to use SidekickDB on the server with the Admin SDK.'
 ---
 
-You can use Instant on the server as well! This can be especially useful for
+You can use SidekickDB on the server as well! This can be especially useful for
 running scripts, custom auth flows, or sensitive application logic.
 
 The server-side SDK is `@sidekickdb/admin` for JavaScript, the focus of this
@@ -13,7 +13,7 @@ page. SidekickDB does not release a Python SDK.
 
 ## Admin SDK
 
-`@sidekickdb/admin` is the JavaScript Admin SDK for using Instant in a
+`@sidekickdb/admin` is the JavaScript Admin SDK for using SidekickDB in a
 non-browser context. This library is similar to our client SDK with a few
 tweaks.
 
@@ -398,7 +398,7 @@ app.post('/custom-send-magic-code', async (req, res) => {
 });
 ```
 
-You can also use Instant's default email provider to send a magic code with `db.auth.sendMagicCode`:
+You can also have your SidekickDB server email a magic code with `db.auth.sendMagicCode`. It sends through the email provider your server is set up with (see [Configure email](/docs/self-hosting#configure-email-with-postmark)):
 
 ```typescript {% showCopy=true %}
 // You can trigger a magic code email in your backend with `sendMagicCode`
@@ -462,7 +462,7 @@ app.post('/custom_endpoint', async (req, res) => {
 
 Sometimes you want to get the logged in user in the backend without needing to explicitly pass in the refresh token from the frontend. Here's how you can do it.
 
-Instant provides a `createInstantRouteHandler` function that generates a web standard endpoint that can be used to sync the refresh token to a cookie that your server can read.
+SidekickDB provides a `createInstantRouteHandler` function that generates a web standard endpoint that can be used to sync the refresh token to a cookie that your server can read.
 
 To use it in Next.js:
 

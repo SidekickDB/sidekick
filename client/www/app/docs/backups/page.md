@@ -5,9 +5,9 @@ nextjs:
     description: 'How SidekickDB creates backups, how to download them, and what a backup archive contains.'
 ---
 
-Instant automatically generates a nightly backup that contains all of the data from your app.
+A backup contains all of the data from your app. On a self-hosted SidekickDB server you create backups on demand: click **Create backup** on the `Backups` page of the dashboard. The server makes no nightly backups. Each backup is kept for 30 days by default, in your server's backups bucket (`S3_APP_BACKUPS_BUCKET`), which the self-hosted stack sets up. To back up the whole server, follow [Backing up and restoring a self-hosted SidekickDB](https://github.com/SidekickDB/sidekick/blob/main/self-hosting/BACKUP.md).
 
-You can view backups for the last 7 days from the `Backups` page on the dashboard, or with the cli:
+You can view your app's backups from the `Backups` page on the dashboard, or with the cli:
 
 ```sh {% showCopy=true %}
 npx @sidekickdb/cli@latest backup list
@@ -29,7 +29,7 @@ A backup contains all of your app's data, including user records like email addr
 
 {% /callout %}
 
-## Anatomy of an Instant backup
+## Anatomy of a SidekickDB backup
 
 A backup is a zip file with this layout:
 
@@ -88,7 +88,7 @@ size   name
 
 ## Restore a backup
 
-You can restore a backup zipfile that you downloaded from the dashboard or through the cli into a self-hosted Instant instance.
+You can restore a backup zipfile that you downloaded from the dashboard or through the cli into a SidekickDB server.
 
 Read the [Self hosting](/docs/self-hosting) guide for more information on how to set up a self-hosted instance.
 

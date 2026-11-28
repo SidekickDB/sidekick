@@ -5,7 +5,7 @@ nextjs:
     description: 'SidekickDB supports magic code, OAuth, Clerk, and custom auth.'
 ---
 
-Instant comes with support for auth. We currently offer [Magic Codes](/docs/auth/magic-codes), [Guest Auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), [Sign In with Apple](/docs/auth/apple), [GitHub OAuth](/docs/auth/github-oauth), [LinkedIn OAuth](/docs/auth/linkedin-oauth), and [Clerk](/docs/auth/clerk). If you want to build your own flow, you can use the [Admin SDK](/docs/backend#custom-auth).
+SidekickDB comes with support for auth. We currently offer [Magic Codes](/docs/auth/magic-codes), [Guest Auth](/docs/auth/guest-auth), [Google OAuth](/docs/auth/google-oauth), [Sign In with Apple](/docs/auth/apple), [GitHub OAuth](/docs/auth/github-oauth), [LinkedIn OAuth](/docs/auth/linkedin-oauth), and [Clerk](/docs/auth/clerk). If you want to build your own flow, you can use the [Admin SDK](/docs/backend#custom-auth).
 
 ## Auth Overview
 
@@ -133,11 +133,11 @@ To implement a login flow, use one of the authentication method guides below.
             /%}
 {% nav-button href="/docs/auth/clerk"
             title="Clerk"
-            description="Integrate Clerk's auth flow with Instant."
+            description="Integrate Clerk's auth flow with SidekickDB."
             /%}
 {% nav-button href="/docs/auth/firebase"
             title="Firebase Auth"
-            description="Integrate Firebase's auth flow with Instant."
+            description="Integrate Firebase's auth flow with SidekickDB."
             /%}
 {% nav-button href="/docs/backend#custom-auth"
             title="Custom Auth"

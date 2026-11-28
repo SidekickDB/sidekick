@@ -13,7 +13,7 @@ data to your database. Common scenarios include:
 - Typing indicators in chat apps like Discord
 - Live reactions in a video streaming app like Twitch
 
-Instant provides three primitives for quickly building these ephemeral experiences: rooms, presence, and topics.
+SidekickDB provides three primitives for quickly building these ephemeral experiences: rooms, presence, and topics.
 
 **Rooms**
 
@@ -23,13 +23,13 @@ A room represents a temporary context for realtime events. Users in the same roo
 
 Presence is an object that each peer shares with every other peer. When a user updates their presence, it's instantly replicated to all users in that room. Presence persists throughout the remainder of a user's connection and is automatically cleaned up when a user leaves the room.
 
-You can use presence to build features like "who's online." Instant's cursor and typing indicator are both built on top of the presence API.
+You can use presence to build features like "who's online." SidekickDB's cursor and typing indicator are both built on top of the presence API.
 
 **Topics**
 
 Topics have "fire-and-forget" semantics and are better suited for data that doesn't need any sort of persistence. When a user publishes a topic, a callback is fired for every other user in the room listening for that topic.
 
-You can use topics to build features like "live reactions." The real-time emoji button panel on Instant's homepage is built using the topics API.
+You can use topics to build features like "live reactions."
 
 **Transact vs. Ephemeral**
 
@@ -55,7 +55,7 @@ const db = init({ apiURI: '__API_URI__', appId: APP_ID });
 
 // Specifying a room type and room id gives you the power to
 // restrict sharing to a specific room. However you can also just use
-// `db.room()` to share presence and topics to an Instant generated default room
+// `db.room()` to share presence and topics to a SidekickDB generated default room
 const roomId = 'hacker-chat-room-id';
 const room = db.room('chat', roomId);
 ```
@@ -122,7 +122,7 @@ Once you've updated your schema, you'll start seeing types in your IntelliSense:
 
 One common use case for presence is to show who's online.
 
-Instant's `usePresence` is similar in feel to `useState`. It returns an object containing the current user's presence state, the presence state of every other user in the room, and a function (`publishPresence`) to update the current user's presence. `publishPresence` is similar to React's `setState` and will merge the current and new presence objects.
+SidekickDB's `usePresence` is similar in feel to `useState`. It returns an object containing the current user's presence state, the presence state of every other user in the room, and a function (`publishPresence`) to update the current user's presence. `publishPresence` is similar to React's `setState` and will merge the current and new presence objects.
 
 ```tsx
 import { init } from '@sidekickdb/react';
@@ -203,7 +203,7 @@ const { publishPresence } = db.rooms.usePresence(room, {
 
 ## Topics
 
-Instant provides 2 hooks for sending and handling events for a given topic. `usePublishTopic` returns a function you can call to publish an event, and `useTopicEffect` will be called each time a peer in the same room publishes a topic event.
+SidekickDB provides 2 hooks for sending and handling events for a given topic. `usePublishTopic` returns a function you can call to publish an event, and `useTopicEffect` will be called each time a peer in the same room publishes a topic event.
 
 Here's a live reaction feature using topics.
 
