@@ -2,8 +2,11 @@
 
 This guide is for the stack in `docker-compose.yml` and
 `docker-compose.with-caddy.yml`. It was tested with `docker-compose.yml` on
-Docker 29.8.2 and Docker Compose 5.5.0 on 2026-11-28; the Caddy setup and
-swarm were not tested.
+Docker 29.8.2 and Docker Compose 5.5.0 on a macOS host on 2026-11-28. Not
+tested: the Caddy setup, swarm, a Linux host (where the owners of the files in
+the bind-mounted `backups/` folder can differ), and `backup.sh` under dash as
+`/bin/sh` (the test host's `/bin/sh` is bash; a review ran the script's trap
+pattern under dash and bash with the same result).
 
 ## What holds state
 
@@ -37,13 +40,19 @@ verify. Keep a copy of the original file with your other secrets.
 
 - `POSTGRES_USER` and `POSTGRES_DB` must be the same on the restored stack:
   the dump assigns every table to that user. `POSTGRES_PASSWORD` sets the
-  password of the new database, so a new value works too.
+  password of the new database, so a new value works too: in the test, a
+  restored database accepted the new password over the Docker network and
+  refused the old one.
 - RustFS (1.0.6) takes `STORAGE_ACCESS_KEY` and `STORAGE_SECRET_KEY` from the
-  environment when it starts, so a restored storage volume also works with new
-  values.
+  environment when it starts. In the test, a restored storage volume started
+  with new keys: `createbuckets` succeeded and an uploaded file downloaded
+  unchanged.
 - With `docker-compose.with-caddy.yml`, the `caddy_data` and `caddy_config`
   volumes hold Caddy's TLS certificates and saved configuration. This guide
-  leaves them out: on a fresh stack Caddy issues the certificates again.
+  leaves them out: on a fresh stack Caddy issues the certificates again. Each
+  restore requests new certificates, so repeated test restores with the same
+  domains can hit the certificate authority's rate limits; test on other
+  domains or keep `caddy_data`.
 
 If `S3_ENDPOINT` points at an external store (AWS S3, Cloudflare R2), the
 files are not in `storage_data`. Back up those buckets with your provider's

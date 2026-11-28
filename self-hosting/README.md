@@ -55,8 +55,11 @@ echo "STORAGE_ACCESS_KEY=$(openssl rand -hex 16)" >> .env
 echo "STORAGE_SECRET_KEY=$(openssl rand -hex 32)" >> .env
 ```
 
-Generate them once and keep them. Postgres and RustFS store the first values
-they start with in their volumes, so changing them later locks the server out.
+Generate them once and keep them. Postgres stores the first password it starts
+with in its volume, so changing `POSTGRES_PASSWORD` later locks the server out.
+RustFS (1.0.6) reads the storage keys from the environment each time it
+starts: a storage volume created with other keys worked with new ones in a
+test, as long as RustFS and the server get the same values.
 Hex values are safe inside `DATABASE_URL`; a password you choose yourself must
 not contain URL characters such as `@ : / ?`. When using AWS S3, set the two
 storage variables to your AWS access key ID and secret access key.
