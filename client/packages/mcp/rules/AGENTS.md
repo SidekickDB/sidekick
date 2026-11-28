@@ -30,8 +30,9 @@ Look for `instant.schema.ts` and `instant.perms.ts`. These define the schema and
 Look for an app id and admin token in `.env` or another env file.
 
 SidekickDB has no default server. The CLI reads the server URL from `apiURI` in
-`instant.config.ts` or from the `SIDEKICK_CLI_API_URI` environment variable,
-which wins. `login` also needs the dashboard URL: `dashURI` in the same file, or
+`sidekick.config.ts` or `instant.config.ts` (the first one found wins), or from
+the `SIDEKICK_CLI_API_URI` environment variable, which wins over both. `login`
+also needs the dashboard URL: `dashURI` in the same file, or
 `SIDEKICK_CLI_DASH_URI`. If they are not set, ask the user for their URLs.
 
 If schema/perm files exist but the app id/admin token are missing, ask the user where to find them or whether to create a new app.
@@ -304,9 +305,13 @@ db.rooms.useTopicEffect(room, 'emoji', (payload) => {
 
 Always pass `schema` when initializing SidekickDB to get type safety for queries and transactions
 
+If the project already calls `init` from the SDK you need (for example in
+`src/lib/db.ts`), import its exported database instead of calling `init` again.
+
 Every `init` also needs `apiURI`, the URL of the user's SidekickDB server, because
 SidekickDB has no default server. Use the same `apiURI` as the project's existing
-`init` (for example in `src/lib/db.ts`) or `instant.config.ts`.
+`init`, or `apiURI` in `sidekick.config.ts` or `instant.config.ts` (the first one
+found wins).
 
 ```tsx
 import schema from '@/instant.schema';
