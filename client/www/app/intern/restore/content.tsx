@@ -11,8 +11,7 @@ import {
   TextInput,
   useDialog,
 } from '@/components/ui';
-// SidekickDB: InternNav and InternFooter leave out the Instant website when self-hosted.
-import { InternFooter, InternNav } from '../nav';
+import { InternFooter, InternNav } from '@/components/intern/InternChrome';
 import { useAdmin, useAuthInfo, useTokenFetch } from '@/lib/auth';
 import { useIsHydrated } from '@/lib/hooks/useIsHydrated';
 import { errorToast, successToast } from '@/lib/toast';
@@ -170,8 +169,7 @@ function RestoreDialog({
             need to update them from the `Auth` tab after the restore finishes.
           </Content>
           <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-            Only upload zip files that were downloaded from a valid Instant
-            backup.
+            Only upload zip files that were downloaded from a valid app backup.
           </div>
           {email && (
             <Content className="text-sm text-gray-500 dark:text-neutral-500">
@@ -381,7 +379,7 @@ function RestoreContent() {
       <div>
         <H2>Restore from backup</H2>
         <p className="mt-2 text-gray-600">
-          Restore an app from a backup zip you downloaded from Instant.
+          Restore an app from a backup zip you downloaded.
         </p>
       </div>
 
@@ -433,7 +431,7 @@ export default function RestorePage() {
           <div className="mt-12 mb-8 text-center">
             <H2>Access Denied</H2>
             <p className="mt-4 text-gray-600">
-              You need to be an Instant admin to access this page.
+              You need to be an admin of this server to access this page.
             </p>
           </div>
         </Section>

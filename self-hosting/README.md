@@ -2,9 +2,19 @@
 
 # Self-hosting SidekickDB
 
-The self-hosting guides are in this repository: [overview](../client/www/app/docs/self-hosting/page.md), [VPS](../client/www/app/docs/self-hosting/vps/page.md), [AWS](../client/www/app/docs/self-hosting/aws/page.md) and [migrating](../client/www/app/docs/self-hosting/migrate/page.md). Where a guide and this file disagree, this file is right for SidekickDB: the guides are inherited and still name upstream's images in places.
+The self-hosting guides are in this repository: [overview](../client/www/app/docs/self-hosting/page.md), [VPS](../client/www/app/docs/self-hosting/vps/page.md), [AWS](../client/www/app/docs/self-hosting/aws/page.md) and [migrating](../client/www/app/docs/self-hosting/migrate/page.md). Where a guide and this file disagree, this file is right for SidekickDB.
 
 See [UPGRADE_DB.md](UPGRADE_DB.md) for instructions on upgrading existing backends from postgres 16 to 17.
+
+<!-- SidekickDB: backup and restore guide, see BACKUP.md. -->
+
+## Backup and restore
+
+Nothing in the stack backs itself up. [BACKUP.md](BACKUP.md) lists what holds
+state (Postgres, the storage volume, the server's `override.edn` and `.env`),
+and has a backup script with a cron example and the steps to restore it on a
+fresh stack. The on-demand app backups in the dashboard are no substitute: each
+covers one app and is stored in the same storage service.
 
 ## Variable names
 
@@ -45,8 +55,11 @@ echo "STORAGE_ACCESS_KEY=$(openssl rand -hex 16)" >> .env
 echo "STORAGE_SECRET_KEY=$(openssl rand -hex 32)" >> .env
 ```
 
-Generate them once and keep them. Postgres and RustFS store the first values
-they start with in their volumes, so changing them later locks the server out.
+Generate them once and keep them. Postgres stores the first password it starts
+with in its volume, so changing `POSTGRES_PASSWORD` later locks the server out.
+RustFS (1.0.6) reads the storage keys from the environment each time it
+starts: a storage volume created with other keys worked with new ones in a
+test, as long as RustFS and the server get the same values.
 Hex values are safe inside `DATABASE_URL`; a password you choose yourself must
 not contain URL characters such as `@ : / ?`. When using AWS S3, set the two
 storage variables to your AWS access key ID and secret access key.
@@ -292,7 +305,12 @@ In the self-hosted mode:
   (Instant's backend-migration tool), the join-room analytics logger, and the
   Postgres hint-plan experiment.
 - nREPL (port 6005 inside the container, bound to `127.0.0.1`) does not start
-  unless `SIDEKICK_NREPL=true`.
+  unless `SIDEKICK_NREPL=true`. Whoever connects to it can run any code in the
+  server process, with the database credentials and the keys from
+  `override.edn`. Only `docker exec` into the server container reaches it: do
+  not publish the port and do not set `NREPL_BIND_ADDRESS`. Leave it off unless
+  you are debugging. In the `default` mode the server starts nREPL whatever
+  `SIDEKICK_NREPL` says, still on `127.0.0.1`.
 - Behaviour meant for developing the server is off: SSE requests and stream
   reads are always served locally (in development about half go through
   Hazelcast or gRPC on purpose), and responses and WebSocket `init-ok` carry no

@@ -119,7 +119,7 @@ function WelcomeScreen({ onClick }: { onClick: () => void }) {
       <div className="flex w-full max-w-sm flex-col gap-4 p-4">
         <div className="flex justify-center text-4xl">🎉️</div>
         <ScreenHeading className="text-center">
-          Welcome to Instant
+          Welcome to SidekickDB
         </ScreenHeading>
         <Content>
           We're excited to have you! Before we get started, we need to do two

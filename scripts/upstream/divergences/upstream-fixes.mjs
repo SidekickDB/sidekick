@@ -1,6 +1,6 @@
 export default {
   title:
-    "Upstream fixes cherry-picked before upstream merged them (batch 1, batch 2, IndexedDB error handling, permission field subscriptions, Explorer exponent numbers) and their follow-ups",
+    "Upstream fixes taken early",
   resolve:
     "Upstream may have merged the same PR (the report says so) or fixed the issue its own way. Same patch: " +
     "git merges it, and sync.mjs keeps ours where SidekickDB changed the file afterwards. Different fix: " +

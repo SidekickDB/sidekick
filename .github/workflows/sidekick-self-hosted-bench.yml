@@ -6,8 +6,9 @@
 # kept are committed under scripts/bench/self-hosted/results/.
 #
 # Read-only: no secrets, no write permissions, nothing is pushed or published.
-# It runs on demand, and on pull requests that change the harness or this
-# file. A pull request that changes only results/ does not start it; on one
+# It runs on demand, and on pull requests that change the harness, this
+# file, or what the dashboard image carries and serves (client/Dockerfile.www,
+# client/www/next.config.js, client/www/public). A pull request that changes only results/ does not start it; on one
 # that also changes the harness, every push runs it, because GitHub matches
 # the paths against the whole pull request.
 #
@@ -37,6 +38,9 @@ on:
       - 'scripts/bench/self-hosted/**'
       - '!scripts/bench/self-hosted/results/**'
       - '.github/workflows/sidekick-self-hosted-bench.yml'
+      - 'client/Dockerfile.www'
+      - 'client/www/next.config.js'
+      - 'client/www/public/**'
 
 permissions:
   contents: read
@@ -150,13 +154,14 @@ jobs:
 
       # The dashboard image serves only the dashboard, the docs and the admin
       # tools, and carries only the public/ files they load
-      # (client/Dockerfile.www, client/www/next.config.js). Compared with the
-      # last release, which still carried all of Instant's website files.
+      # (client/Dockerfile.www, client/www/next.config.js). HTTP answers only:
+      # signing in on /dash and using the devtool are not exercised here.
       - name: Check what the dashboard image serves
         if: github.event_name == 'pull_request'
         env:
           IMAGE: sidekick-bench/dashboard:local
-          RELEASED: ghcr.io/sidekickdb/dashboard:v2.0.0
+          # www/public was about 104 MB in v2.0.0.
+          MAX_PUBLIC_BYTES: '10000000'
         run: |
           fail=0
           trap 'docker rm -f dash-check > /dev/null 2>&1 || true' EXIT
@@ -166,17 +171,20 @@ jobs:
             curl -fsS -o /dev/null http://127.0.0.1:3999/dash && break
             sleep 1
           done
-          for p in /dash /logout /_devtool /docs /intern /intern/storage \
+          for p in /dash /logout /_devtool /docs /docs/instaql /docs/instaql.md \
+            /docs.md /llm-rules/AGENTS.md /intern /intern/storage \
             /intern/restore /intern/deployment-settings \
-            /fonts/Switzer-Regular.woff /img/icon/favicon-32x32.png \
-            /img/google_g.svg /publicSelfHostedVariables.js; do
+            /fonts/Switzer-Regular.woff /img/docs/devtool-explorer.png \
+            /img/google_g.svg /publicSelfHostedVariables.js \
+            /native-file-system-adapter-sw.js; do
             got=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3999$p" || true)
             echo "$got $p"
             [ "$got" = 200 ] || { echo "::error::$p: expected 200, got $got"; fail=1; }
           done
-          for p in /pricing /intern/emails /intern/emails/feb2026 \
+          for p in /pricing /status /discord /intern/emails /intern/emails/feb2026 \
             /intern/investor_updates /intern/sunset /intern/overview \
-            /posts/heroui/stars.png /audio/habanera.mp3 /api/avatar; do
+            /posts/heroui/stars.png /audio/habanera.mp3 /api/avatar \
+            /img/icon/favicon-32x32.png /sitemap.xml /rss.xml; do
             got=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "http://127.0.0.1:3999$p" || true)
             echo "$got $p"
             case "$got" in
@@ -186,17 +194,16 @@ jobs:
           done
           echo "--- www/public in the image"
           docker run --rm --entrypoint sh "$IMAGE" -c 'cd /app/www/public && find . -maxdepth 2 | sort'
-          for d in posts audio marketing video-previews img/emails img/essays \
-            img/investors img/startups img/hiring img/peeps; do
+          for d in posts audio marketing video-previews readmes img/icon \
+            img/emails img/essays img/investors img/startups img/hiring \
+            img/peeps img/about img/landing img/showcase img/product-pages; do
             if docker run --rm --entrypoint test "$IMAGE" -e "/app/www/public/$d"; then
               echo "::error::www/public/$d is in the image"; fail=1
             fi
           done
-          docker pull -q "$RELEASED" > /dev/null
-          new=$(docker image inspect -f '{{.Size}}' "$IMAGE")
-          old=$(docker image inspect -f '{{.Size}}' "$RELEASED")
-          echo "Size: $IMAGE $((new / 1000000)) MB, $RELEASED $((old / 1000000)) MB, $(((old - new) / 1000000)) MB smaller"
-          [ $((old - new)) -ge 80000000 ] || { echo "::error::image is not at least 80 MB smaller than $RELEASED"; fail=1; }
+          public=$(docker run --rm --entrypoint du "$IMAGE" -sb /app/www/public | cut -f1)
+          echo "Size: www/public $public bytes, image $(docker image inspect -f '{{.Size}}' "$IMAGE") bytes"
+          [ "$public" -le "$MAX_PUBLIC_BYTES" ] || { echo "::error::www/public is $public bytes, more than $MAX_PUBLIC_BYTES"; fail=1; }
           exit $fail
 
       - name: Run the benchmark

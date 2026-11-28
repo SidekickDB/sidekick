@@ -72,7 +72,7 @@ export function Schema({ attrs }: { attrs: Record<string, DBAttr> | null }) {
           <a
             className="flex items-baseline gap-1 underline"
             target="_blank"
-            href="https://www.instantdb.com/docs/modeling-data#schema-as-code"
+            href="/docs/modeling-data#schema-as-code"
           >
             Learn more in the docs
             <ArrowTopRightOnSquareIcon className="h-3 w-3" />

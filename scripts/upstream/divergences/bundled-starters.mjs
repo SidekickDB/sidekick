@@ -1,6 +1,6 @@
 export default {
   title:
-    "create-sidekick-app bundles every starter it offers and does not offer vercel-ai-sdk; the download fallback points at SidekickDB's repository; bun-react without lockfile",
+    "Starters bundled with create-sidekick-app",
   resolve:
     "Keep `bundled: true` on every offered base in create-instant-app/src/projectBase.ts, also on a base upstream " +
     "adds, and keep SidekickDB/sidekick as the repository in scaffold.ts. Keep examples/bun-react on " +

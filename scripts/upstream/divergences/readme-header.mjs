@@ -1,5 +1,5 @@
 export default {
-  title: "README header: plain SidekickDB text instead of Instant's logo, badges and links",
+  title: "README header: plain SidekickDB text",
   resolve:
     "Keep SidekickDB's header (everything above the first paragraph of upstream's text). Do not take back " +
     "the logo, the Discord and stars badges or the instantdb.com link row. Keep the two diagrams on their " +

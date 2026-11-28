@@ -259,9 +259,9 @@ export function Perms({
             permissions. You can define them here
           </p>
           <p>
-            Under the hood, Instant uses the CEL Expression Language. Check out
-            the docs to learn more about permission rules and how you can write
-            them.
+            Under the hood, SidekickDB uses the CEL Expression Language. Check
+            out the docs to learn more about permission rules and how you can
+            write them.
           </p>
         </Content>
         <HomeButton

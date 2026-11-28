@@ -1,5 +1,5 @@
 export default {
-  title: "create-sidekick-app does not offer or bundle the Python starter; docs say the Python SDK is Instant's",
+  title: "No Python starter in create-sidekick-app",
   resolve:
     "Keep unavailableProjectBases in create-instant-app/src/projectBase.ts with python-script in it, and no " +
     "--python option or menu entry in cli.ts. Take upstream's other changes to the Python handling as they " +

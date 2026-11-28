@@ -8,40 +8,18 @@ import { isSelfHosted } from '@/lib/config';
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// SidekickDB: metadataBase no longer falls back to Instant's site (unset
+// outside Vercel and dev, as in the self-hosted image), the name is SidekickDB,
+// and no icons are linked until a SidekickDB mark is approved.
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : isDev
-        ? `http://localhost:${process.env.PORT || 3000}`
-        : 'https://www.instantdb.com',
-  ),
-  applicationName: 'Instant',
+  metadataBase: process.env.NEXT_PUBLIC_VERCEL_URL
+    ? new URL(`https://${process.env.NEXT_PUBLIC_VERCEL_URL}`)
+    : isDev
+      ? new URL(`http://localhost:${process.env.PORT || 3000}`)
+      : undefined,
+  applicationName: 'SidekickDB',
   openGraph: {
     type: 'website',
-  },
-  icons: {
-    icon: [
-      {
-        url: '/img/icon/favicon-196x196.png',
-        sizes: '196x196',
-        type: 'image/png',
-      },
-      { url: '/img/icon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-      { url: '/img/icon/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/img/icon/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/img/icon/favicon-128.png', sizes: '128x128', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/img/icon/apple-touch-icon-57x57.png', sizes: '57x57' },
-      { url: '/img/icon/apple-touch-icon-114x114.png', sizes: '114x114' },
-      { url: '/img/icon/apple-touch-icon-72x72.png', sizes: '72x72' },
-      { url: '/img/icon/apple-touch-icon-144x144.png', sizes: '144x144' },
-      { url: '/img/icon/apple-touch-icon-60x60.png', sizes: '60x60' },
-      { url: '/img/icon/apple-touch-icon-120x120.png', sizes: '120x120' },
-      { url: '/img/icon/apple-touch-icon-76x76.png', sizes: '76x76' },
-      { url: '/img/icon/apple-touch-icon-152x152.png', sizes: '152x152' },
-    ],
   },
 };
 
