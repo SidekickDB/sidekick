@@ -1080,6 +1080,14 @@ project as SidekickDB:
   dashboard keeps its own copies in `client/www/lib/config.ts`).
   The CLI's "unexpected job type" error (`client/packages/cli/src/old.js`)
   asks for an issue here instead of a message on upstream's Discord.
+- `client/packages/mcp/src/index.ts`: the `learn` tool names SidekickDB and
+  returns the raw GitHub URL of
+  `client/packages/create-instant-app/template/rules/AGENTS.md` on `main`
+  instead of Instant's rules file. The docs links in the tool texts, the OAuth
+  metadata, `index.html.ts` and the `db/` headers point at
+  `https://sidekickdb.co/docs/...` with upstream's path; `client/packages/mcp/src/`
+  is in `DOCS_HOST_PATHS`. The `learn` bullet in `using-llms/page.md` says
+  where it points. Resolving: keep the URL and the host swap.
 - `README.md`: the body is SidekickDB's own text. It links to the docs pages
   in `client/www/app/docs`, names self-hosting as the way to get started and
   credits InstantDB's authors for the design.

@@ -103,13 +103,14 @@ function wrapServerWithTracing(
 function registerTools(server: McpServer, api: PlatformApi) {
   server.tool(
     'learn',
-    "If you don't have any context provided about InstantDB, use this tool to learn about it!",
+    // SidekickDB: point at SidekickDB's rules file in its repository.
+    "If you don't have any context provided about SidekickDB, use this tool to learn about it!",
     {},
     async () => {
       const instructions = `
-      You can learn about InstantDB by fetching our rules file for agents:
+      You can learn about SidekickDB by fetching our rules file for agents:
 
-      https://www.instantdb.com/llm-rules/AGENTS.md
+      https://raw.githubusercontent.com/SidekickDB/sidekick/main/client/packages/create-instant-app/template/rules/AGENTS.md
       `;
 
       return {
@@ -255,7 +256,7 @@ function registerTools(server: McpServer, api: PlatformApi) {
     {"goals": {"$": {"where": {"status": "active"}}, "todos": {}}}
 
     If you're unsure how to write queries, refer to the documentation:
-    https://instantdb.com/docs/instaql`,
+    https://sidekickdb.co/docs/instaql`,
     {
       appId: z.string().uuid().describe('UUID of the app'),
       query: z.record(z.string(), z.any()).describe('InstaQL query object'),
@@ -279,7 +280,7 @@ function registerTools(server: McpServer, api: PlatformApi) {
     [["update", "todos", "a-uuid", {"title": "Get fit", "done": false}]]
 
     If you're unsure how to make transactions, refer to the documentation:
-    https://instantdb.com/docs/instaml`,
+    https://sidekickdb.co/docs/instaml`,
     {
       appId: z.string().uuid().describe('UUID of the app'),
       steps: z.array(z.array(z.any())).describe('Array of transaction steps'),
@@ -416,7 +417,7 @@ async function startSse() {
     provider: proxyProvider,
     issuerUrl: new URL(oauthConfig.serverOrigin),
     baseUrl: new URL(oauthConfig.serverOrigin),
-    serviceDocumentationUrl: new URL('https://instantdb.com/docs'),
+    serviceDocumentationUrl: new URL('https://sidekickdb.co/docs'),
   };
 
   const oauthMetadata = createOAuthMetadata(authRouterOptions);
@@ -430,7 +431,7 @@ async function startSse() {
       resource: `${oauthConfig.serverOrigin}/mcp`,
       authorization_servers: [oauthMetadata.issuer],
       scopes_supported: oauthMetadata.scopes_supported,
-      resource_documentation: 'https://instantdb.com/docs',
+      resource_documentation: 'https://sidekickdb.co/docs',
     });
   });
 
@@ -439,7 +440,7 @@ async function startSse() {
       resource: `${oauthConfig.serverOrigin}/mcp`,
       authorization_servers: [oauthMetadata.issuer],
       scopes_supported: oauthMetadata.scopes_supported,
-      resource_documentation: 'https://instantdb.com/docs',
+      resource_documentation: 'https://sidekickdb.co/docs',
     });
   });
 

@@ -74,7 +74,7 @@ const html = (serverOrigin: string): string => {
           </div>
 
           <p>
-            <a href="https://www.instantdb.com/docs/using-llms"
+            <a href="https://sidekickdb.co/docs/using-llms"
               >Learn more in the docs.</a
             >
           </p>

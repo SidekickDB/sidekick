@@ -146,9 +146,8 @@ server active and enabled!
 
 Below is a list of the current tools we expose:
 
-- `learn` Fetch rules files if needed to help the LLM understand InstantDB. It
-  still points at Instant's rules file; give your agent the
-  [rules file](/llm-rules/AGENTS.md) above instead.
+- `learn` Points the LLM at the SidekickDB rules file in the SidekickDB
+  repository, to help it understand SidekickDB.
 - `get-schema` Retrieves the schema for a specific app.
 - `get-perms` Retrieves permission rules for an app.
 - `push-schema` Applies schema changes to an app.

@@ -2,6 +2,7 @@ export default {
   title:
     "Brand: the project presented as SidekickDB",
   resolve:
+    "MCP src: the learn tool keeps the repository's AGENTS.md raw URL. " +
     "SDK src docs links and the two in server exception.clj: take upstream's line and swap the host to sidekickdb.co/docs; no instantdb.com/dash link, appId and store errors say SidekickDB. " +
     "Server emails and messages (sender name defaults, invite subjects and link text, sender verification, postmark-user-note, rate limit, schema dashboard links, signup denied, login-code banner): keep SidekickDB's text, marked SidekickDB:. " +
     "Keep SidekickDB's text: no Instant logo, badges, Discord or instantdb.com links, the name SidekickDB in " +
