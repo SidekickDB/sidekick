@@ -1,6 +1,6 @@
 export default {
   title:
-    "Brand: README body, package READMEs and descriptions, self-hosting/client/server README headers, CONTRIBUTING.md and the text the CLI and create-sidekick-app print present the project as SidekickDB",
+    "Brand: the project presented as SidekickDB",
   resolve:
     "SDK src docs links and the two in server exception.clj: take upstream's line and swap the host to sidekickdb.co/docs; no instantdb.com/dash link, appId and store errors say SidekickDB. " +
     "Server emails and messages (sender name defaults, invite subjects and link text, sender verification, postmark-user-note, rate limit, schema dashboard links, signup denied, login-code banner): keep SidekickDB's text, marked SidekickDB:. " +
