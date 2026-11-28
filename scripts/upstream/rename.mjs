@@ -189,12 +189,6 @@ export const ALLOWLIST = [
     /^\s*"instant-cli": "bin\/index\.js"/,
     "instant-cli binary alias",
   ],
-  // The dashboard editor loads types from the published upstream core.
-  [
-    "client/www/lib/monaco.ts",
-    /unpkg\.com\/@instantdb\/core@|upstream @instantdb\/core build/,
-    "@sidekickdb/core is not published yet",
-  ],
   // Instant's history timeline.
   ["client/www/app/about/content.tsx", /create-instant-app/, "history"],
   // Paths to the unrenamed create-instant-app directory.

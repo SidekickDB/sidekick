@@ -164,10 +164,14 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           IMAGE: sidekick-bench/dashboard:local
-          # www/public was about 104 MB in v2.0.0 and 3,159,619 bytes on this
-          # pull request. Raise this bound when the image gains files on
-          # purpose: the bundled editor under public/monaco adds about 14 MB.
-          MAX_PUBLIC_BYTES: '10000000'
+          # www/public was about 104 MB in v2.0.0 and 3,152,829 bytes without
+          # the code editor; public/monaco (Monaco and the @sidekickdb/core
+          # types) adds 14,073,600 bytes; with it, 17,623,741 bytes on pull
+          # request #107. Raise this bound when the image gains files on
+          # purpose.
+          MAX_PUBLIC_BYTES: '20000000'
+          # The pages scanned below ask for far more files than this.
+          MIN_PAGE_FILES: '10'
         run: |
           fail=0
           trap 'docker rm -f dash-check > /dev/null 2>&1 || true' EXIT
@@ -183,7 +187,9 @@ jobs:
             /intern/restore /intern/deployment-settings \
             /fonts/Switzer-Regular.woff /img/docs/devtool-explorer.png \
             /img/google_g.svg /publicSelfHostedVariables.js \
-            /native-file-system-adapter-sw.js; do
+            /native-file-system-adapter-sw.js /monaco/vs/loader.js \
+            /monaco/vs/editor/editor.main.js /monaco/vs/editor/editor.main.css \
+            /monaco/types/index.d.ts; do
             got=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:3999$p" || true)
             echo "$got $p"
             [ "$got" = 200 ] || { echo "::error::$p: expected 200, got $got"; fail=1; }
@@ -215,11 +221,19 @@ jobs:
           for css in $(grep -E '^/_next/static/.*\.css$' "$refs" | sort -u || true); do
             curl -s "$base$css" | grep -oE "url\([\"']?/[^)\"']*" | sed -E "s/^url\([\"']?//" >> "$refs" || true
           done
+          checked=0
+          static=0
           for f in $(sed -E 's/[?#].*//' "$refs" | grep -E '^/(_next/static/|img/|fonts/|llm-rules/|[^/]+\.[A-Za-z0-9]+$)' | sort -u || true); do
             got=$(curl -s -o /dev/null -w '%{http_code}' "$base$f" || true)
             echo "$got $f"
             [ "$got" = 200 ] || { echo "::error::$f, asked for by a served page: expected 200, got $got"; fail=1; }
+            checked=$((checked + 1))
+            case "$f" in /_next/static/*) static=$((static + 1)) ;; esac
           done
+          echo "Checked $checked files, $static under /_next/static/"
+          # An empty scan would pass the loop above: fail it instead.
+          [ "$checked" -ge "$MIN_PAGE_FILES" ] || { echo "::error::only $checked files found in the served pages, expected at least $MIN_PAGE_FILES"; fail=1; }
+          [ "$static" -gt 0 ] || { echo "::error::no /_next/static/ file found in the served pages"; fail=1; }
           echo "--- www/public in the image"
           docker run --rm --entrypoint sh "$IMAGE" -c 'cd /app/www/public && find . -maxdepth 2 | sort'
           for d in posts audio marketing video-previews readmes img/icon \

@@ -12,7 +12,7 @@ import { AppPicker } from '@/components/docs/AppPicker';
 import { useCanonicalDocsPath } from '@/components/docs/NavButton';
 import { SelectedAppContext } from '@/lib/SelectedAppContext';
 import { useAuthToken, useTokenFetch } from '@/lib/auth';
-import config from '@/lib/config';
+import config, { isSelfHosted } from '@/lib/config';
 import { Button } from '@/components/ui';
 // SidekickDB: no marketing nav when self-hosted.
 import { DocsHeaderNav } from '@/components/docs/DocsHeaderNav';
@@ -396,7 +396,8 @@ export function Layout({ children, title, tableOfContents }) {
           <div className="grid h-full w-full border-b px-4">
             <DocsHeaderNav>
               <div className="flex flex-col md:hidden">
-                <Search />
+                {/* SidekickDB: docs search queries Instant's Algolia index. */}
+                {!isSelfHosted && <Search />}
                 <Navigation
                   navigation={navigation}
                   orgQuery={orgQuery}
@@ -423,7 +424,8 @@ export function Layout({ children, title, tableOfContents }) {
                   adj.hWithoutHeader,
                 )}
               >
-                <Search />
+                {/* SidekickDB: docs search queries Instant's Algolia index. */}
+                {!isSelfHosted && <Search />}
                 <Navigation
                   navigation={navigation}
                   orgQuery={orgQuery}

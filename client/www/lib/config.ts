@@ -6,6 +6,8 @@ export const isDev = process.env.NODE_ENV === 'development';
 
 const isStaging = process.env.NEXT_PUBLIC_STAGING === 'true';
 export const isSelfHosted = process.env.NEXT_PUBLIC_SELF_HOSTED === 'true';
+// SidekickDB: Google Analytics loads only for a build that sets its id.
+export const googleAnalyticsId = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID;
 
 type DashboardConfig = {
   apiURI: string;

@@ -4,7 +4,7 @@ import '../styles/docs/tailwind.css';
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Providers } from './providers';
-import { isSelfHosted } from '@/lib/config';
+import { googleAnalyticsId, isSelfHosted } from '@/lib/config';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -82,17 +82,20 @@ export default async function RootLayout({
           />
         )}
         <Providers>{children}</Providers>
-        {!isDev && !isSelfHosted && <GoogleScripts />}
+        {!isDev && !isSelfHosted && googleAnalyticsId && (
+          <GoogleScripts id={googleAnalyticsId} />
+        )}
       </body>
     </html>
   );
 }
 
-function GoogleScripts() {
+// SidekickDB: the id comes from NEXT_PUBLIC_GOOGLE_ANALYTICS_ID (no default).
+function GoogleScripts({ id }: { id: string }) {
   return (
     <>
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-45H27NT87Z"
+        src={`https://www.googletagmanager.com/gtag/js?id=${id}`}
         strategy="afterInteractive"
       />
       <Script id="google-analytics" strategy="afterInteractive">
@@ -100,7 +103,7 @@ function GoogleScripts() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-45H27NT87Z');
+          gtag('config', ${JSON.stringify(id)});
         `}
       </Script>
     </>

@@ -29,6 +29,10 @@ client/www/public/docs*
 # llm-rules
 client/www/public/llm-rules*
 
+# SidekickDB: the code editor and its type files, copied by
+# client/www/scripts/copy-editor-assets.mjs
+client/www/public/monaco
+
 # production
 www/build
 

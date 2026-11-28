@@ -1,7 +1,5 @@
 import { Monaco } from '@monaco-editor/react';
-import { version } from '@sidekickdb/core';
-
-const bareVersion = version.replace(/^v/, '');
+import { monacoPath } from './monacoLoader';
 
 export async function addInstantLibs(monaco: Monaco) {
   const files = [
@@ -13,16 +11,13 @@ export async function addInstantLibs(monaco: Monaco) {
     'instatx.d.ts',
   ];
 
-  // @sidekickdb/core is not published yet, so load the type declarations
-  // from the upstream @instantdb/core build of the same version. They are
-  // registered under the @sidekickdb/* paths below. Switch this URL once
-  // @sidekickdb/core is published (or bundle the types).
+  // SidekickDB: the dashboard serves the type declarations of the
+  // @sidekickdb/core it was built with (scripts/copy-editor-assets.mjs), so
+  // nothing is loaded from a CDN.
   const fetched = await Promise.all(
     files.map(async (file) => {
       try {
-        const r = await fetch(
-          `https://unpkg.com/@instantdb/core@${bareVersion}/dist/esm/${file}`,
-        );
+        const r = await fetch(`${monacoPath}/types/${file}`);
         // Skip files that fail to load instead of registering an error page
         // as type declarations.
         if (!r.ok) return null;
